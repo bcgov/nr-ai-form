@@ -69,8 +69,8 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-          echo "TF_STATE_RESOURCE_GROUP=${{ vars.RESOURCE_GROUP }}" >> $GITHUB_ENV
-          echo "TF_STATE_STORAGE_ACCOUNT=${{ vars.TF_STATE_STORAGE_ACCOUNT }}" >> $GITHUB_ENV
+          echo "TF_STATE_RESOURCE_GROUP=${{ vars.RESOURCE_GROUP_NAME }}" >> $GITHUB_ENV
+          echo "TF_STATE_STORAGE_ACCOUNT=${{ vars.TFSTATE_STORAGE_ACCOUNT }}" >> $GITHUB_ENV
           echo "TF_STATE_CONTAINER=tfstate" >> $GITHUB_ENV
           echo "TF_STATE_KEY=${{ needs.determine-environment.outputs.environment }}" >> $GITHUB_ENV
           echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
