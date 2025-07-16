@@ -28,6 +28,6 @@ resource "azurerm_api_management_api" "nr-ai-form" {
   service_url         = "https://${azurerm_linux_web_app.app_service.default_hostname}"
    import {
     content_format = "openapi"
-    content_value  = file("./../src/docs/openapi-azure.yaml")
+    content_value  = file("./../src/docs/openapi.yaml")
   } 
 }
