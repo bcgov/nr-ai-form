@@ -117,7 +117,7 @@ jobs:
             -var="privateendpoint_subnet_prefix=${{ vars.PRIVATEENDPOINT_SUBNET_PREFIX }}" \
             -var="container_image_name=${{ github.repository_owner }}/nr-ai-form:latest" \
             -var="container_registry_url=https://ghcr.io" \
-            -var="container_registry_username=" \
+            -var="container_registry_username=${{ github.event.repository.name }}" \
             -var="container_registry_password=${{ secrets.GHCR_TOKEN }}"
 
       - name: Terraform Apply
