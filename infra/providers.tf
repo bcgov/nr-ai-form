@@ -17,6 +17,6 @@ terraform {
 }
 provider "azurerm" {
   features {}
-  subscription_id = "8e303ae8-ce14-4e85-9dc3-9d767a42dec8"
-  #subscription_id = "9b6ae7b5-90fb-4b00-96b3-5a10cc0cb0a3"
+  # subscription_id will be read from ARM_SUBSCRIPTION_ID environment variable
+  # This is automatically set by the GitHub Actions workflow
 }

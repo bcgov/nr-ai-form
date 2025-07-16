@@ -1,5 +1,5 @@
 # Create the Linux App Service  
-  resource "azurerm_service_plan" "app_service_plan" {
+resource "azurerm_service_plan" "app_service_plan" {
   name                = "${local.abbrs.webServerFarms}${random_id.random_deployment_suffix.hex}"
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -15,16 +15,18 @@ resource "azurerm_linux_web_app" "app_service" {
   service_plan_id     = azurerm_service_plan.app_service_plan.id
   depends_on          = [azurerm_service_plan.app_service_plan]
   https_only          = true
-  
+
   # Enable system-assigned managed identity
   identity {
     type = "SystemAssigned"
   }
-  
+
   site_config {
-    minimum_tls_version    = "1.3"
+    minimum_tls_version    = "1.2" # Changed from 1.3 for API Management compatibility
     use_32_bit_worker      = false
     vnet_route_all_enabled = true
+    ftps_state             = "FtpsOnly"
+
     application_stack {
       docker_image_name        = var.container_image_name
       docker_registry_url      = var.container_registry_url
@@ -32,12 +34,14 @@ resource "azurerm_linux_web_app" "app_service" {
       docker_registry_password = var.container_registry_password
     }
   }
+
   public_network_access_enabled = false
   virtual_network_subnet_id     = azapi_resource.app_service_subnet.id
+
   app_settings = {
-    COSMOS_DB_ENDPOINT      = azurerm_cosmosdb_account.cosmosdb_sql.endpoint
-    COSMOS_DB_DATABASE_NAME = azurerm_cosmosdb_sql_database.cosmosdb_sql_db.name
-    COSMOS_DB_CONTAINER_NAME = "demo-container"
+    COSMOS_DB_ENDPOINT       = azurerm_cosmosdb_account.cosmosdb_sql.endpoint
+    COSMOS_DB_DATABASE_NAME  = azurerm_cosmosdb_sql_database.cosmosdb_sql_db.name
+    COSMOS_DB_CONTAINER_NAME = azurerm_cosmosdb_sql_container.cosmosdb_sql_db_container.name
   }
 }
 
