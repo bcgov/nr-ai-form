@@ -41,9 +41,7 @@ Options:
     -g, --resource-group        Resource group name (required)
     -n, --identity-name         Managed identity name (required)
     -r, --github-repo           GitHub repository in format owner/repo (required)
-    -e, --environment           GitHub environment name (optional, for environment-specific deployments)
-    -b, --branch                GitHub branch name (optional, default: main)
-    -s, --subscription          Azure subscription ID (optional, uses current subscription)
+    -e, --environment           GitHub environment name (required)
     --contributor-scope         Scope for Contributor role assignment (optional, defaults to resource group)
     --additional-roles          Additional roles to assign (comma-separated, optional)
     --storage-account           Storage account name for Terraform state (optional, default: auto-generated)
@@ -56,11 +54,8 @@ Examples:
     # Basic setup for main branch
     $0 -g myResourceGroup -n myManagedIdentity -r myorg/myrepo
 
-    # Setup for specific environment and branch
-    $0 -g myResourceGroup -n myManagedIdentity -r myorg/myrepo -e production -b main
-
-    # Setup with custom subscription and additional roles
-    $0 -g myResourceGroup -n myManagedIdentity -r myorg/myrepo -s 12345678-1234-1234-1234-123456789012 --additional-roles "Key Vault Secrets User,Storage Blob Data Contributor"
+    # Setup for specific environment
+    $0 -g myResourceGroup -n myManagedIdentity -r myorg/myrepo -e production
 
     # Setup with Terraform state storage account
     $0 -g myResourceGroup -n myManagedIdentity -r myorg/myrepo --create-storage
@@ -74,9 +69,7 @@ EOF
 }
 
 # Default values
-GITHUB_BRANCH="main"
 GITHUB_ENVIRONMENT=""
-SUBSCRIPTION_ID=""
 CONTRIBUTOR_SCOPE=""
 ADDITIONAL_ROLES=""
 STORAGE_ACCOUNT="" # Will be generated based on repo name
@@ -101,14 +94,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         -e|--environment)
             GITHUB_ENVIRONMENT="$2"
-            shift 2
-            ;;
-        -b|--branch)
-            GITHUB_BRANCH="$2"
-            shift 2
-            ;;
-        -s|--subscription)
-            SUBSCRIPTION_ID="$2"
             shift 2
             ;;
         --contributor-scope)
@@ -148,7 +133,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate required parameters
-if [[ -z "${RESOURCE_GROUP:-}" || -z "${IDENTITY_NAME:-}" || -z "${GITHUB_REPO:-}" ]]; then
+if [[ -z "${RESOURCE_GROUP:-}" || -z "${IDENTITY_NAME:-}" || -z "${GITHUB_REPO:-}" || -z "${GITHUB_ENVIRONMENT:-}" ]]; then
     log_error "Required parameters missing. Use -h for help."
     exit 1
 fi
@@ -179,38 +164,30 @@ execute_command() {
 # Function to generate randomized storage account name
 generate_storage_account_name() {
     if [[ -z "$STORAGE_ACCOUNT" ]]; then
-        # Extract repo name from owner/repo format and sanitize it
-        local repo_name=$(echo "$GITHUB_REPO" | cut -d'/' -f2)
-        # Remove hyphens, underscores, and dots, convert to lowercase, keep only alphanumeric
-        repo_name=$(echo "$repo_name" | tr -d '_.-' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
-        
-        # Generate a random 8-character suffix (only lowercase letters and numbers)
-        local random_suffix=$(openssl rand -hex 4 2>/dev/null || printf "%08x" $((RANDOM * RANDOM + $(date +%s))))
-        
-        # Create a simple hash of the repo name using only alphanumeric characters
-        local repo_hash=$(echo -n "$repo_name" | cksum | cut -d' ' -f1)
-        # Convert to hex and take first 4 characters, ensure it's lowercase
-        repo_hash=$(printf "%x" "$repo_hash" | head -c 4)
-        
-        # Combine components: tfstate + repo_hash + random_suffix
-        local base_name="tfstate${repo_hash}"
-        local max_base_length=$((24 - 8)) # 24 total - 8 for random suffix
-        
-        if [[ ${#base_name} -gt $max_base_length ]]; then
-            base_name="${base_name:0:$max_base_length}"
+        # Extract and sanitize repo name and environment name
+        local repo_name=$(echo "$GITHUB_REPO" | cut -d'/' -f2 | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
+        local env_name=$(echo "$GITHUB_ENVIRONMENT" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
+
+        # Compose base name: tfstate + repo + env
+        local base_name="tfstate${repo_name}${env_name}"
+
+        # Azure storage account name max length is 24, min is 3
+        # Truncate if necessary
+        if [[ ${#base_name} -gt 24 ]]; then
+            base_name="${base_name:0:24}"
         fi
-        
-        STORAGE_ACCOUNT="${base_name}${random_suffix}"
-        
+
+        STORAGE_ACCOUNT="$base_name"
+
         # Final validation to ensure only lowercase letters and numbers
         STORAGE_ACCOUNT=$(echo "$STORAGE_ACCOUNT" | sed 's/[^a-z0-9]//g')
-        
+
         # Ensure minimum length
         if [[ ${#STORAGE_ACCOUNT} -lt 3 ]]; then
-            STORAGE_ACCOUNT="${STORAGE_ACCOUNT}$(openssl rand -hex 2 2>/dev/null || echo "abc")"
+            STORAGE_ACCOUNT="${STORAGE_ACCOUNT}abc"
         fi
-        
-        log_info "Generated storage account name: $STORAGE_ACCOUNT (based on repo: $repo_name)"
+
+        log_info "Generated storage account name: $STORAGE_ACCOUNT (based on repo: $repo_name, environment: $env_name)"
     fi
 }
 
@@ -233,20 +210,7 @@ check_prerequisites() {
     log_success "Prerequisites check passed"
 }
 
-# Function to set subscription if provided
-set_subscription() {
-    if [[ -n "$SUBSCRIPTION_ID" ]]; then
-        log_info "Setting subscription to $SUBSCRIPTION_ID"
-        execute_command "az account set --subscription '$SUBSCRIPTION_ID'" "Setting Azure subscription"
-    fi
-    
-    # Display current subscription
-    if [[ "$DRY_RUN" == "false" ]]; then
-        CURRENT_SUB=$(az account show --query "name" --output tsv)
-        CURRENT_SUB_ID=$(az account show --query "id" --output tsv)
-        log_info "Using subscription: $CURRENT_SUB ($CURRENT_SUB_ID)"
-    fi
-}
+
 
 # Function to check if resource group exists
 check_resource_group() {
@@ -335,16 +299,9 @@ assign_roles() {
 create_federated_credentials() {
     log_info "Creating federated identity credentials for GitHub Actions OIDC..."
     
-    # Create subject claim based on environment and branch
-    if [[ -n "$GITHUB_ENVIRONMENT" ]]; then
-        # For environment-specific deployments
-        SUBJECT="repo:$GITHUB_REPO:environment:$GITHUB_ENVIRONMENT"
-        CREDENTIAL_NAME="github-$GITHUB_ENVIRONMENT"
-    else
-        # For branch-based deployments
-        SUBJECT="repo:$GITHUB_REPO:ref:refs/heads/$GITHUB_BRANCH"
-        CREDENTIAL_NAME="github-$GITHUB_BRANCH"
-    fi
+    # Always create subject claim for environment-specific deployments
+    SUBJECT="repo:$GITHUB_REPO:environment:$GITHUB_ENVIRONMENT"
+    CREDENTIAL_NAME="github-$GITHUB_ENVIRONMENT"
     
     # GitHub Actions OIDC issuer and audience
     ISSUER="https://token.actions.githubusercontent.com"
@@ -635,19 +592,17 @@ verify_setup() {
 main() {
     log_info "Starting GitHub Actions OIDC setup for Azure..."
     log_info "Repository: $GITHUB_REPO"
-    log_info "Branch: $GITHUB_BRANCH"
-    [[ -n "$GITHUB_ENVIRONMENT" ]] && log_info "Environment: $GITHUB_ENVIRONMENT"
-    
+    log_info "Environment: $GITHUB_ENVIRONMENT"
+
     check_prerequisites
-    set_subscription
     check_resource_group
-    
+
     # Generate storage account name if creating storage
     if [[ "$CREATE_STORAGE" == "true" ]]; then
         generate_storage_account_name
         log_info "Creating Terraform state storage: $STORAGE_ACCOUNT"
     fi
-    
+
     create_managed_identity
     get_identity_details
 
@@ -662,14 +617,14 @@ main() {
     assign_storage_roles
     create_federated_credentials
     verify_setup
-    
+
     if [[ "$DRY_RUN" == "false" ]]; then
         display_github_actions_config
         display_terraform_backend_config
     fi
-    
+
     log_success "GitHub Actions OIDC setup completed successfully!"
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         log_info "This was a dry run. No actual changes were made."
         log_info "Run the script without --dry-run to apply the changes."
