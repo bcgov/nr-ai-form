@@ -650,6 +650,13 @@ main() {
     
     create_managed_identity
     get_identity_details
+
+    # Add a short delay to allow Azure to propagate the new identity before assigning roles
+    if [[ "$DRY_RUN" == "false" ]]; then
+        log_info "Waiting 10 seconds for managed identity propagation..."
+        sleep 10
+    fi
+
     assign_roles
     create_terraform_storage
     assign_storage_roles
