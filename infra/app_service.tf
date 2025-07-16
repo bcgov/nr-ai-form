@@ -12,29 +12,8 @@ resource "azurerm_monitor_diagnostic_setting" "app_service_plan_diagnostics" {
   target_resource_id         = azurerm_service_plan.app_service_plan.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
 
-  enabled_log {
-    category = "AppServiceAntivirusScan"
-  }
-  enabled_log {
-    category = "AppServiceHTTPLogs"
-  }
-  enabled_log {
-    category = "AppServiceConsoleLogs"
-  }
-  enabled_log {
-    category = "AppServiceAppLogs"
-  }
-  enabled_log {
-    category = "AppServiceAuditLogs"
-  }
-  enabled_log {
-    category = "AppServiceFileAuditLogs"
-  }
-  enabled_log {
-    category = "AppServicePlatformLogs"
-  }
-  enabled_log {
-    category = "AppServiceIPSecAuditLogs"
+  enabled_metric {
+    category = "AllMetrics"
   }
 }
 
@@ -94,13 +73,16 @@ resource "azurerm_monitor_diagnostic_setting" "app_service_diagnostics" {
     category = "AppServiceAuditLogs"
   }
   enabled_log {
-    category = "AppServiceFileAuditLogs"
+    category = "AppServiceIPSecAuditLogs"
   }
   enabled_log {
     category = "AppServicePlatformLogs"
   }
   enabled_log {
-    category = "AppServiceIPSecAuditLogs"
+    category = "AppServiceAuthenticationLogs"
+  }
+    enabled_metric {
+    category = "AllMetrics"
   }
 }
 
