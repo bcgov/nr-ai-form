@@ -7,6 +7,37 @@ resource "azurerm_service_plan" "app_service_plan" {
   sku_name            = var.app_service_plan_sku
 }
 
+resource "azurerm_monitor_diagnostic_setting" "app_service_plan_diagnostics" {
+  name                       = "${local.abbrs.webServerFarms}${random_id.random_deployment_suffix.hex}_diagnostics"
+  target_resource_id         = azurerm_service_plan.app_service_plan.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
+
+  enabled_log {
+    category = "AppServiceAntivirusScan"
+  }
+  enabled_log {
+    category = "AppServiceHTTPLogs"
+  }
+  enabled_log {
+    category = "AppServiceConsoleLogs"
+  }
+  enabled_log {
+    category = "AppServiceAppLogs"
+  }
+  enabled_log {
+    category = "AppServiceAuditLogs"
+  }
+  enabled_log {
+    category = "AppServiceFileAuditLogs"
+  }
+  enabled_log {
+    category = "AppServicePlatformLogs"
+  }
+  enabled_log {
+    category = "AppServiceIPSecAuditLogs"
+  }
+}
+
 # Create the web app, pass in the App Service Plan ID
 resource "azurerm_linux_web_app" "app_service" {
   name                = "${local.abbrs.webSitesAppService}${random_id.random_deployment_suffix.hex}"
@@ -42,6 +73,34 @@ resource "azurerm_linux_web_app" "app_service" {
     COSMOS_DB_ENDPOINT       = azurerm_cosmosdb_account.cosmosdb_sql.endpoint
     COSMOS_DB_DATABASE_NAME  = azurerm_cosmosdb_sql_database.cosmosdb_sql_db.name
     COSMOS_DB_CONTAINER_NAME = azurerm_cosmosdb_sql_container.cosmosdb_sql_db_container.name
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "app_service_diagnostics" {
+  name                       = "${local.abbrs.webSitesAppService}${random_id.random_deployment_suffix.hex}_diagnostics"
+  target_resource_id         = azurerm_linux_web_app.app_service.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
+
+  enabled_log {
+    category = "AppServiceHTTPLogs"
+  }
+  enabled_log {
+    category = "AppServiceConsoleLogs"
+  }
+  enabled_log {
+    category = "AppServiceAppLogs"
+  }
+  enabled_log {
+    category = "AppServiceAuditLogs"
+  }
+  enabled_log {
+    category = "AppServiceFileAuditLogs"
+  }
+  enabled_log {
+    category = "AppServicePlatformLogs"
+  }
+  enabled_log {
+    category = "AppServiceIPSecAuditLogs"
   }
 }
 

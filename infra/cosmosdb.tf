@@ -16,6 +16,28 @@ resource "azurerm_cosmosdb_account" "cosmosdb_sql" {
   }
 }
 
+resource "azurerm_monitor_diagnostic_setting" "cosmosdb_sql_diagnostics" {
+  name                       = "${local.abbrs.documentDBDatabaseAccounts}${random_id.random_deployment_suffix.hex}_diagnostics"
+  target_resource_id         = azurerm_cosmosdb_account.cosmosdb_sql.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
+
+  enabled_log {
+    category = "DataPlaneRequests"
+  }
+  enabled_log {
+    category = "MongoRequests"
+  }
+  enabled_log {
+    category = "QueryRuntimeStatistics"
+  }
+  enabled_log {
+    category = "PartitionKeyRUConsumption"
+  }
+  enabled_log {
+    category = "ControlPlaneRequests"
+  }
+}
+
 resource "azurerm_private_endpoint" "cosmosdb_sql_db_private_endpoint" {
   name                = "${local.abbrs.privateEndpoint}${local.abbrs.documentDBDatabaseAccounts}${random_id.random_deployment_suffix.hex}"
   location            = data.azurerm_resource_group.rg.location

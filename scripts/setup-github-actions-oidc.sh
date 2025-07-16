@@ -410,12 +410,12 @@ create_terraform_storage() {
         --kind 'StorageV2' \
         --access-tier 'Hot' \
         --min-tls-version 'TLS1_2' \
-        --allow-blob-public-access false \
+        --allow-blob-public-access true \
         --default-action 'Allow' \
         --bypass 'AzureServices' \
         --https-only true \
         --enable-local-user false" \
-        "Creating storage account with secure configuration"
+        "Creating storage account with public blob access for tfstate"
     
     # Enable versioning for better state management
     execute_command "az storage account blob-service-properties update \
