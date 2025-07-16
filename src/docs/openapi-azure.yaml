@@ -1,0 +1,49 @@
+openapi: 3.0.0
+info:
+  title: NR Permitting API
+  version: 1.0.0
+  description: Simple API to query a demo row from PostgreSQL
+servers:
+  - url: http://localhost:3000
+paths:
+  /:
+    get:
+      summary: Get demo row
+      description: Returns the demo row from the demo_table in PostgreSQL
+      responses:
+        '200':
+          description: Demo row found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  message:
+                    type: string
+                    example: Hello from PostgreSQL!
+        '404':
+          description: Row not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Row not found
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Database error
+                  details:
+                    type: string
+                    example: Error details

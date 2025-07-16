@@ -1,0 +1,4 @@
+container_app_image = "ghcr.io/your-org/your-image:latest"
+container_app_registry_server = "ghcr.io"
+container_app_registry_username = "your-ghcr-username"
+container_app_registry_password = "your-ghcr-password"
