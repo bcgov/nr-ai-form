@@ -17,23 +17,13 @@ resource "azurerm_api_management" "apim" {
   }
 }
 
-resource "azurerm_api_management_logger" "apim_logger" {
-  name                = "apimlogger"
-  api_management_name = azurerm_api_management.apim.name
-  resource_group_name = data.azurerm_resource_group.rg.name
-
-  application_insights {
-    instrumentation_key = azurerm_application_insights.app_insights.instrumentation_key
-  }
-}
-
-resource "azurerm_api_management_api" "nr-permitting-api" {
-  name                = "nr-permitting-api"
+resource "azurerm_api_management_api" "nr-ai-form" {
+  name                = "nr-ai-form"
   api_management_name = azurerm_api_management.apim.name
   resource_group_name = data.azurerm_resource_group.rg.name
   revision            = "1"
-  display_name        = "NR Permitting API"
-  path                = "nr-permitting"
+  display_name        = "NR AI Form API"
+  path                = "nr-ai-form"
   protocols           = ["https"]
   service_url         = "https://${azurerm_linux_web_app.app_service.default_hostname}"
    import {

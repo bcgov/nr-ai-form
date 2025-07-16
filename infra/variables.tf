@@ -54,6 +54,18 @@ variable "container_registry_password" {
   sensitive   = true
 }
 
+// App Service variables
+
+variable "app_service_plan_sku" {
+  description = "The SKU of the App Service Plan"
+  default     = "B1"
+  type        = string
+  validation {
+    condition     = contains(["B1", "S1", "P1v2"], var.app_service_plan_sku)
+    error_message = "The app_service_plan_sku must be one of the following: B1, S1, P1v2."
+  }
+}
+
 // API Management variables
 
 variable "apim_virtual_network_type" {
