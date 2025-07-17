@@ -19,15 +19,15 @@ resource "azurerm_ai_foundry" "example" {
 
 resource "azurerm_ai_foundry_project" "example" {
   name               = "example"
-  location           = azurerm_ai_foundry.example.location
+  location           = data.azurerm_resource_group.rg.location
   ai_services_hub_id = azurerm_ai_foundry.example.id
 }
 
 resource "azurerm_key_vault" "example" {
   name                = "examplekv"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  location            = data.azurerm_resource_group.rg.location
+  resource_group_name = data.azurerm_resource_group.rg.name
+  tenant_id           = data.azurerm_subscription.current.tenant_id
 
   sku_name                 = "standard"
   purge_protection_enabled = true
