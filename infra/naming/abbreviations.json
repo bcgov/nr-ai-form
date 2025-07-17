@@ -1,5 +1,6 @@
 {
     "analysisServicesServers": "as",
+    "aiServices": "ai-",
     "apiManagementService": "apim-",
     "appConfigurationConfigurationStores": "appcs-",
     "appContainerApps": "ca-",
