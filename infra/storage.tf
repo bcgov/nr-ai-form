@@ -28,7 +28,7 @@ resource "azurerm_monitor_diagnostic_setting" "storage_account_diagnostics" {
   }
 }
 
-resource "azurerm_private_endpoint" "app_service_private_endpoint" {
+resource "azurerm_private_endpoint" "storage_account_private_endpoint" {
   name                = "${local.abbrs.privateEndpoint}${local.abbrs.storageStorageAccounts}${random_id.random_deployment_suffix.hex}"
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
