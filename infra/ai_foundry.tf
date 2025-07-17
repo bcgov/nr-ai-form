@@ -21,6 +21,10 @@ resource "azurerm_ai_foundry_project" "example" {
   name               = "example"
   location           = data.azurerm_resource_group.rg.location
   ai_services_hub_id = azurerm_ai_foundry.example.id
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_key_vault" "example" {
