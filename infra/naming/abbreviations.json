@@ -74,6 +74,7 @@
     "networkFirewallPoliciesRuleGroups": "wafrg",
     "networkFirewallPoliciesWebApplication": "waf",
     "networkFrontDoors": "fd-",
+    "networkFrontdoorEndpoint": "fdep-",
     "networkFrontdoorWebApplicationFirewallPolicies": "fdfp-",
     "networkLoadBalancersExternal": "lbe-",
     "networkLoadBalancersInboundNatRules": "rule-",
