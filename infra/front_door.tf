@@ -1,7 +1,7 @@
 resource "azurerm_cdn_frontdoor_profile" "front_door_profile" {
   name                = "${local.abbrs.networkFrontDoors}${random_id.random_deployment_suffix.hex}"
   resource_group_name = data.azurerm_resource_group.rg.name
-  sku_name            = var.front_door_sku
+  sku_name            = "Standard_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_endpoint" "front_door_endpoint" {
@@ -9,7 +9,7 @@ resource "azurerm_cdn_frontdoor_endpoint" "front_door_endpoint" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door_profile.id
 }
 
---[[ resource "azurerm_cdn_frontdoor_origin_group" "front_door_origin_group" {
+/* resource "azurerm_cdn_frontdoor_origin_group" "front_door_origin_group" {
   name                     = local.front_door_origin_group_name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door_profile.id
   session_affinity_enabled = true
@@ -52,4 +52,4 @@ resource "azurerm_cdn_frontdoor_route" "my_route" {
   forwarding_protocol    = "HttpsOnly"
   link_to_default_domain = true
   https_redirect_enabled = true
-} ]]
+} */
