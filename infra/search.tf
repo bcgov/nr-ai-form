@@ -15,25 +15,7 @@ resource "azurerm_monitor_diagnostic_setting" "search_service_diagnostics" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
 
   enabled_log {
-    category = "SearchServiceHTTPLogs"
-  }
-  enabled_log {
-    category = "SearchServiceConsoleLogs"
-  }
-  enabled_log {
-    category = "SearchServiceAppLogs"
-  }
-  enabled_log {
-    category = "SearchServiceAuditLogs"
-  }
-  enabled_log {
-    category = "SearchServiceIPSecAuditLogs"
-  }
-  enabled_log {
-    category = "SearchServicePlatformLogs"
-  }
-  enabled_log {
-    category = "SearchServiceAuthenticationLogs"
+    category = "OperationLogs"
   }
     enabled_metric {
     category = "AllMetrics"
@@ -49,7 +31,7 @@ resource "azurerm_private_endpoint" "search_service_private_endpoint" {
     name                           = "${azurerm_search_service.search_service.name}_privateserviceconnection"
     private_connection_resource_id = azurerm_search_service.search_service.id
     is_manual_connection           = false
-    subresource_names              = ["search"]
+    subresource_names              = ["searchService"]
   }
   lifecycle {
     ignore_changes = [tags, private_dns_zone_group]

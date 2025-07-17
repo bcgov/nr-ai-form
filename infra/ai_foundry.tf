@@ -24,7 +24,7 @@ resource "azurerm_ai_foundry_project" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekv"
+  name                = "awtestexamplekv"
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
   tenant_id           = data.azurerm_subscription.current.tenant_id

@@ -12,7 +12,7 @@ resource "azurerm_storage_account" "storage_account" {
   allow_nested_items_to_be_public = false
 }
 
-resource "azurerm_monitor_diagnostic_setting" "storage_account_diagnostics" {
+/* resource "azurerm_monitor_diagnostic_setting" "storage_account_diagnostics" {
   name                       = "${local.abbrs.storageStorageAccounts}${random_id.random_deployment_suffix.hex}_diagnostics"
   target_resource_id         = azurerm_storage_account.storage_account.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
@@ -26,7 +26,7 @@ resource "azurerm_monitor_diagnostic_setting" "storage_account_diagnostics" {
     enabled_metric {
     category = "AllMetrics"
   }
-}
+} */
 
 resource "azurerm_private_endpoint" "storage_account_private_endpoint" {
   name                = "${local.abbrs.privateEndpoint}${local.abbrs.storageStorageAccounts}${random_id.random_deployment_suffix.hex}"
@@ -37,7 +37,7 @@ resource "azurerm_private_endpoint" "storage_account_private_endpoint" {
     name                           = "${azurerm_storage_account.storage_account.name}_privateserviceconnection"
     private_connection_resource_id = azurerm_storage_account.storage_account.id
     is_manual_connection           = false
-    subresource_names              = ["blob", "queue", "table", "file"]
+    subresource_names              = ["blob"]
   }
   lifecycle {
     ignore_changes = [tags, private_dns_zone_group]
