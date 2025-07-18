@@ -361,19 +361,20 @@ create_terraform_storage() {
     fi
     
     # Create storage account with secure defaults
-    execute_command "az storage account create \
-        --name '$STORAGE_ACCOUNT' \
-        --resource-group '$RESOURCE_GROUP' \
-        --location '$(az group show --name $RESOURCE_GROUP --query location --output tsv)' \
-        --sku 'Standard_LRS' \
-        --kind 'StorageV2' \
-        --access-tier 'Hot' \
-        --min-tls-version 'TLS1_2' \
-        --allow-blob-public-access true \
-        --default-action 'Allow' \
-        --bypass 'AzureServices' \
-        --https-only true \
-        --enable-local-user false" \
+ execute_command "az storage account create \
+    --name '$STORAGE_ACCOUNT' \
+    --resource-group '$RESOURCE_GROUP' \
+    --location '$(az group show --name $RESOURCE_GROUP --query location --output tsv)' \
+    --sku 'Standard_LRS' \
+    --kind 'StorageV2' \
+    --access-tier 'Hot' \
+    --min-tls-version 'TLS1_2' \
+    --allow-blob-public-access false \
+    --default-action 'Allow' \
+    --bypass 'AzureServices' \
+    --https-only true \
+    --enable-local-user false \
+    --allow-shared-key-access false" \
         "Creating storage account with public blob access for tfstate"
     
     # Enable versioning for better state management
