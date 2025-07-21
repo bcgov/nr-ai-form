@@ -205,15 +205,15 @@ locals {
   }
 
   apim_route_table_routes = {
-    "ApimMgmtEndpointToApimServiceTag" = {
-    name                   = "ApimMgmtEndpointToApimServiceTag"
-    address_prefix         = "ApiManagement"
-    next_hop_type          = "Internet"
-    }
-    "ApimToInternet" = {
-    name                   = "ApimToInternet"
-    address_prefix         = "0.0.0.0/0"
-    next_hop_type          = "Internet"
-    }
+    # "ApimMgmtEndpointToApimServiceTag" = {
+    # name                   = "ApimMgmtEndpointToApimServiceTag"
+    # address_prefix         = "ApiManagement"
+    # next_hop_type          = "Internet"
+    # }
+    # "ApimToInternet" = {
+    # name                   = "ApimToInternet"
+    # address_prefix         = "0.0.0.0/0"
+    # next_hop_type          = "Internet"
+    # }
   }
 }

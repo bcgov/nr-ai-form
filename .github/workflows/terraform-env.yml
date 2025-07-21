@@ -121,22 +121,4 @@ jobs:
             -var="container_registry_password=${{ secrets.GHCR_TOKEN }}"
 
       - name: Terraform Apply
-        run: |
-          # Attempt to force-unlock if there's a lingering lock
-          LOCK_ID=$(terraform force-unlock -force $TF_STATE_KEY 2>/dev/null || echo "No lock found")
-          
-          # Apply the plan with improved error handling
-          terraform apply -auto-approve tfplan || {
-            ERROR_CODE=$?
-            echo "Terraform apply failed with exit code: $ERROR_CODE"
-            
-            # Handle potential state lock issues
-            if grep -q "Error acquiring the state lock" terraform.tfstate.backup; then
-              echo "Attempting to force-unlock the state..."
-              terraform force-unlock -force $TF_STATE_KEY
-            fi
-            
-            exit $ERROR_CODE
-          }
-          
-          echo "Terraform apply completed successfully"
+        run: terraform apply -auto-approve tfplan
