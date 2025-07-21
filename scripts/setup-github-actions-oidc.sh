@@ -410,7 +410,7 @@ create_terraform_storage() {
         --kind 'StorageV2' \
         --access-tier 'Hot' \
         --min-tls-version 'TLS1_2' \
-        --allow-blob-public-access true \
+        --allow-blob-public-access false \
         --default-action 'Allow' \
         --bypass 'AzureServices' \
         --https-only true \
