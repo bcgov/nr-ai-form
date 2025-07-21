@@ -42,8 +42,6 @@ Options:
     -n, --identity-name         Managed identity name (required)
     -r, --github-repo           GitHub repository in format owner/repo (required)
     -e, --environment           GitHub environment name (required)
-    --contributor-scope         Scope for Contributor role assignment (optional, defaults to resource group)
-    --additional-roles          Additional roles to assign (comma-separated, optional)
     --storage-account           Storage account name for Terraform state (optional, default: auto-generated)
     --storage-container         Storage container name for Terraform state (optional, default: tfstate)
     --create-storage            Create storage account for Terraform state (flag)
@@ -70,8 +68,6 @@ EOF
 
 # Default values
 GITHUB_ENVIRONMENT=""
-CONTRIBUTOR_SCOPE=""
-ADDITIONAL_ROLES=""
 STORAGE_ACCOUNT="" # Will be generated based on repo name
 STORAGE_CONTAINER="tfstate"
 CREATE_STORAGE=false
@@ -94,14 +90,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         -e|--environment)
             GITHUB_ENVIRONMENT="$2"
-            shift 2
-            ;;
-        --contributor-scope)
-            CONTRIBUTOR_SCOPE="$2"
-            shift 2
-            ;;
-        --additional-roles)
-            ADDITIONAL_ROLES="$2"
             shift 2
             ;;
         --storage-account)
@@ -168,14 +156,21 @@ generate_storage_account_name() {
         local repo_name=$(echo "$GITHUB_REPO" | cut -d'/' -f2 | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
         local env_name=$(echo "$GITHUB_ENVIRONMENT" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g')
 
-        # Compose base name: tfstate + repo + env
-        local base_name="tfstate${repo_name}${env_name}"
+        # Use only the first 6 characters of the sanitized environment name
+        local env_prefix="${env_name:0:6}"
 
-        # Azure storage account name max length is 24, min is 3
-        # Truncate if necessary
-        if [[ ${#base_name} -gt 24 ]]; then
-            base_name="${base_name:0:24}"
+        # Calculate max repo name length to fit within 24 chars: tfstate (7) + repo + env_prefix (6)
+        local max_length=24
+        local tfstate_len=7
+        local env_prefix_len=6
+        local max_repo_len=$((max_length - tfstate_len - env_prefix_len))
+        local repo_trimmed="$repo_name"
+        if [[ ${#repo_name} -gt $max_repo_len ]]; then
+            repo_trimmed="${repo_name:0:$max_repo_len}"
         fi
+
+        # Compose base name: tfstate + trimmed repo + env_prefix
+        local base_name="tfstate${repo_trimmed}${env_prefix}"
 
         STORAGE_ACCOUNT="$base_name"
 
@@ -187,7 +182,7 @@ generate_storage_account_name() {
             STORAGE_ACCOUNT="${STORAGE_ACCOUNT}abc"
         fi
 
-        log_info "Generated storage account name: $STORAGE_ACCOUNT (based on repo: $repo_name, environment: $env_name)"
+        log_info "Generated storage account name: $STORAGE_ACCOUNT (based on repo: $repo_trimmed, environment prefix: $env_prefix)"
     fi
 }
 
@@ -265,35 +260,6 @@ get_identity_details() {
     fi
 }
 
-# Function to assign roles to managed identity
-assign_roles() {
-    log_info "Assigning roles to managed identity..."
-    
-    # Set default contributor scope if not provided
-    if [[ -z "$CONTRIBUTOR_SCOPE" ]]; then
-        if [[ "$DRY_RUN" == "false" ]]; then
-            CONTRIBUTOR_SCOPE="/subscriptions/$(az account show --query "id" --output tsv)/resourceGroups/$RESOURCE_GROUP"
-        else
-            CONTRIBUTOR_SCOPE="[DRY-RUN-RESOURCE-GROUP-SCOPE]"
-        fi
-    fi
-    
-    # Assign Contributor role
-    execute_command "az role assignment create --assignee '$CLIENT_ID' --role 'Contributor' --scope '$CONTRIBUTOR_SCOPE'" \
-        "Assigning Contributor role to managed identity"
-    
-    # Assign additional roles if specified
-    if [[ -n "$ADDITIONAL_ROLES" ]]; then
-        IFS=',' read -ra ROLES <<< "$ADDITIONAL_ROLES"
-        for role in "${ROLES[@]}"; do
-            role=$(echo "$role" | xargs) # Trim whitespace
-            execute_command "az role assignment create --assignee '$CLIENT_ID' --role '$role' --scope '$CONTRIBUTOR_SCOPE'" \
-                "Assigning '$role' role to managed identity"
-        done
-    fi
-    
-    log_success "Role assignments completed"
-}
 
 # Function to create federated identity credentials
 create_federated_credentials() {
@@ -335,34 +301,21 @@ display_github_actions_config() {
     
     cat << EOF
 
-Add the following secrets to your GitHub repository ($GITHUB_REPO):
+Add the following secrets and variables to your GitHub repository environment ($GITHUB_REPO):
 Go to Settings > Secrets and variables > Actions
 
-Repository Secrets:
+Environment Secrets:
 - AZURE_CLIENT_ID: $CLIENT_ID
 - AZURE_SUBSCRIPTION_ID: $(az account show --query "id" --output tsv 2>/dev/null || echo "[SUBSCRIPTION-ID]")
 - AZURE_TENANT_ID: $(az account show --query "tenantId" --output tsv 2>/dev/null || echo "[TENANT-ID]")
 
-Optional Terraform Environment Variables (if using Terraform):
-- ARM_USE_AZUREAD: true
-- ARM_SUBSCRIPTION_ID: $(az account show --query "id" --output tsv 2>/dev/null || echo "[SUBSCRIPTION-ID]")
-- ARM_TENANT_ID: $(az account show --query "tenantId" --output tsv 2>/dev/null || echo "[TENANT-ID]")
-- ARM_CLIENT_ID: $CLIENT_ID
-
-Example GitHub Actions workflow step:
-```yaml
-- name: Azure Login
-  uses: azure/login@v1
-  with:
-    client-id: \${{ secrets.AZURE_CLIENT_ID }}
-    tenant-id: \${{ secrets.AZURE_TENANT_ID }}
-    subscription-id: \${{ secrets.AZURE_SUBSCRIPTION_ID }}
-```
-
-For environment-specific deployments, make sure to:
-1. Create a GitHub environment named '$GITHUB_ENVIRONMENT' (if using environment-based auth)
-2. Configure environment protection rules as needed
-3. Add the secrets to the environment scope
+Environment Variables:
+- APIM_SUBNET_PREFIX: CIDR for APIM subnet (e.g., 10.46.8.0/26)
+- APP_SERVICE_SUBNET_PREFIX: CIDR for App Service subnet (e.g., 10.46.8.64/26)
+- PRIVATEENDPOINT_SUBNET_PREFIX: CIDR for Private Endpoint subnet (e.g., 10.46.8.128/26)
+- RESOURCE_GROUP_NAME: Name of the Azure Resource Group to host the Azure Resources (e.g., a9cee3-test-networking)
+- TF_STATE_STORAGE_ACCOUNT: Name of the storage account for Terraform state
+- VNET_NAME: Name of the Azure vNet
 
 Managed Identity Details:
 - Name: $IDENTITY_NAME
@@ -370,6 +323,12 @@ Managed Identity Details:
 - Client ID: $CLIENT_ID
 - Principal ID: $PRINCIPAL_ID
 - Identity ID: $IDENTITY_ID
+
+Storage Account Details:
+- Name: $STORAGE_ACCOUNT
+- Resource Group: $RESOURCE_GROUP
+- Container: $STORAGE_CONTAINER
+- Authentication: Azure AD (no storage keys required)
 
 EOF
 }
@@ -402,19 +361,20 @@ create_terraform_storage() {
     fi
     
     # Create storage account with secure defaults
-    execute_command "az storage account create \
-        --name '$STORAGE_ACCOUNT' \
-        --resource-group '$RESOURCE_GROUP' \
-        --location '$(az group show --name $RESOURCE_GROUP --query location --output tsv)' \
-        --sku 'Standard_LRS' \
-        --kind 'StorageV2' \
-        --access-tier 'Hot' \
-        --min-tls-version 'TLS1_2' \
-        --allow-blob-public-access false \
-        --default-action 'Allow' \
-        --bypass 'AzureServices' \
-        --https-only true \
-        --enable-local-user false" \
+ execute_command "az storage account create \
+    --name '$STORAGE_ACCOUNT' \
+    --resource-group '$RESOURCE_GROUP' \
+    --location '$(az group show --name $RESOURCE_GROUP --query location --output tsv)' \
+    --sku 'Standard_LRS' \
+    --kind 'StorageV2' \
+    --access-tier 'Hot' \
+    --min-tls-version 'TLS1_2' \
+    --allow-blob-public-access false \
+    --default-action 'Allow' \
+    --bypass 'AzureServices' \
+    --https-only true \
+    --enable-local-user false \
+    --allow-shared-key-access false" \
         "Creating storage account with public blob access for tfstate"
     
     # Enable versioning for better state management
@@ -464,75 +424,6 @@ assign_storage_roles() {
     done
     
     log_success "Storage roles assigned successfully"
-}
-
-# Function to display Terraform backend configuration
-display_terraform_backend_config() {
-    if [[ "$CREATE_STORAGE" != "true" ]]; then
-        return 0
-    fi
-    
-    log_info "Terraform Backend Configuration:"
-    
-    cat << EOF
-
-Add the following backend configuration to your Terraform files:
-
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "$RESOURCE_GROUP"
-    storage_account_name = "$STORAGE_ACCOUNT"
-    container_name       = "$STORAGE_CONTAINER"
-    key                  = "terraform.tfstate"
-    use_azuread_auth     = true
-  }
-}
-
-Environment variables for Terraform (add to GitHub Actions):
-- ARM_USE_AZUREAD: true
-- ARM_SUBSCRIPTION_ID: $(az account show --query "id" --output tsv 2>/dev/null || echo "[SUBSCRIPTION-ID]")
-- ARM_TENANT_ID: $(az account show --query "tenantId" --output tsv 2>/dev/null || echo "[TENANT-ID]")
-- ARM_CLIENT_ID: $CLIENT_ID
-
-Example GitHub Actions workflow step for Terraform:
-```yaml
-- name: Setup Terraform
-  uses: hashicorp/setup-terraform@v2
-  with:
-    terraform_version: 1.5.0
-
-- name: Terraform Init
-  run: terraform init
-  env:
-    ARM_USE_AZUREAD: true
-    ARM_SUBSCRIPTION_ID: \${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    ARM_TENANT_ID: \${{ secrets.AZURE_TENANT_ID }}
-    ARM_CLIENT_ID: \${{ secrets.AZURE_CLIENT_ID }}
-
-- name: Terraform Plan
-  run: terraform plan
-  env:
-    ARM_USE_AZUREAD: true
-    ARM_SUBSCRIPTION_ID: \${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    ARM_TENANT_ID: \${{ secrets.AZURE_TENANT_ID }}
-    ARM_CLIENT_ID: \${{ secrets.AZURE_CLIENT_ID }}
-
-- name: Terraform Apply
-  run: terraform apply -auto-approve
-  env:
-    ARM_USE_AZUREAD: true
-    ARM_SUBSCRIPTION_ID: \${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    ARM_TENANT_ID: \${{ secrets.AZURE_TENANT_ID }}
-    ARM_CLIENT_ID: \${{ secrets.AZURE_CLIENT_ID }}
-```
-
-Storage Account Details:
-- Name: $STORAGE_ACCOUNT
-- Resource Group: $RESOURCE_GROUP
-- Container: $STORAGE_CONTAINER
-- Authentication: Azure AD (no storage keys required)
-
-EOF
 }
 
 # Function to verify setup
@@ -606,13 +497,11 @@ main() {
     create_managed_identity
     get_identity_details
 
-    # Add a short delay to allow Azure to propagate the new identity before assigning roles
+    # Add a short delay to allow Azure to propagate the new identity if needed
     if [[ "$DRY_RUN" == "false" ]]; then
         log_info "Waiting 10 seconds for managed identity propagation..."
         sleep 10
     fi
-
-    assign_roles
     create_terraform_storage
     assign_storage_roles
     create_federated_credentials
@@ -620,7 +509,6 @@ main() {
 
     if [[ "$DRY_RUN" == "false" ]]; then
         display_github_actions_config
-        display_terraform_backend_config
     fi
 
     log_success "GitHub Actions OIDC setup completed successfully!"
