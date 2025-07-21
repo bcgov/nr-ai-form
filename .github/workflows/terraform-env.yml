@@ -1,0 +1,124 @@
+# Environment-specific Terraform workflow
+name: Terraform Environment Deployment
+
+# Add permissions for OIDC token
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - production
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_USE_OIDC: true
+
+jobs:
+  determine-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+    steps:
+      - name: Determine Environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=development" >> $GITHUB_OUTPUT
+          fi
+
+  terraform:
+    needs: determine-environment
+    runs-on: ubuntu-latest
+    environment: ${{ needs.determine-environment.outputs.environment }}
+    defaults:
+      run:
+        working-directory: infra
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Set Environment Variables
+        run: |
+          echo "TF_STATE_RESOURCE_GROUP=${{ vars.RESOURCE_GROUP_NAME }}" >> $GITHUB_ENV
+          echo "TF_STATE_STORAGE_ACCOUNT=${{ vars.TFSTATE_STORAGE_ACCOUNT }}" >> $GITHUB_ENV
+          echo "TF_STATE_CONTAINER=tfstate" >> $GITHUB_ENV
+          echo "TF_STATE_KEY=${{ needs.determine-environment.outputs.environment }}" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
+          echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+
+      - name: Terraform Init
+        run: |
+          # Validate that required ARM environment variables are set
+          if [[ -z "$ARM_SUBSCRIPTION_ID" ]]; then
+            echo "Error: ARM_SUBSCRIPTION_ID is not set"
+            exit 1
+          fi
+          if [[ -z "$ARM_CLIENT_ID" ]]; then
+            echo "Error: ARM_CLIENT_ID is not set"
+            exit 1
+          fi
+          if [[ -z "$ARM_TENANT_ID" ]]; then
+            echo "Error: ARM_TENANT_ID is not set"
+            exit 1
+          fi
+          
+          echo "Using subscription: $ARM_SUBSCRIPTION_ID"
+          echo "Using client ID: $ARM_CLIENT_ID"
+          echo "Using tenant ID: $ARM_TENANT_ID"
+          
+          terraform init \
+            -backend-config="resource_group_name=$TF_STATE_RESOURCE_GROUP" \
+            -backend-config="storage_account_name=$TF_STATE_STORAGE_ACCOUNT" \
+            -backend-config="container_name=$TF_STATE_CONTAINER" \
+            -backend-config="key=$TF_STATE_KEY"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: |
+          terraform plan -out=tfplan \
+            -var="resource_group_name=${{ vars.RESOURCE_GROUP_NAME }}" \
+            -var="vnet_name=${{ vars.VNET_NAME }}" \
+            -var="apim_subnet_prefix=${{ vars.APIM_SUBNET_PREFIX }}" \
+            -var="app_service_subnet_prefix=${{ vars.APP_SERVICE_SUBNET_PREFIX }}" \
+            -var="privateendpoint_subnet_prefix=${{ vars.PRIVATEENDPOINT_SUBNET_PREFIX }}" \
+            -var="container_image_name=${{ github.repository_owner }}/nr-ai-form:latest" \
+            -var="container_registry_url=https://ghcr.io" \
+            -var="container_registry_username=${{ github.event.repository.name }}" \
+            -var="container_registry_password=${{ secrets.GHCR_TOKEN }}"
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
