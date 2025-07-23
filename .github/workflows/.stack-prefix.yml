@@ -1,0 +1,52 @@
+name: .Stack Prefix
+on:
+  workflow_call:
+    outputs:
+      STACK_PREFIX: 
+        description: 'The Stack Prefix'
+        value: ${{ jobs.prefix.outputs.STACK_PREFIX }}
+permissions:
+  contents: write # This is required for actions/checkout
+jobs:
+  prefix:
+    name: Stack Prefix
+    runs-on: ubuntu-24.04
+    outputs:
+      STACK_PREFIX: ${{ steps.stack-prefix.outputs.STACK_PREFIX }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Generate Stack Prefix
+        id: stack-prefix
+        shell: bash
+        run: |
+          # Get repository name
+          repo_name="${{ github.event.repository.name }}"
+          # 1. Clean the repository name
+          # Convert to lowercase, replace non-alphanumeric/hyphen with hyphen,
+          # reduce multiple hyphens, remove leading/trailing hyphens.
+          cleaned_name=$(echo "$repo_name" | tr '[:upper:]' '[:lower:]' | \
+                              sed 's/[^a-z0-9-]/-/g' | sed 's/-\{2,\}/-/g' | \
+                              sed 's/^-//;s/-$//')
+
+          # Define the target length for the human-readable prefix
+          prefix_len=5
+
+          # 2. Generate the 5-character human-readable prefix
+          prefix_part=""
+          # Remove all hyphens from the cleaned name to get a continuous string of letters/numbers
+          continuous_name=$(echo "$cleaned_name" | sed 's/-//g')
+
+          # Take up to 'prefix_len' (5) characters, but allow shorter prefixes
+          prefix_part="${continuous_name:0:$prefix_len}"
+
+          # 3. Generate the 4-character consistent hash suffix
+          # The MD5 hash of the original repo name ensures consistency and uniqueness
+          hash_suffix=$(echo -n "$repo_name" | md5sum | head -c 4)
+
+          # 4. Combine the prefix, hyphen, and hash suffix
+          final_name="${prefix_part}-${hash_suffix}"
+
+          # Set output
+          echo "STACK_PREFIX=$final_name" >> $GITHUB_OUTPUT
+          echo "Generated prefix: $final_name"
