@@ -32,7 +32,7 @@ resource "azurerm_network_security_group" "privateendpoints" {
     source_port_range          = "*"
     destination_port_range     = "*"
   }
-  
+
   tags = var.common_tags
   lifecycle {
     ignore_changes = [
@@ -70,7 +70,7 @@ resource "azurerm_network_security_group" "app_service" {
     source_port_range          = "*"
     destination_port_range     = "*"
   }
-  
+
   security_rule {
     name                       = "AllowAppFromInternet"
     priority                   = 110

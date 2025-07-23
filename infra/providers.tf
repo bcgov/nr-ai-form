@@ -23,7 +23,7 @@ provider "azurerm" {
     }
     resource_group {
       #TODO: set to true later, Allow deletion of resource groups with resources, since we are in exploration, 
-      prevent_deletion_if_contains_resources = false 
+      prevent_deletion_if_contains_resources = false
     }
   }
   subscription_id = var.subscription_id

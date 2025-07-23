@@ -25,6 +25,7 @@ variable "app_service_sku_name_api" {
 
 variable "client_id" {
   description = "Azure client ID for the service principal"
+  type        = string
 }
 
 variable "common_tags" {
@@ -32,33 +33,7 @@ variable "common_tags" {
   type        = map(string)
 }
 
-variable "cosmosdb_container_name" {
-  description = "Name of the CosmosDB container"
-  type        = string
-  sensitive   = true
-}
 
-variable "cosmosdb_db_name" {
-  description = "Name of the CosmosDB database"
-  type        = string
-}
-
-variable "cosmosdb_endpoint" {
-  description = "Endpoint URI for the CosmosDB account"
-  type        = string
-}
-
-variable "cosmosdb_sql_database_container_name" {
-  type        = string
-  default     = "cosmosContainer"
-  description = "Name of the Cosmos DB SQL database container."
-}
-
-variable "cosmosdb_sql_database_name" {
-  type        = string
-  default     = "cosmosDatabase"
-  description = "Name of the Cosmos DB SQL database."
-}
 
 variable "frontdoor_sku_name" {
   description = "SKU name for the Front Door"

@@ -3,19 +3,19 @@ terraform {
 }
 
 locals {
-  stack_prefix               = get_env("stack_prefix")
-  api_image                  = get_env("api_image")
-  vnet_resource_group_name   = get_env("vnet_resource_group_name") # Resource group where the VNet exists.
-  vnet_name                  = get_env("vnet_name")                # Name of the existing VNet.
-  target_env                 = get_env("target_env")
-  app_env                    = get_env("app_env")                  # Application environment (dev, test, prod).
-  azure_subscription_id      = get_env("azure_subscription_id")
-  azure_tenant_id            = get_env("azure_tenant_id")
-  azure_client_id            = get_env("azure_client_id")          # Azure service principal client ID.
-  storage_account_name       = get_env("storage_account_name")     # Created by initial setup script.
-  vnet_address_space         = get_env("vnet_address_space")       # Address space for the VNet.
-  statefile_key              = "${local.stack_prefix}/${local.app_env}/terraform.tfstate"
-  container_name             = "tfstate"
+  stack_prefix             = get_env("stack_prefix")
+  api_image                = get_env("api_image")
+  vnet_resource_group_name = get_env("vnet_resource_group_name") # Resource group where the VNet exists.
+  vnet_name                = get_env("vnet_name")                # Name of the existing VNet.
+  target_env               = get_env("target_env")
+  app_env                  = get_env("app_env") # Application environment (dev, test, prod).
+  azure_subscription_id    = get_env("azure_subscription_id")
+  azure_tenant_id          = get_env("azure_tenant_id")
+  azure_client_id          = get_env("azure_client_id")      # Azure service principal client ID.
+  storage_account_name     = get_env("storage_account_name") # Created by initial setup script.
+  vnet_address_space       = get_env("vnet_address_space")   # Address space for the VNet.
+  statefile_key            = "${local.stack_prefix}/${local.app_env}/terraform.tfstate"
+  container_name           = "tfstate"
 }
 
 # Remote Azure Storage backend for Terraform

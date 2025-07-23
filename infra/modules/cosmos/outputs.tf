@@ -1,7 +1,7 @@
 output "account_name" {
   description = "The name of the Cosmos DB account."
   value       = azurerm_cosmosdb_account.cosmosdb_sql.name
-  
+
 }
 
 output "account_id" {

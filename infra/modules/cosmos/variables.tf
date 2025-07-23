@@ -43,3 +43,8 @@ variable "cosmosdb_sql_database_name" {
   description = "Name of the Cosmos DB SQL database."
 }
 
+variable "log_analytics_workspace_id" {
+  description = "The resource ID of the Log Analytics workspace for diagnostics."
+  type        = string
+  nullable    = false
+}

@@ -21,9 +21,9 @@ resource "azurerm_cosmosdb_account" "cosmosdb_sql" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "cosmosdb_sql_diagnostics" {
-  name                       = "${local.abbrs.documentDBDatabaseAccounts}${random_id.random_deployment_suffix.hex}_diagnostics"
+  name                       = "${var.app_name}-cosmosdb-diagnostics"
   target_resource_id         = azurerm_cosmosdb_account.cosmosdb_sql.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics_workspace.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
 
   enabled_log {
     category = "DataPlaneRequests"
@@ -40,14 +40,14 @@ resource "azurerm_monitor_diagnostic_setting" "cosmosdb_sql_diagnostics" {
   enabled_log {
     category = "ControlPlaneRequests"
   }
-  
+
 }
 
 resource "azurerm_private_endpoint" "cosmosdb_sql_db_private_endpoint" {
   name                = "${var.app_name}-cosmosdb-pe"
-  location                      = var.location
-  resource_group_name           = var.resource_group_name
-  subnet_id                     = var.private_endpoint_subnet_id
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
   private_service_connection {
     name                           = "${azurerm_cosmosdb_account.cosmosdb_sql.name}_privateserviceconnection"
     private_connection_resource_id = azurerm_cosmosdb_account.cosmosdb_sql.id
@@ -63,13 +63,13 @@ resource "azurerm_private_endpoint" "cosmosdb_sql_db_private_endpoint" {
 resource "azurerm_cosmosdb_sql_database" "cosmosdb_sql_db" {
   name                = var.cosmosdb_sql_database_name
   account_name        = azurerm_cosmosdb_account.cosmosdb_sql.name
-  resource_group_name           = var.resource_group_name
+  resource_group_name = var.resource_group_name
   throughput          = 400
 }
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb_sql_db_container" {
   name                = var.cosmosdb_sql_database_container_name
-  resource_group_name           = var.resource_group_name
+  resource_group_name = var.resource_group_name
   account_name        = azurerm_cosmosdb_account.cosmosdb_sql.name
   database_name       = azurerm_cosmosdb_sql_database.cosmosdb_sql_db.name
   partition_key_paths = ["/partitionKey"]
