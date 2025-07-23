@@ -43,15 +43,16 @@ resource "azapi_resource" "apim_subnet" {
         }
       ]
 
-       routeTable = {
-        id = azurerm_route_table.apim_route_table.id
-      }
+      #  routeTable = {
+      #   id = azurerm_route_table.apim_route_table.id
+      # }
     }
   }
   lifecycle {
     ignore_changes = [body.properties.serviceEndpoints]
   }
-  depends_on = [ azurerm_network_security_group.apim_nsg, azurerm_route_table.apim_route_table ]
+  #depends_on = [ azurerm_network_security_group.apim_nsg, azurerm_route_table.apim_route_table ]
+  depends_on = [ azurerm_network_security_group.apim_nsg ]
   locks = [
     data.azurerm_virtual_network.vnet.id
   ]
@@ -206,20 +207,20 @@ resource "azurerm_network_security_group" "privateendpoints_nsg" {
   }
 }
 
-resource "azurerm_route_table" "apim_route_table" {
-  name                = "${local.abbrs.networkRouteTables}apim-${random_id.random_deployment_suffix.hex}"
-  location            = data.azurerm_resource_group.rg.location
-  resource_group_name = data.azurerm_resource_group.rg.name
+# resource "azurerm_route_table" "apim_route_table" {
+#   name                = "${local.abbrs.networkRouteTables}apim-${random_id.random_deployment_suffix.hex}"
+#   location            = data.azurerm_resource_group.rg.location
+#   resource_group_name = data.azurerm_resource_group.rg.name
 
-  dynamic "route" {
-    for_each = local.apim_route_table_routes
-    content {
-      name           = route.value.name
-      address_prefix = route.value.address_prefix
-      next_hop_type  = route.value.next_hop_type
-    }
-  }
-      lifecycle {
-    ignore_changes = [tags]
-  }
-}
+#   dynamic "route" {
+#     for_each = local.apim_route_table_routes
+#     content {
+#       name           = route.value.name
+#       address_prefix = route.value.address_prefix
+#       next_hop_type  = route.value.next_hop_type
+#     }
+#   }
+#       lifecycle {
+#     ignore_changes = [tags]
+#   }
+# }
