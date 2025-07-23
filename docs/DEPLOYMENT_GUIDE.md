@@ -30,8 +30,17 @@ This script will:
 - Output values needed for GitHub secrets and environment variables
 
 ---
+## 2. Add Managed Identity to Project Entra Contributor Group
 
-## 2. Create GitHub Environment
+After running the setup script, a project lead must manually add the newly created Azure User-Assigned Managed Identity to the Entra group that assigns the Contributor role for this project. This step is required to ensure the GitHub Actions workflow has sufficient permissions to deploy resources.
+
+**Manual action required:**
+- Identify the managed identity name from the setup script output
+- In the Entra admin portal, add this managed identity to the appropriate group that grants Contributor access
+- Confirm the group assignment is complete before proceeding
+
+---
+## 3. Create GitHub Environment
 
 In your GitHub repository:
 1. Go to **Settings > Environments**
@@ -40,7 +49,7 @@ In your GitHub repository:
 
 ---
 
-## 3. Add GitHub Secrets and Variables
+## 4. Add GitHub Secrets and Variables
 
 Add the following secrets and variables to your environment (as output by the setup script):
 
@@ -54,11 +63,11 @@ Add the following secrets and variables to your environment (as output by the se
 - `APP_SERVICE_SUBNET_PREFIX` – CIDR for App Service subnet (e.g., `10.46.8.64/26`)
 - `PRIVATEENDPOINT_SUBNET_PREFIX` – CIDR for Private Endpoint subnet (e.g., `10.46.8.128/26`)
 - `RESOURCE_GROUP_NAME` – Name of the Azure Resource Group to host the Azure Resources (e.g., `a9cee3-test-networking`)
-- `TF_STATE_STORAGE_ACCOUNT` – Name of the storage account for Terraform state
+- `TFSTATE_STORAGE_ACCOUNT` – Name of the storage account for Terraform state
 - `VNET_NAME` – Name of the Azure vNet
 ---
 
-## 4. Deploy Infrastructure with GitHub Actions
+## 5. Deploy Infrastructure with GitHub Actions
 
 Once secrets and variables are set, push changes to your repository. The GitHub Actions workflow will:
 - Authenticate to Azure using OIDC
@@ -69,7 +78,7 @@ Monitor workflow runs under the **Actions** tab in your repository.
 
 ---
 
-## 5. Troubleshooting
+## 6. Troubleshooting
 
 - Ensure all secrets and variables are correctly set
 - Check workflow logs for errors

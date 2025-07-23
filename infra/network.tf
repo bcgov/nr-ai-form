@@ -1,5 +1,4 @@
 
-
 resource "azapi_resource" "apim_subnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
   name      = "${local.abbrs.networkVirtualNetworksSubnets}apim-${random_id.random_deployment_suffix.hex}"
@@ -43,16 +42,17 @@ resource "azapi_resource" "apim_subnet" {
         }
       ]
 
-      #  routeTable = {
-      #   id = azurerm_route_table.apim_route_table.id
-      # }
+      # Reference the route table from another subscription
+      routeTable = {
+        id = data.azurerm_route_table.hub_apim_route_table.id
+      }
     }
   }
   lifecycle {
     ignore_changes = [body.properties.serviceEndpoints]
   }
   #depends_on = [ azurerm_network_security_group.apim_nsg, azurerm_route_table.apim_route_table ]
-  depends_on = [ azurerm_network_security_group.apim_nsg ]
+  depends_on = [ azurerm_network_security_group.apim_nsg, data.azurerm_route_table.hub_apim_route_table ]
   locks = [
     data.azurerm_virtual_network.vnet.id
   ]
@@ -207,6 +207,21 @@ resource "azurerm_network_security_group" "privateendpoints_nsg" {
   }
 }
 
+# Define provider for cross-subscription resources
+provider "azurerm" {
+  alias           = "network_hub"
+  subscription_id = "7f44141e-d92c-45c6-86a4-a32c7579a959"
+  features {}
+}
+
+# Reference the existing route table in the other subscription
+data "azurerm_route_table" "hub_apim_route_table" {
+  provider            = azurerm.network_hub
+  name                = "rt-apim-shared"
+  resource_group_name = "bcgov-managed-lz-live-asc-export"
+}
+
+# Original route table code (commented out)
 # resource "azurerm_route_table" "apim_route_table" {
 #   name                = "${local.abbrs.networkRouteTables}apim-${random_id.random_deployment_suffix.hex}"
 #   location            = data.azurerm_resource_group.rg.location
