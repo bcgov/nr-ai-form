@@ -71,10 +71,10 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb_sql_db_container" {
 
 // Assign the App Service's managed identity to the Cosmos DB SQL Database with Data Contributor role
 
-resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_app_service_data_contributor" {
-  resource_group_name = data.azurerm_resource_group.rg.name
-  account_name        = azurerm_cosmosdb_account.cosmosdb_sql.name
-  role_definition_id  = "${azurerm_cosmosdb_account.cosmosdb_sql.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  principal_id        = azurerm_linux_web_app.app_service.identity[0].principal_id
-  scope               = azurerm_cosmosdb_account.cosmosdb_sql.id
-}
+# resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_app_service_data_contributor" {
+#   resource_group_name = data.azurerm_resource_group.rg.name
+#   account_name        = azurerm_cosmosdb_account.cosmosdb_sql.name
+#   role_definition_id  = "${azurerm_cosmosdb_account.cosmosdb_sql.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
+#   principal_id        = azurerm_linux_web_app.app_service.identity[0].principal_id
+#   scope               = azurerm_cosmosdb_account.cosmosdb_sql.id
+# }
