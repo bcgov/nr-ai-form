@@ -1,6 +1,8 @@
 {
     "analysisServicesServers": "as",
     "aiServices": "ai-",
+    "aiFoundry": "aif-",
+    "aiFoundryProject": "aifp-",
     "apiManagementService": "apim-",
     "appConfigurationConfigurationStores": "appcs-",
     "appContainerApps": "ca-",
