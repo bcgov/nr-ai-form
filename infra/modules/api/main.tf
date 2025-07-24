@@ -27,7 +27,7 @@ resource "azurerm_linux_web_app" "api" {
   site_config {
     always_on                               = true
     container_registry_use_managed_identity = true
-    minimum_tls_version                     = "1.2"
+    minimum_tls_version                     = "1.3"
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
     application_stack {
