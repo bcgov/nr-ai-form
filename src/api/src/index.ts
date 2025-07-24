@@ -131,7 +131,7 @@ app.get("/", async (_req: Request, res: Response) => {
     if (item) {
       // eslint-disable-next-line no-console
       console.log("Item found, sending response:", item);
-      res.json(item);
+      res.json({ message: "Hello From CSS AI Team", ...item });
     } else {
       // eslint-disable-next-line no-console
       console.log("Item not found, sending 404");
