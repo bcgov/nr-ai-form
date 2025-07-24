@@ -1,0 +1,89 @@
+name: .Terraform Deployer
+
+on:
+  workflow_call:
+    inputs:
+      ### Required
+      environment_name:
+        description: 'The name of the environment to deploy to'
+        required: true
+        default: 'dev'
+        type: string
+      command:
+        description: 'The terragrunt command to run'
+        required: true
+        default: 'apply'
+        type: string
+      tag:
+        description: 'The tag of the containers to deploy'
+        default: 'latest'
+        type: string
+        required: false
+      app_env:
+        required: false
+        type: string
+        description: 'The APP env separates between Azure ENV and Actual APP, since Azure dev is where PR, and TEST is deployed'
+      stack_prefix:
+        required: true
+        type: string
+        description: 'The stack prefix to use for the resources'
+      
+      
+env:
+    TG_VERSION: 0.63.6
+    TF_VERSION: 1.12.2
+    TF_LOG: ERROR
+    AZURE_REGION: Canada Central
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: write # This is required for actions/checkout
+jobs:
+ infra:
+  #### environment: ${{ inputs.environment_name }}
+  name: Terragrunt ${{inputs.command}}  ${{ inputs.environment_name }}
+  runs-on: ubuntu-24.04
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Azure CLI Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    
+    - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+    
+    - name: Setup Terragrunt
+      uses: autero1/action-terragrunt@aefb0a43c4f5503a91fefb307745c4d51c26ed0e # v3
+      with:
+        terragrunt-version: ${{ env.TG_VERSION }}
+    - name: Image Tags
+      id: image-tags
+      shell: bash
+      run: |
+        API_IMAGE="ghcr.io/${{ github.repository }}/api:${{ inputs.tag }}"
+        echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
+    
+    - name: Terragrunt ${{inputs.command}}
+      working-directory: terragrunt # currently stay in root until we have diff envs.
+      env:
+          target_env: ${{ inputs.environment_name }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
+          vnet_name: ${{ vars.VNET_NAME }}
+          api_image: ${{ steps.image-tags.outputs.api-image }}
+          stack_prefix: ${{ inputs.stack_prefix }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          repo_name: ${{ github.event.repository.name }}
+          app_env: ${{ inputs.app_env }}
+          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
+      run: |
+          # Run terraform
+          terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive
+    

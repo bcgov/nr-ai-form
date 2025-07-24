@@ -1,133 +1,104 @@
-// Resource group variables
+# -------------
+# Root Variables for Azure Infrastructure
+# -------------
 
-variable "resource_group_location" {
+variable "api_image" {
+  description = "The image for the API container"
   type        = string
-  default     = "canadacentral"
-  description = "Location for all resources."
+}
+
+variable "app_env" {
+  description = "Application environment (dev, test, prod)"
+  type        = string
+}
+
+variable "app_name" {
+  description = "Name of the application"
+  type        = string
+}
+
+variable "app_service_sku_name_api" {
+  description = "SKU name for the API App Service Plan"
+  type        = string
+  default     = "B1" # Basic tier 
+}
+
+variable "client_id" {
+  description = "Azure client ID for the service principal"
+  type        = string
+}
+
+variable "common_tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+}
+
+
+
+variable "frontdoor_sku_name" {
+  description = "SKU name for the Front Door"
+  type        = string
+  default     = "Standard_AzureFrontDoor"
+}
+
+variable "location" {
+  description = "Azure region for resources"
+  type        = string
+  default     = "Canada Central"
+}
+
+variable "log_analytics_retention_days" {
+  description = "Number of days to retain data in Log Analytics Workspace"
+  type        = number
+  default     = 30
+}
+
+variable "log_analytics_sku" {
+  description = "SKU for Log Analytics Workspace"
+  type        = string
+  default     = "PerGB2018"
+}
+
+variable "repo_name" {
+  description = "Name of the repository, used for resource naming"
+  type        = string
+  nullable = false
 }
 
 variable "resource_group_name" {
+  description = "Name of the resource group"
   type        = string
-  description = "Name of the resource group."
 }
 
-// Network variables
-
-variable "vnet_name" {
+variable "subscription_id" {
+  description = "Azure subscription ID"
   type        = string
-  description = "Existing vnet name."
-}
-
-variable "apim_subnet_prefix" {
-  type        = string
-  description = "The address prefix for the API Management subnet."
-}
-
-variable "app_service_subnet_prefix" {
-  type        = string
-  description = "The address prefix for the Container Apps subnet."
-}
-
-variable "privateendpoint_subnet_prefix" {
-  type        = string
-  description = "The address prefix for the Private Endpoint subnet."
-}
-
-variable "container_image_name" {
-  type        = string
-  description = "Container image for the Container App."
-}
-
-variable "container_registry_url" {
-  type        = string
-  description = "Name of the Container Registry Server for the Container App."
-}
-
-variable "container_registry_username" {
-  type        = string
-  description = "Username for the Container Registry."
-}
-
-variable "container_registry_password" {
-  type        = string
-  description = "Password for the Container Registry."
   sensitive   = true
 }
 
-// App Service variables
-
-variable "app_service_plan_sku" {
-  description = "The SKU of the App Service Plan"
-  default     = "B1"
+variable "tenant_id" {
+  description = "Azure tenant ID"
   type        = string
-  validation {
-    condition     = contains(["B1", "S1", "P1v2"], var.app_service_plan_sku)
-    error_message = "The app_service_plan_sku must be one of the following: B1, S1, P1v2."
-  }
+  sensitive   = true
 }
 
-// API Management variables
-
-variable "apim_virtual_network_type" {
-  description = "The virtual network type of the API Management service"
-  default     = "External"
-  type        = string
-  validation {
-    condition     = contains(["External", "Internal", "None"], var.apim_virtual_network_type)
-    error_message = "The virtual network type must be one of the following: External, Internal, None."
-  }
+variable "use_oidc" {
+  description = "Use OIDC for authentication"
+  type        = bool
+  default     = true
 }
 
-variable "publisher_email" {
-  default     = "test@contoso.com"
-  description = "The email address of the owner of the service"
+variable "vnet_address_space" {
   type        = string
-  validation {
-    condition     = length(var.publisher_email) > 0
-    error_message = "The publisher_email must contain at least one character."
-  }
+  description = "Address space for the virtual network, it is created by platform team"
 }
 
-variable "publisher_name" {
-  default     = "publisher"
-  description = "The name of the owner of the service"
+variable "vnet_name" {
+  description = "Name of the existing virtual network"
   type        = string
-  validation {
-    condition     = length(var.publisher_name) > 0
-    error_message = "The publisher_name must contain at least one character."
-  }
 }
 
-variable "sku" {
-  description = "The pricing tier of this API Management service"
-  default     = "Developer"
+variable "vnet_resource_group_name" {
+  description = "Resource group name where the virtual network exists"
   type        = string
-  validation {
-    condition     = contains(["Developer", "Standard", "Premium"], var.sku)
-    error_message = "The sku must be one of the following: Developer, Standard, Premium."
-  }
-}
-
-variable "sku_count" {
-  description = "The instance size of this API Management service."
-  default     = 1
-  type        = number
-  validation {
-    condition     = contains([1, 2], var.sku_count)
-    error_message = "The sku_count must be one of the following: 1, 2."
-  }
-}
-
-// Cosmos DB variables
-
-variable "cosmosdb_sql_database_name" {
-  type        = string
-  default     = "cosmosDatabase"
-  description = "Name of the Cosmos DB SQL database."
-}
-
-variable "cosmosdb_sql_database_container_name" {
-  type        = string
-  default     = "cosmosContainer"
-  description = "Name of the Cosmos DB SQL database container."
 }
