@@ -66,10 +66,7 @@ jobs:
       shell: bash
       run: |
         API_IMAGE="ghcr.io/${{ github.repository }}/api:${{ inputs.tag }}"
-        
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
-        echo "flyway-image=$FLYWAY_IMAGE" >> $GITHUB_OUTPUT
-        echo "frontend-image=$FRONTEND_IMAGE" >> $GITHUB_OUTPUT
     
     - name: Terragrunt ${{inputs.command}}
       working-directory: terragrunt # currently stay in root until we have diff envs.
