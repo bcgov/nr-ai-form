@@ -53,7 +53,7 @@ vnet_name                 = "${local.vnet_name}"
 vnet_resource_group_name  = "${local.vnet_resource_group_name}"
 api_image                 = "${local.api_image}"
 vnet_address_space        = "${local.vnet_address_space}"
-
+repo_name                 = "${get_env("repo_name")}"
 common_tags = {
   "Environment" = "${local.target_env}"
   "AppEnv"      = "${local.app_env}"

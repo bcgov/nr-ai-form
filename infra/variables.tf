@@ -62,7 +62,7 @@ variable "log_analytics_sku" {
 variable "repo_name" {
   description = "Name of the repository, used for resource naming"
   type        = string
-  default     = "quickstart-azure-containers"
+  nullable = false
 }
 
 variable "resource_group_name" {
