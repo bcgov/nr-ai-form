@@ -25,6 +25,7 @@ jobs:
 
   plan-stack:
     name: Plan Stack
+    needs: builds
     concurrency:
       group: plan-stack-${{ github.event.number || 'latest' }}
       cancel-in-progress: false
