@@ -62,7 +62,7 @@ jobs:
         run: tflint -f compact
 
  
-  deploy-to-test: # currently only runs on manual dispatch and deploy to test
+  deploy-to-test:
     name: Deploy to Test
     needs: builds
     if: (github.event_name == 'workflow_dispatch')
@@ -74,5 +74,6 @@ jobs:
       command: apply
       tag: manual
       app_env: test
+      environment: test
     secrets: inherit
 
