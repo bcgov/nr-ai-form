@@ -116,9 +116,19 @@ async function initDatabase() {
 
 import type { Request, Response } from "express";
 
-app.get("/", async (_req: Request, res: Response) => {
+app.get("/", async (req: Request, res: Response) => {
   // eslint-disable-next-line no-console
   console.log("Received GET / request");
+  // eslint-disable-next-line no-console
+  console.log("Request data:", {
+    method: req.method,
+    url: req.url,
+    headers: req.headers,
+    query: req.query,
+    params: req.params,
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  });
   try {
     // Query the demo item from Cosmos DB
     const { resource: item } = await container
@@ -127,7 +137,7 @@ app.get("/", async (_req: Request, res: Response) => {
 
     // eslint-disable-next-line no-console
     console.log("Cosmos DB query executed for demo item");
-
+    
     if (item) {
       // eslint-disable-next-line no-console
       console.log("Item found, sending response:", item);
