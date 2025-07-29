@@ -136,7 +136,7 @@ app.get("/", async (req: Request, res: Response) => {
       .read();
 
     // eslint-disable-next-line no-console
-    console.log("Cosmos DB query executed for demo item");
+    console.log("Cosmos DB query executed for demo item!!");
     
     if (item) {
       // eslint-disable-next-line no-console
