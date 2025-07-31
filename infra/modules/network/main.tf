@@ -3,8 +3,14 @@ data "azurerm_virtual_network" "main" {
   resource_group_name = var.vnet_resource_group_name
 }
 
+# Local variable for network deployment control
+locals {
+  deploy_network = var.deploy_network && var.app_env != "dev"
+}
+
 # NSG for privateendpoints subnet
 resource "azurerm_network_security_group" "privateendpoints" {
+  count               = local.deploy_network ? 1 : 0
   name                = "${var.resource_group_name}-pe-nsg"
   location            = var.location
   resource_group_name = var.vnet_resource_group_name
@@ -43,6 +49,7 @@ resource "azurerm_network_security_group" "privateendpoints" {
 
 # NSG for app service subnet
 resource "azurerm_network_security_group" "app_service" {
+  count               = var.deploy_network && var.app_env != "dev" ? 1 : 0
   name                = "${var.resource_group_name}-as-nsg"
   location            = var.location
   resource_group_name = var.vnet_resource_group_name
@@ -103,6 +110,7 @@ resource "azurerm_network_security_group" "app_service" {
 
 # Subnets
 resource "azapi_resource" "privateendpoints_subnet" {
+  count     = var.deploy_network && var.app_env != "dev" ? 1 : 0
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
   name      = var.private_endpoint_subnet_name
   parent_id = data.azurerm_virtual_network.main.id
@@ -111,7 +119,7 @@ resource "azapi_resource" "privateendpoints_subnet" {
     properties = {
       addressPrefix = local.private_endpoints_subnet_cidr
       networkSecurityGroup = {
-        id = azurerm_network_security_group.privateendpoints.id
+        id = azurerm_network_security_group.privateendpoints[0].id
       }
     }
   }
@@ -119,6 +127,7 @@ resource "azapi_resource" "privateendpoints_subnet" {
 }
 
 resource "azapi_resource" "app_service_subnet" {
+  count     = var.deploy_network && var.app_env != "dev" ? 1 : 0
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
   name      = var.apps_service_subnet_name
   parent_id = data.azurerm_virtual_network.main.id
@@ -127,7 +136,7 @@ resource "azapi_resource" "app_service_subnet" {
     properties = {
       addressPrefix = local.app_service_subnet_cidr
       networkSecurityGroup = {
-        id = azurerm_network_security_group.app_service.id
+        id = azurerm_network_security_group.app_service[0].id
       }
       delegations = [
         {

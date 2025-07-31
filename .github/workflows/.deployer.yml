@@ -39,7 +39,7 @@ permissions:
   contents: write # This is required for actions/checkout
 jobs:
  infra:
-  #### environment: ${{ inputs.environment_name }}
+  environment: ${{ inputs.environment_name }}
   name: Terragrunt ${{inputs.command}}  ${{ inputs.environment_name }}
   runs-on: ubuntu-24.04
   steps:
@@ -69,7 +69,7 @@ jobs:
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
     
     - name: Terragrunt ${{inputs.command}}
-      working-directory: terragrunt # currently stay in root until we have diff envs.
+      working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}

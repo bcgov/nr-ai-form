@@ -18,7 +18,8 @@ resource "azurerm_resource_group" "main" {
 # -------------
 module "network" {
   source = "./modules/network"
-
+  
+  app_env                  = var.app_env
   common_tags              = var.common_tags
   resource_group_name      = azurerm_resource_group.main.name
   vnet_address_space       = var.vnet_address_space
@@ -59,7 +60,7 @@ module "cosmos" {
   common_tags                = var.common_tags
   location                   = var.location
   resource_group_name        = azurerm_resource_group.main.name
-  private_endpoint_subnet_id = module.network.private_endpoint_subnet_id
+  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id  : module.network.private_endpoint_subnet_id
   log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
   
   depends_on = [azurerm_resource_group.main, module.network]
@@ -77,8 +78,8 @@ module "api" {
   common_tags         = var.common_tags
 
   # Networking
-  private_endpoint_subnet_id = module.network.private_endpoint_subnet_id
-  app_service_subnet_id      = module.network.app_service_subnet_id
+  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.private_endpoint_subnet_id
+  app_service_subnet_id      = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.private_endpoint_subnet_id
 
   # App Service
   app_service_sku_name_api = var.app_service_sku_name_api

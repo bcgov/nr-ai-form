@@ -1,5 +1,5 @@
 terraform {
-  source = "..//infra"
+  source = "${get_parent_terragrunt_dir()}/../infra"
 }
 
 locals {
