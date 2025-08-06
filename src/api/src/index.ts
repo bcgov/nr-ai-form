@@ -1,190 +1,107 @@
-import express from "express";
-import { CosmosClient, Container } from "@azure/cosmos";
-import { DefaultAzureCredential } from "@azure/identity";
-import dotenv from "dotenv";
+import express, { Request, Response } from "express";
+import { errorHandler } from './middleware/errorHandler';
+import config from './config/config';
 
-dotenv.config();
+import webformRoutes from "./routes/webform";
 
 const app = express();
-const port = 3000;
 
-// Use environment variables for Cosmos DB connection
-// Log Cosmos DB configuration (excluding sensitive info)
-// eslint-disable-next-line no-console
-console.log("Configuring Cosmos DB client:", {
-  endpoint: process.env.COSMOS_DB_ENDPOINT,
-  databaseName: process.env.COSMOS_DB_DATABASE_NAME,
-  containerName: process.env.COSMOS_DB_CONTAINER_NAME,
-  authMethod: "Managed Identity",
-});
-
-let cosmosClient: CosmosClient;
-let container: Container;
-
-async function createCosmosClient() {
-  try {
-    // Check if we have an endpoint URL
-    if (!process.env.COSMOS_DB_ENDPOINT) {
-      throw new Error("COSMOS_DB_ENDPOINT environment variable is required");
-    }
-
-    if (!process.env.COSMOS_DB_DATABASE_NAME) {
-      throw new Error(
-        "COSMOS_DB_DATABASE_NAME environment variable is required"
-      );
-    }
-
-    // Check if we're using the local emulator
-    const isLocalEmulator =
-      process.env.COSMOS_DB_ENDPOINT.includes("localhost") ||
-      process.env.COSMOS_DB_ENDPOINT.includes("127.0.0.1");
-
-    if (isLocalEmulator) {
-      // Use the emulator key for local development
-      cosmosClient = new CosmosClient({
-        endpoint: process.env.COSMOS_DB_ENDPOINT,
-        key: "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==", // Default emulator key
-      });
-    } else {
-      // Use Managed Identity for authentication when running in Azure
-      // For local development, this will fall back to Azure CLI credentials
-      const credential = new DefaultAzureCredential();
-
-      cosmosClient = new CosmosClient({
-        endpoint: process.env.COSMOS_DB_ENDPOINT,
-        aadCredentials: credential,
-      });
-    }
-
-    const database = cosmosClient.database(process.env.COSMOS_DB_DATABASE_NAME);
-    container = database.container(
-      process.env.COSMOS_DB_CONTAINER_NAME || "demo-container"
-    );
-
-    // Test the connection
-    await database.read();
-
-    // eslint-disable-next-line no-console
-    console.log("Cosmos DB client created and connected successfully");
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to create Cosmos DB client:", error);
-
-    // Provide helpful error message for local development
-    if (error instanceof Error && error.message.includes("credentials")) {
-      // eslint-disable-next-line no-console
-      console.error(
-        "For local development, ensure you are logged in to Azure CLI: az login"
-      );
-    }
-
-    throw error;
-  }
-}
-
-const CONTAINER_NAME = process.env.COSMOS_DB_CONTAINER_NAME || "demo-container";
-const DEMO_ITEM = {
-  id: "1",
-  message: "Hello from Cosmos DB!",
-  partitionKey: "demo", // Cosmos DB requires a partition key
-};
-
-async function initDatabase() {
-  try {
-    // eslint-disable-next-line no-console
-    console.log("Initializing Cosmos DB container and demo item...");
-
-    // Create container if it doesn't exist
-    const { container: containerResponse } = await cosmosClient
-      .database(process.env.COSMOS_DB_DATABASE_NAME!)
-      .containers.createIfNotExists({
-        id: CONTAINER_NAME,
-        partitionKey: "/partitionKey",
-      });
-
-    // Upsert demo item
-    await container.items.upsert(DEMO_ITEM);
-
-    // eslint-disable-next-line no-console
-    console.log("Database initialization complete.");
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Database initialization failed:", error);
-    throw error;
-  }
-}
-
-import type { Request, Response } from "express";
-
-app.get("/", async (req: Request, res: Response) => {
-  // eslint-disable-next-line no-console
-  console.log("Received GET / request");
-  // eslint-disable-next-line no-console
-  console.log("Request data:", {
-    method: req.method,
-    url: req.url,
-    headers: req.headers,
-    query: req.query,
-    params: req.params,
-    ip: req.ip,
-    userAgent: req.get('User-Agent')
-  });
-  try {
-    // Query the demo item from Cosmos DB
-    const { resource: item } = await container
-      .item(DEMO_ITEM.id, DEMO_ITEM.partitionKey)
-      .read();
-
-    // eslint-disable-next-line no-console
-    console.log("Cosmos DB query executed for demo item");
+// ---- cors configuration
+var cors = require('cors')
+app.use(cors({
+  origin: function (origin: string, callback: (err: Error | null, allow?: boolean) => void) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
     
-    if (item) {
-      // eslint-disable-next-line no-console
-      console.log("Item found, sending response:", item);
-      res.json({ welcome_message: "Hello From CSS AI Team", ...item });
+    // Define allowed origins
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3000',
+      'https://jatindersingh93.github.io',
+      'https://cdn.jsdelivr.net'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
     } else {
-      // eslint-disable-next-line no-console
-      console.log("Item not found, sending 404");
-      res.status(404).json({ error: "Item not found" });
+      callback(new Error('Not allowed by CORS'));
     }
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("Cosmos DB error:", (err as Error).message);
-    res
-      .status(500)
-      .json({ error: "Database error", details: (err as Error).message });
+  },
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // Allow cookies to be sent with requests
+  optionsSuccessStatus: 200
+}))
+
+
+// ---- http connections
+app.get("/", (req: Request, res: Response) => {
+  res.send("base route");
+});
+// api routes
+app.use("/api", webformRoutes);
+
+
+app.use(errorHandler);
+
+// start the server
+app.listen(config.port, () => {
+  console.log(`Server is running on port ${config.port}`);
+});
+
+// ---- WebSocket connections
+const WebSocket = require('ws');
+const http = require('http');
+
+// Create a server instance for WebSocket to use
+const wsServer = http.createServer();
+
+// Set up WebSocket server with proper CORS headers
+const wss = new WebSocket.Server({ 
+  server: wsServer,
+  // Handle WebSocket-specific CORS validation
+  verifyClient: (info: { origin: string }) => {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3000',
+      'https://jatindersingh93.github.io'
+    ];
+    
+    const origin = info.origin || '';
+    return allowedOrigins.indexOf(origin) !== -1 || !origin;
   }
 });
 
-// Health check endpoint
-app.get("/health", async (_req: Request, res: Response) => {
-  try {
-    // Test Cosmos DB connection
-    await cosmosClient.database(process.env.COSMOS_DB_DATABASE_NAME!).read();
-    res.json({
-      status: "healthy",
-      database: "connected",
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    res.status(503).json({
-      status: "unhealthy",
-      database: "disconnected",
-      error: (error as Error).message,
-      timestamp: new Date().toISOString(),
-    });
-  }
+// Start WebSocket server on port 8081
+wsServer.listen(8082, () => {
+  console.log('WebSocket server is running on port 8082');
 });
 
-app.listen(port, async () => {
-  try {
-    await createCosmosClient();
-    await initDatabase();
-    // eslint-disable-next-line no-console
-    console.log(`API server running on port ${port}`);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to initialize Cosmos DB:", err);
-    process.exit(1);
-  }
+wss.on('connection', (ws: any, req: any) => {
+  console.log('A new client connected from:', req.socket.remoteAddress);
+
+  ws.on('message', (message: any) => {
+    console.log('Received message:', message);
+
+    // reply to client (for demo, with same data)
+    ws.send(message.toString());
+
+    // Broadcast the message to all connected clients
+    // wss.clients.forEach((client:any) => {
+    //   if (client.readyState === WebSocket.OPEN) {
+
+    //     // TODO: fetch ai data
+    //     if(message.formId) {
+
+    //       // const ai = 
+    //       client.send( message.toString());
+    //     }
+    //   }
+    // });
+  });
+
+  ws.on('close', () => {
+    console.log('A client disconnected.');
+  });
 });
