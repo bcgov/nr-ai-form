@@ -5,6 +5,17 @@ variable "apps_service_subnet_name" {
   nullable    = false
 }
 
+variable "deploy_network" {
+  description = "Flag to control whether to deploy network resources. Set to false for dev environment."
+  type        = bool
+  default     = true
+}
+
+variable "app_env" {
+  description = "Application environment (dev, test, prod)"
+  type        = string
+}
+
 variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
