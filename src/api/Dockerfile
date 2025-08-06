@@ -1,46 +1,57 @@
-FROM node:20-alpine AS base
+FROM node:22-alpine AS builder
 
-# Set working directory
+# Add labels for better maintainability
+LABEL maintainer="BCGov" \
+      description="NR AI Form API" \
+      version="1.0"
+
 WORKDIR /app
 
-# Install dependencies first (for better layer caching)
-COPY package.json package-lock.json* ./
-
-# Install dependencies with clean slate
+# Install dependencies first (better layer caching)
+COPY package*.json ./
 RUN npm ci
 
-# Copy the rest of the code
-COPY . .
+# Copy source files
+COPY tsconfig.json ./
+COPY src ./src
 
-# Build the app
-RUN npm run build
+# Build and verify output directory exists
+RUN npm run build && \
+    ls -la build || exit 1
 
-# Production image, copy all the files and run
-FROM node:20-alpine AS production
+# Production image
+FROM node:22-alpine AS runner
 
-# Set NODE_ENV
-ENV NODE_ENV=production
+# Add non-root user for security
+RUN addgroup -g 1001 -S nodejs \
+    && adduser -S nodeuser -G nodejs
 
-# Create app directory
 WORKDIR /app
 
-# Install only production dependencies
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+# Copy only production dependencies
+COPY package*.json ./
+RUN npm ci --only=production && \
+    npm cache clean --force
 
-# Copy built app from build stage
-COPY --from=base /app/dist ./dist
+# Copy built assets from builder (use correct output directory)
+COPY --from=builder /app/build ./build
 
-# Copy additional necessary files
-COPY --from=base /app/src/views ./src/views
-#COPY --from=base /app/src/public ./src/public
+# Set proper ownership
+RUN chown -R nodeuser:nodejs /app
 
-# Create a non-root user
-RUN addgroup -S appuser && adduser -S -G appuser appuser
-USER appuser
+# Use non-root user
+USER nodeuser
+
+# Configure environment
+ENV NODE_ENV=production \
+    PORT=3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
 # Expose port
 EXPOSE 3000
 
-# Command to run the app
-CMD ["node", "dist/index.js"]
+# Start application
+CMD ["npm", "start"]
