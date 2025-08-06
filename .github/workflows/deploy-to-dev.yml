@@ -51,14 +51,13 @@ jobs:
   deploy-to-dev: 
     name: Deploy to Dev
     needs: builds
-    if: (github.event_name == 'workflow_dispatch')    
     concurrency:
-      group: deploy-dev-${{ github.event.number || 'latest' }}
+      group: deploy-test-${{ github.event.number || 'latest' }}
       cancel-in-progress: false
     uses: ./.github/workflows/.deploy_stack.yml
     with:
       command: apply
       tag: manual
       app_env: dev
-      environment_name: dev
+      environment_name: development
     secrets: inherit

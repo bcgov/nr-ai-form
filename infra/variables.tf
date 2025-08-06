@@ -10,7 +10,6 @@ variable "api_image" {
 variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string
-  default     = "test"
 }
 
 variable "app_name" {
@@ -102,16 +101,4 @@ variable "vnet_name" {
 variable "vnet_resource_group_name" {
   description = "Resource group name where the virtual network exists"
   type        = string
-}
-
-variable "dev_private_endpoint_subnet_id" {
-  description = "The subnet ID for private endpoints in dev environment"
-  type        = string
-  default     = ""
-}
-
-variable "dev_app_service_subnet_id" {
-  description = "The subnet ID for app service in dev environment"
-  type        = string
-  default     = ""
 }
