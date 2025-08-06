@@ -33,7 +33,7 @@ COPY --from=base /app/dist ./dist
 
 # Copy additional necessary files
 COPY --from=base /app/src/views ./src/views
-COPY --from=base /app/src/public ./src/public
+#COPY --from=base /app/src/public ./src/public
 
 # Create a non-root user
 RUN addgroup -S appuser && adduser -S -G appuser appuser
