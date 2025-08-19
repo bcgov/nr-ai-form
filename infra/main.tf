@@ -79,7 +79,7 @@ module "api" {
 
   # Networking
   private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.private_endpoint_subnet_id
-  app_service_subnet_id      = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.private_endpoint_subnet_id
+  app_service_subnet_id      = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.app_service_subnet_id
 
   # App Service
   app_service_sku_name_api = var.app_service_sku_name_api
