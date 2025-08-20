@@ -84,6 +84,6 @@ jobs:
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
       run: |
-          # Run terraform
-          terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive
+          # Run terraform with lock=false to avoid state lock issues
+          terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false
     

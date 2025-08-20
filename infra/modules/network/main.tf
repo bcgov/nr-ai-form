@@ -120,6 +120,7 @@ resource "azapi_resource" "privateendpoints_subnet" {
       addressPrefix = local.private_endpoints_subnet_cidr
       networkSecurityGroup = {
         id = azurerm_network_security_group.privateendpoints[0].id
+        #id = azurerm_network_security_group.privateendpoints.id
       }
     }
   }
@@ -137,6 +138,7 @@ resource "azapi_resource" "app_service_subnet" {
       addressPrefix = local.app_service_subnet_cidr
       networkSecurityGroup = {
         id = azurerm_network_security_group.app_service[0].id
+        #id = azurerm_network_security_group.app_service.id
       }
       delegations = [
         {

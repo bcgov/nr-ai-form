@@ -1,16 +1,18 @@
-name: Destroy Test Environment
+  name: Destroy Test Environment
 
-permissions:
-  contents: read
+  permissions:
+   contents: write
+   id-token: write
 
-on:
-  workflow_dispatch:
+  on:
+    workflow_dispatch:
 
-jobs:
-  destroy-test:
-    uses: ./.github/workflows/.deployer.yml
-    with:
-      environment_name: test
-      command: destroy
-      stack_prefix: test-stack # Change this to your actual stack prefix if needed
-    secrets: inherit
+  jobs:
+    destroy-test:
+      uses: ./.github/workflows/.deployer.yml
+      with:
+        environment_name: test
+        command: destroy
+        stack_prefix: test-stack # Change this to your actual stack prefix if needed
+      secrets: inherit
+  
