@@ -15,15 +15,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // add AI Assist UI
         const aiAgentHtml = `
-        <div id="ai-agent">
-            <div class="header">AI Assistant</div>
-            <div class="messages">
-                <div class="message bot">Hello! How can I help you today?</div>        
+        <div id="ai-agent-wrapper">
+            <div id="ai-agent">
+                <div class="header">
+                <span>Form Assistant</span>
+                <button id="ai-agent-close" onclick="document.getElementById('ai-agent').style.display='none'">&#45&#45</button>
+                </div>
+                <div class="messages">
+                    <div class="message bot">Hello! How can I help you today?</div>        
+                </div>
+                <div class="input-area">
+                    <input type="text" id="ai-agent-input-text" placeholder="Type a message...">
+                    <button id="ai-agent-send">Send</button>
+                </div>
             </div>
-            <div class="input-area">
-                <input type="text" id="ai-agent-input-text" placeholder="Type a message...">
-                <button id="ai-agent-send">Send</button>
-            </div>
+            <button id="ai-agent-expand" onclick="document.getElementById('ai-agent').style.display='flex'">Form Assistant</button>
+
         </div>`;
         document.body.insertAdjacentHTML('beforeend', aiAgentHtml);
 
@@ -87,8 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     input = 'No, thanks';
                 }
 
-
-                // ----- else if selected other option, send option value as input message to AI
+                // ----- else if choosing from other options, send option value as input message to AI
                 else {
                     const formsData = clientFormCapture.captureAllForms();
                     const apiResponse = await sendData(inputValue, formsData);
@@ -100,27 +106,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // sends request to the NR Form API
         async function sendData(message, formsData) {
-            // NOTE: for Water use-case, only send data for a single form on the page
-            const formData = formsData[0];
-            // Create JSON body for API request
-            const body = {
-                message: message,
-                formFields: formData.fields,
-                data: {
-                    timestamp: new Date().toISOString(),
-                    formId: formData.formId || 'unknown-form',
-                    pageUrl: window.location.href
-                },
-                metadata: {
-                    source: 'ai-agent-send',
-                    captureMethod: 'FormCapture.js',
-                    totalFields: formData.fields.length
-                }
-            };
-            console.log('API Request body:', body);
 
+            let body, url;
+
+            // call /start endpont for first request..
+            if (!window.apiResponse?.thread_id) {
+                // NOTE: for Water use-case, only send data for a single form on the page
+                const formData = formsData[0];
+                url = `https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/api/v1/start`;
+                // Create JSON body for API request
+                body = {
+                    message: message,
+                    formFields: formData.fields,
+                    data: {
+                        timestamp: new Date().toISOString(),
+                        formId: formData.formId || 'unknown-form',
+                        pageUrl: window.location.href
+                    },
+                    metadata: {
+                        source: 'ai-agent-send',
+                        captureMethod: 'FormCapture.js',
+                        totalFields: formData.fields.length
+                    }
+                };
+                console.log('API Request body:', body);
+
+            }
+
+            // call /continue for subsequent requests.
+            else {
+                url = `https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/api/v1/continue`;
+                body = {
+                    thread_id: window.apiResponse.thread_id,
+                    message: message,
+                }
+            }
+
+            // make api call
             try {
-                const response = await fetch(`https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/api/v1/start`, {
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -134,6 +158,56 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const data = await response.json();
+
+                // const data = {
+                //     "thread_id": "b2f97ad4-4959-42d5-a005-b02083d48ab4",
+                //     "response": "You have filled some fields but are missing the Fee Exemption Category and supporting information. Please select a category from the provided options and include any relevant details for your eligibility.",
+                //     "status": "completed",
+                //     "filled_fields": [
+                //         {
+                //             "data-id": "V1IsEligibleForFeeExemption",
+                //             "field_value": "Yes"
+                //         },
+                //         {
+                //             "data-id": "V1IsExistingExemptClient",
+                //             "field_value": "Yes"
+                //         },
+                //         {
+                //             "data-id": "V1FeeExemptionClientNumber",
+                //             "field_value": "1234566dddxx"
+                //         }
+                //     ],
+                //     "missing_fields": [
+                //         {
+                //             "data-id": "V1FeeExemptionCategory",
+                //             "field_label": "*Fee Exemption Category:",
+                //             "field_type": "select-one",
+                //             "is_required": true,
+                //             "validation_message": "Please select a fee exemption category from the options available."
+                //         },
+                //         {
+                //             "data-id": "V1FeeExemptionSupportingInfo",
+                //             "field_label": "Please enter any supporting information that will assist in determining your eligibility for a fee exemption.",
+                //             "field_type": "textarea",
+                //             "is_required": true,
+                //             "validation_message": "Please provide any supporting information for your fee exemption request."
+                //         }
+                //     ],
+                //     "current_field": {
+                //         "data-id": "V1FeeExemptionCategory",
+                //         "field_label": "*Fee Exemption Category:",
+                //         "field_type": "select-one",
+                //         "is_required": true,
+                //         "validation_message": "Please select a fee exemption category from the options available."
+                //     },
+                //     "next_field": {
+                //         "data-id": "V1FeeExemptionCategory",
+                //         "field_label": "*Fee Exemption Category:",
+                //         "field_type": "select-one",
+                //         "is_required": true,
+                //         "validation_message": "Please select a fee exemption category from the options available."
+                //     }
+                // }
 
                 // cache aiResponse for later use (e.g. if user selects 'autofill' option)
                 window.apiResponse = data;
@@ -149,10 +223,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let outputMessage;
             if (apiResponse && apiResponse.response) {
-                // ----- if status is 'comlete' (all fields have values), show 'autofill' prompt
+
+                // ----- if status is 'comleted' (all fields have values), show 'autofill' prompt
                 if (apiResponse.status === 'completed') {
                     outputMessage = showInputOptions('Would you like me to fill in any fields for you?',
                         [{ value: 'autofill-y', text: 'Yes, fill out fields' }, { value: 'autofill-n', text: 'No, thanks' }]);
+                }
+                // ------ if missing fields, show first 'next field' validation message
+                else if (apiResponse.status === 'awaiting_info') {
+                    outputMessage = `${apiResponse.response} <br /><br />${apiResponse.current_field.validation_message}`;
                 }
                 // ------ else show response message only
                 else {
@@ -185,7 +264,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // display output message in chat window
         function displayOutputMessage(outputMessage) {
+
             showLoading(false);
+
             const messagesDiv = document.querySelector('#ai-agent .messages');
             const botMessageDiv = document.createElement('div');
             botMessageDiv.classList.add('message', 'bot');
@@ -229,6 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             }
         }
+
 
     }
 });
