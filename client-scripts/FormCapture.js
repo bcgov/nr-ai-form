@@ -62,6 +62,20 @@ const FormCapture = {
    */
   captureAllForms: function () {
 
+    // get pop-up content in parent window
+    console.log('pop-up testing');
+    const PossePwRef = window.PossePwRef;
+    if(PossePwRef) {
+      const popupDom = window.PossePwRef.document;
+      console.log('DOM from Pop-up', popupDom);
+    }
+
+    console.log('parent window url:', window.parent.location.href);
+
+    window.opener.postMessage('Your message here', window.parent.location.href);
+    // end pop-up testing
+
+    console.log('captureAllForms')
     const forms = document.querySelectorAll('form');
     const formsData = [];
 
@@ -341,7 +355,7 @@ const FormCapture = {
   },
 
   // To overwrite an existing object in an array based on a matching property, or add it if no match is found
-  addOrUpdateArray: function (array, newArray, propertyToMatch = 'formId') {
+  addOrUpdateArray: function (array, newArray, propertyToMatch = 'formAction') {
     const updatedArray = [...array];
     newArray.forEach(newObj => {
       const index = updatedArray.findIndex(obj => obj[propertyToMatch] === newObj[propertyToMatch]);
