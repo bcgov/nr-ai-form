@@ -61,6 +61,7 @@ const FormCapture = {
    * @returns {Array} Collection of form data objects
    */
   captureAllForms: function () {
+    console.log('captureAllForms')
     const forms = document.querySelectorAll('form');
     const formsData = [];
 
@@ -74,6 +75,7 @@ const FormCapture = {
       formsData.push(formData);
     });
 
+    console.log('form data captured:', formsData)
    return formsData;
   },
 
@@ -84,6 +86,9 @@ const FormCapture = {
    * @returns {Object} Form data object
    */
   captureForm: function (form, formIndex) {
+
+    console.log('captureForm', form)
+
     const formId = form.id || `form-${formIndex}`;
     const formName = form.getAttribute('name') || '';
     const formAction = form.getAttribute('action') || '';
