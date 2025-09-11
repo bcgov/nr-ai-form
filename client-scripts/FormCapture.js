@@ -25,7 +25,7 @@ const FormCapture = {
     };
 
     if (this.options.captureOnLoad) {
-        this.captureAllForms();
+      this.captureAllForms();
     }
 
     if (this.options.captureOnChange) {
@@ -62,20 +62,6 @@ const FormCapture = {
    */
   captureAllForms: function () {
 
-    // get pop-up content in parent window
-    console.log('pop-up testing');
-    const PossePwRef = window.PossePwRef;
-    if(PossePwRef) {
-      const popupDom = window.PossePwRef.document;
-      console.log('DOM from Pop-up', popupDom);
-    }
-
-    console.log('parent window url:', window.parent.location.href);
-
-    window.opener.postMessage('Your message here', window.parent.location.href);
-    // end pop-up testing
-
-    console.log('captureAllForms')
     const forms = document.querySelectorAll('form');
     const formsData = [];
 
@@ -89,8 +75,14 @@ const FormCapture = {
       formsData.push(formData);
     });
 
-    console.log('form data captured:', formsData)
-   return formsData;
+    // ---- add form data to local storage
+    // pop-up windows will append their forms' data
+    const existingDataInStorage = JSON.parse(localStorage.getItem('formsData')) || [];
+    localStorage.setItem('formsData', JSON.stringify(
+      this.addOrUpdateArray(existingDataInStorage, formsData)
+    ));
+
+    return formsData;
   },
 
   /**
@@ -328,26 +320,40 @@ const FormCapture = {
     const simplifiedData = [];
 
     fields.forEach(field => {
-          // Only process fields that have a data-id attribute
-          if (field.attributes && field.attributes['data-id']) {
-            // For radio type fields, only include if fieldValue is not empty
-            if (field.fieldType === 'radio' && (!field.fieldValue || field.fieldValue === '')) {
-              return;
-            }
+      // Only process fields that have a data-id attribute
+      if (field.attributes && field.attributes['data-id']) {
+        // For radio type fields, only include if fieldValue is not empty
+        if (field.fieldType === 'radio' && (!field.fieldValue || field.fieldValue === '')) {
+          return;
+        }
 
-            const simplifiedField = {
-              'data-id': field.attributes['data-id'],
-              fieldType: field.fieldType,
-              fieldValue: field.fieldValue,
-              fieldLabel: field.fieldLabel
-            };
-            simplifiedData.push(simplifiedField);
-          }
-        });
+        const simplifiedField = {
+          'data-id': field.attributes['data-id'],
+          fieldType: field.fieldType,
+          fieldValue: field.fieldValue,
+          fieldLabel: field.fieldLabel
+        };
+        simplifiedData.push(simplifiedField);
+      }
+    });
 
     return simplifiedData;
   },
- 
+
+  // To overwrite an existing object in an array based on a matching property, or add it if no match is found
+  addOrUpdateArray: function (array, newArray, propertyToMatch = 'formId') {
+    const updatedArray = [...array];
+    newArray.forEach(newObj => {
+      const index = updatedArray.findIndex(obj => obj[propertyToMatch] === newObj[propertyToMatch]);
+      if (index !== -1) {
+        updatedArray[index] = newObj;
+      } else {
+        updatedArray.push(newObj);
+      }
+    });
+    return updatedArray;
+  }
+
 };
 
 // Export to global namespace
