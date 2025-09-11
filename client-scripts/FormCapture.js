@@ -21,6 +21,7 @@ const FormCapture = {
       capturePasswordFields: false,  // Whether to mask or ignore password fields
       ignoreFormIds: [],             // Array of form IDs to ignore
       ignoreFieldNames: [],          // Array of field names to ignore
+      onlyIncludeFieldDataIds: [],   // only include fields with these data-id attribute values
       ...options
     };
 
@@ -63,10 +64,10 @@ const FormCapture = {
   captureAllForms: function () {
 
     // TEST: get pop-up content in parent window
-    const PossePwRef = window.PossePwRef;
-    if(PossePwRef) {
-      // const popupDom = window.PossePwRef.document;
-      // console.log('DOM from Pop-up', popupDom);
+    const popup = window.PossePwRef;
+    // const popup = window.myPopup;
+    if(popup) {
+      console.log('DOM from Pop-up', popup.document);
     }
     // end TEST
 
@@ -89,6 +90,8 @@ const FormCapture = {
     localStorage.setItem('formsData', JSON.stringify(
       this.addOrUpdateArray(existingDataInStorage, formsData)
     ));
+
+    // console.log( JSON.parse(localStorage.getItem('formsData')));
 
     return formsData;
   },
@@ -153,6 +156,14 @@ const FormCapture = {
 
     // Process each form element
     Array.from(formElements).forEach((element, index) => {
+
+      // TESTING:
+      // only include a subset of fields for demo
+      if (this.options.onlyIncludeFieldDataIds.length > 0 && 
+         !this.options.onlyIncludeFieldDataIds.includes(element.attributes['data-id'])) {
+        return;
+      }
+
       // Skip ignored fields
       if (this.options.ignoreFieldNames.includes(element.name)) {
         return;
@@ -165,6 +176,11 @@ const FormCapture = {
 
       // Skip hidden fields if configured
       if (element.type === 'hidden' && !this.options.captureHiddenFields) {
+        return;
+      }
+
+      // Skip submit buttons
+      if (element.type === 'submit') {
         return;
       }
 

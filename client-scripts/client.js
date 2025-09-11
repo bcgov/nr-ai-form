@@ -6,15 +6,21 @@
  * Populates Webform with AI response
  */
 
+// set to 'dev' if pushing to gh-pages
+// or 'local' if using in local deployment with sample form
+const env = 'dev'
+
+
 // when DOM loaded
 document.addEventListener('DOMContentLoaded', function () {
 
-    // If Water form...
-    const titleSpan = document.querySelector('td.title div#cphTitleBand_pnlTitleBand span.title');
-    if (titleSpan && titleSpan.textContent.includes('Water Licence Application')) {
-        // const titleSpan = document.querySelector('.page-title');
-        // if (titleSpan && titleSpan.textContent.includes('Parent')) {
+    // show AI Assistant on designated pages
+    const titleSpan = env === 'dev' ?
+        document.querySelector('td.title div#cphTitleBand_pnlTitleBand span.title') :
+        document.querySelector('.page-title');
+    const validTitleText = env === 'dev' ? 'Water Licence Application' : 'Parent';
 
+    if (titleSpan && titleSpan.textContent.includes(validTitleText)) {
         // add AI Assist UI
         const aiAgentHtml = `
         <div id="ai-agent" style="display: flex;">
@@ -38,10 +44,37 @@ document.addEventListener('DOMContentLoaded', function () {
         captureOnChange: true,
         // ignoreFormIds: ['possedocumentchangeform', 'elementstodisable'],
         ignoreFormIds: ['elementstodisable', 'possedocumentchangeform'],
+        // only include fields with these data-id attribute values
+        onlyIncludeFieldDataIds: env === 'dev' ? [
+            'V1IsEligibleForFeeExemption',
+            'V1IsExistingExemptClient',
+            'V1FeeExemptionClientNumber',
+            'V1FeeExemptionCategory',
+            'V1FeeExemptionSupportingInfo',
+        ] : [],
+
         // extract simplified field attributes
         // NOTE: for Water form, data-id attribute must exist for each form field
         simplifiedFields: true,
     });
+
+
+    // disable Posse refresh
+    // document.addEventListener("click", function (event) {
+    //     if (event.target.closest('form')){
+    //         window.PosseSubmitLinkReturn = function() {
+    //         return false;
+    //         };
+    //         window.PosseProcessRoundTripClicked = function() {
+    //             return false;
+    //         };
+    //         window.cphBottomFunctionBand_ctl10_Submit_fn = function() {
+    //             return false;
+    //         };  
+    //     }
+    // });
+
+
 
     // when AI Assistant 'Send' button is clicked, send request to AI service
     const aiAgentSendButton = document.getElementById('ai-agent-send');
@@ -119,66 +152,75 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
         console.log('API Request body:', body);
+
         // make api call
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-            if (!response.ok) {
-                displayOutputMessage('No response received from AI service. Please try again later.');
-                throw new Error(`HTTP error! status: ${response.status}`);
+            let data;
+            if (env === 'dev') {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (!response.ok) {
+                    displayOutputMessage('No response received from AI service. Please try again later.');
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                data = await response.json();
             }
 
-            const data = await response.json();
-            // const data = {
-            //     "thread_id": "629b300e-0ba2-40c0-86d9-7f2c08c85f5a",
-            //     "response": "Great!....",
-            //     "status": "completed",
-            //     "filled_fields": [
-            //         {
-            //             "data-id": "field-1-1",
-            //             "fieldValue": "sss"
-            //         },
-            //         {
-            //             "data-id": "field-1-2",
-            //             "fieldValue": "yes"
-            //         },
-            //         {
-            //             "data-id": "field-1-3",
-            //             "fieldValue": ['2']
-            //         },
-            //         {
-            //             "data-id": "field-1-4",
-            //             "fieldValue": 'ooooh!'
-            //         },
-            //         {
-            //             "data-id": "field-2-1",
-            //             "fieldValue": "wwwww"
-            //         },
-            //         {
-            //             "data-id": "field-2-2",
-            //             "fieldValue": "yes"
-            //         }
-            //     ],
-            //     "missing_fields": [],
-            //     "current_field": null,
-            //     "next_field": null,
-            //     "conversation_history": [
-            //         {
-            //             "role": "user",
-            //             "content": "what is the weather in new zeland?"
-            //         },
-            //         {
-            //             "role": "assistant",
-            //             "content": "Great! I've filled out the entire form based on your information."
-            //         }
-            //     ]
-            // }
+            // else doing local testing 
+            else {
+                data = {
+                    "thread_id": "629b300e-0ba2-40c0-86d9-7f2c08c85f5a",
+                    "response": "Great!....",
+                    "status": "completed",
+                    "filled_fields": [
+                        {
+                            "data-id": "field-1-1",
+                            "fieldValue": "John Smith"
+                        },
+                        {
+                            "data-id": "field-1-2",
+                            "fieldValue": "yes"
+                        },
+                        {
+                            "data-id": "field-1-3",
+                            "fieldValue": ['2']
+                        },
+                        {
+                            "data-id": "field-1-4",
+                            "fieldValue": '123 456 789'
+                        },
+                        {
+                            "data-id": "field-2-1",
+                            "fieldValue": "Irrigation"
+                        },
+                        {
+                            "data-id": "field-2-2",
+                            "fieldValue": "yes"
+                        }
+                    ],
+                    "missing_fields": [],
+                    "current_field": null,
+                    "next_field": null,
+                    "conversation_history": [
+                        {
+                            "role": "user",
+                            "content": "what is the weather in new zeland?"
+                        },
+                        {
+                            "role": "assistant",
+                            "content": "Great! I've filled out the entire form based on your information."
+                        }
+                    ]
+                }
+            }
+
             console.log('ai response: ', data);
             // cache aiResponse for later use (e.g. if user selects 'autofill' option)
             localStorage.setItem('aiAgentApiResponse', JSON.stringify(data));
@@ -335,6 +377,13 @@ function sendToPopup(data) {
         console.log('sendToPopup data', data);
         window.PossePwRef.postMessage(data);
     }
+
+    // TEST:
+    if (window.myPopup) {
+        console.log('sendToPopup data', data);
+        window.myPopup.postMessage(data);
+    }
+    // end TEST
 }
 
 function sendMessageToParent(msg) {
