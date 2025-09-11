@@ -12,27 +12,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // If Water form...
     const titleSpan = document.querySelector('td.title div#cphTitleBand_pnlTitleBand span.title');
     if (titleSpan && titleSpan.textContent.includes('Water Licence Application')) {
-    // const titleSpan = document.querySelector('.page-title');
-    // if (titleSpan && titleSpan.textContent.includes('Parent')) {
+        // const titleSpan = document.querySelector('.page-title');
+        // if (titleSpan && titleSpan.textContent.includes('Parent')) {
 
         // add AI Assist UI
         const aiAgentHtml = `
-        <div id="ai-agent-wrapper">
-            <div id="ai-agent">
-                <div class="header">
-                <span>Form Assistant</span>
-                <button id="ai-agent-close" onclick="document.getElementById('ai-agent').style.display='none'">&#45&#45</button>
-                </div>
-                <div class="messages">
-                    <div class="message bot">Hello! How can I help you today?</div>        
-                </div>
-                <div class="input-area">
-                    <input type="text" id="ai-agent-input-text" placeholder="Type a message...">
-                    <button id="ai-agent-send">Send</button>
-                </div>
+        <div id="ai-agent" style="display: flex;">
+            <div class="header">AI Assistant</div>
+            <div class="messages">
+                <div class="message bot">How can I help you today?</div>        
             </div>
-            <button id="ai-agent-expand" onclick="document.getElementById('ai-agent').style.display='flex'">Form Assistant</button>
-
+            <div class="input-area">
+                <input type="text"id="ai-agent-input-text" placeholder="Type a message...">
+                <button id="ai-agent-send">Send</button>
+            </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', aiAgentHtml);
     }
@@ -104,8 +97,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // sends request to the NR Form API
     async function sendData(message, fieldArray) {
         let body, url;
-        // const API_URL = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net'
-        const API_URL = 'http://127.0.0.1:8000'
+        const API_URL = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net'
+        // const API_URL = 'http://127.0.0.1:8000'
         // Check localStorage for cached aiAgentApiResponse
         const threadId = JSON.parse(localStorage.getItem('aiAgentApiResponse'))?.thread_id
         // call /start endpont for first request..
@@ -140,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 displayOutputMessage('No response received from AI service. Please try again later.');
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
             // const data = {
             //     "thread_id": "629b300e-0ba2-40c0-86d9-7f2c08c85f5a",
@@ -158,6 +151,10 @@ document.addEventListener('DOMContentLoaded', function () {
             //         {
             //             "data-id": "field-1-3",
             //             "fieldValue": ['2']
+            //         },
+            //         {
+            //             "data-id": "field-1-4",
+            //             "fieldValue": 'ooooh!'
             //         },
             //         {
             //             "data-id": "field-2-1",
@@ -250,8 +247,16 @@ document.addEventListener('DOMContentLoaded', function () {
         filledFields.forEach(field => {
             const fieldId = field['data-id'];
             const fieldValue = field['fieldValue'];
-            // find the form field with matching data-id attribute
-            const formField = document.querySelectorAll(`[data-id="${fieldId}"]`);
+            // find the form field with matching data-id or `name` attribute
+            let formField;
+            if (document.querySelectorAll(`[data-id="${fieldId}"]`)?.length > 0) {
+                formField = document.querySelectorAll(`[data-id="${fieldId}"]`);
+            }
+            // default to input's `name` attribute
+            else {
+                formField = document.getElementsByName(fieldId);
+            }
+
             if (formField) {
                 // if updating a radio or checkbox
                 if (formField.length > 1) {
@@ -263,30 +268,27 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     });
                 }
-
+                // for select fields
                 else if (formField.length === 1 && formField[0].tagName.toLowerCase() === 'select') {
                     if (formField[0].multiple && Array.isArray(fieldValue)) {
                         Array.from(formField[0].options).forEach(option => {
                             option.selected = fieldValue.includes(option.value);
                         });
                     } else {
-                        console.log('select value:', formField[0], fieldValue[0]);
                         formField[0].value = fieldValue[0];
                     }
                 }
-
+                // for text fields
                 else if (
                     formField.length === 1 &&
                     (formField[0].tagName.toLowerCase() === 'input' && (formField[0].type === 'text' || formField[0].type === 'email' || formField[0].type === 'number' || formField[0].type === 'tel' || formField[0].type === 'url') ||
                         formField[0].tagName.toLowerCase() === 'textarea'
                     )) {
                     formField[0].value = fieldValue;
-
                 }
             }
-
             else {
-                console.warn(`Form field with data-id "${fieldId}" not found.`);
+                console.warn(`Form field with data-id or name "${fieldId}" not found.`);
             }
         });
     }
@@ -312,21 +314,16 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('message', (event) => {
         const receivedData = event.data;
         // if pop-up is receiving 'autofill' action, populate pop-up form
-        if (receivedData.action === 'autofill-y') populateFormFields(receivedData.filled_fields);
+        if (receivedData.action === 'autofill-y') {
+            console.log('data received from parent', receivedData);
+            populateFormFields(receivedData.filled_fields);
+        }
     });
 
 });
 
+// for testing locally with another ample form
 function openPopup(url) {
-
-    // in Posse system pop-up can found at `window.PossePwRef`: (see: posseglobal.js)
-    // get pop-up content in parent window
-    // console.log('pop-up testing');
-    // const PossePwRef = window.PossePwRef;
-    // window.opener.postMessage('Your message here', window.parent.location.href);
-    // end pop-up testing
-
-    // this is for a local demo.
     window.myPopup = window.open(url, 'myPopupWindow', 'width=600,height=400,left=100,top=100,resizable=yes,scrollbars=yes');
 }
 
@@ -334,9 +331,9 @@ function openPopup(url) {
 function sendToPopup(data) {
     // this is for a local demo.
     // in Posse system pop-up can found at `window.PossePwRef`: (see: posseglobal.js)
-    if (window.myPopup) {
+    if (window.PossePwRef) {
         console.log('sendToPopup data', data);
-        window.myPopup.postMessage(data);
+        window.PossePwRef.postMessage(data);
     }
 }
 
@@ -355,7 +352,6 @@ function sendMessageToParent(msg) {
 
 // we override this to allow user to use chat assistant in parent window while the pop-up is open
 function PossePw() {
-    console.log('PossePw override');
     if (!posseDoesPopup) {
         alert("This browser does not support popup windows.");
         return;

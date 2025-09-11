@@ -62,16 +62,13 @@ const FormCapture = {
    */
   captureAllForms: function () {
 
-    // get pop-up content in parent window
+    // TEST: get pop-up content in parent window
     const PossePwRef = window.PossePwRef;
     if(PossePwRef) {
-      const popupDom = window.PossePwRef.document;
-      console.log('DOM from Pop-up', popupDom);
+      // const popupDom = window.PossePwRef.document;
+      // console.log('DOM from Pop-up', popupDom);
     }
-    console.log('parent window url:', window.parent.location.href);
-
-    // window.opener.postMessage('Your message here', window.parent.location.href);
-    // end pop-up testing
+    // end TEST
 
     const forms = document.querySelectorAll('form');
     const formsData = [];
@@ -103,8 +100,6 @@ const FormCapture = {
    * @returns {Object} Form data object
    */
   captureForm: function (form, formIndex) {
-
-    console.log('captureForm', form)
 
     const formId = form.id || `form-${formIndex}`;
     const formName = form.getAttribute('name') || '';
@@ -330,15 +325,15 @@ const FormCapture = {
     const simplifiedData = [];
 
     fields.forEach(field => {
-      // Only process fields that have a data-id attribute
-      if (field.attributes && field.attributes['data-id']) {
+      // Only process fields that have a `data-id` or `name` attribute
+      if (field.attributes) {
         // For radio type fields, only include if fieldValue is not empty
         if (field.fieldType === 'radio' && (!field.fieldValue || field.fieldValue === '')) {
           return;
         }
 
         const simplifiedField = {
-          'data-id': field.attributes['data-id'],
+          'data-id': (field.attributes['data-id'] !== undefined && field.attributes['data-id'] !== '') ? field.attributes['data-id'] : field.fieldName,
           fieldType: field.fieldType,
           fieldValue: field.fieldValue,
           fieldLabel: field.fieldLabel
