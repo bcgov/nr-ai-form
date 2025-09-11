@@ -52,10 +52,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // when AI Assistant 'Send' button is clicked, send request to AI service
     const aiAgentSendButton = document.getElementById('ai-agent-send');
-    if(aiAgentSendButton) aiAgentSendButton.addEventListener('click', function (event) {
+    if (aiAgentSendButton) aiAgentSendButton.addEventListener('click', function (event) {
         const messageInput = document.getElementById('ai-agent-input-text').value;
         if (messageInput && messageInput !== '') {
-            SubmitUserInput({ inputType: 'typed', inputValue: messageInput });
+            SubmitUserInput(messageInput);
             showLoading(true);
         }
     });
@@ -65,94 +65,67 @@ document.addEventListener('DOMContentLoaded', function () {
         const target = event.target.closest("button.ai-agent-option");
         if (target) {
             const option = event.target.getAttribute('data-option');
-            SubmitUserInput({ inputType: 'option', inputValue: option });
+            SubmitUserInput(option);
         }
     });
 
     // submit user input (either typed input or option button)
-    async function SubmitUserInput({ inputType, inputValue }) {
+    async function SubmitUserInput(inputValue) {
 
-        // if sending a typed message
-        if (inputType === 'typed') {
-            // append input message to chat history
+        // if Assistant is offereing to auto-fill the web-form
+        if (inputValue === 'autofill-y') {
+            displayInputMessage('Yes, fill out fields');
+            // get filled_fields from AI response (in local storage)
+            const filledFields = JSON.parse(localStorage.getItem('aiAgentApiResponse')).filled_fields;
+            // populate fields in current window
+            populateFormFields(filledFields);
+            // post fields to pop-ups (send all filled fields for now. )
+            sendToPopup({ action: inputValue, filled_fields: filledFields });
+        } 
+
+        // else continue with conversation
+        else {
             displayInputMessage(inputValue);
+            // get form data from browser storage
+            const formsDataFromStorage = JSON.parse(localStorage.getItem('formsData'));
+            // de-structure into a flat array of fields
+            let fieldsArr = [];
+            formsDataFromStorage.forEach(form => {
+                form.fields.forEach(field => fieldsArr.push(field))
+            });
+            // pass form field data to API
+            const apiResponse = await sendData(inputValue, fieldsArr);
 
-            // get AI Form api response
-            const formsData = clientFormCapture.captureAllForms();
-            const apiResponse = await sendData(inputValue, formsData);
-            console.log('API Response', apiResponse);
-
-            // handle response from AP
             handleResponse(apiResponse);
-        }
-
-        // if selected an option prompted by AI
-        else if (inputType === 'option') {
-
-            // ----- if selected 'autofill' option, populate form fields
-            if (inputValue === 'autofill-y') {
-                // populate form fields with values from apiResponse.filled_fields
-                const filledFields = JSON.parse(localStorage.getItem('aiAgentApiResponse')).filled_fields;
-                console.log('Populating form fields with:', filledFields);
-                populateFormFields(filledFields);
-                input = 'Yes, fill out fields';
-            } else if (inputValue === 'autofill-n') {
-                input = 'No, thanks';
-            }
-
-            // ----- else if choosing from other options, send option value as input message to AI
-            else {
-                const formsData = clientFormCapture.captureAllForms();
-                const apiResponse = await sendData(inputValue, formsData);
-                handleResponse(apiResponse);
-            }
-            displayInputMessage(input);
         }
     }
 
-    // sends request to the NR Form API
-    async function sendData(message, formsData) {
 
+    // sends request to the NR Form API
+    async function sendData(message, fieldArray) {
         let body, url;
         // const API_URL = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net'
         const API_URL = 'http://127.0.0.1:8000'
-
         // Check localStorage for cached aiAgentApiResponse
         const threadId = JSON.parse(localStorage.getItem('aiAgentApiResponse'))?.thread_id
-
         // call /start endpont for first request..
-        if (!threadId) {
-            // NOTE: for Water use-case, only send data for a single form on the page
-            const formData = formsData[0];
-            url = `${API_URL}/api/v1/start`;
-            // Create JSON body for API request
-            body = {
-                message: message,
-                formFields: formData.fields,
-                data: {
-                    timestamp: new Date().toISOString(),
-                    formId: formData.formId || 'unknown-form',
-                    pageUrl: window.location.href
-                },
-                metadata: {
-                    source: 'ai-agent-send',
-                    captureMethod: 'FormCapture.js',
-                    totalFields: formData.fields.length
-                }
-            };
-            console.log('API Request body:', body);
-
-        }
-
-        // call /continue for subsequent requests.
-        else {
-            url = `${API_URL}/api/v1/continue`;
-            body = {
-                thread_id: threadId,
-                message: message,
+        url = !threadId ? `${API_URL}/api/v1/start` : `${API_URL}/api/v1/continue`;
+        // Create JSON body for API request
+        body = {
+            message: message,
+            thread_id: threadId,
+            formFields: fieldArray,
+            data: {
+                timestamp: new Date().toISOString(),
+                pageUrl: window.location.href
+            },
+            metadata: {
+                source: 'ai-agent-send',
+                captureMethod: 'FormCapture.js',
+                totalFields: fieldArray.length
             }
-        }
-
+        };
+        console.log('API Request body:', body);
         // make api call
         try {
             const response = await fetch(url, {
@@ -167,59 +140,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 displayOutputMessage('No response received from AI service. Please try again later.');
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
+            
             const data = await response.json();
-
-            // const data = {
-            //     "thread_id": "b2f97ad4-4959-42d5-a005-b02083d48ab4",
-            //     "response": "You have filled some fields but are missing the Fee Exemption Category and supporting information. Please select a category from the provided options and include any relevant details for your eligibility.",
-            //     "status": "completed",
-            //     "filled_fields": [
-            //         {
-            //             "data-id": "V1IsEligibleForFeeExemption",
-            //             "field_value": "Yes"
-            //         },
-            //         {
-            //             "data-id": "V1IsExistingExemptClient",
-            //             "field_value": "Yes"
-            //         },
-            //         {
-            //             "data-id": "V1FeeExemptionClientNumber",
-            //             "field_value": "1234566dddxx"
-            //         }
-            //     ],
-            //     "missing_fields": [
-            //         {
-            //             "data-id": "V1FeeExemptionCategory",
-            //             "field_label": "*Fee Exemption Category:",
-            //             "field_type": "select-one",
-            //             "is_required": true,
-            //             "validation_message": "Please select a fee exemption category from the options available."
-            //         },
-            //         {
-            //             "data-id": "V1FeeExemptionSupportingInfo",
-            //             "field_label": "Please enter any supporting information that will assist in determining your eligibility for a fee exemption.",
-            //             "field_type": "textarea",
-            //             "is_required": true,
-            //             "validation_message": "Please provide any supporting information for your fee exemption request."
-            //         }
-            //     ],
-            //     "current_field": {
-            //         "data-id": "V1FeeExemptionCategory",
-            //         "field_label": "*Fee Exemption Category:",
-            //         "field_type": "select-one",
-            //         "is_required": true,
-            //         "validation_message": "Please select a fee exemption category from the options available."
-            //     },
-            //     "next_field": {
-            //         "data-id": "V1FeeExemptionCategory",
-            //         "field_label": "*Fee Exemption Category:",
-            //         "field_type": "select-one",
-            //         "is_required": true,
-            //         "validation_message": "Please select a fee exemption category from the options available."
-            //     }
-            // }
-
+            console.log('ai response: ', data);
             // cache aiResponse for later use (e.g. if user selects 'autofill' option)
             localStorage.setItem('aiAgentApiResponse', JSON.stringify(data));
 
@@ -231,10 +154,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Vary UX behaviour depending on `status` of AI response
     function handleResponse(apiResponse) {
-
         let outputMessage;
         // ----- if status is 'comleted' (all fields have values), show 'autofill' prompt
-        if (apiResponse.status !== 'completed') {
+        if (apiResponse.status === 'completed') {
             outputMessage = showInputOptions('Would you like me to fill in any fields for you?',
                 [{ value: 'autofill-y', text: 'Yes, fill out fields' }, { value: 'autofill-n', text: 'No, thanks' }]);
         }
@@ -251,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
         displayOutputMessage(outputMessage)
     }
 
-    // show input options from AI prompt
+    // show input options buttons from AI prompt
     function showInputOptions(prompt, options) {
         let optionsHtml = `<p>${prompt}</p>`;
         options.forEach(option => {
@@ -274,9 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // display output message in chat window
     function displayOutputMessage(outputMessage) {
-
         showLoading(false);
-
         const messagesDiv = document.querySelector('#ai-agent .messages');
         const botMessageDiv = document.createElement('div');
         botMessageDiv.classList.add('message', 'bot');
@@ -288,22 +208,26 @@ document.addEventListener('DOMContentLoaded', function () {
     // populate form fields with values from AI response
     function populateFormFields(filledFields) {
         filledFields.forEach(field => {
-
-            console.log('field', field);
-
             const fieldId = field['data-id'];
-            const fieldValue = field['field_value'];
+            const fieldValue = field['fieldValue'];
             // find the form field with matching data-id attribute
-            const formField = document.querySelector(`[data-id="${fieldId}"]`);
-
-            console.log('formField', formField);
-
+            const formField = document.querySelectorAll(`[data-id="${fieldId}"]`);
             if (formField) {
-                formField.value = fieldValue;
-                // trigger change event in case there are any listeners
-                const event = new Event('change', { bubbles: true });
-                formField.dispatchEvent(event);
-                console.log(`Populated field ${fieldId} with value: ${fieldValue}`);
+                // if updating a radio or checkbox
+                if (formField.length > 1) {
+                    Array.from(formField).forEach(f => {
+                        if (f.type === 'radio' || f.type === 'checkbox') {
+                            if (f.value === fieldValue) {
+                                f.checked = true;
+                            }
+                        }
+                    });
+                }
+                // else a text input
+                else if(formField.length){
+                    console.log('else', formField)
+                    formField[0].value = fieldValue;
+                }
             } else {
                 console.warn(`Form field with data-id "${fieldId}" not found.`);
             }
@@ -327,14 +251,43 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-
-    // }
-
+    // listen for messages posted to the window (for pop-ups)
     window.addEventListener('message', (event) => {
-        // Access the data sent from the child window
         const receivedData = event.data;
-        // Process the received data
-        console.log('Message received from child window:', receivedData);
+        // if pop-up is receiving 'autofill' action, populate pop-up form
+        if (receivedData.action === 'autofill-y') populateFormFields(receivedData.filled_fields);
     });
 
 });
+
+function openPopup(url) {
+    
+    // in Posse system pop-up can found at `window.PossePwRef`: (see: posseglobal.js)
+    // get pop-up content in parent window
+    // console.log('pop-up testing');
+    // const PossePwRef = window.PossePwRef;
+    // window.opener.postMessage('Your message here', window.parent.location.href);
+    // end pop-up testing
+
+    // this is for a local demo.
+    window.myPopup = window.open(url, 'myPopupWindow', 'width=600,height=400,left=100,top=100,resizable=yes,scrollbars=yes');
+}
+
+// post field data from parent to popup
+function sendToPopup(data) {
+    // this is for a local demo.
+    // in Posse system pop-up can found at `window.PossePwRef`: (see: posseglobal.js)
+    if (window.myPopup) {
+        console.log('sendToPopup data', data);
+        window.myPopup.postMessage(data);
+    }
+}
+
+function sendMessageToParent(msg) {
+    const message = msg;
+    // const targetOrigin = 'http://127.0.0.1:5500'; // Specify the parent's origin for security
+    const targetOrigin = window.location.href; // Specify the parent's origin for security
+    // If the child is an iframe:
+    window.parent.postMessage(message, targetOrigin);
+}
+
