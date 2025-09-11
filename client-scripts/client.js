@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
         captureOnLoad: true,
         captureOnChange: true,
         // ignoreFormIds: ['possedocumentchangeform', 'elementstodisable'],
-        ignoreFormIds: [],
+        ignoreFormIds: ['elementstodisable', 'possedocumentchangeform'],
         // extract simplified field attributes
         // NOTE: for Water form, data-id attribute must exist for each form field
         simplifiedFields: true,
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
             populateFormFields(filledFields);
             // post fields to pop-ups (send all filled fields for now. )
             sendToPopup({ action: inputValue, filled_fields: filledFields });
-        } 
+        }
 
         // else continue with conversation
         else {
@@ -142,6 +142,46 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             
             const data = await response.json();
+            // const data = {
+            //     "thread_id": "629b300e-0ba2-40c0-86d9-7f2c08c85f5a",
+            //     "response": "Great!....",
+            //     "status": "completed",
+            //     "filled_fields": [
+            //         {
+            //             "data-id": "field-1-1",
+            //             "fieldValue": "sss"
+            //         },
+            //         {
+            //             "data-id": "field-1-2",
+            //             "fieldValue": "yes"
+            //         },
+            //         {
+            //             "data-id": "field-1-3",
+            //             "fieldValue": ['2']
+            //         },
+            //         {
+            //             "data-id": "field-2-1",
+            //             "fieldValue": "wwwww"
+            //         },
+            //         {
+            //             "data-id": "field-2-2",
+            //             "fieldValue": "yes"
+            //         }
+            //     ],
+            //     "missing_fields": [],
+            //     "current_field": null,
+            //     "next_field": null,
+            //     "conversation_history": [
+            //         {
+            //             "role": "user",
+            //             "content": "what is the weather in new zeland?"
+            //         },
+            //         {
+            //             "role": "assistant",
+            //             "content": "Great! I've filled out the entire form based on your information."
+            //         }
+            //     ]
+            // }
             console.log('ai response: ', data);
             // cache aiResponse for later use (e.g. if user selects 'autofill' option)
             localStorage.setItem('aiAgentApiResponse', JSON.stringify(data));
@@ -223,12 +263,29 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     });
                 }
-                // else a text input
-                else if(formField.length){
-                    console.log('else', formField)
-                    formField[0].value = fieldValue;
+
+                else if (formField.length === 1 && formField[0].tagName.toLowerCase() === 'select') {
+                    if (formField[0].multiple && Array.isArray(fieldValue)) {
+                        Array.from(formField[0].options).forEach(option => {
+                            option.selected = fieldValue.includes(option.value);
+                        });
+                    } else {
+                        console.log('select value:', formField[0], fieldValue[0]);
+                        formField[0].value = fieldValue[0];
+                    }
                 }
-            } else {
+
+                else if (
+                    formField.length === 1 &&
+                    (formField[0].tagName.toLowerCase() === 'input' && (formField[0].type === 'text' || formField[0].type === 'email' || formField[0].type === 'number' || formField[0].type === 'tel' || formField[0].type === 'url') ||
+                        formField[0].tagName.toLowerCase() === 'textarea'
+                    )) {
+                    formField[0].value = fieldValue;
+
+                }
+            }
+
+            else {
                 console.warn(`Form field with data-id "${fieldId}" not found.`);
             }
         });
@@ -261,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function openPopup(url) {
-    
+
     // in Posse system pop-up can found at `window.PossePwRef`: (see: posseglobal.js)
     // get pop-up content in parent window
     // console.log('pop-up testing');
@@ -289,5 +346,52 @@ function sendMessageToParent(msg) {
     const targetOrigin = window.location.href; // Specify the parent's origin for security
     // If the child is an iframe:
     window.parent.postMessage(message, targetOrigin);
+}
+
+
+
+// -------------- override posseglobal.js
+
+
+// we override this to allow user to use chat assistant in parent window while the pop-up is open
+function PossePw() {
+    console.log('PossePw override');
+    if (!posseDoesPopup) {
+        alert("This browser does not support popup windows.");
+        return;
+    }
+    if (!window.listenerAttached) {
+        window.listenerAttached = true;
+        if (document.layers) {
+            document.captureEvents(Event.MOUSEUP);
+        }
+        window.PossePwXon = document.onmouseup;
+        if (window.PossePwXon != null) {
+            document.onmouseup = new Function(
+                "window.PossePwXon();window.PossePwFocus();");
+        } else {
+            // override start
+            // commented out this line
+            // document.onmouseup = window.PossePwFocus;
+            // overide end
+        }
+    }
+    this.xoffset = 0;
+    this.yoffset = 0;
+    this.width = 100;
+    this.height = 100;
+    this.content = null;
+    this.dirty = false;
+    if (posseBlankPage) {
+        this.href = posseBlankPage;
+    } else {
+        this.href = "posseblankpage.html";
+    }
+    this.scrollbars = "yes";
+    this.resizable = "yes";
+    this.status = "no";
+    this.features = "toolbar=no, location=no, menubar=no, titlebar=no";
+    this.getPosition = PossePwPosition;
+    this.openPopup = PossePwOpen;
 }
 

@@ -63,19 +63,16 @@ const FormCapture = {
   captureAllForms: function () {
 
     // get pop-up content in parent window
-    console.log('pop-up testing');
     const PossePwRef = window.PossePwRef;
     if(PossePwRef) {
       const popupDom = window.PossePwRef.document;
       console.log('DOM from Pop-up', popupDom);
     }
-
     console.log('parent window url:', window.parent.location.href);
 
-    window.opener.postMessage('Your message here', window.parent.location.href);
+    // window.opener.postMessage('Your message here', window.parent.location.href);
     // end pop-up testing
 
-    console.log('captureAllForms')
     const forms = document.querySelectorAll('form');
     const formsData = [];
 
@@ -263,13 +260,12 @@ const FormCapture = {
     if (fieldType === 'password' && !this.options.capturePasswordFields) {
       return null;
     }
-
     let fieldValue = '';
 
     // Get value based on field type
     if (['checkbox', 'radio'].includes(fieldType)) {
       fieldValue = (field.hasAttribute('checked') && (field.checked || field.checked === '')) ? field.value : '';
-    } else if (field.tagName === 'SELECT' && field.multiple) {
+    } else if (field.tagName === 'SELECT') {
       fieldValue = Array.from(field.selectedOptions).map(option => option.value);
     } else {
       fieldValue = field.value;
