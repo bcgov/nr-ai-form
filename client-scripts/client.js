@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div id="ai-agent" style="display: flex;">
             <div class="header">AI Assistant</div>
             <div class="messages">
-                <div class="message bot">How can I help you today?</div>        
+                <div class="message assistant">How can I help you today?</div>        
             </div>
             <div class="input-area">
                 <input type="text"id="ai-agent-input-text" placeholder="Type a message...">
@@ -34,8 +34,10 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', aiAgentHtml);
-    }
 
+        // populate AI Chat history
+        populateChatHistoryFromStorage();
+    }
 
     // Initialize an instance of FormCapture with custom configuration
     const clientFormCapture = Object.create(FormCapture);
@@ -52,10 +54,13 @@ document.addEventListener('DOMContentLoaded', function () {
             'V1FeeExemptionCategory',
             'V1FeeExemptionSupportingInfo',
         ] : [],
-
-        // extract simplified field attributes
-        // NOTE: for Water form, data-id attribute must exist for each form field
-        simplifiedFields: true,
+        requiredFieldIds: env === 'dev' ? [
+            'V1IsEligibleForFeeExemption',
+            'V1IsExistingExemptClient',
+            'V1FeeExemptionClientNumber',
+            'V1FeeExemptionCategory',
+            'V1FeeExemptionSupportingInfo',
+        ] : ['field-1-1'],
     });
 
 
@@ -101,8 +106,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // if Assistant is offereing to auto-fill the web-form
         if (inputValue === 'autofill-y') {
             displayInputMessage('Yes, fill out fields');
-            // get filled_fields from AI response (in local storage)
-            const filledFields = JSON.parse(localStorage.getItem('aiAgentApiResponse')).filled_fields;
+            // if AI response exists in browser storage, and is recent (1 week)
+            const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
+            // get filled_fields
+            const filledFields = aiResponseInStorage.filled_fields;
             // populate fields in current window
             populateFormFields(filledFields);
             // post fields to pop-ups (send all filled fields for now. )
@@ -112,46 +119,55 @@ document.addEventListener('DOMContentLoaded', function () {
         // else continue with conversation
         else {
             displayInputMessage(inputValue);
-            // get form data from browser storage
-            const formsDataFromStorage = JSON.parse(localStorage.getItem('formsData'));
-            // de-structure into a flat array of fields
-            let fieldsArr = [];
-            formsDataFromStorage.forEach(form => {
-                form.fields.forEach(field => fieldsArr.push(field))
-            });
-            // pass form field data to API
-            const apiResponse = await sendData(inputValue, fieldsArr);
+
+            let apiResponse;
+            // --- if AI response in storage was recent (< 1 hour)
+            // Add last AI response to next API request 
+            const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
+            if(aiResponseInStorage && 
+                (new Date() - new Date(aiResponseInStorage?.timestamp < 3600))){
+                const { response_message, status, ...responseFieldData } = aiResponseInStorage;
+                apiResponse = await sendData(inputValue, responseFieldData);
+            }
+
+            // --- add current form data (FormCapture) to next API request
+            else{
+                // remove any old (> 1 hr) AI responses from local storage
+                localStorage.removeItem('aiAgentApiResponse');
+                const formsDataFromStorage = JSON.parse(localStorage.getItem('formsData'));
+                // de-structure into a flat array of fields
+                let fieldsArr = [];
+                formsDataFromStorage.forEach(form => {
+                    form.fields.forEach(field => fieldsArr.push(field))
+                });
+                // pass form field data to API
+                apiResponse = await sendData(inputValue, { 
+                    form_fields: fieldsArr,
+                    filled_fields: [],
+                    missing_fields: [],
+                    current_field: [],
+                    conversation_history: [
+
+                    ]
+                });
+            }
 
             handleResponse(apiResponse);
         }
     }
 
-
     // sends request to the NR Form API
-    async function sendData(message, fieldArray) {
+    async function sendData(message, fieldData) {
         let body, url;
         const API_URL = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net'
         // const API_URL = 'http://127.0.0.1:8000'
-        // Check localStorage for cached aiAgentApiResponse
-        const threadId = JSON.parse(localStorage.getItem('aiAgentApiResponse'))?.thread_id
-        // call /start endpont for first request..
-        url = !threadId ? `${API_URL}/api/v1/start` : `${API_URL}/api/v1/continue`;
+        url = `${API_URL}/api/chat`;
         // Create JSON body for API request
         body = {
-            message: message,
-            thread_id: threadId,
-            formFields: fieldArray,
-            data: {
-                timestamp: new Date().toISOString(),
-                pageUrl: window.location.href
-            },
-            metadata: {
-                source: 'ai-agent-send',
-                captureMethod: 'FormCapture.js',
-                totalFields: fieldArray.length
-            }
+            user_message: message,
+            ...fieldData,
         };
-        console.log('API Request body:', body);
+        console.log('api request body:', body);
 
         // make api call
         try {
@@ -177,37 +193,74 @@ document.addEventListener('DOMContentLoaded', function () {
             else {
                 data = {
                     "thread_id": "629b300e-0ba2-40c0-86d9-7f2c08c85f5a",
-                    "response": "Great!....",
+                    "response_message": "Great!....",
                     "status": "completed",
+                    "form_fields": [
+                        {
+                            "data_id": "field-1-1",
+                            "fieldType": "text",
+                            "is_required": false,
+                            "fieldValue": "John Smith",
+                            "fieldLabel": "Name"
+                        },
+                        {
+                            "data_id": "field-1-2",
+                            "fieldType": "radio",
+                            "is_required": true,
+                            "fieldValue": "yes",
+                            "fieldLabel": "Eligible"
+                        },
+                        {
+                            "data_id": "field-1-3",
+                            "fieldType": "select-one",
+                            "is_required": true,
+                            "fieldValue": [
+                            "2"
+                            ],
+                            "fieldLabel": "Reason"
+                        },
+                        {
+                            "data_id": "field-1-4",
+                            "fieldType": "text",
+                            "is_required": true,
+                            "fieldValue": "123 456 789",
+                            "fieldLabel": "Client Number"
+                        }
+                    ],
                     "filled_fields": [
                         {
-                            "data-id": "field-1-1",
-                            "fieldValue": "John Smith"
+                            "data_id": "field-1-1",
+                            "fieldType": "text",
+                            "is_required": false,
+                            "fieldValue": "John Smith",
+                            "fieldLabel": "Name"
                         },
                         {
-                            "data-id": "field-1-2",
-                            "fieldValue": "yes"
+                            "data_id": "field-1-2",
+                            "fieldType": "radio",
+                            "is_required": true,
+                            "fieldValue": "yes",
+                            "fieldLabel": "Eligible"
                         },
                         {
-                            "data-id": "field-1-3",
-                            "fieldValue": ['2']
+                            "data_id": "field-1-3",
+                            "fieldType": "select-one",
+                            "is_required": true,
+                            "fieldValue": [
+                            "2"
+                            ],
+                            "fieldLabel": "Reason"
                         },
                         {
-                            "data-id": "field-1-4",
-                            "fieldValue": '123 456 789'
-                        },
-                        {
-                            "data-id": "field-2-1",
-                            "fieldValue": "Irrigation"
-                        },
-                        {
-                            "data-id": "field-2-2",
-                            "fieldValue": "yes"
+                            "data_id": "field-1-4",
+                            "fieldType": "text",
+                            "is_required": true,
+                            "fieldValue": "123 456 789",
+                            "fieldLabel": "Client Number"
                         }
                     ],
                     "missing_fields": [],
                     "current_field": null,
-                    "next_field": null,
                     "conversation_history": [
                         {
                             "role": "user",
@@ -221,9 +274,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            console.log('ai response: ', data);
+            console.log('api response: ', data);
             // cache aiResponse for later use (e.g. if user selects 'autofill' option)
-            localStorage.setItem('aiAgentApiResponse', JSON.stringify(data));
+            localStorage.setItem('aiAgentApiResponse', JSON.stringify({ timestamp: new Date().toISOString(), ...data }));
 
             return data;
         } catch (error) {
@@ -239,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
             outputMessage = showInputOptions('Would you like me to fill in any fields for you?',
                 [{ value: 'autofill-y', text: 'Yes, fill out fields' }, { value: 'autofill-n', text: 'No, thanks' }]);
         }
-        // ------ if missing fields, show first 'next field' validation message
+        // ------ if missing fields, show 'current_field' validation message
         else if (apiResponse.status === 'awaiting_info') {
             outputMessage = ``;
             if (apiResponse.response) outputMessage += `${apiResponse.response}<br /><br />`;
@@ -264,24 +317,65 @@ document.addEventListener('DOMContentLoaded', function () {
     // display input message in chat window
     function displayInputMessage(messageInput) {
         if (messageInput != '') {
-            const messagesDiv = document.querySelector('#ai-agent .messages');
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.classList.add('message', 'user');
-            userMessageDiv.textContent = messageInput;
-            messagesDiv.appendChild(userMessageDiv);
-            document.getElementById('ai-agent-input-text').value = '';
+            // add to conversation_history in local storage
+            updateConversationHistoryInStorage(messageInput, 'user');
+            // show message in chat
+            showMessageInChat(messageInput, 'user')
         }
     }
 
     // display output message in chat window
     function displayOutputMessage(outputMessage) {
+        // add to conversation_history in local storage
+        updateConversationHistoryInStorage(outputMessage, 'assistant');
+        // show message in chat
+        showMessageInChat(outputMessage, 'assistant')
         showLoading(false);
+    }
+
+    // show messages in chat
+    function showMessageInChat(message, role){
         const messagesDiv = document.querySelector('#ai-agent .messages');
         const botMessageDiv = document.createElement('div');
-        botMessageDiv.classList.add('message', 'bot');
-        botMessageDiv.innerHTML = outputMessage;
+        botMessageDiv.classList.add('message', role);
+        botMessageDiv.innerHTML = message;
         messagesDiv.appendChild(botMessageDiv); // add to message div
         messagesDiv.scrollTop = messagesDiv.scrollHeight; // scroll to bottom
+    }
+
+    // add user/assistant messages to the cconversation_hitory in local storage
+    function updateConversationHistoryInStorage(messageInput, role){
+        let conversationHistoryArray = JSON.parse(localStorage.getItem('conversation_history')) || [];
+        conversationHistoryArray.push({ 
+            timestamp: new Date().toISOString(), 
+            role: role,
+            content: messageInput
+        });
+        localStorage.setItem('conversation_history', JSON.stringify(conversationHistoryArray));
+    }
+
+    // add html back into CHat ui after page reload
+    function populateChatHistoryFromStorage(){
+        let conversationHistoryArray = JSON.parse(localStorage.getItem('conversation_history')) || [];
+        conversationHistoryArray
+            // filter for unique based on timestamp (in case things got messed up)
+            .filter(obj => {
+                const keyValue = obj['timestamp'];
+                const seen = new Set();
+                if (seen.has(keyValue)) return false; // Duplicate found, filter it out
+                else {
+                    seen.add(keyValue);
+                    return true; // Unique, keep it
+                }
+            })
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+            .forEach(c => {
+                if(c.role === 'user'){
+                    showMessageInChat(c.content, 'user');
+                } else {
+                    showMessageInChat(c.content, 'assistant');
+                }
+            });
     }
 
     // populate form fields with values from AI response
@@ -289,16 +383,16 @@ document.addEventListener('DOMContentLoaded', function () {
         filledFields.forEach(field => {
             const fieldId = field['data-id'];
             const fieldValue = field['fieldValue'];
-            // find the form field with matching data-id or `name` attribute
+
+            // find an array of the form field(s) with matching `data-id`, `id` or `name` attribute
             let formField;
             if (document.querySelectorAll(`[data-id="${fieldId}"]`)?.length > 0) {
                 formField = document.querySelectorAll(`[data-id="${fieldId}"]`);
             }
-            // default to input's `name` attribute
-            else {
-                formField = document.getElementsByName(fieldId);
-            }
+            else if(document.getElementById(fieldId)) formField = [document.getElementById(fieldId)];
+            else formField = document.getElementsByName(fieldId);
 
+            // update value
             if (formField) {
                 // if updating a radio or checkbox
                 if (formField.length > 1) {
@@ -345,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add loading ellipses
         if (show) {
             const loadingDiv = document.createElement('div');
-            loadingDiv.classList.add('message', 'bot', 'ai-agent-loading');
+            loadingDiv.classList.add('message', 'assistant', 'ai-agent-loading');
             loadingDiv.innerHTML = '<span>.</span><span>.</span><span>.</span>';
             messagesDiv.appendChild(loadingDiv);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -395,9 +489,7 @@ function sendMessageToParent(msg) {
 }
 
 
-
 // -------------- override posseglobal.js
-
 
 // we override this to allow user to use chat assistant in parent window while the pop-up is open
 function PossePw() {

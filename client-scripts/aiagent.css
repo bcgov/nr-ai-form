@@ -51,7 +51,7 @@ div#ai-agent {
   align-self: flex-end;
 }
 
-#ai-agent .message.bot {
+#ai-agent .message.assistant {
   background: #e9ecef;
   align-self: flex-start;
 }
