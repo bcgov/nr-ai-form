@@ -20,7 +20,7 @@ const FormCapture = {
       capturePasswordFields: false,  // Whether to mask or ignore password fields
       ignoreFormIds: [],             // Array of form IDs to ignore
       ignoreFieldNames: [],          // Array of field names to ignore
-      onlyIncludeFieldDataIds: [],   // only include fields with these data-id attribute values
+      onlyIncludeFields: [],   // only include fields with these data-id attribute values
       requiredFieldIds: [],          // array of data-id's for fields that are considered 'required'
       ...options
     };
@@ -151,10 +151,12 @@ const FormCapture = {
 
     // Process each form element
     Array.from(formElements).forEach((element, index) => {
-
       // only include a subset of fields for demo
-      if (this.options.onlyIncludeFieldDataIds.length > 0 &&
-        !this.options.onlyIncludeFieldDataIds.includes(element.attributes['data-id'])) {
+      if (this.options.onlyIncludeFields.length > 0 &&
+        !this.options.onlyIncludeFields.includes(element.attributes['data-id']?.value) &&
+        !this.options.onlyIncludeFields.includes(element.id) &&
+        !this.options.onlyIncludeFields.includes(element.name)
+      ) {
         return;
       }
 
@@ -188,10 +190,6 @@ const FormCapture = {
    * @returns {String} The label text, or empty string if not found.
    */
   getFieldLabel: function (field) {
-
-
-    // console.log(field.attributes['data-id']);
-
     // 1. Label with 'for' attribute
     if (field.id) {
       const label = document.querySelector(`label[for="${field.id}"]`);
@@ -249,8 +247,6 @@ const FormCapture = {
    * @returns {Object} Field data object
    */
   captureField: function (field, fieldIndex) {
-    //console.log('f', field);
-
     // get data_id
     const data_id = this.getFirstNonEmpty([
       field.attributes['data-id']?.value,

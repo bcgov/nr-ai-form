@@ -23,7 +23,36 @@ const apiUrl = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/a
 
 
 // context mappings
-const mapping = {
+const mapping = env === 'local' ? {
+    'field-1-1': {
+        fieldLabel: 'What is your Name?',
+        fieldContext: 'Provide your first and last name'
+    },
+    'field-1-2': {
+        fieldLabel: 'Are you eligible?',
+        options: ['yes', 'no'],
+        fieldContext: 'Are you eleigible to apply for a water licence?'
+    },
+    'field-1-3': {
+        fieldLabel: 'What is your reason for applying for a licence?',
+        options: ['1', '2', '3'],
+        fieldContext: 'Do you work for the federal governemnt or are you a member of a First Nations people',
+    },
+    // // popup's fields
+    'field-1-4': {
+        fieldLabel: 'What is your Client Number?',
+        fieldContext: 'Your client number can be found on your Driver\'s licence',
+    },
+    'field-2-1': {
+        fieldLabel: 'What is your purpose for diverting water?',
+        fieldContext: 'Are you diverting water to build a swimming pool?',
+    },
+    'field-2-1': {
+        fieldLabel: 'Is your water use seasonal',
+        options: ['yes', 'no'],
+        fieldContext: 'You are only using water for part of the year.',
+    },
+} : {
     // step 2
     AnswerOnJob_eligible: {
         fieldLabel: 'Are you eligible to apply for a water licence?',
@@ -228,40 +257,7 @@ const mapping = {
         fieldLabel: 'Comments',
         fieldContext: '',
     },
-}
-
-
-
-// const mapping = {
-//     'field-1-1': {
-//         fieldLabel: 'What is your Name?',
-//         fieldContext: 'Provide your first and last name'
-//     },
-//     'field-1-2': {
-//         fieldLabel: 'Are you eligible?',
-//         options: ['yes', 'no'],
-//         fieldContext: 'Are you eleigible to apply for a water licence?'
-//     },
-//     'field-1-3': {
-//         fieldLabel: 'What is your reason for applying for a licence?',
-//         options: ['1', '2', '3'],
-//         fieldContext: 'Do you work for the federal governemnt or are you a member of a First Nations people',
-//     },
-//     // // popup's fields
-//     'field-1-4': {
-//         fieldLabel: 'What is your Client Number?',
-//         fieldContext: 'Your client number can be found on your Driver\'s licence',
-//     },
-//     'field-2-1': {
-//         fieldLabel: 'What is your purpose for diverting water?',
-//         fieldContext: 'Are you diverting water to build a swimming pool?',
-//     },
-//     'field-2-1': {
-//         fieldLabel: 'Is your water use seasonal',
-//         options: ['yes', 'no'],
-//         fieldContext: 'You are only using water for part of the year.',
-//     },
-// }
+};
 
 // when DOM loaded show Chat UI
 // TODO: move some of these functions our of load event
@@ -278,7 +274,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // add AI Assist UI
         const aiAgentHtml = `
         <div id="ai-agent" style="display: flex;">
-            <div class="header">AI Assistant</div>
+            <div class="header">
+                <span>AI Assistant</span>
+                <button id="minimize-chat" />
+            </div>
             <div class="messages">
                 <div class="message assistant">How can I help you today?</div>        
             </div>
@@ -321,8 +320,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // ignoreFormIds: ['possedocumentchangeform', 'elementstodisable'],
         ignoreFormIds: ['elementstodisable', 'possedocumentchangeform'],
         // only include fields with these data-id attribute values
-        onlyIncludeFieldDataIds: env === 'dev' ? Object.keys(mapping) : [],
-        requiredFieldIds: env === 'dev' ? Object.keys(mapping) : ['field-1-1'],
+        onlyIncludeFields: Object.keys(mapping),
+        requiredFieldIds: Object.keys(mapping),
     });
 
 
@@ -365,41 +364,38 @@ document.addEventListener('DOMContentLoaded', function () {
         else {
             displayInputMessage(inputValue);
 
-            let apiResponse;
+            // get current formData from cache
+            const formsDataFromStorage = JSON.parse(localStorage.getItem('formsData'));
+            // de-structure into a flat array of fields
+            let fieldsArr = [];
+            formsDataFromStorage.forEach(form => {
+                form.fields.forEach(field => {
+                    // enrich with mapping document
+                    const f = mapping[field.data_id];
+                    return fieldsArr.push({ ...field, ...f });
+                });
+            });
 
-            // Add last AI response to next API request 
+            // ---- send new API request
+            let apiResponse;
+            // if AI response in storage 
             const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
             if (aiResponseInStorage) {
-                const { response_message, status, ...responseFieldData } = aiResponseInStorage;
-                apiResponse = await sendData(inputValue, responseFieldData);
-            }
-
-            // --- add current form data (FormCapture) to next API request
-            else {
-                const formsDataFromStorage = JSON.parse(localStorage.getItem('formsData'));
-                // de-structure into a flat array of fields
-                let fieldsArr = [];
-                formsDataFromStorage.forEach(form => {
-                    form.fields.forEach(field => {
-
-                        // enrich with mapping document
-                        const f = mapping[field.data_id];
-
-                        console.log(f);
-
-                        return fieldsArr.push({ ...field, ...f });
+                const { response_message, status, form_fields, ...responseArrays } = aiResponseInStorage;
+                apiResponse = await sendData(
+                    inputValue, { 
+                        ...responseArrays, // array from last API response (eg current_field, filled_fields, missing_feilds)
+                        form_fields: fieldsArr // current form data
                     });
-                });
+            }
+            // else just send current form data and conversation history
+            else {
                 // pass form field data to API
                 apiResponse = await sendData(inputValue, {
                     form_fields: fieldsArr,
-                    // filled_fields: [],
-                    // missing_fields: [],
-                    // current_field: [],
                     conversation_history: JSON.parse(localStorage.getItem('conversation_history')) || []
                 });
             }
-
             handleResponse(apiResponse);
         }
     }
@@ -537,6 +533,7 @@ document.addEventListener('DOMContentLoaded', function () {
             outputMessage = showInputOptions('Would you like me to fill in any fields for you?',
                 [{ value: 'autofill-y', text: 'Yes, fill out fields' }, { value: 'autofill-n', text: 'No, thanks' }]);
         }
+
         // ------ if missing fields, show 'current_field' validation message
         else if (apiResponse.status === 'awaiting_info') {
             outputMessage = ``;
