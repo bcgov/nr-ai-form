@@ -16,12 +16,12 @@ const FormCapture = {
     this.options = {
       captureOnLoad: true,           // Capture forms when the script loads
       captureOnChange: true,         // Capture forms when any field changes
-      simplifiedFields: false,       // Wether to return a subset of field attributes
       captureHiddenFields: false,    // Whether to capture hidden fields
       capturePasswordFields: false,  // Whether to mask or ignore password fields
       ignoreFormIds: [],             // Array of form IDs to ignore
       ignoreFieldNames: [],          // Array of field names to ignore
       onlyIncludeFieldDataIds: [],   // only include fields with these data-id attribute values
+      requiredFieldIds: [],          // array of data-id's for fields that are considered 'required'
       ...options
     };
 
@@ -66,7 +66,7 @@ const FormCapture = {
     // TEST: get pop-up content in parent window
     const popup = window.PossePwRef;
     // const popup = window.myPopup;
-    if(popup) {
+    if (popup) {
       console.log('DOM from Pop-up', popup.document);
     }
     // end TEST
@@ -84,14 +84,13 @@ const FormCapture = {
       formsData.push(formData);
     });
 
-    // ---- add form data to local storage
+    // ---- add/update form capture data to local storage
+    // TODO: move to client.js
     // pop-up windows will append their forms' data
-    const existingDataInStorage = JSON.parse(localStorage.getItem('formsData')) || [];
+    const formsDataInStorage = JSON.parse(localStorage.getItem('formsData')) || [];
     localStorage.setItem('formsData', JSON.stringify(
-      this.addOrUpdateArray(existingDataInStorage, formsData)
+      this.addOrUpdateArray(formsDataInStorage, formsData)
     ));
-
-    // console.log( JSON.parse(localStorage.getItem('formsData')));
 
     return formsData;
   },
@@ -123,10 +122,6 @@ const FormCapture = {
 
     // get data for each form field
     let fields = this.captureFormFields(form);
-    if (this.options.simplifiedFields) {
-      fields = this.extractSimplifiedFields(fields);
-    }
-
     return {
       formId,
       formName,
@@ -157,32 +152,26 @@ const FormCapture = {
     // Process each form element
     Array.from(formElements).forEach((element, index) => {
 
-      // TESTING:
       // only include a subset of fields for demo
-      if (this.options.onlyIncludeFieldDataIds.length > 0 && 
-         !this.options.onlyIncludeFieldDataIds.includes(element.attributes['data-id'])) {
+      if (this.options.onlyIncludeFieldDataIds.length > 0 &&
+        !this.options.onlyIncludeFieldDataIds.includes(element.attributes['data-id'])) {
         return;
       }
 
       // Skip ignored fields
-      if (this.options.ignoreFieldNames.includes(element.name)) {
-        return;
-      }
+      if (this.options.ignoreFieldNames.includes(element.name)) return;
 
       // Skip fieldsets and other non-input elements
-      if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(element.tagName)) {
-        return;
-      }
+      if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(element.tagName)) return;
 
       // Skip hidden fields if configured
-      if (element.type === 'hidden' && !this.options.captureHiddenFields) {
-        return;
-      }
+      if (element.type === 'hidden' && !this.options.captureHiddenFields) return;
+
+      // skip passwords
+      if (element.type === 'password' && !this.options.capturePasswordFields) return;
 
       // Skip submit buttons
-      if (element.type === 'submit') {
-        return;
-      }
+      if (element.type === 'submit') return;
 
       const fieldData = this.captureField(element, index);
       if (fieldData) {
@@ -194,65 +183,63 @@ const FormCapture = {
   },
 
   /**
-   * Get the label text for a form field
-   * @param {HTMLElement} field - The field element to find label for
-   * @returns {String} Label text or empty string if no label found
+   * Scrape the label text for a given form field using multiple strategies.
+   * @param {HTMLElement} field - The form field element.
+   * @returns {String} The label text, or empty string if not found.
    */
   getFieldLabel: function (field) {
-    let labelText = '';
 
-    // Method 1: Check if field has an ID and find corresponding label with 'for' attribute
+
+    // console.log(field.attributes['data-id']);
+
+    // 1. Label with 'for' attribute
     if (field.id) {
-      const labelElement = document.querySelector(`label[for="${field.id}"]`);
-      if (labelElement) {
-        labelText = labelElement.textContent.trim();
-        return labelText;
-      }
+      const label = document.querySelector(`label[for="${field.id}"]`);
+      if (label) return label.textContent.trim();
     }
-
-    // Method 2: Check if field is wrapped in a label element
+    // 2. Label with 'for' attribute
+    if (field.attributes['data-id']?.value) {
+      const label = document.querySelector(`label[for="${field.attributes['data-id'].value}"]`);
+      if (label) return label.textContent.trim();
+    }
+    // 3. Field wrapped in a label
     const parentLabel = field.closest('label');
     if (parentLabel) {
-      // Clone the label to manipulate it without affecting the DOM
-      const labelClone = parentLabel.cloneNode(true);
-      // Remove the input element from the clone to get just the text
-      const inputInLabel = labelClone.querySelector('input, select, textarea, button');
-      if (inputInLabel) {
-        inputInLabel.remove();
-      }
-      labelText = labelClone.textContent.trim();
-      return labelText;
+      const clone = parentLabel.cloneNode(true);
+      const input = clone.querySelector('input, select, textarea, button');
+      if (input) input.remove();
+      return clone.textContent.trim();
     }
-
-    // Method 3: Check for aria-label attribute
+    // 4. aria-label attribute
     if (field.hasAttribute('aria-label')) {
-      labelText = field.getAttribute('aria-label').trim();
-      return labelText;
+      return field.getAttribute('aria-label').trim();
     }
-
-    // Method 4: Check for aria-labelledby attribute
+    // 5. aria-labelledby attribute
     if (field.hasAttribute('aria-labelledby')) {
-      const labelledById = field.getAttribute('aria-labelledby');
-      const referencedElement = document.getElementById(labelledById);
-      if (referencedElement) {
-        labelText = referencedElement.textContent.trim();
-        return labelText;
-      }
+      const refId = field.getAttribute('aria-labelledby');
+      const refEl = document.getElementById(refId);
+      if (refEl) return refEl.textContent.trim();
     }
-
-    // Method 5: Check for placeholder attribute as fallback
+    // 6. placeholder attribute
     if (field.hasAttribute('placeholder')) {
-      labelText = field.getAttribute('placeholder').trim();
-      return labelText;
+      return field.getAttribute('placeholder').trim();
     }
-
-    // Method 6: Check for title attribute as last resort
+    // 7. title attribute
     if (field.hasAttribute('title')) {
-      labelText = field.getAttribute('title').trim();
-      return labelText;
+      return field.getAttribute('title').trim();
     }
-
-    return labelText;
+    // 8. get previous sibling label element
+    let prev = field.previousElementSibling;
+    while (prev) {
+      if (prev.tagName === 'LABEL') {
+        return prev.textContent.trim();
+      }
+      prev = prev.previousElementSibling;
+    }
+    // 9. find first label in parent element
+    const possibleLabel = field.parentElement && field.parentElement.querySelector('label');
+    if (possibleLabel) return possibleLabel.textContent.trim();
+    return '';
   },
 
   /**
@@ -262,61 +249,52 @@ const FormCapture = {
    * @returns {Object} Field data object
    */
   captureField: function (field, fieldIndex) {
-    const fieldId = field.id || '';
-    const fieldName = field.name || '';
+    //console.log('f', field);
+
+    // get data_id
+    const data_id = this.getFirstNonEmpty([
+      field.attributes['data-id']?.value,
+      field.id,
+      field.name
+    ]);
+
+    // get fieldType
     const fieldType = field.type || '';
-    const fieldLabel = this.getFieldLabel(field); // Add label capture
 
-    // Handle special case for password fields
-    if (fieldType === 'password' && !this.options.capturePasswordFields) {
-      return null;
-    }
+    // get fieldLabel
+    const fieldLabel = this.removeTrailingColon(this.getFieldLabel(field));
+
+    // get fieldValue
     let fieldValue = '';
-
-    // Get value based on field type
+    // if a checkbox or radio
     if (['checkbox', 'radio'].includes(fieldType)) {
-      fieldValue = (field.hasAttribute('checked') && (field.checked || field.checked === '')) ? field.value : '';
-    } else if (field.tagName === 'SELECT') {
+      // only include first checked input 
+      if (field.checked || field.checked === '') fieldValue = field.value;
+      // exclude unchecked radio/checkboxes
+      else return;
+    }
+    // if a select, get array of options
+    else if (field.tagName === 'SELECT') {
       fieldValue = Array.from(field.selectedOptions).map(option => option.value);
-    } else {
+    }
+    // else get value of text/textarea
+    else {
       fieldValue = field.value;
-
       // Mask password values if configured to capture but not show actual value
-      if (fieldType === 'password' && this.options.capturePasswordFields) {
-        fieldValue = '••••••••';
-      }
+      if (fieldType === 'password') fieldValue = '••••••••';
     }
 
-    // Get attributes
-    const fieldAttributes = {};
-    Array.from(field.attributes).forEach(attr => {
-      if (!['id', 'name', 'type', 'value', 'checked', 'selected'].includes(attr.name)) {
-        fieldAttributes[attr.name] = attr.value;
-      }
-    });
-
-    // Get validation state
-    const validationState = {
-      valid: field.validity ? field.validity.valid : null,
-      required: field.required || false,
-      validationMessage: field.validationMessage || '',
-      patternMismatch: field.validity ? field.validity.patternMismatch : null,
-      typeMismatch: field.validity ? field.validity.typeMismatch : null,
-      tooLong: field.validity ? field.validity.tooLong : null,
-      tooShort: field.validity ? field.validity.tooShort : null,
-      rangeOverflow: field.validity ? field.validity.rangeOverflow : null,
-      rangeUnderflow: field.validity ? field.validity.rangeUnderflow : null,
-    };
+    // get is_required from either DOM or FormCapture options
+    const is_required = (
+      field.required || (this.options.requiredFieldIds.length > 0 &&
+        !this.options.requiredFieldIds.includes(data_id))) ?? false
 
     return {
-      fieldId,
-      fieldName,
+      data_id,
       fieldType,
+      is_required,
       fieldValue,
-      fieldLabel, // Include the label in the returned data
-      attributes: fieldAttributes,
-      validation: validationState,
-      domElement: field
+      fieldLabel,
     };
   },
 
@@ -331,36 +309,6 @@ const FormCapture = {
     return serialized;
   },
 
-  /**
-   * Extract simplified field data with only specific attributes
-   * @param {Array} fullFormData - The full form data array from captureAllForms()
-   * @returns {Array} Array of simplified field objects with only data-id, fieldType, fieldValue, fieldLabel
-   */
-  extractSimplifiedFields: function (fields) {
-
-    const simplifiedData = [];
-
-    fields.forEach(field => {
-      // Only process fields that have a `data-id` or `name` attribute
-      if (field.attributes) {
-        // For radio type fields, only include if fieldValue is not empty
-        if (field.fieldType === 'radio' && (!field.fieldValue || field.fieldValue === '')) {
-          return;
-        }
-
-        const simplifiedField = {
-          'data-id': (field.attributes['data-id'] !== undefined && field.attributes['data-id'] !== '') ? field.attributes['data-id'] : field.fieldName,
-          fieldType: field.fieldType,
-          fieldValue: field.fieldValue,
-          fieldLabel: field.fieldLabel
-        };
-        simplifiedData.push(simplifiedField);
-      }
-    });
-
-    return simplifiedData;
-  },
-
   // To overwrite an existing object in an array based on a matching property, or add it if no match is found
   addOrUpdateArray: function (array, newArray, propertyToMatch = 'formAction') {
     const updatedArray = [...array];
@@ -373,7 +321,27 @@ const FormCapture = {
       }
     });
     return updatedArray;
-  }
+  },
+
+  /**
+   * Returns the first item in the array that is not undefined, null, or an empty string
+   * if no valid value found, return an empty string.
+   * @param {Array} arr - Array of items to check
+   * @returns {*} The first non-empty, non-undefined item, or empty string if none found
+   */
+  getFirstNonEmpty: function (arr) {
+    return arr.find(item => item !== undefined && item !== null && item !== '') ?? '';
+  },
+
+
+  removeTrailingColon: function (str) {
+    if (str.endsWith(':')) {
+      return str.slice(0, -1); // Remove the last character
+    }
+    return str; // Return the original string if no trailing colon
+  },
+
+
 
 };
 
