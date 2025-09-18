@@ -84,7 +84,8 @@ const FormCapture = {
       formsData.push(formData);
     });
 
-    // ---- add form data to local storage
+    // ---- add/update form capture data to local storage
+    // TODO: move to client.js
     // pop-up windows will append their forms' data
     const formsDataInStorage = JSON.parse(localStorage.getItem('formsData')) || [];
     localStorage.setItem('formsData', JSON.stringify(
@@ -228,8 +229,12 @@ const FormCapture = {
       return field.getAttribute('title').trim();
     }
     // 8. get previous sibling label element
-    if (field.previousElementSibling.tagName === 'LABEL') {
-      return field.previousElementSibling.textContent.trim();
+    let prev = field.previousElementSibling;
+    while (prev) {
+      if (prev.tagName === 'LABEL') {
+        return prev.textContent.trim();
+      }
+      prev = prev.previousElementSibling;
     }
     // 9. find first label in parent element
     const possibleLabel = field.parentElement && field.parentElement.querySelector('label');
@@ -264,7 +269,7 @@ const FormCapture = {
     // if a checkbox or radio
     if (['checkbox', 'radio'].includes(fieldType)) {
       // only include first checked input 
-      if (field.checked || field.checked === '')  fieldValue = field.value;
+      if (field.checked || field.checked === '') fieldValue = field.value;
       // exclude unchecked radio/checkboxes
       else return;
     }
@@ -281,7 +286,7 @@ const FormCapture = {
 
     // get is_required from either DOM or FormCapture options
     const is_required = (
-        field.required || (this.options.requiredFieldIds.length > 0 &&
+      field.required || (this.options.requiredFieldIds.length > 0 &&
         !this.options.requiredFieldIds.includes(data_id))) ?? false
 
     return {

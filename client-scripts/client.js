@@ -6,12 +6,265 @@
  * Populates Webform with AI response
  */
 
-// set to 'dev' if pushing to gh-pages
-// or 'local' if using in local deployment with sample form
+// --------- local config:
 const env = 'dev'
+const mockApi = false;
+// const apiUrl = 'http://127.0.0.1:8000/api/chat'
+// const apiUrl = 'http://127.0.0.1:8000/orchestrate-conversation'
+//const cacheExpire = 3600000;  // 1 hr in milliseconds
+const cacheExpire = 60000;  // 1  minute in milliseconds
 
 
-// when DOM loaded
+// --------- deployed (dev/test/prod) config:
+// const env = 'dev'
+// const mockApi = false;
+const apiUrl = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/api/chat'
+// const cacheExpire = 3600;
+
+
+// context mappings
+const mapping = {
+    // step 2
+    AnswerOnJob_eligible: {
+        fieldLabel: 'Are you eligible to apply for a water licence?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+
+        fieldContext: 'Are you eligible to apply for a water licence?'
+    },
+    AnswerOnJob_housing : {
+        fieldLabel: 'Is this application in relation to increasing the supply of housing units within British Columbia?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+
+        fieldContext: '',
+    },
+    'AnswerOnJob_north-coast-line': {
+        fieldLabel: 'Is this application related to the North Coast Transmission Line?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+
+        fieldContext: '',
+    },
+    'AnswerOnJob_bc-hydro-sustainability': {
+        fieldLabel: 'Is this application related to a BC Hydro Sustainment Project required for the maintenance and upgrading of existing electricity infrastructure, such as replacing aging equipment, improving transmission systems, or reinforcing substations to support long-term energy needs?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+
+        fieldContext: '',
+    },
+    'AnswerOnJob_clean-energy': {
+        fieldLabel: 'Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024-present?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+
+        fieldContext: '',
+    },
+    // step 3a
+    'V1IsEligibleForFeeExemption': {
+        fieldLabel: 'Do you belong to, are you applying on behalf of, or are you: a provincial government ministry, the Government of Canada, A First Nation for water use on reserve land, A person applying to use water on Treaty Lands,  A Nisga\'a citizen or an entity applying to use water from the Nisga\'a Water Reservation?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+
+        fieldContext: '',
+    },
+    'V1IsExistingExemptClient': {
+        fieldLabel: 'Are you an existing exempt client?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+
+        fieldContext: '',
+    },
+    'V1FeeExemptionCategory': {
+        fieldLabel: 'Fee Exemption Category',
+        options: [
+            { key: '', value: '(None)' },
+            { key: 'British Columbia Government Ministry', value: 'British Columbia Government Ministry' },
+            { key: 'Federal Government', value: 'Federal Government' },
+            { key: 'First Nations/Indian Band for use on Reserve', value: 'First Nations/Indian Band for use on Reserve' },
+            { key: 'Acting on behalf of a BC provincial ministry with a letter of permission from that ministry', value: 'Acting on behalf of a BC provincial ministry with a letter of permission from that ministry' },
+            { key: 'Other (Specify details below)', value: 'Other (Specify details below)' }
+        ],
+        fieldContext: ''
+    },
+    'V1FeeExemptionSupportingInfo': {
+        fieldLabel: 'Please enter any supporting information that will assist in determining your eligibility for a fee exemption. Please refer to help for details on fee exemption criteria and requirements. ',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+        fieldContext: '',
+    },
+    // step 3b
+    'WSLICDoYouHoldAnotherLicense': {
+        fieldLabel: 'Do you currently hold another valid Water Licence?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+        fieldContext: '',
+    },
+    'WSLICClientNumber': {
+        fieldLabel: 'Please enter your client number',
+        fieldContext: '',
+    },
+    'SourceOfDiversion': {
+        fieldLabel: 'Please enter your client number',
+        options: [
+            { key: 'Surface water', value: 'Surface water' },
+            { key: 'Groundwater', value: 'Groundwater' },
+            { key: 'Both', value: 'Both' }
+        ],
+        fieldContext: '',
+    },
+    // Add Purpose 
+    // IMPORTANT: (subsequent fields don't have a data-id attribute)
+    // id attribute is used.
+    // when it is a multiple (eg radio, Posse gives each option a separate id.
+    // so `name` attribute (if present) and then `id` (as fallback) is used at field identifier
+    'PurposeUseSector_100534931_N0': {
+        fieldLabel: 'What purpose do you want to use the water for?',
+        options: [
+            { key: '', value: '{select}' },
+            { key: '67080257', value: 'Conservation' },
+            { key: '67080259', value: 'Domestic' },
+            { key: '67080261', value: 'Industrial' },
+            // USE irrigation for demo
+            { key: '80018174', value: 'Irrigation' },
+            { key: '80018176', value: 'Land Improvement' },
+            { key: '80018178', value: 'Mineralized Water' },
+            { key: '67080263', value: 'Mining' },
+            { key: '80018180', value: 'Oil and Gas' },
+            { key: '67080265', value: 'Power' },
+            { key: '67080267', value: 'Storage Purpose' },
+            { key: '67080269', value: 'Waterworks' }
+        ],
+        fieldContext: '',
+    },
+    // irrigation sub-purpose
+    'PurposeUseSector_100534931_N0': {
+        fieldLabel: 'Please select one of the following sub-purposes',
+        options: [
+            { key: '', value: '{select}' },
+            // USE irrigation for demo
+            { key: '80018348', value: 'Irrigation' },
+            { key: '80018353', value: 'Irrigation - Water conveyed by local provider for Irrigation purposes' },
+        ],
+        fieldContext: '',
+    },
+    'WSLICUseOfWaterSeasonal_100536333_N0': {
+        fieldLabel: 'Do you want to use the water only seasonally?',
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
+        fieldContext: '',
+    },
+    'WSLICUseOfWaterFromMonth_100536333_N0': {
+        fieldLabel: 'Select the month you want to use water from',
+        options: [
+            { key: '', value: '(None)' },
+            { key: 'January', value: 'January' },
+            { key: 'February', value: 'February' },
+            { key: 'March', value: 'March' },
+            { key: 'April', value: 'April' },
+            { key: 'May', value: 'May' },
+            { key: 'June', value: 'June' },
+            { key: 'July', value: 'July' },
+            { key: 'August', value: 'August' },
+            { key: 'September', value: 'September' },
+            { key: 'October', value: 'October' },
+            { key: 'November', value: 'November' },
+            { key: 'December', value: 'December' }
+        ],
+        fieldContext: ''
+    },
+    WSLICUseOfWaterToMonth_100536333_N0: {
+        fieldLabel: 'Select the month you want to use water to',
+        options: [
+            { key: '', value: '(None)' },
+            { key: 'January', value: 'January' },
+            { key: 'February', value: 'February' },
+            { key: 'March', value: 'March' },
+            { key: 'April', value: 'April' },
+            { key: 'May', value: 'May' },
+            { key: 'June', value: 'June' },
+            { key: 'July', value: 'July' },
+            { key: 'August', value: 'August' },
+            { key: 'September', value: 'September' },
+            { key: 'October', value: 'October' },
+            { key: 'November', value: 'November' },
+            { key: 'December', value: 'December' }
+        ],
+        fieldContext: ''
+    },
+    'Quantity_100534688_N0': {
+        fieldLabel: 'Total Annual Quantity:',
+        fieldContext: '',
+    },
+    'Irrigation03AArea_100534394_N0': {
+        fieldLabel: 'Area to be irrigated:',
+        fieldContext: '',
+    },
+    'MaximumRateOfDiversion_101016710_N0_sp': {
+        fieldLabel: 'Maximum Rate of Diversion:',
+        fieldContext: '',
+    },
+    'Comments_100848882_N0': {
+        fieldLabel: 'Comments',
+        fieldContext: '',
+    },
+}
+
+
+
+// const mapping = {
+//     'field-1-1': {
+//         fieldLabel: 'What is your Name?',
+//         fieldContext: 'Provide your first and last name'
+//     },
+//     'field-1-2': {
+//         fieldLabel: 'Are you eligible?',
+//         options: ['yes', 'no'],
+//         fieldContext: 'Are you eleigible to apply for a water licence?'
+//     },
+//     'field-1-3': {
+//         fieldLabel: 'What is your reason for applying for a licence?',
+//         options: ['1', '2', '3'],
+//         fieldContext: 'Do you work for the federal governemnt or are you a member of a First Nations people',
+//     },
+//     // // popup's fields
+//     'field-1-4': {
+//         fieldLabel: 'What is your Client Number?',
+//         fieldContext: 'Your client number can be found on your Driver\'s licence',
+//     },
+//     'field-2-1': {
+//         fieldLabel: 'What is your purpose for diverting water?',
+//         fieldContext: 'Are you diverting water to build a swimming pool?',
+//     },
+//     'field-2-1': {
+//         fieldLabel: 'Is your water use seasonal',
+//         options: ['yes', 'no'],
+//         fieldContext: 'You are only using water for part of the year.',
+//     },
+// }
+
+// when DOM loaded show Chat UI
+// TODO: move some of these functions our of load event
 document.addEventListener('DOMContentLoaded', function () {
 
     // show AI Assistant on designated pages
@@ -21,6 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const validTitleText = env === 'dev' ? 'Water Licence Application' : 'Parent';
 
     if (titleSpan && titleSpan.textContent.includes(validTitleText)) {
+
         // add AI Assist UI
         const aiAgentHtml = `
         <div id="ai-agent" style="display: flex;">
@@ -35,8 +289,28 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>`;
         document.body.insertAdjacentHTML('beforeend', aiAgentHtml);
 
-        // populate AI Chat history
-        populateChatHistoryFromStorage();
+        // if last AI responses has expired, clear all items  in local storage
+        const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
+        if (aiResponseInStorage && (new Date() - new Date(aiResponseInStorage?.timestamp) > cacheExpire)) {
+            localStorage.clear();
+        }
+        // else show conversation history in chat UI
+        else populateChatHistoryFromStorage();
+
+        // disable Posse refresh
+        // document.addEventListener("click", function (event) {
+        //     if (event.target.closest('form')){
+        //         window.PosseSubmitLinkReturn = function() {
+        //         return false;
+        //         };
+        //         window.PosseProcessRoundTripClicked = function() {
+        //             return false;
+        //         };
+        //         window.cphBottomFunctionBand_ctl10_Submit_fn = function() {
+        //             return false;
+        //         };  
+        //     }
+        // });
     }
 
     // Initialize an instance of FormCapture with custom configuration
@@ -47,38 +321,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // ignoreFormIds: ['possedocumentchangeform', 'elementstodisable'],
         ignoreFormIds: ['elementstodisable', 'possedocumentchangeform'],
         // only include fields with these data-id attribute values
-        onlyIncludeFieldDataIds: env === 'dev' ? [
-            'V1IsEligibleForFeeExemption',
-            'V1IsExistingExemptClient',
-            'V1FeeExemptionClientNumber',
-            'V1FeeExemptionCategory',
-            'V1FeeExemptionSupportingInfo',
-        ] : [],
-        requiredFieldIds: env === 'dev' ? [
-            'V1IsEligibleForFeeExemption',
-            'V1IsExistingExemptClient',
-            'V1FeeExemptionClientNumber',
-            'V1FeeExemptionCategory',
-            'V1FeeExemptionSupportingInfo',
-        ] : ['field-1-1'],
+        onlyIncludeFieldDataIds: env === 'dev' ? Object.keys(mapping) : [],
+        requiredFieldIds: env === 'dev' ? Object.keys(mapping) : ['field-1-1'],
     });
-
-
-    // disable Posse refresh
-    // document.addEventListener("click", function (event) {
-    //     if (event.target.closest('form')){
-    //         window.PosseSubmitLinkReturn = function() {
-    //         return false;
-    //         };
-    //         window.PosseProcessRoundTripClicked = function() {
-    //             return false;
-    //         };
-    //         window.cphBottomFunctionBand_ctl10_Submit_fn = function() {
-    //             return false;
-    //         };  
-    //     }
-    // });
-
 
 
     // when AI Assistant 'Send' button is clicked, send request to AI service
@@ -103,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // submit user input (either typed input or option button)
     async function SubmitUserInput(inputValue) {
 
-        // if Assistant is offereing to auto-fill the web-form
+        // if user is accepting auto-fill
         if (inputValue === 'autofill-y') {
             displayInputMessage('Yes, fill out fields');
             // if AI response exists in browser storage, and is recent (1 week)
@@ -121,34 +366,37 @@ document.addEventListener('DOMContentLoaded', function () {
             displayInputMessage(inputValue);
 
             let apiResponse;
-            // --- if AI response in storage was recent (< 1 hour)
+
             // Add last AI response to next API request 
             const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
-            if(aiResponseInStorage && 
-                (new Date() - new Date(aiResponseInStorage?.timestamp < 3600))){
+            if (aiResponseInStorage) {
                 const { response_message, status, ...responseFieldData } = aiResponseInStorage;
                 apiResponse = await sendData(inputValue, responseFieldData);
             }
 
             // --- add current form data (FormCapture) to next API request
-            else{
-                // remove any old (> 1 hr) AI responses from local storage
-                localStorage.removeItem('aiAgentApiResponse');
+            else {
                 const formsDataFromStorage = JSON.parse(localStorage.getItem('formsData'));
                 // de-structure into a flat array of fields
                 let fieldsArr = [];
                 formsDataFromStorage.forEach(form => {
-                    form.fields.forEach(field => fieldsArr.push(field))
+                    form.fields.forEach(field => {
+
+                        // enrich with mapping document
+                        const f = mapping[field.data_id];
+
+                        console.log(f);
+
+                        return fieldsArr.push({ ...field, ...f });
+                    });
                 });
                 // pass form field data to API
-                apiResponse = await sendData(inputValue, { 
+                apiResponse = await sendData(inputValue, {
                     form_fields: fieldsArr,
-                    filled_fields: [],
-                    missing_fields: [],
-                    current_field: [],
-                    conversation_history: [
-
-                    ]
+                    // filled_fields: [],
+                    // missing_fields: [],
+                    // current_field: [],
+                    conversation_history: JSON.parse(localStorage.getItem('conversation_history')) || []
                 });
             }
 
@@ -158,12 +406,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // sends request to the NR Form API
     async function sendData(message, fieldData) {
-        let body, url;
-        const API_URL = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net'
-        // const API_URL = 'http://127.0.0.1:8000'
-        url = `${API_URL}/api/chat`;
         // Create JSON body for API request
-        body = {
+        const body = {
             user_message: message,
             ...fieldData,
         };
@@ -172,8 +416,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // make api call
         try {
             let data;
-            if (env === 'dev') {
-                const response = await fetch(url, {
+            if (!mockApi) {
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -215,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             "fieldType": "select-one",
                             "is_required": true,
                             "fieldValue": [
-                            "2"
+                                "2"
                             ],
                             "fieldLabel": "Reason"
                         },
@@ -247,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             "fieldType": "select-one",
                             "is_required": true,
                             "fieldValue": [
-                            "2"
+                                "2"
                             ],
                             "fieldLabel": "Reason"
                         },
@@ -276,6 +520,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             console.log('api response: ', data);
             // cache aiResponse for later use (e.g. if user selects 'autofill' option)
+            // add a timestamp property
             localStorage.setItem('aiAgentApiResponse', JSON.stringify({ timestamp: new Date().toISOString(), ...data }));
 
             return data;
@@ -295,12 +540,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // ------ if missing fields, show 'current_field' validation message
         else if (apiResponse.status === 'awaiting_info') {
             outputMessage = ``;
-            if (apiResponse.response) outputMessage += `${apiResponse.response}<br /><br />`;
-            outputMessage += apiResponse.current_field.validation_message;
+            // show `response_message`
+            if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
+            // show first `validation_message`
+            if (apiResponse.current_field.length > 0) outputMessage += apiResponse.current_field[0].validation_message;
         }
-        // ------ else show response message only
+        // ------ else, for general Assitnace, show response message only
         else {
-            outputMessage = apiResponse.response;
+            outputMessage = apiResponse.response_message;
         }
         displayOutputMessage(outputMessage)
     }
@@ -334,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // show messages in chat
-    function showMessageInChat(message, role){
+    function showMessageInChat(message, role) {
         const messagesDiv = document.querySelector('#ai-agent .messages');
         const botMessageDiv = document.createElement('div');
         botMessageDiv.classList.add('message', role);
@@ -344,10 +591,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // add user/assistant messages to the cconversation_hitory in local storage
-    function updateConversationHistoryInStorage(messageInput, role){
+    function updateConversationHistoryInStorage(messageInput, role) {
         let conversationHistoryArray = JSON.parse(localStorage.getItem('conversation_history')) || [];
-        conversationHistoryArray.push({ 
-            timestamp: new Date().toISOString(), 
+        conversationHistoryArray.push({
+            timestamp: new Date().toISOString(),
             role: role,
             content: messageInput
         });
@@ -355,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // add html back into CHat ui after page reload
-    function populateChatHistoryFromStorage(){
+    function populateChatHistoryFromStorage() {
         let conversationHistoryArray = JSON.parse(localStorage.getItem('conversation_history')) || [];
         conversationHistoryArray
             // filter for unique based on timestamp (in case things got messed up)
@@ -370,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
             .forEach(c => {
-                if(c.role === 'user'){
+                if (c.role === 'user') {
                     showMessageInChat(c.content, 'user');
                 } else {
                     showMessageInChat(c.content, 'assistant');
@@ -389,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (document.querySelectorAll(`[data-id="${fieldId}"]`)?.length > 0) {
                 formField = document.querySelectorAll(`[data-id="${fieldId}"]`);
             }
-            else if(document.getElementById(fieldId)) formField = [document.getElementById(fieldId)];
+            else if (document.getElementById(fieldId)) formField = [document.getElementById(fieldId)];
             else formField = document.getElementsByName(fieldId);
 
             // update value
