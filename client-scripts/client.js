@@ -64,8 +64,6 @@ const mapping = env === 'local' ? {
         fieldContext: 'You are only using water for part of the year.',
     },
 } : {
-
-
     // step 2
     AnswerOnJob_eligible: {
         fieldLabel: 'Are you eligible to apply for a water licence?',
@@ -76,7 +74,7 @@ const mapping = env === 'local' ? {
 
         fieldContext: 'Are you eligible to apply for a water licence?'
     },
-    AnswerOnJob_housing : {
+    AnswerOnJob_housing: {
         fieldLabel: 'Is this application in relation to increasing the supply of housing units within British Columbia?',
         options: [
             { key: 'yes', value: 'yes' },
@@ -391,19 +389,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // ---- send new API request
             let apiResponse;
-            // if AI response in storage 
+            // if AI response in storage add it to the request
             const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
             if (aiResponseInStorage) {
                 const { response_message, status, form_fields, ...responseArrays } = aiResponseInStorage;
                 apiResponse = await sendData(
-                    inputValue, { 
-                        ...responseArrays, // array from last API response (eg current_field, filled_fields, missing_feilds)
-                        form_fields: fieldsArr // current form data
-                    });
+                    inputValue, {
+                    ...responseArrays, // array from last API response (eg current_field, filled_fields, missing_feilds)
+                    form_fields: fieldsArr // current form data
+                });
             }
             // else just send current form data and conversation history
             else {
-                // pass form field data to API
                 apiResponse = await sendData(inputValue, {
                     form_fields: fieldsArr,
                     conversation_history: JSON.parse(localStorage.getItem('conversation_history')) || []
@@ -540,16 +537,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Vary UX behaviour depending on `status` of AI response
     function handleResponse(apiResponse) {
-        let outputMessage;
+        let outputMessage = '';
+
+        // ----- to handle page refreshes, we can try updating one field at a time
+        if (apiResponse.filled_fields.length > 0) {
+            populateFormFields(apiResponse.filled_fields);
+            // show `response_message`
+            if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
+        }
+
         // ----- if status is 'comleted' (all fields have values), show 'autofill' prompt
-        if (apiResponse.status === 'completed') {
+        else if (apiResponse.status === 'completed') {
             outputMessage = showInputOptions('Would you like me to fill in any fields for you?',
                 [{ value: 'autofill-y', text: 'Yes, fill out fields' }, { value: 'autofill-n', text: 'No, thanks' }]);
         }
 
         // ------ if missing fields, show 'current_field' validation message
         else if (apiResponse.status === 'awaiting_info') {
-            outputMessage = ``;
             // show `response_message`
             if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
             // show first `validation_message`
@@ -640,7 +644,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // populate form fields with values from AI response
     function populateFormFields(filledFields) {
         filledFields.forEach(field => {
-            const fieldId = field['data-id'];
+            const fieldId = field['data_id'];
             const fieldValue = field['fieldValue'];
 
             // find an array of the form field(s) with matching `data-id`, `id` or `name` attribute

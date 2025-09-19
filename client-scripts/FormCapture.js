@@ -261,9 +261,8 @@ const FormCapture = {
     // get fieldLabel
     const fieldLabel = this.removeTrailingColon(this.getFieldLabel(field));
     // get is_required from either DOM or FormCapture init.options
-    const is_required = (
-      field.required || (this.options.requiredFieldIds.length > 0 &&
-        !this.options.requiredFieldIds.includes(data_id))) ?? false
+    let is_required = false;
+    if(field.required || this.options.requiredFieldIds.includes(data_id)) is_required = true
 
     // get field options and value(s)
     let options;
