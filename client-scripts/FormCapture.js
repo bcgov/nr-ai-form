@@ -151,36 +151,39 @@ const FormCapture = {
 
     // Process each form element
     Array.from(formElements).forEach((element, index) => {
-      // only include a subset of fields for demo
+
+      // only include fields in FormCapture init.options
       if (this.options.onlyIncludeFields.length > 0 &&
         !this.options.onlyIncludeFields.includes(element.attributes['data-id']?.value) &&
         !this.options.onlyIncludeFields.includes(element.id) &&
         !this.options.onlyIncludeFields.includes(element.name)
-      ) {
-        return;
-      }
-
-      // Skip ignored fields
+      ) return;
+      // Skip ignored fields in FormCapture init.options
       if (this.options.ignoreFieldNames.includes(element.name)) return;
-
       // Skip fieldsets and other non-input elements
       if (!['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(element.tagName)) return;
-
       // Skip hidden fields if configured
       if (element.type === 'hidden' && !this.options.captureHiddenFields) return;
-
       // skip passwords
       if (element.type === 'password' && !this.options.capturePasswordFields) return;
-
       // Skip submit buttons
       if (element.type === 'submit') return;
 
+
       const fieldData = this.captureField(element, index);
-      if (fieldData) {
+
+      // hack to de-deplicate radios and checkboxes, and use values as options
+      // if fields already contains an input with fieldData.data_id (eg it is a radio)
+      // append new fieldData options to existing field
+      const existingField = fields.find(f => f.data_id === fieldData.data_id);
+      if (existingField && existingField?.options && existingField?.options) {
+        fields.find(f => f.data_id === fieldData.data_id).options = existingField.options.concat(fieldData.options);
+      }
+      // else add as new field
+      else if (fieldData) {
         fields.push(fieldData);
       }
     });
-
     return fields;
   },
 
@@ -253,24 +256,29 @@ const FormCapture = {
       field.id,
       field.name
     ]);
-
     // get fieldType
     const fieldType = field.type || '';
-
     // get fieldLabel
     const fieldLabel = this.removeTrailingColon(this.getFieldLabel(field));
+    // get is_required from either DOM or FormCapture init.options
+    const is_required = (
+      field.required || (this.options.requiredFieldIds.length > 0 &&
+        !this.options.requiredFieldIds.includes(data_id))) ?? false
 
-    // get fieldValue
+    // get field options and value(s)
+    let options;
     let fieldValue = '';
     // if a checkbox or radio
     if (['checkbox', 'radio'].includes(fieldType)) {
-      // only include first checked input 
-      if (field.checked || field.checked === '') fieldValue = field.value;
-      // exclude unchecked radio/checkboxes
-      else return;
+      // add value as an option (see hack in captureFormFields function above)
+      options = [{ key: field.value, value: field.value }]
+      fieldValue = field.checked ? field.value : '';
     }
     // if a select, get array of options
     else if (field.tagName === 'SELECT') {
+      options = Array.from(field.options).map(option => {
+        return { key: option.value, value: option.textContent };
+      });
       fieldValue = Array.from(field.selectedOptions).map(option => option.value);
     }
     // else get value of text/textarea
@@ -280,17 +288,13 @@ const FormCapture = {
       if (fieldType === 'password') fieldValue = '••••••••';
     }
 
-    // get is_required from either DOM or FormCapture options
-    const is_required = (
-      field.required || (this.options.requiredFieldIds.length > 0 &&
-        !this.options.requiredFieldIds.includes(data_id))) ?? false
-
     return {
       data_id,
       fieldType,
       is_required,
       fieldValue,
       fieldLabel,
+      options
     };
   },
 

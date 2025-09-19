@@ -30,12 +30,20 @@ const mapping = env === 'local' ? {
     },
     'field-1-2': {
         fieldLabel: 'Are you eligible?',
-        options: ['yes', 'no'],
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
         fieldContext: 'Are you eleigible to apply for a water licence?'
     },
     'field-1-3': {
         fieldLabel: 'What is your reason for applying for a licence?',
-        options: ['1', '2', '3'],
+        options: [
+            { key: '', value: 'select' },
+            { key: '1', value: 'Federal Government' },
+            { key: '2', value: 'Provincial Government' },
+            { key: '3', value: 'First Nations' }
+        ],
         fieldContext: 'Do you work for the federal governemnt or are you a member of a First Nations people',
     },
     // // popup's fields
@@ -49,10 +57,15 @@ const mapping = env === 'local' ? {
     },
     'field-2-1': {
         fieldLabel: 'Is your water use seasonal',
-        options: ['yes', 'no'],
+        options: [
+            { key: 'yes', value: 'yes' },
+            { key: 'no', value: 'no' },
+        ],
         fieldContext: 'You are only using water for part of the year.',
     },
 } : {
+
+
     // step 2
     AnswerOnJob_eligible: {
         fieldLabel: 'Are you eligible to apply for a water licence?',
@@ -561,6 +574,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // display input message in chat window
     function displayInputMessage(messageInput) {
         if (messageInput != '') {
+            // clear input field
+            document.getElementById('ai-agent-input-text').value = '';
             // add to conversation_history in local storage
             updateConversationHistoryInStorage(messageInput, 'user');
             // show message in chat
