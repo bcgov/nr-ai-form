@@ -64,11 +64,11 @@ const FormCapture = {
   captureAllForms: function () {
 
     // TEST: get pop-up content in parent window
-    const popup = window.PossePwRef;
+    // const popup = window.PossePwRef;
     // const popup = window.myPopup;
-    if (popup) {
-      console.log('DOM from Pop-up', popup.document);
-    }
+    // if (popup) {
+    //   console.log('DOM from Pop-up', popup.document);
+    // }
     // end TEST
 
     const forms = document.querySelectorAll('form');
@@ -87,10 +87,11 @@ const FormCapture = {
     // ---- add/update form capture data to local storage
     // TODO: move to client.js
     // pop-up windows will append their forms' data
-    const formsDataInStorage = JSON.parse(localStorage.getItem('formsData')) || [];
-    localStorage.setItem('formsData', JSON.stringify(
+    const formsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_formsData')) || [];
+    localStorage.setItem('nrAiForm_formsData', JSON.stringify(
       this.addOrUpdateArray(formsDataInStorage, formsData)
     ));
+    // console.log('fieldsArray:', this.getFieldsArray());
 
     return formsData;
   },
@@ -193,12 +194,12 @@ const FormCapture = {
    * @returns {String} The label text, or empty string if not found.
    */
   getFieldLabel: function (field) {
-    // 1. Label with 'for' attribute
+    // 1. Label with 'for' attribute matching `id`
     if (field.id) {
       const label = document.querySelector(`label[for="${field.id}"]`);
       if (label) return label.textContent.trim();
     }
-    // 2. Label with 'for' attribute
+    // 2. Label with 'for' attribute matching `data-id`
     if (field.attributes['data-id']?.value) {
       const label = document.querySelector(`label[for="${field.attributes['data-id'].value}"]`);
       if (label) return label.textContent.trim();
@@ -262,7 +263,7 @@ const FormCapture = {
     const fieldLabel = this.removeTrailingColon(this.getFieldLabel(field));
     // get is_required from either DOM or FormCapture init.options
     let is_required = false;
-    if(field.required || this.options.requiredFieldIds.includes(data_id)) is_required = true
+    if (field.required || this.options.requiredFieldIds.includes(data_id)) is_required = true
 
     // get field options and value(s)
     let options;
@@ -308,18 +309,19 @@ const FormCapture = {
     return serialized;
   },
 
-  // To overwrite an existing object in an array based on a matching property, or add it if no match is found
+  // Overwrite an existing object in array where both 'formAction' and 'formId' match, else add new
   addOrUpdateArray: function (array, newArray, propertyToMatch = 'formAction') {
-    const updatedArray = [...array];
     newArray.forEach(newObj => {
-      const index = updatedArray.findIndex(obj => obj[propertyToMatch] === newObj[propertyToMatch]);
+      const index = array.findIndex(obj =>
+        obj.formAction === newObj.formAction && obj.formId === newObj.formId
+      );
       if (index !== -1) {
-        updatedArray[index] = newObj;
+        array[index] = newObj;
       } else {
-        updatedArray.push(newObj);
+        array.push(newObj);
       }
     });
-    return updatedArray;
+    return array;
   },
 
   /**
@@ -340,6 +342,20 @@ const FormCapture = {
     return str; // Return the original string if no trailing colon
   },
 
+
+  // test
+  getFieldsArray: function () {
+    const formsDataFromStorage = JSON.parse(localStorage.getItem('nrAiForm_formsData'))
+    let fieldsArr = [];
+    formsDataFromStorage.forEach(form => {
+      form.fields.forEach(field => {
+        // enrich with mapping document
+        const f = mapping[field.data_id];
+        return fieldsArr.push({ ...field, ...f });
+      });
+    });
+    return fieldsArr;
+  }
 
 
 };

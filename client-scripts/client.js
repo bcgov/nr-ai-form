@@ -7,19 +7,12 @@
  */
 
 // --------- local config:
-const env = 'dev'
+const env = 'dev'; // (use `dev` for Posse)
 const mockApi = false;
 // const apiUrl = 'http://127.0.0.1:8000/api/chat'
 // const apiUrl = 'http://127.0.0.1:8000/orchestrate-conversation'
-//const cacheExpire = 3600000;  // 1 hr in milliseconds
-const cacheExpire = 60000;  // 1  minute in milliseconds
-
-
-// --------- deployed (dev/test/prod) config:
-// const env = 'dev'
-// const mockApi = false;
 const apiUrl = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/api/chat'
-// const cacheExpire = 3600;
+const cacheExpire = 60000;  // 1  minute in milliseconds
 
 
 // context mappings
@@ -55,7 +48,7 @@ const mapping = env === 'local' ? {
         fieldLabel: 'What is your purpose for diverting water?',
         fieldContext: 'Are you diverting water to build a swimming pool?',
     },
-    'field-2-1': {
+    'field-2-2': {
         fieldLabel: 'Is your water use seasonal',
         options: [
             { key: 'yes', value: 'yes' },
@@ -287,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div id="ai-agent" style="display: flex;">
             <div class="header">
                 <span>AI Assistant</span>
-                <button id="minimize-chat" />
+                <button id="minimize-button">_</button>
             </div>
             <div class="messages">
                 <div class="message assistant">How can I help you today?</div>        
@@ -299,29 +292,27 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>`;
         document.body.insertAdjacentHTML('beforeend', aiAgentHtml);
 
+        document.getElementById('minimize-button')?.addEventListener('click', function () {
+            const chatbotContainer = document.getElementById('ai-agent');
+            chatbotContainer.style.height = '';
+            chatbotContainer.style.width = '';
+            chatbotContainer.classList.toggle('minimized');
+        });
+
         // if last AI responses has expired, clear all items  in local storage
-        const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
+        const aiResponseInStorage = JSON.parse(localStorage.getItem('nrAiForm_apiResponse'));
         if (aiResponseInStorage && (new Date() - new Date(aiResponseInStorage?.timestamp) > cacheExpire)) {
-            localStorage.clear();
+            localStorage.removeItem('nrAiForm_formsData');
+            localStorage.removeItem('nrAiForm_apiResponse');
+            localStorage.removeItem('nrAiForm_conversationHistory');
+            localStorage.removeItem('nrAiForm_popupsOpen');
         }
         // else show conversation history in chat UI
         else populateChatHistoryFromStorage();
-
-        // disable Posse refresh
-        // document.addEventListener("click", function (event) {
-        //     if (event.target.closest('form')){
-        //         window.PosseSubmitLinkReturn = function() {
-        //         return false;
-        //         };
-        //         window.PosseProcessRoundTripClicked = function() {
-        //             return false;
-        //         };
-        //         window.cphBottomFunctionBand_ctl10_Submit_fn = function() {
-        //             return false;
-        //         };  
-        //     }
-        // });
     }
+
+    // deal with popups
+    linkPopups();
 
     // Initialize an instance of FormCapture with custom configuration
     const clientFormCapture = Object.create(FormCapture);
@@ -362,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (inputValue === 'autofill-y') {
             displayInputMessage('Yes, fill out fields');
             // if AI response exists in browser storage, and is recent (1 week)
-            const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
+            const aiResponseInStorage = JSON.parse(localStorage.getItem('nrAiForm_apiResponse'));
             // get filled_fields
             const filledFields = aiResponseInStorage.filled_fields;
             // populate fields in current window
@@ -376,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
             displayInputMessage(inputValue);
 
             // get current formData from cache
-            const formsDataFromStorage = JSON.parse(localStorage.getItem('formsData'));
+            const formsDataFromStorage = JSON.parse(localStorage.getItem('nrAiForm_formsData'));
             // de-structure into a flat array of fields
             let fieldsArr = [];
             formsDataFromStorage.forEach(form => {
@@ -390,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // ---- send new API request
             let apiResponse;
             // if AI response in storage add it to the request
-            const aiResponseInStorage = JSON.parse(localStorage.getItem('aiAgentApiResponse'));
+            const aiResponseInStorage = JSON.parse(localStorage.getItem('nrAiForm_apiResponse'));
             if (aiResponseInStorage) {
                 const { response_message, status, form_fields, ...responseArrays } = aiResponseInStorage;
                 apiResponse = await sendData(
@@ -403,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
             else {
                 apiResponse = await sendData(inputValue, {
                     form_fields: fieldsArr,
-                    conversation_history: JSON.parse(localStorage.getItem('conversation_history')) || []
+                    conversation_history: JSON.parse(localStorage.getItem('nrAiForm_conversationHistory')) || []
                 });
             }
             handleResponse(apiResponse);
@@ -417,117 +408,29 @@ document.addEventListener('DOMContentLoaded', function () {
             user_message: message,
             ...fieldData,
         };
-        console.log('api request body:', body);
+        console.log('api request:', body);
 
         // make api call
         try {
             let data;
-            if (!mockApi) {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                });
-                if (!response.ok) {
-                    displayOutputMessage('No response received from AI service. Please try again later.');
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                data = await response.json();
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) {
+                displayOutputMessage('No response received from AI service. Please try again later.');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // else doing local testing 
-            else {
-                data = {
-                    "thread_id": "629b300e-0ba2-40c0-86d9-7f2c08c85f5a",
-                    "response_message": "Great!....",
-                    "status": "completed",
-                    "form_fields": [
-                        {
-                            "data_id": "field-1-1",
-                            "fieldType": "text",
-                            "is_required": false,
-                            "fieldValue": "John Smith",
-                            "fieldLabel": "Name"
-                        },
-                        {
-                            "data_id": "field-1-2",
-                            "fieldType": "radio",
-                            "is_required": true,
-                            "fieldValue": "yes",
-                            "fieldLabel": "Eligible"
-                        },
-                        {
-                            "data_id": "field-1-3",
-                            "fieldType": "select-one",
-                            "is_required": true,
-                            "fieldValue": [
-                                "2"
-                            ],
-                            "fieldLabel": "Reason"
-                        },
-                        {
-                            "data_id": "field-1-4",
-                            "fieldType": "text",
-                            "is_required": true,
-                            "fieldValue": "123 456 789",
-                            "fieldLabel": "Client Number"
-                        }
-                    ],
-                    "filled_fields": [
-                        {
-                            "data_id": "field-1-1",
-                            "fieldType": "text",
-                            "is_required": false,
-                            "fieldValue": "John Smith",
-                            "fieldLabel": "Name"
-                        },
-                        {
-                            "data_id": "field-1-2",
-                            "fieldType": "radio",
-                            "is_required": true,
-                            "fieldValue": "yes",
-                            "fieldLabel": "Eligible"
-                        },
-                        {
-                            "data_id": "field-1-3",
-                            "fieldType": "select-one",
-                            "is_required": true,
-                            "fieldValue": [
-                                "2"
-                            ],
-                            "fieldLabel": "Reason"
-                        },
-                        {
-                            "data_id": "field-1-4",
-                            "fieldType": "text",
-                            "is_required": true,
-                            "fieldValue": "123 456 789",
-                            "fieldLabel": "Client Number"
-                        }
-                    ],
-                    "missing_fields": [],
-                    "current_field": null,
-                    "conversation_history": [
-                        {
-                            "role": "user",
-                            "content": "what is the weather in new zeland?"
-                        },
-                        {
-                            "role": "assistant",
-                            "content": "Great! I've filled out the entire form based on your information."
-                        }
-                    ]
-                }
-            }
-
+            data = await response.json();
             console.log('api response: ', data);
             // cache aiResponse for later use (e.g. if user selects 'autofill' option)
             // add a timestamp property
-            localStorage.setItem('aiAgentApiResponse', JSON.stringify({ timestamp: new Date().toISOString(), ...data }));
+            localStorage.setItem('nrAiForm_apiResponse', JSON.stringify({ timestamp: new Date().toISOString(), ...data }));
 
             return data;
         } catch (error) {
@@ -540,10 +443,25 @@ document.addEventListener('DOMContentLoaded', function () {
         let outputMessage = '';
 
         // ----- to handle page refreshes, we can try updating one field at a time
+        // populate all filled_fields (does a repeat action)
+        // if (apiResponse.filled_fields.length > 0) {
+        //     populateFormFields(apiResponse.filled_fields);
+        //     // show `response_message`
+        //     if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
+        //     // send to popup
+        //     sendToPopup({ filled_fields: apiResponse.filled_fields });
+        // }
+        
+        // only populate first filled_field
         if (apiResponse.filled_fields.length > 0) {
-            populateFormFields(apiResponse.filled_fields);
+
+            console.log([apiResponse.filled_fields[0]]);
+
+            populateFormFields([apiResponse.filled_fields[0]]);
             // show `response_message`
             if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
+            // send to popup
+            sendToPopup({ filled_fields: [apiResponse.filled_fields[0]] });
         }
 
         // ----- if status is 'comleted' (all fields have values), show 'autofill' prompt
@@ -553,12 +471,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // ------ if missing fields, show 'current_field' validation message
-        else if (apiResponse.status === 'awaiting_info') {
-            // show `response_message`
-            if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
-            // show first `validation_message`
-            if (apiResponse.current_field.length > 0) outputMessage += apiResponse.current_field[0].validation_message;
-        }
+        // else if (apiResponse.status === 'awaiting_info') {
+        //     // show `response_message`
+        //     if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
+        //     // show first `validation_message`
+        //     if (apiResponse.current_field.length > 0) outputMessage += apiResponse.current_field[0].validation_message;
+        // }
         // ------ else, for general Assitnace, show response message only
         else {
             outputMessage = apiResponse.response_message;
@@ -608,18 +526,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // add user/assistant messages to the cconversation_hitory in local storage
     function updateConversationHistoryInStorage(messageInput, role) {
-        let conversationHistoryArray = JSON.parse(localStorage.getItem('conversation_history')) || [];
+        let conversationHistoryArray = JSON.parse(localStorage.getItem('nrAiForm_conversationHistory')) || [];
         conversationHistoryArray.push({
             timestamp: new Date().toISOString(),
             role: role,
             content: messageInput
         });
-        localStorage.setItem('conversation_history', JSON.stringify(conversationHistoryArray));
+        localStorage.setItem('nrAiForm_conversationHistory', JSON.stringify(conversationHistoryArray));
     }
 
     // add html back into CHat ui after page reload
     function populateChatHistoryFromStorage() {
-        let conversationHistoryArray = JSON.parse(localStorage.getItem('conversation_history')) || [];
+        let conversationHistoryArray = JSON.parse(localStorage.getItem('nrAiForm_conversationHistory')) || [];
         conversationHistoryArray
             // filter for unique based on timestamp (in case things got messed up)
             .filter(obj => {
@@ -651,6 +569,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let formField;
             if (document.querySelectorAll(`[data-id="${fieldId}"]`)?.length > 0) {
                 formField = document.querySelectorAll(`[data-id="${fieldId}"]`);
+                console.log('1', field, formField);
             }
             else if (document.getElementById(fieldId)) formField = [document.getElementById(fieldId)];
             else formField = document.getElementsByName(fieldId);
@@ -661,8 +580,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (formField.length > 1) {
                     Array.from(formField).forEach(f => {
                         if (f.type === 'radio' || f.type === 'checkbox') {
-                            if (f.value === fieldValue) {
+
+                            console.log('2', field, f, f.value, fieldValue);
+
+                            if (f.value.toUpperCase() === fieldValue.toUpperCase()) {
                                 f.checked = true;
+                                // trigger click event
+                                f.dispatchEvent(new Event('click'));
+                                // window.setTimeout(f.dispatchEvent(new Event('click')), 500);
                             }
                         }
                     });
@@ -671,11 +596,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 else if (formField.length === 1 && formField[0].tagName.toLowerCase() === 'select') {
                     if (formField[0].multiple && Array.isArray(fieldValue)) {
                         Array.from(formField[0].options).forEach(option => {
+                            console.log('3', formField[0], option, fieldValue);
+
                             option.selected = fieldValue.includes(option.value);
                         });
                     } else {
                         formField[0].value = fieldValue[0];
-                    }
+                        console.log('4', formField[0], fieldValue);
+                   }
                 }
                 // for text fields
                 else if (
@@ -712,22 +640,65 @@ document.addEventListener('DOMContentLoaded', function () {
     // listen for messages posted to the window (for pop-ups)
     window.addEventListener('message', (event) => {
         const receivedData = event.data;
+        console.log('receivedData', receivedData);
+        populateFormFields(receivedData.filled_fields);
+
         // if pop-up is receiving 'autofill' action, populate pop-up form
-        if (receivedData.action === 'autofill-y') {
-            console.log('data received from parent', receivedData);
-            populateFormFields(receivedData.filled_fields);
-        }
+        // if (receivedData.action === 'autofill-y') {
+        //     console.log('data received from parent', receivedData);
+        //     populateFormFields(receivedData.filled_fields);
+        // }
     });
 
 });
 
-// for testing locally with another ample form
-function openPopup(url) {
-    window.myPopup = window.open(url, 'myPopupWindow', 'width=600,height=400,left=100,top=100,resizable=yes,scrollbars=yes');
+// popup stuff ------------------------------
+
+// when a pop-up is closed, remove it from cache
+function linkPopups() {
+    const checkChildWindow = setInterval(() => {
+        if (window.PossePwRef?.closed){
+            console.log('Child window has closed');
+            localStorage.setItem('nrAiForm_popupsOpen', JSON.stringify([]));
+            clearInterval(checkChildWindow);
+        }
+    }, 500);
+
+    // if popup in cache, re-open it (using Posse `PossePopup` function passing params in cache)
+    const popupsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen'));
+    
+    
+    if(env === 'dev') {
+        if(!window.opener // page is not a pop-up 
+            && !window.PossePwRef // and popup is not open 
+            && popupsDataInStorage?.length > 0 // and popup found in cache
+        ){
+            console.log('popup found in storage');
+            PossePopup(
+                popupsDataInStorage[0].aAnchor, 
+                popupsDataInStorage[0].aURL, 
+                popupsDataInStorage[0].aWidth, 
+                popupsDataInStorage[0].aHeight, 
+                popupsDataInStorage[0].aTarget
+            )
+        }
+    }
+
+    if(env === 'local') {
+        if(!window.opener // current page is not a pop-up 
+            && !window.myPopup // and popup is not open 
+            && popupsDataInStorage?.length > 0 // and popup found in cache
+        ){
+            console.log('linkPopups1', window);
+            window.openPopup('http://127.0.0.1:5500/sample/rev1/pupup1.html');
+        }
+    }
+
 }
 
 // post field data from parent to popup
 function sendToPopup(data) {
+    console.log('sendToPopup window', window);
     // this is for a local demo.
     // in Posse system pop-up can found at `window.PossePwRef`: (see: posseglobal.js)
     if (window.PossePwRef) {
@@ -743,18 +714,48 @@ function sendToPopup(data) {
     // end TEST
 }
 
-function sendMessageToParent(msg) {
-    const message = msg;
-    // const targetOrigin = 'http://127.0.0.1:5500'; // Specify the parent's origin for security
-    const targetOrigin = window.location.href; // Specify the parent's origin for security
-    // If the child is an iframe:
-    window.parent.postMessage(message, targetOrigin);
+// function sendMessageToParent(msg) {
+//     const message = msg;
+//     const targetOrigin = window.location.href; 
+//     window.parent.postMessage(message, targetOrigin);
+// }
+
+function addOrUpdateArray(array, newArray, propertyToMatch = 'formAction') {
+    newArray.forEach(newObj => {
+        const index = array.findIndex(obj =>
+            obj.formAction === newObj.formAction && obj.formId === newObj.formId
+        );
+        if (index !== -1) {
+            array[index] = newObj;
+        } else {
+            array.push(newObj);
+        }
+    });
+    return array;
 }
 
 
 // -------------- override posseglobal.js
+// add popup to local storage
+function PossePopup(aAnchor, aURL, aWidth, aHeight, aTarget) {
+    var lu = new PossePw();
+    lu.xoffset = 0 - (aWidth / 3);
+    lu.yoffset = -20;
+    lu.width = aWidth;
+    lu.height = aHeight;
+    if (aURL) lu.href = aURL;
+    lu.openPopup(aAnchor, aTarget);
 
-// we override this to allow user to use chat assistant in parent window while the pop-up is open
+    // override start
+    // add popup ref to local storage
+    console.log('nrAiForm override to function PossePopup(): add item nrAiForm_popupsOpen to local storage',);
+    const popupsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen')) || [];
+    localStorage.setItem('nrAiForm_popupsOpen', JSON.stringify(
+        addOrUpdateArray(popupsDataInStorage, [{ aAnchor, aURL, aWidth, aHeight, aTarget }])
+    ));
+
+}
+// allow user to use chat assistant in parent window while the pop-up is open
 function PossePw() {
     if (!posseDoesPopup) {
         alert("This browser does not support popup windows.");
@@ -771,6 +772,7 @@ function PossePw() {
                 "window.PossePwXon();window.PossePwFocus();");
         } else {
             // override start
+            console.log('nrAiForm override to function PossePw(): removed window.PossePwFocus',);
             // commented out this line
             // document.onmouseup = window.PossePwFocus;
             // overide end
@@ -793,5 +795,16 @@ function PossePw() {
     this.features = "toolbar=no, location=no, menubar=no, titlebar=no";
     this.getPosition = PossePwPosition;
     this.openPopup = PossePwOpen;
+}
+
+// for testing locally with another sample form
+function openPopup(url) {
+    window.myPopup = window.open(url, 'myPopupWindow', 'width=600,height=400,left=100,top=100,resizable=yes,scrollbars=yes');
+   
+    const popupsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen')) || [];
+    localStorage.setItem('nrAiForm_popupsOpen', JSON.stringify(
+        addOrUpdateArray(popupsDataInStorage, [{ 'a': 'a', aTarget: 'abc' }])
+    ));
+
 }
 
