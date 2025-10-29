@@ -20,7 +20,7 @@ const FormCapture = {
       capturePasswordFields: false,  // Whether to mask or ignore password fields
       ignoreFormIds: [],             // Array of form IDs to ignore
       ignoreFieldNames: [],          // Array of field names to ignore
-      onlyIncludeFields: [],   // only include fields with these data-id attribute values
+      onlyIncludeFields: [],         // only include fields with these data-id attribute values
       requiredFieldIds: [],          // array of data-id's for fields that are considered 'required'
       ...options
     };
