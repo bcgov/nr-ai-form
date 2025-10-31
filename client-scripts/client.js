@@ -23,13 +23,14 @@ else {
     // --------- local config:
     const env = 'dev'; // (use `dev` for Posse)
     const apiUrl = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/api/chat'
-    const cacheExpire = 60000;  // 1  minute in milliseconds
+    const cacheExpire = 1800000;  // 1  minute in milliseconds
 
     // context mappings
     const mapping = env === 'local' ? {
         'field-1-1': {
             fieldLabel: 'What is your Name?',
-            fieldContext: 'Provide your first and last name'
+            fieldContext: 'Provide your first and last name',
+            is_required: true
         },
         'field-1-2': {
             fieldLabel: 'Are you eligible?',
@@ -37,7 +38,8 @@ else {
                 { key: 'yes', value: 'yes' },
                 { key: 'no', value: 'no' },
             ],
-            fieldContext: 'Are you eleigible to apply for a water licence?'
+            fieldContext: 'Are you eleigible to apply for a water licence?',
+            is_required: true
         },
         'field-1-3': {
             fieldLabel: 'What is your reason for applying for a licence?',
@@ -48,15 +50,31 @@ else {
                 { key: '3', value: 'First Nations' }
             ],
             fieldContext: 'Do you work for the federal governemnt or are you a member of a First Nations people',
+            is_required: true
         },
-        // // popup's fields
         'field-1-4': {
-            fieldLabel: 'What is your Client Number?',
+            fieldLabel: 'What is your Client Number? (not required)',
             fieldContext: 'Your client number can be found on your Driver\'s licence',
         },
+        'field-1-5': {
+            fieldLabel: 'comments',
+            fieldContext: 'Comments about your elephant',
+            is_required: true
+        },
+        'field-1-6': {
+            fieldLabel: 'Are you A resident of BC?',
+            options: [
+                { key: 'Yes', value: 'Yes' },
+                { key: 'No', value: 'no' },
+            ],
+            fieldContext: 'Are you A resident of BC?',
+            is_required: true
+        },
+        // popup's fields
         'field-2-1': {
             fieldLabel: 'What is your purpose for diverting water?',
             fieldContext: 'Are you diverting water to build a swimming pool?',
+            is_required: true
         },
         'field-2-2': {
             fieldLabel: 'Is your water use seasonal',
@@ -65,6 +83,7 @@ else {
                 { key: 'no', value: 'no' },
             ],
             fieldContext: 'You are only using water for part of the year.',
+            is_required: true
         },
     } : {
         // step 2
@@ -74,7 +93,7 @@ else {
                 { key: 'yes', value: 'yes' },
                 { key: 'no', value: 'no' },
             ],
-
+            is_required: true,
             fieldContext: 'Are you eligible to apply for a water licence?'
         },
         AnswerOnJob_housing: {
@@ -83,7 +102,7 @@ else {
                 { key: 'yes', value: 'yes' },
                 { key: 'no', value: 'no' },
             ],
-
+            is_required: true,
             fieldContext: '',
         },
         'AnswerOnJob_north-coast-line': {
@@ -92,7 +111,7 @@ else {
                 { key: 'yes', value: 'yes' },
                 { key: 'no', value: 'no' },
             ],
-
+            is_required: true,
             fieldContext: '',
         },
         'AnswerOnJob_bc-hydro-sustainability': {
@@ -101,7 +120,7 @@ else {
                 { key: 'yes', value: 'yes' },
                 { key: 'no', value: 'no' },
             ],
-
+            is_required: true,
             fieldContext: '',
         },
         'AnswerOnJob_clean-energy': {
@@ -110,8 +129,15 @@ else {
                 { key: 'yes', value: 'yes' },
                 { key: 'no', value: 'no' },
             ],
-
+            is_required: true,
             fieldContext: '',
+        },
+        'EligibilityExplanation_100380943_185457063': {
+            fieldContext: 'For more information related to a clean energy project, please provide any relevant information.',
+            fieldLabel: 'For more information related to a clean energy project, please provide any relevant information.',
+            // NOTE: this input is hidden unit you select 'yes' for the previous input. 
+            // AI should only try to populate if visible
+            is_required: true,
         },
         // step 3a
         'V1IsEligibleForFeeExemption': {
@@ -120,7 +146,7 @@ else {
                 { key: 'yes', value: 'yes' },
                 { key: 'no', value: 'no' },
             ],
-
+            is_required: true,
             fieldContext: '',
         },
         'V1IsExistingExemptClient': {
@@ -129,7 +155,7 @@ else {
                 { key: 'yes', value: 'yes' },
                 { key: 'no', value: 'no' },
             ],
-
+            is_required: true,
             fieldContext: '',
         },
         'V1FeeExemptionCategory': {
@@ -333,9 +359,9 @@ else {
             ignoreFormIds: ['elementstodisable', 'possedocumentchangeform'],
             // only include fields with these data-id attribute values
             onlyIncludeFields: Object.keys(mapping),
-            requiredFieldIds: Object.keys(mapping),
+            // requiredFieldIds: all keys in mapping where field.required === true
+            requiredFieldIds: Object.keys(mapping).filter(key => mapping[key]?.is_required === true),
         });
-
 
         // when AI Assistant 'Send' button is clicked, send request to AI service
         const aiAgentSendButton = document.getElementById('ai-agent-send');
@@ -355,16 +381,47 @@ else {
             const formsDataFromStorage = JSON.parse(localStorage.getItem('nrAiForm_formsData'));
             // de-structure into a flat array of fields and enrich with mapping document
             let fieldsArr = [];
+            // formsDataFromStorage.forEach(form => {
+            //     form.fields.forEach(field => {
+            //         const f = mapping[field.data_id];
+            //         return fieldsArr.push({ ...field, ...f });
+            //     });
+            // });
+            /**
+             * storage can contain data for duplicate forms
+             * because, although we differentiate based on form id and action
+             * navigating forms in Posse can change action, causing duplicates
+             * 
+             * we can de-dupe the fields based on data_id..
+             * taking last occurrence
+             */
+
             formsDataFromStorage.forEach(form => {
+                // addOrUpdateArray(existingArray, newARray, [ 'data_id' ])
                 form.fields.forEach(field => {
-                    const f = mapping[field.data_id];
-                    return fieldsArr.push({ ...field, ...f });
+                    const f = mapping[field.data_id] || {};
+                    const merged = { ...field, ...f };
+                    const idx = fieldsArr.findIndex(item => item.data_id === merged.data_id);
+                    if (idx !== -1) {
+                        fieldsArr[idx] = merged;
+                    } else {
+                        fieldsArr.push(merged);
+                    }
                 });
             });
 
+
             // ---- send new API request
             let apiResponse;
-            // if AI response in storage add it to the request
+
+            /**
+             * if continuing an AI session
+             * from AI response in local storage, add to the request:
+             * - thread_id
+             * - conversation_history,
+             * - missing_fields,
+             * as well as current form state (form_fields)
+             */
             const aiResponseInStorage = JSON.parse(localStorage.getItem('nrAiForm_apiResponse'));
             if (aiResponseInStorage) {
                 const { response_message, status, form_fields, ...responseArrays } = aiResponseInStorage;
@@ -381,6 +438,11 @@ else {
                     conversation_history: JSON.parse(localStorage.getItem('nrAiForm_conversationHistory')) || []
                 });
             }
+
+            // show response message 
+            displayOutputMessage(apiResponse.response_message)
+
+            // populate the form if input values were found
             handleResponse(apiResponse);
         }
 
@@ -411,8 +473,7 @@ else {
 
                 data = await response.json();
                 console.log('api response: ', data);
-                // cache aiResponse for later use (e.g. if user selects 'autofill' option)
-                // add a timestamp property
+                // cache aiResponse for later 
                 localStorage.setItem('nrAiForm_apiResponse', JSON.stringify({ timestamp: new Date().toISOString(), ...data }));
 
                 return data;
@@ -421,59 +482,41 @@ else {
             }
         }
 
-        // Vary UX behaviour depending on `status` of AI response
-        function handleResponse(apiResponse) {
-            let outputMessage = '';
 
-            // ----- to handle page refreshes, we can try updating one field at a time
-            // populate all filled_fields (does a repeat action)
-            // if (apiResponse.filled_fields.length > 0) {
-            //     populateFormFields(apiResponse.filled_fields);
-            //     // show `response_message`
-            //     if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
-            //     // send to popup
-            //     sendToPopup({ filled_fields: apiResponse.filled_fields });
-            // }
 
-            // only populate first filled_field
-            if (apiResponse.filled_fields.length > 0) {
+        // if api response in local storage filled_fields still contains items,
+        // re-run the handleResponse ProcessingInstruction, but dont 
 
-                console.log([apiResponse.filled_fields[0]]);
-
-                populateFormFields([apiResponse.filled_fields[0]]);
-                // show `response_message`
-                if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
-                // send to popup
-                //sendToPopup({ filled_fields: [apiResponse.filled_fields[0]] });
-            }
-
-            // ----- if status is 'comleted' (all fields have values), show 'autofill' prompt
-            else if (apiResponse.status === 'completed') {
-                outputMessage = showInputOptions('Would you like me to fill in any fields for you?',
-                    [{ value: 'autofill-y', text: 'Yes, fill out fields' }, { value: 'autofill-n', text: 'No, thanks' }]);
-            }
-
-            // ------ if missing fields, show 'current_field' validation message
-            // else if (apiResponse.status === 'awaiting_info') {
-            //     // show `response_message`
-            //     if (apiResponse.response_message) outputMessage += `${apiResponse.response_message}<br /><br />`;
-            //     // show first `validation_message`
-            //     if (apiResponse.current_field.length > 0) outputMessage += apiResponse.current_field[0].validation_message;
-            // }
-            // ------ else, for general Assitnace, show response message only
-            else {
-                outputMessage = apiResponse.response_message;
-            }
-            displayOutputMessage(outputMessage)
+        // on DOM load
+        const stored = JSON.parse(localStorage.getItem('nrAiForm_apiResponse')) || [];
+        if (stored && Array.isArray(stored.filled_fields) && stored.filled_fields.length > 0) {
+            // alert(stored.filled_fields[0].data_id);
+            handleResponse(stored);
         }
 
-        // show input options buttons from AI prompt
-        function showInputOptions(prompt, options) {
-            let optionsHtml = `<p>${prompt}</p>`;
-            options.forEach(option => {
-                optionsHtml += `<button class="ai-agent-option" data-option="${option.value}">${option.text}</button>`;
-            });
-            return optionsHtml;
+
+
+        async function handleResponse(apiResponse) {
+            // if Assistant has a filled_field..
+            if (apiResponse.filled_fields.length > 0) {
+                console.log('filled_fields:', apiResponse.filled_fields);
+
+                // populate the form input
+                const completed = await populateFormField(apiResponse.filled_fields[0]);
+                // remove from filled_fields array (in local storage)
+                if (completed) removeFromFilledFieldInStorage(completed);
+
+                // else field not found in DOM of main window, so send data to popup instead
+                else {
+                    const popUpOpen = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen')) || [];
+                    if (popUpOpen.length > 0) {
+                        sendToPopup({ action: 'populateFormField', field: apiResponse.filled_fields[0] });
+                    }
+                }
+            }
+
+            // // show response message 
+            // displayOutputMessage(apiResponse.response_message)
         }
 
         // display input message in chat window
@@ -543,64 +586,78 @@ else {
         }
 
         // populate form fields with values from AI response
-        function populateFormFields(filledFields) {
-            filledFields.forEach(field => {
-                const fieldId = field['data_id'];
-                const fieldValue = field['fieldValue'];
+        function populateFormField(field) {
+            const fieldId = field['data_id'];
+            const fieldValue = field['fieldValue'];
 
-                // find an array of the form field(s) with matching `data-id`, `id` or `name` attribute
-                let formField;
-                if (document.querySelectorAll(`[data-id="${fieldId}"]`)?.length > 0) {
-                    formField = document.querySelectorAll(`[data-id="${fieldId}"]`);
-                    console.log('1', field, formField);
-                }
-                else if (document.getElementById(fieldId)) formField = [document.getElementById(fieldId)];
-                else formField = document.getElementsByName(fieldId);
+            // find the form field(s) in the DOM (as array)
+            let formFields;
+            if (document.querySelectorAll(`[data-id="${fieldId}"]`)?.length > 0) {
+                formFields = document.querySelectorAll(`[data-id="${fieldId}"]`);
+            }
+            else if (document.getElementById(fieldId)) formFields = [document.getElementById(fieldId)];
+            else formFields = document.getElementsByName(fieldId);
+            console.log('populatig formFields:', formFields);
 
-                // update value
-                if (formField) {
-                    // if updating a radio or checkbox
-                    if (formField.length > 1) {
-                        Array.from(formField).forEach(f => {
-                            if (f.type === 'radio' || f.type === 'checkbox') {
-
-                                console.log('2', field, f, f.value, fieldValue);
-
-                                if (f.value.toUpperCase() === fieldValue.toUpperCase()) {
-                                    f.checked = true;
-                                    // trigger click event
-                                    f.dispatchEvent(new Event('click'));
-                                    // window.setTimeout(f.dispatchEvent(new Event('click')), 500);
-                                }
+            // update value
+            if (formFields.length > 0) {
+                // if updating a radio or checkbox
+                if (formFields.length > 1) {
+                    Array.from(formFields).forEach(f => {
+                        if (f.type === 'radio' || f.type === 'checkbox') {
+                            if (f.value.toUpperCase() === fieldValue.toUpperCase()) {
+                                f.checked = true;
+                                // trigger click event to reload page
+                                f.dispatchEvent(new Event('click'));
+                                // window.setTimeout(f.dispatchEvent(new Event('click')), 500);
                             }
-                        });
-                    }
-                    // for select fields
-                    else if (formField.length === 1 && formField[0].tagName.toLowerCase() === 'select') {
-                        if (formField[0].multiple && Array.isArray(fieldValue)) {
-                            Array.from(formField[0].options).forEach(option => {
-                                console.log('3', formField[0], option, fieldValue);
-
-                                option.selected = fieldValue.includes(option.value);
-                            });
-                        } else {
-                            formField[0].value = fieldValue[0];
-                            console.log('4', formField[0], fieldValue);
                         }
-                    }
-                    // for text fields
-                    else if (
-                        formField.length === 1 &&
-                        (formField[0].tagName.toLowerCase() === 'input' && (formField[0].type === 'text' || formField[0].type === 'email' || formField[0].type === 'number' || formField[0].type === 'tel' || formField[0].type === 'url') ||
-                            formField[0].tagName.toLowerCase() === 'textarea'
-                        )) {
-                        formField[0].value = fieldValue;
-                    }
+                    });
                 }
-                else {
-                    console.warn(`Form field with data-id or name "${fieldId}" not found.`);
+                // for select fields
+                else if (formFields[0].tagName.toLowerCase() === 'select') {
+                    if (formFields[0].multiple && Array.isArray(fieldValue)) {
+                        Array.from(formFields[0].options).forEach(option => {
+                            option.selected = fieldValue.includes(option.value);
+                        });
+                    } else {
+                        formFields[0].value = fieldValue[0];
+                    }
+                    // trigger onChange event.. to reload page in posse
+                    formFields[0].dispatchEvent(new Event('change'));
                 }
-            });
+                // for text fields
+                else if (formFields[0].tagName.toLowerCase() === 'input' || formFields[0].tagName.toLowerCase() === 'textarea') {
+                    formFields[0].value = fieldValue;
+                }
+
+                return field['data_id']
+            }
+            else {
+                console.log(`Form field with data-id or name "${fieldId}" not found.`);
+            }
+        }
+
+        // remove a populated field from filled_fields in local storage
+        function removeFromFilledFieldInStorage(field) {
+            try {
+                const stored = JSON.parse(localStorage.getItem('nrAiForm_apiResponse')) || [];
+                if (stored && Array.isArray(stored.filled_fields) && stored.filled_fields.length > 0) {
+                    const idx = stored.filled_fields.findIndex(item => item.data_id === field);
+                    if (idx !== -1) {
+                        stored.filled_fields.splice(idx, 1);
+                        // persist updated object back to localStorage
+                        localStorage.setItem('nrAiForm_apiResponse', JSON.stringify(stored));
+                        return true;
+                    } else {
+                        console.log('field not found for data_id:', field);
+                    }
+                } else {
+                    console.log('No filled_fields array present in stored AI response.');
+                }
+            } catch (err) {
+                console.error('Error removing field from storage:', err);
+            }
         }
 
         // show/hide loading indicator on 'Send' button
@@ -620,19 +677,22 @@ else {
             }
         }
 
-        // listen for messages posted to the window (for pop-ups)
+        // listen for messages posted to the window from parent (for pop-ups)
         window.addEventListener('message', (event) => {
             const receivedData = event.data;
             console.log('receivedData', receivedData);
-            populateFormFields(receivedData.filled_fields);
+            if (receivedData.action === 'populateFormField') {
+                const completed = populateFormField(receivedData.field);
+                if (completed) removeFromFilledFieldInStorage(completed);
+            }
         });
 
     });
 
     // popup stuff ------------------------------
 
-    // when a pop-up is closed, remove it from cache
     function linkPopups() {
+        // when a pop-up is closed, remove it from cache
         const checkChildWindow = setInterval(() => {
             if (window.PossePwRef?.closed) {
                 console.log('Child window has closed');
@@ -643,7 +703,6 @@ else {
 
         // if popup in cache, re-open it (using Posse `PossePopup` function passing params in cache)
         const popupsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen'));
-
         if (env === 'dev') {
             if (!window.opener // page is not a pop-up 
                 && !window.PossePwRef // and popup is not open 
@@ -659,35 +718,29 @@ else {
                 )
             }
         }
-
         if (env === 'local') {
             if (!window.opener // current page is not a pop-up 
                 && !window.myPopup // and popup is not open 
                 && popupsDataInStorage?.length > 0 // and popup found in cache
             ) {
-                console.log('linkPopups1', window);
+                console.log('linkPopups', window);
                 window.openPopup('http://127.0.0.1:5500/sample/rev1/pupup1.html');
             }
         }
-
     }
 
     // post field data from parent to popup
     function sendToPopup(data) {
-        console.log('sendToPopup window', window);
         // this is for a local demo.
+        if (window.myPopup) {
+            console.log('sendToPopup data', data);
+            window.myPopup.postMessage(data);
+        }
         // in Posse system pop-up can found at `window.PossePwRef`: (see: posseglobal.js)
         if (window.PossePwRef) {
             console.log('sendToPopup data', data);
             window.PossePwRef.postMessage(data);
         }
-
-        // TEST:
-        if (window.myPopup) {
-            console.log('sendToPopup data', data);
-            window.myPopup.postMessage(data);
-        }
-        // end TEST
     }
 
     // function sendMessageToParent(msg) {
@@ -696,10 +749,12 @@ else {
     //     window.parent.postMessage(message, targetOrigin);
     // }
 
-    function addOrUpdateArray(array, newArray, propertyToMatch = 'formAction') {
+    function addOrUpdateArray(array, newArray, propertiesToMatch = ['formAction', 'formId']) {
         newArray.forEach(newObj => {
             const index = array.findIndex(obj =>
-                obj.formAction === newObj.formAction && obj.formId === newObj.formId
+                propertiesToMatch.every(prop =>
+                    (obj[prop] === newObj[prop]) || (obj[prop] == null && newObj[prop] == null)
+                )
             );
             if (index !== -1) {
                 array[index] = newObj;
@@ -773,7 +828,7 @@ else {
         this.openPopup = PossePwOpen;
     }
 
-    // for testing locally with another sample form
+    // for testing locally with another sample form (invoked from onclcik event of link in sample webpage)
     function openPopup(url) {
         window.myPopup = window.open(url, 'myPopupWindow', 'width=600,height=400,left=100,top=100,resizable=yes,scrollbars=yes');
 

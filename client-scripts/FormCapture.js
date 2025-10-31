@@ -63,14 +63,6 @@ const FormCapture = {
    */
   captureAllForms: function () {
 
-    // TEST: get pop-up content in parent window
-    // const popup = window.PossePwRef;
-    // const popup = window.myPopup;
-    // if (popup) {
-    //   console.log('DOM from Pop-up', popup.document);
-    // }
-    // end TEST
-
     const forms = document.querySelectorAll('form');
     const formsData = [];
 
@@ -91,8 +83,7 @@ const FormCapture = {
     localStorage.setItem('nrAiForm_formsData', JSON.stringify(
       this.addOrUpdateArray(formsDataInStorage, formsData)
     ));
-    // console.log('fieldsArray:', this.getFieldsArray());
-
+    // OR: consider just keeping one form in storage...
     return formsData;
   },
 
@@ -152,7 +143,6 @@ const FormCapture = {
 
     // Process each form element
     Array.from(formElements).forEach((element, index) => {
-
       // only include fields in FormCapture init.options
       if (this.options.onlyIncludeFields.length > 0 &&
         !this.options.onlyIncludeFields.includes(element.attributes['data-id']?.value) &&
@@ -175,10 +165,15 @@ const FormCapture = {
 
       // hack to de-deplicate radios and checkboxes, and use values as options
       // if fields already contains an input with fieldData.data_id (eg it is a radio)
-      // append new fieldData options to existing field
       const existingField = fields.find(f => f.data_id === fieldData.data_id);
-      if (existingField && existingField?.options && existingField?.options) {
+      if (existingField && existingField?.options) {
+        // append fieldData options to existing field
         fields.find(f => f.data_id === fieldData.data_id).options = existingField.options.concat(fieldData.options);
+        // if checked, set value as fieldValue for the existing field
+        // TODO: for checkboxes, and multi-selects, fieldValue should be an array of options.key
+        if (element.checked) {
+          fields.find(f => f.data_id === fieldData.data_id).fieldValue = fieldData.fieldValue;
+        }
       }
       // else add as new field
       else if (fieldData) {
@@ -271,7 +266,7 @@ const FormCapture = {
     // if a checkbox or radio
     if (['checkbox', 'radio'].includes(fieldType)) {
       // add value as an option (see hack in captureFormFields function above)
-      options = [{ key: field.value, value: field.value }]
+      options = [{ key: field.value.toLowerCase(), value: field.value }];
       fieldValue = field.checked ? field.value : '';
     }
     // if a select, get array of options
@@ -279,7 +274,9 @@ const FormCapture = {
       options = Array.from(field.options).map(option => {
         return { key: option.value, value: option.textContent };
       });
-      fieldValue = Array.from(field.selectedOptions).map(option => option.value);
+      fieldValue = Array.from(field.selectedOptions)
+        .filter(option => option.value !== "") // when key is empty, value should be empty array
+        .map(option => option.value);
     }
     // else get value of text/textarea
     else {
@@ -310,10 +307,12 @@ const FormCapture = {
   },
 
   // Overwrite an existing object in array where both 'formAction' and 'formId' match, else add new
-  addOrUpdateArray: function (array, newArray, propertyToMatch = 'formAction') {
+  addOrUpdateArray: function (array, newArray, propertiesToMatch = ['formAction', 'formId']) {
     newArray.forEach(newObj => {
       const index = array.findIndex(obj =>
-        obj.formAction === newObj.formAction && obj.formId === newObj.formId
+        propertiesToMatch.every(prop =>
+          (obj[prop] === newObj[prop]) || (obj[prop] == null && newObj[prop] == null)
+        )
       );
       if (index !== -1) {
         array[index] = newObj;
