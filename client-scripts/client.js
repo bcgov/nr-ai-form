@@ -35,8 +35,8 @@ else {
         'field-1-2': {
             fieldLabel: 'Are you eligible?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             fieldContext: 'Are you eleigible to apply for a water licence?',
             is_required: true
@@ -56,16 +56,16 @@ else {
             fieldLabel: 'What is your Client Number? (not required)',
             fieldContext: 'Your client number can be found on your Driver\'s licence',
         },
-        'field-1-5': {
-            fieldLabel: 'comments',
+        'field-1-5_def': {
+            fieldLabel: 'Comments about my application',
             fieldContext: 'Comments about your elephant',
             is_required: true
         },
         'field-1-6': {
             fieldLabel: 'Are you A resident of BC?',
             options: [
-                { key: 'Yes', value: 'Yes' },
-                { key: 'No', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             fieldContext: 'Are you A resident of BC?',
             is_required: true
@@ -79,8 +79,8 @@ else {
         'field-2-2': {
             fieldLabel: 'Is your water use seasonal',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             fieldContext: 'You are only using water for part of the year.',
             is_required: true
@@ -90,8 +90,8 @@ else {
         AnswerOnJob_eligible: {
             fieldLabel: 'Are you eligible to apply for a water licence?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             is_required: true,
             fieldContext: 'Are you eligible to apply for a water licence?'
@@ -99,17 +99,18 @@ else {
         AnswerOnJob_housing: {
             fieldLabel: 'Is this application in relation to increasing the supply of housing units within British Columbia?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             is_required: true,
-            fieldContext: '',
+            fieldContext: ''
         },
+
         'AnswerOnJob_north-coast-line': {
             fieldLabel: 'Is this application related to the North Coast Transmission Line?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             is_required: true,
             fieldContext: '',
@@ -117,8 +118,8 @@ else {
         'AnswerOnJob_bc-hydro-sustainability': {
             fieldLabel: 'Is this application related to a BC Hydro Sustainment Project required for the maintenance and upgrading of existing electricity infrastructure, such as replacing aging equipment, improving transmission systems, or reinforcing substations to support long-term energy needs?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             is_required: true,
             fieldContext: '',
@@ -126,15 +127,15 @@ else {
         'AnswerOnJob_clean-energy': {
             fieldLabel: 'Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024-present?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             is_required: true,
             fieldContext: '',
         },
         'EligibilityExplanation_100380943_185457063': {
             fieldContext: 'For more information related to a clean energy project, please provide any relevant information.',
-            fieldLabel: 'For more information related to a clean energy project, please provide any relevant information.',
+            fieldLabel: 'Please provide an explaination.',
             // NOTE: this input is hidden unit you select 'yes' for the previous input. 
             // AI should only try to populate if visible
             is_required: true,
@@ -143,8 +144,8 @@ else {
         'V1IsEligibleForFeeExemption': {
             fieldLabel: 'Do you belong to, are you applying on behalf of, or are you: a provincial government ministry, the Government of Canada, A First Nation for water use on reserve land, A person applying to use water on Treaty Lands,  A Nisga\'a citizen or an entity applying to use water from the Nisga\'a Water Reservation?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             is_required: true,
             fieldContext: '',
@@ -152,11 +153,16 @@ else {
         'V1IsExistingExemptClient': {
             fieldLabel: 'Are you an existing exempt client?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             is_required: true,
             fieldContext: '',
+        },
+        'V1FeeExemptionClientNumber': {
+            fieldLabel: 'Please enter your client number',
+            is_required: false,
+            fieldContext: 'Fee-exempt existing client number',
         },
         'V1FeeExemptionCategory': {
             fieldLabel: 'Fee Exemption Category',
@@ -168,13 +174,14 @@ else {
                 { key: 'Acting on behalf of a BC provincial ministry with a letter of permission from that ministry', value: 'Acting on behalf of a BC provincial ministry with a letter of permission from that ministry' },
                 { key: 'Other (Specify details below)', value: 'Other (Specify details below)' }
             ],
+            is_required: true,
             fieldContext: ''
         },
         'V1FeeExemptionSupportingInfo': {
             fieldLabel: 'Please enter any supporting information that will assist in determining your eligibility for a fee exemption. Please refer to help for details on fee exemption criteria and requirements. ',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             fieldContext: '',
         },
@@ -182,8 +189,8 @@ else {
         'WSLICDoYouHoldAnotherLicense': {
             fieldLabel: 'Do you currently hold another valid Water Licence?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             fieldContext: '',
         },
@@ -203,7 +210,7 @@ else {
         // Add Purpose 
         // IMPORTANT: (subsequent fields don't have a data-id attribute)
         // id attribute is used.
-        // when it is a multiple (eg radio, Posse gives each option a separate id.
+        // when it is a multiple (eg radio) Posse gives each option a separate id.
         // so `name` attribute (if present) and then `id` (as fallback) is used at field identifier
         'PurposeUseSector_100534931_N0': {
             fieldLabel: 'What purpose do you want to use the water for?',
@@ -238,8 +245,8 @@ else {
         'WSLICUseOfWaterSeasonal_100536333_N0': {
             fieldLabel: 'Do you want to use the water only seasonally?',
             options: [
-                { key: 'yes', value: 'yes' },
-                { key: 'no', value: 'no' },
+                { key: 'yes', value: 'Yes' },
+                { key: 'no', value: 'No' },
             ],
             fieldContext: '',
         },
@@ -359,10 +366,9 @@ else {
             ignoreFormIds: ['elementstodisable', 'possedocumentchangeform'],
             // only include fields with these data-id attribute values
             onlyIncludeFields: Object.keys(mapping),
-            // requiredFieldIds: all keys in mapping where field.required === true
+            // requiredFieldIds: all keys in mapping where field.is_required === true
             requiredFieldIds: Object.keys(mapping).filter(key => mapping[key]?.is_required === true),
         });
-
         // when AI Assistant 'Send' button is clicked, send request to AI service
         const aiAgentSendButton = document.getElementById('ai-agent-send');
         if (aiAgentSendButton) aiAgentSendButton.addEventListener('click', function (event) {
@@ -381,25 +387,10 @@ else {
             const formsDataFromStorage = JSON.parse(localStorage.getItem('nrAiForm_formsData'));
             // de-structure into a flat array of fields and enrich with mapping document
             let fieldsArr = [];
-            // formsDataFromStorage.forEach(form => {
-            //     form.fields.forEach(field => {
-            //         const f = mapping[field.data_id];
-            //         return fieldsArr.push({ ...field, ...f });
-            //     });
-            // });
-            /**
-             * storage can contain data for duplicate forms
-             * because, although we differentiate based on form id and action
-             * navigating forms in Posse can change action, causing duplicates
-             * 
-             * we can de-dupe the fields based on data_id..
-             * taking last occurrence
-             */
-
             formsDataFromStorage.forEach(form => {
                 // addOrUpdateArray(existingArray, newARray, [ 'data_id' ])
                 form.fields.forEach(field => {
-                    const f = mapping[field.data_id] || {};
+                    const f = mapping[field.data_id] || getPartialMatchFromMapping(mapping, field.data_id)|| {};
                     const merged = { ...field, ...f };
                     const idx = fieldsArr.findIndex(item => item.data_id === merged.data_id);
                     if (idx !== -1) {
@@ -410,6 +401,7 @@ else {
                 });
             });
 
+            // TODO: pass form_fields in storage.nrAiForm_formsData fo current step/popup.. not the last lot
 
             // ---- send new API request
             let apiResponse;
@@ -765,6 +757,17 @@ else {
         return array;
     }
 
+    // look for one (or more) string in data_id property of object, matching on prefix 
+    function getPartialMatchFromMapping(mapping, needle){
+        const beforeLastUnderscore = function(str){
+            return str && str.includes('_')
+            ? str.substring(0, str.lastIndexOf('_'))
+            : str;
+        }
+        const needlePrefix = beforeLastUnderscore(String(needle));
+        const matchKey = Object.keys(mapping).find(k => beforeLastUnderscore(k) === needlePrefix);
+        return matchKey ? mapping[matchKey] : undefined;
+    }
 
     // -------------- override posseglobal.js
     // add popup to local storage

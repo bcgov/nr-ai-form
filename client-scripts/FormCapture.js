@@ -147,6 +147,9 @@ const FormCapture = {
       if (this.options.onlyIncludeFields.length > 0 &&
         !this.options.onlyIncludeFields.includes(element.attributes['data-id']?.value) &&
         !this.options.onlyIncludeFields.includes(element.id) &&
+        // for dynamic fields, where we havent got a `data-id` attribute and `id` attribute is dynamic
+        // match on all characters of `id` before last `_`
+        !this.matchOnPrefix(this.options.onlyIncludeFields, element.id) &&
         !this.options.onlyIncludeFields.includes(element.name)
       ) return;
       // Skip ignored fields in FormCapture init.options
@@ -173,6 +176,7 @@ const FormCapture = {
         // TODO: for checkboxes, and multi-selects, fieldValue should be an array of options.key
         if (element.checked) {
           fields.find(f => f.data_id === fieldData.data_id).fieldValue = fieldData.fieldValue;
+          fields.find(f => f.data_id === fieldData.data_id).fieldLabel = fieldData.fieldLabel;
         }
       }
       // else add as new field
@@ -306,12 +310,17 @@ const FormCapture = {
     return serialized;
   },
 
-  // Overwrite an existing object in array where both 'formAction' and 'formId' match, else add new
+  // Overwrite an existing object in array where all keys in `propertiesToMatch` match, else add new
+  // if comparing on `formAction` (a relative url), only look for match in posseObjectId query param
+  // because form actions change when navigating multi-steps
   addOrUpdateArray: function (array, newArray, propertiesToMatch = ['formAction', 'formId']) {
     newArray.forEach(newObj => {
       const index = array.findIndex(obj =>
-        propertiesToMatch.every(prop =>
-          (obj[prop] === newObj[prop]) || (obj[prop] == null && newObj[prop] == null)
+        propertiesToMatch.every(prop => {
+          return (obj[prop] === newObj[prop]) ||
+            (prop === 'formAction' && (this.comparePosseObjectId(obj[prop], newObj[prop]))) ||
+            (obj[prop] == null && newObj[prop] == null)
+          }
         )
       );
       if (index !== -1) {
@@ -321,6 +330,28 @@ const FormCapture = {
       }
     });
     return array;
+  },
+
+  getQueryParam: function(url, paramName) {
+    const urlObj = new URL(url, window.location.origin); // ensures relative paths work
+    return urlObj.searchParams.get(paramName);
+  },
+
+  comparePosseObjectId: function(pathA, pathB) {
+    const idA = this.getQueryParam(pathA, 'PosseObjectId');
+    const idB = this.getQueryParam(pathB, 'PosseObjectId');
+    return idA !== null && idA === idB;
+  },
+
+  // look for one (or more) string in array matching on prefix 
+  matchOnPrefix: function (arrayOfHaystacks, needle) {
+    const beforeLastUnderscore = function (str) {
+      return str && str.includes('_')
+        ? str.substring(0, str.lastIndexOf('_'))
+        : str;
+    }
+    const needlePrefix = beforeLastUnderscore(String(needle));
+    return arrayOfHaystacks.some(hay => beforeLastUnderscore(String(hay)) === needlePrefix);
   },
 
   /**
