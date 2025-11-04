@@ -80,11 +80,13 @@ const FormCapture = {
     // TODO: move to client.js
     // pop-up windows will append their forms' data
     const formsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_formsData')) || [];
+
     localStorage.setItem('nrAiForm_formsData', JSON.stringify(
-      this.addOrUpdateArray(formsDataInStorage, formsData)
+      // update and add fields in matching form
+      this.addOrUpdatedForms(formsDataInStorage, formsData)
     ));
     // OR: consider just keeping one form in storage...
-    return formsData;
+    // return formsData;
   },
 
   /**
@@ -310,12 +312,22 @@ const FormCapture = {
     return serialized;
   },
 
-  // Overwrite an existing object in array where all keys in `propertiesToMatch` match, else add new
-  // if comparing on `formAction` (a relative url), only look for match in posseObjectId query param
-  // because form actions change when navigating multi-steps
-  addOrUpdateArray: function (array, newArray, propertiesToMatch = ['formAction', 'formId']) {
+  /**
+   * updates array of forms differentiating on propertiesToMatch of form and data_id of fields
+   * if comparing on `formAction` (a relative url), only look for match in posseObjectId or PosseFromObjectId query param
+   * because form actions change when navigating multi-steps
+   * TODO: simplify! only capture forms with posseObjectId or PosseFromObjectId in formAction and combine to one array
+   * @param {*} array existing array of forms
+   * @param {*} newArray incomming array of forms
+   * @param {*} propertiesToMatch html attributes of the form to match on
+   * @returns updated array of forms with new fields
+   */
+  addOrUpdatedForms: function (array, newArray, propertiesToMatch = ['formAction', 'formId']) {
+    // for each form of incomming array of forms
     newArray.forEach(newObj => {
+      // get index of matching form from array of forms in storage
       const index = array.findIndex(obj =>
+        // match on formId AND PosseObjectId in formAction (if defined)
         propertiesToMatch.every(prop => {
           return (obj[prop] === newObj[prop]) ||
             (prop === 'formAction' && (this.comparePosseObjectId(obj[prop], newObj[prop]))) ||
@@ -323,8 +335,16 @@ const FormCapture = {
           }
         )
       );
+      // if matching form found
       if (index !== -1) {
-        array[index] = newObj;
+        // add or replace fields in existing <form>.fields array with new fields
+        newObj.fields.forEach(newFIeld => {
+          const i = array[index].fields.findIndex(obj => {
+            return obj['data_id'] === newFIeld.data_id;
+          });
+          if (i !== -1) array[index].fields[i] = newFIeld; 
+          else array[index].fields.push(newFIeld);
+        });
       } else {
         array.push(newObj);
       }
@@ -337,10 +357,12 @@ const FormCapture = {
     return urlObj.searchParams.get(paramName);
   },
 
+  // look for match in posseObjectId or PosseFromObjectId query param
   comparePosseObjectId: function(pathA, pathB) {
-    const idA = this.getQueryParam(pathA, 'PosseObjectId');
-    const idB = this.getQueryParam(pathB, 'PosseObjectId');
-    return idA !== null && idA === idB;
+    const PosseObjectIdA = this.getQueryParam(pathA, 'PosseObjectId');
+    const PosseObjectIdB = this.getQueryParam(pathB, 'PosseObjectId');
+    const PosseFromObjectIdB = this.getQueryParam(pathB, 'PosseFromObjectId');
+    return PosseObjectIdA !== null && ((PosseObjectIdA === PosseObjectIdB) || (PosseObjectIdA === PosseFromObjectIdB)) ;
   },
 
   // look for one (or more) string in array matching on prefix 

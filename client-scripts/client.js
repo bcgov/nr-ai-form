@@ -70,6 +70,8 @@ else {
             fieldContext: 'Are you A resident of BC?',
             is_required: true
         },
+
+        'field-other-1': {},
         // popup's fields
         'field-2-1': {
             fieldLabel: 'What is your purpose for diverting water?',
@@ -230,6 +232,7 @@ else {
                 { key: '67080269', value: 'Waterworks' }
             ],
             fieldContext: '',
+            is_required: true,
         },
         // irrigation sub-purpose
         'PurposeUseSector_100534931_N0': {
@@ -241,6 +244,7 @@ else {
                 { key: '80018353', value: 'Irrigation - Water conveyed by local provider for Irrigation purposes' },
             ],
             fieldContext: '',
+            is_required: true,
         },
         'WSLICUseOfWaterSeasonal_100536333_N0': {
             fieldLabel: 'Do you want to use the water only seasonally?',
@@ -249,6 +253,7 @@ else {
                 { key: 'no', value: 'No' },
             ],
             fieldContext: '',
+            is_required: true,
         },
         'WSLICUseOfWaterFromMonth_100536333_N0': {
             fieldLabel: 'Select the month you want to use water from',
@@ -267,7 +272,8 @@ else {
                 { key: 'November', value: 'November' },
                 { key: 'December', value: 'December' }
             ],
-            fieldContext: ''
+            fieldContext: '',
+            is_required: true,
         },
         WSLICUseOfWaterToMonth_100536333_N0: {
             fieldLabel: 'Select the month you want to use water to',
@@ -286,18 +292,22 @@ else {
                 { key: 'November', value: 'November' },
                 { key: 'December', value: 'December' }
             ],
-            fieldContext: ''
+            fieldContext: '',
+            is_required: true,
         },
         'Quantity_100534688_N0': {
             fieldLabel: 'Total Annual Quantity:',
+            is_required: true,
             fieldContext: '',
         },
         'Irrigation03AArea_100534394_N0': {
             fieldLabel: 'Area to be irrigated:',
+            is_required: true,
             fieldContext: '',
         },
         'MaximumRateOfDiversion_101016710_N0_sp': {
             fieldLabel: 'Maximum Rate of Diversion:',
+            is_required: true,
             fieldContext: '',
         },
         'Comments_100848882_N0': {
@@ -388,17 +398,19 @@ else {
             // de-structure into a flat array of fields and enrich with mapping document
             let fieldsArr = [];
             formsDataFromStorage.forEach(form => {
-                // addOrUpdateArray(existingArray, newARray, [ 'data_id' ])
-                form.fields.forEach(field => {
-                    const f = mapping[field.data_id] || getPartialMatchFromMapping(mapping, field.data_id)|| {};
-                    const merged = { ...field, ...f };
-                    const idx = fieldsArr.findIndex(item => item.data_id === merged.data_id);
-                    if (idx !== -1) {
-                        fieldsArr[idx] = merged;
-                    } else {
-                        fieldsArr.push(merged);
-                    }
-                });
+                // only get fields from forms with specific formAction's 
+                if (form.formAction.includes('PosseObjectId') || form.formAction.includes('PosseFromObjectId')) {
+                    form.fields.forEach(field => {
+                        const f = mapping[field.data_id] || getPartialMatchFromMapping(mapping, field.data_id) || {};
+                        const merged = { ...field, ...f };
+                        const idx = fieldsArr.findIndex(item => item.data_id === merged.data_id);
+                        if (idx !== -1) {
+                            fieldsArr[idx] = merged;
+                        } else {
+                            fieldsArr.push(merged);
+                        }
+                    });
+                }
             });
 
             // TODO: pass form_fields in storage.nrAiForm_formsData fo current step/popup.. not the last lot
@@ -416,10 +428,15 @@ else {
              */
             const aiResponseInStorage = JSON.parse(localStorage.getItem('nrAiForm_apiResponse'));
             if (aiResponseInStorage) {
-                const { response_message, status, form_fields, ...responseArrays } = aiResponseInStorage;
+                // update missing_fields by removing any fields that were populated since last ai response was captured
+                const missingFields = fieldsArr.filter(ff => aiResponseInStorage.missing_fields.some(mf => mf.data_id === ff.data_id) && !ff.fieldValue);
+
                 apiResponse = await sendData(
                     inputValue, {
-                    ...responseArrays, // array from last API response (eg current_field, filled_fields, missing_feilds)
+                    thread_id: aiResponseInStorage.thread_id,
+                    current_field: aiResponseInStorage.current_field,
+                    missing_fields: missingFields,
+                    conversation_history: JSON.parse(localStorage.getItem('nrAiForm_conversationHistory')),
                     form_fields: fieldsArr // current form data
                 });
             }
@@ -758,11 +775,11 @@ else {
     }
 
     // look for one (or more) string in data_id property of object, matching on prefix 
-    function getPartialMatchFromMapping(mapping, needle){
-        const beforeLastUnderscore = function(str){
+    function getPartialMatchFromMapping(mapping, needle) {
+        const beforeLastUnderscore = function (str) {
             return str && str.includes('_')
-            ? str.substring(0, str.lastIndexOf('_'))
-            : str;
+                ? str.substring(0, str.lastIndexOf('_'))
+                : str;
         }
         const needlePrefix = beforeLastUnderscore(String(needle));
         const matchKey = Object.keys(mapping).find(k => beforeLastUnderscore(k) === needlePrefix);
