@@ -1,0 +1,62 @@
+{
+  "message": "Can you please help me fill this water licence application form? I work for the Federal Government and I'm eligible for fee exemption. I don't have a client number yet but I need to apply for one.",
+  "form_fields": [
+    {
+      "data_id": "V1IsEligibleForFeeExemption",
+      "field_label": "Are you eligible for fee exemption?",
+      "field_type": "radio",
+      "field_value": "",
+      "is_required": true,
+      "options": ["Yes", "No"]
+    },
+    {
+      "data_id": "V1IsExistingExemptClient",
+      "field_label": "Are you an existing exempt client?",
+      "field_type": "radio",
+      "field_value": "",
+      "is_required": true,
+      "options": ["Yes", "No"]
+    },
+    {
+      "data_id": "V1FeeExemptionClientNumber",
+      "field_label": "*Please enter your client number:",
+      "field_type": "text",
+      "field_value": "",
+      "is_required": true,
+      "validation_rules": {
+        "min_length": 5,
+        "max_length": 20
+      }
+    },
+    {
+      "data_id": "V1FeeExemptionCategory",
+      "field_label": "*Fee Exemption Category:",
+      "field_type": "select-one",
+      "field_value": "",
+      "is_required": true,
+      "options": [
+        "Federal Government",
+        "Provincial Government", 
+        "Municipal Government",
+        "First Nations",
+        "Non-Profit"
+      ]
+    },
+    {
+      "data_id": "V1FeeExemptionSupportingInfo",
+      "field_label": "Please enter any supporting information that will assist in determining your eligibility for a fee exemption. Please refer to help for details on fee exemption criteria and requirements.",
+      "field_type": "textarea",
+      "field_value": "",
+      "is_required": false,
+      "validation_rules": {
+        "max_length": 1000
+      }
+    }
+  ],
+  "user_context": {
+    "organization_type": "federal_government",
+    "has_client_number": false,
+    "application_type": "water_license",
+    "urgency_level": "normal"
+  }
+}
