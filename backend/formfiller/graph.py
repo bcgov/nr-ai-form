@@ -19,7 +19,7 @@ import json
 import re
 import ast
 
-from backend.llm.tools.ai_search_tool import ai_search_tool
+from .tools.ai_search_tool import ai_search_tool
 
 # simple search function (you could plug in SerpAPI, Tavily, Bing, etc.)
 def search_tool(query: str) -> str:
