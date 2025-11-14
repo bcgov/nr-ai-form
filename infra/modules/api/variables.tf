@@ -134,3 +134,29 @@ variable "resource_group_name" {
   nullable    = false
 }
 
+variable "azure_openai_api_key" {
+  description = "The API key for Azure OpenAI service."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_openai_endpoint" {
+  description = "The endpoint URL for Azure OpenAI service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_openai_api_version" {
+  description = "The API version for Azure OpenAI service."
+  type        = string
+  default     = "2024-10-21"
+  nullable    = false
+}
+
+variable "azure_openai_deployment_name" {
+  description = "The deployment name for Azure OpenAI model."
+  type        = string
+  nullable    = false
+}
+

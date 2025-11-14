@@ -100,6 +100,12 @@ module "api" {
   api_frontdoor_resource_guid      = module.frontdoor.frontdoor_resource_guid
   api_frontdoor_firewall_policy_id = module.frontdoor.firewall_policy_id
 
+  # Azure OpenAI
+  azure_openai_api_key         = var.azure_openai_api_key
+  azure_openai_endpoint        = var.azure_openai_endpoint
+  azure_openai_api_version     = var.azure_openai_api_version
+  azure_openai_deployment_name = var.azure_openai_deployment_name
+
   depends_on = [module.frontdoor]
 }
 

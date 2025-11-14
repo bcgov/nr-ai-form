@@ -16,6 +16,12 @@ locals {
   vnet_address_space       = get_env("vnet_address_space")   # Address space for the VNet.
   statefile_key            = "${local.stack_prefix}/${local.app_env}/terraform.tfstate"
   container_name           = "tfstate"
+  
+  # Azure OpenAI Configuration
+  azure_openai_api_key         = get_env("AZURE_OPENAI_API_KEY")
+  azure_openai_endpoint        = get_env("AZURE_OPENAI_ENDPOINT")
+  azure_openai_api_version     = get_env("AZURE_OPENAI_API_VERSION", "2024-10-21")
+  azure_openai_deployment_name = get_env("AZURE_OPENAI_DEPLOYMENT_NAME")
 }
 
 # Remote Azure Storage backend for Terraform
@@ -54,6 +60,13 @@ vnet_resource_group_name  = "${local.vnet_resource_group_name}"
 api_image                 = "${local.api_image}"
 vnet_address_space        = "${local.vnet_address_space}"
 repo_name                 = "${get_env("repo_name")}"
+
+# Azure OpenAI Configuration
+azure_openai_api_key         = "${local.azure_openai_api_key}"
+azure_openai_endpoint        = "${local.azure_openai_endpoint}"
+azure_openai_api_version     = "${local.azure_openai_api_version}"
+azure_openai_deployment_name = "${local.azure_openai_deployment_name}"
+
 common_tags = {
   "Environment" = "${local.target_env}"
   "AppEnv"      = "${local.app_env}"
