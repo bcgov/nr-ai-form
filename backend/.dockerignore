@@ -31,10 +31,6 @@ notebook/
 *.md
 LICENSE
 
-# Project files (already copied separately for caching)
-pyproject.toml
-uv.lock
-
 # Environment files
 .env
 .env.*
