@@ -205,7 +205,7 @@ async def analyze_form(state: FormFillerState) -> FormFillerState:
 
     # Generate response based on analysis
     if status == "completed" and filled_fields:
-        response_message = "Great! I've filled out the entire form based on your information."
+        response_message = "Is there anything else I can help with?"
     else:
         response_message = cleaned_str.get("message", "")
 
