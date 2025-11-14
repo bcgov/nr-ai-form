@@ -62,9 +62,9 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    NODE_ENV                              = var.node_env
-    PORT                                  = "80"
-    WEBSITES_PORT                         = "3000"
+    # Python/FastAPI settings
+    PORT                                  = "8000"
+    WEBSITES_PORT                         = "8000"
     DOCKER_ENABLE_CI                      = "true"
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key

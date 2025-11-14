@@ -116,12 +116,6 @@ variable "log_analytics_workspace_id" {
   nullable    = false
 }
 
-variable "node_env" {
-  description = "The Node.js environment (e.g., production, development)."
-  type        = string
-  default     = "production"
-}
-
 variable "private_endpoint_subnet_id" {
   description = "The subnet ID for private endpoints."
   type        = string
