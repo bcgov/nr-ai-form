@@ -58,7 +58,7 @@ jobs:
     uses: ./.github/workflows/.deploy_stack.yml
     with:
       command: apply
-      tag: manual
+      tag: dev
       app_env: dev
       environment_name: dev
     secrets: inherit

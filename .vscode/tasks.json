@@ -2,133 +2,66 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "clean (functions)",
-      "command": "dotnet",
-      "args": [
-        "clean",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary"
-      ],
-      "type": "process",
-      "problemMatcher": "$msCompile",
+      "type": "shell",
+      "label": "Install Python Dependencies",
+      "command": "uv sync",
       "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "problemMatcher": []
     },
     {
-      "label": "build (functions)",
-      "command": "dotnet",
-      "args": [
-        "build",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary"
-      ],
-      "type": "process",
-      "dependsOn": "clean (functions)",
+      "type": "shell",
+      "label": "Run Backend Server",
+      "command": "uv run uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^(.*)$",
+          "line": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Uvicorn running.*",
+          "endsPattern": ".*Application startup complete.*"
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": true
-      },
-      "problemMatcher": "$msCompile",
-      "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
-    },
-    {
-      "label": "clean release (functions)",
-      "command": "dotnet",
-      "args": [
-        "clean",
-        "--configuration",
-        "Release",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary"
-      ],
-      "type": "process",
-      "problemMatcher": "$msCompile",
-      "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
-    },
-    {
-      "label": "publish (functions)",
-      "command": "dotnet",
-      "args": [
-        "publish",
-        "--configuration",
-        "Release",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary"
-      ],
-      "type": "process",
-      "dependsOn": "clean release (functions)",
-      "problemMatcher": "$msCompile",
-      "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
-    },
-    {
-      "type": "func",
-      "label": "func: host start",
-      "command": "host start",
-      "problemMatcher": "$func-node-watch",
-      "isBackground": true,
-      "dependsOn": "npm watch (functions)",
-      "options": {
-        "cwd": "${workspaceFolder}/src"
       }
     },
     {
       "type": "shell",
-      "label": "npm build (functions)",
-      "command": "npm run build",
-      "dependsOn": "npm clean (functions)",
-      "problemMatcher": "$tsc",
+      "label": "Run Backend Server (Production)",
+      "command": "uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000",
       "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
-    },
-    {
-      "type": "shell",
-      "label": "npm watch (functions)",
-      "command": "npm run watch",
-      "dependsOn": "npm clean (functions)",
-      "problemMatcher": "$tsc-watch",
-      "group": {
-        "kind": "build",
-        "isDefault": true
+        "cwd": "${workspaceFolder}"
       },
       "isBackground": true,
-      "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
+      "problemMatcher": []
     },
     {
       "type": "shell",
-      "label": "npm install (functions)",
-      "command": "npm install",
+      "label": "Build Docker Image",
+      "command": "docker build -t nr-ai-form-backend:latest .",
       "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "problemMatcher": []
     },
     {
       "type": "shell",
-      "label": "npm prune (functions)",
-      "command": "npm prune --production",
-      "dependsOn": "npm build (functions)",
-      "problemMatcher": [],
+      "label": "Run Docker Container",
+      "command": "docker run -p 8000:8000 --env-file .env nr-ai-form-backend:latest",
       "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
-    },
-    {
-      "type": "shell",
-      "label": "npm clean (functions)",
-      "command": "npm run clean",
-      "dependsOn": "npm install (functions)",
-      "options": {
-        "cwd": "${workspaceFolder}/src"
-      }
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "isBackground": true,
+      "problemMatcher": []
     }
   ]
 }

@@ -62,15 +62,41 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    NODE_ENV                              = var.node_env
-    PORT                                  = "80"
-    WEBSITES_PORT                         = "3000"
+    # Python/FastAPI settings
+    PORT                                  = "8000"
+    WEBSITES_PORT                         = "8000"
     DOCKER_ENABLE_CI                      = "true"
+    
+    # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key
+    
+    # Cosmos DB
     COSMOS_DB_ENDPOINT                    = var.cosmosdb_endpoint
     COSMOS_DB_DATABASE_NAME               = var.cosmosdb_db_name
     COSMOS_DB_CONTAINER_NAME              = var.cosmosdb_container_name
+    
+    # Azure OpenAI Configuration (required for the AI agent)
+    AZURE_OPENAI_API_KEY                  = var.azure_openai_api_key
+    AZURE_OPENAI_ENDPOINT                 = var.azure_openai_endpoint
+    AZURE_OPENAI_API_VERSION              = var.azure_openai_api_version
+    AZURE_OPENAI_DEPLOYMENT_NAME          = var.azure_openai_deployment_name
+    
+    # Azure Search Configuration
+    AZURE_SEARCH_ENDPOINT                 = var.azure_search_endpoint
+    AZURE_SEARCH_KEY                      = var.azure_search_key
+    AZURE_SEARCH_INDEX_NAME               = var.azure_search_index_name
+    
+    # Azure Document Intelligence Configuration
+    AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT  = var.azure_document_intelligence_endpoint
+    AZURE_DOCUMENT_INTELLIGENCE_KEY       = var.azure_document_intelligence_key
+    
+    # Azure Storage Configuration
+    AZURE_STORAGE_ACCOUNT_NAME            = var.azure_storage_account_name
+    AZURE_STORAGE_ACCOUNT_KEY             = var.azure_storage_account_key
+    AZURE_STORAGE_CONTAINER_NAME          = var.azure_storage_container_name
+    
+    # Azure App Service specific settings
     WEBSITE_SKIP_RUNNING_KUDUAGENT        = "false"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
     WEBSITE_ENABLE_SYNC_UPDATE_SITE       = "1"
