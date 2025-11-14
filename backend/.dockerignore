@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Notebooks
+*.ipynb
+ipynb/
+notebook/
+
+# Documentation
+*.md
+LICENSE
+
+# Project files (already copied separately for caching)
+pyproject.toml
+uv.lock
+
+# Environment files
+.env
+.env.*
+
+# Test files
+tests/
+test_*.py
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Examples
+example_*.json
