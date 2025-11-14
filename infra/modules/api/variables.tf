@@ -160,3 +160,54 @@ variable "azure_openai_deployment_name" {
   nullable    = false
 }
 
+variable "azure_search_endpoint" {
+  description = "The endpoint URL for Azure AI Search service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_search_key" {
+  description = "The API key for Azure AI Search service."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_search_index_name" {
+  description = "The index name for Azure AI Search service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_document_intelligence_endpoint" {
+  description = "The endpoint URL for Azure Document Intelligence service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_document_intelligence_key" {
+  description = "The API key for Azure Document Intelligence service."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_storage_account_name" {
+  description = "The name of the Azure Storage account."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_storage_account_key" {
+  description = "The access key for the Azure Storage account."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_storage_container_name" {
+  description = "The container name in Azure Storage for document storage."
+  type        = string
+  nullable    = false
+}
+

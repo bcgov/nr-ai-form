@@ -22,6 +22,20 @@ locals {
   azure_openai_endpoint        = get_env("AZURE_OPENAI_ENDPOINT")
   azure_openai_api_version     = get_env("AZURE_OPENAI_API_VERSION", "2024-10-21")
   azure_openai_deployment_name = get_env("AZURE_OPENAI_DEPLOYMENT_NAME")
+  
+  # Azure Search Configuration
+  azure_search_endpoint   = get_env("AZURE_SEARCH_ENDPOINT")
+  azure_search_key        = get_env("AZURE_SEARCH_KEY")
+  azure_search_index_name = get_env("AZURE_SEARCH_INDEX_NAME")
+  
+  # Azure Document Intelligence Configuration
+  azure_document_intelligence_endpoint = get_env("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
+  azure_document_intelligence_key      = get_env("AZURE_DOCUMENT_INTELLIGENCE_KEY")
+  
+  # Azure Storage Configuration
+  azure_storage_account_name   = get_env("AZURE_STORAGE_ACCOUNT_NAME")
+  azure_storage_account_key    = get_env("AZURE_STORAGE_ACCOUNT_KEY")
+  azure_storage_container_name = get_env("AZURE_STORAGE_CONTAINER_NAME")
 }
 
 # Remote Azure Storage backend for Terraform
@@ -66,6 +80,20 @@ azure_openai_api_key         = "${local.azure_openai_api_key}"
 azure_openai_endpoint        = "${local.azure_openai_endpoint}"
 azure_openai_api_version     = "${local.azure_openai_api_version}"
 azure_openai_deployment_name = "${local.azure_openai_deployment_name}"
+
+# Azure Search Configuration
+azure_search_endpoint   = "${local.azure_search_endpoint}"
+azure_search_key        = "${local.azure_search_key}"
+azure_search_index_name = "${local.azure_search_index_name}"
+
+# Azure Document Intelligence Configuration
+azure_document_intelligence_endpoint = "${local.azure_document_intelligence_endpoint}"
+azure_document_intelligence_key      = "${local.azure_document_intelligence_key}"
+
+# Azure Storage Configuration
+azure_storage_account_name   = "${local.azure_storage_account_name}"
+azure_storage_account_key    = "${local.azure_storage_account_key}"
+azure_storage_container_name = "${local.azure_storage_container_name}"
 
 common_tags = {
   "Environment" = "${local.target_env}"
