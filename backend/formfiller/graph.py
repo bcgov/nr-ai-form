@@ -148,6 +148,7 @@ async def analyze_form(state: FormFillerState) -> FormFillerState:
 
     # get labels for all the fields
     search_results = search_tool(json.dumps({"message": user_message, "formFields": form_fields}))
+    print("Search Results:", search_results)
     # Get response from the LLM
     response = await analyze_form_executor.ainvoke({"message": user_message, "formFields": form_fields, "search_results": search_results})
 
