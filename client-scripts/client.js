@@ -3,9 +3,16 @@
  * if the browser's local storage has an item 'clientInstance': 'ms'
  * javascript in remote file (see `url`) will be loaded instead  
  */
-const clientInstance = localStorage.getItem('clientInstance');
+let clientInstance = localStorage.getItem('clientInstance');
 if (clientInstance === 'ms') {
     var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
+    var script = document.createElement("script");
+    script.src = url;
+    document.head.appendChild(script);
+}
+
+else if (clientInstance === 'aot') {
+    var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
     var script = document.createElement("script");
     script.src = url;
     document.head.appendChild(script);
