@@ -18,6 +18,13 @@ else if (clientInstance === 'aot') {
     document.head.appendChild(script);
 }
 
+else if (clientInstance === 'css') {
+    var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    document.head.appendChild(script);
+}
+
 else {
     /**
      * client integration
