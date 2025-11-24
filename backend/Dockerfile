@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y \
 # Install uv (dependency manager)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Set working directory to parent of app
-WORKDIR /workspace
+# Set working directory
+WORKDIR /app
 
 # Copy dependency files first (for better Docker layer caching)
 COPY pyproject.toml uv.lock ./
@@ -20,11 +20,12 @@ RUN sed -i '/^readme = /d' pyproject.toml
 # Install dependencies only (not the package itself)
 RUN uv sync --frozen --no-cache --no-install-project
 
-# Copy the rest of the application code to app subdirectory
-COPY . ./app/
+# Copy all application code into a 'backend' subdirectory to match the import structure
+# This maintains the module structure where imports use 'from backend.x import y'
+COPY . ./backend/
 
-# Set Python path so imports work correctly
-ENV PYTHONPATH=/workspace
+# Set Python path so 'backend' module imports work correctly
+ENV PYTHONPATH=/app
 
 # Set environment variables for Azure App Service
 ENV PORT=8000

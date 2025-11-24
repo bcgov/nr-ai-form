@@ -115,3 +115,84 @@ variable "dev_app_service_subnet_id" {
   type        = string
   default     = ""
 }
+
+# Azure OpenAI Configuration
+variable "azure_openai_api_key" {
+  description = "The API key for Azure OpenAI service. This will be passed as an environment variable to the backend application."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_openai_endpoint" {
+  description = "The endpoint URL for Azure OpenAI service (e.g., https://your-resource.openai.azure.com)."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_openai_api_version" {
+  description = "The API version for Azure OpenAI service."
+  type        = string
+  default     = "2024-10-21"
+  nullable    = false
+}
+
+variable "azure_openai_deployment_name" {
+  description = "The deployment name for the Azure OpenAI model."
+  type        = string
+  nullable    = false
+}
+
+# Azure Search Configuration
+variable "azure_search_endpoint" {
+  description = "The endpoint URL for Azure AI Search service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_search_key" {
+  description = "The API key for Azure AI Search service."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_search_index_name" {
+  description = "The index name for Azure AI Search service."
+  type        = string
+  nullable    = false
+}
+
+# Azure Document Intelligence Configuration
+variable "azure_document_intelligence_endpoint" {
+  description = "The endpoint URL for Azure Document Intelligence service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_document_intelligence_key" {
+  description = "The API key for Azure Document Intelligence service."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+# Azure Storage Configuration
+variable "azure_storage_account_name" {
+  description = "The name of the Azure Storage account."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_storage_account_key" {
+  description = "The access key for the Azure Storage account."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_storage_container_name" {
+  description = "The container name in Azure Storage for document storage."
+  type        = string
+  nullable    = false
+}

@@ -116,12 +116,6 @@ variable "log_analytics_workspace_id" {
   nullable    = false
 }
 
-variable "node_env" {
-  description = "The Node.js environment (e.g., production, development)."
-  type        = string
-  default     = "production"
-}
-
 variable "private_endpoint_subnet_id" {
   description = "The subnet ID for private endpoints."
   type        = string
@@ -136,6 +130,83 @@ variable "repo_name" {
 
 variable "resource_group_name" {
   description = "The name of the resource group in which to create resources."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_openai_api_key" {
+  description = "The API key for Azure OpenAI service."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_openai_endpoint" {
+  description = "The endpoint URL for Azure OpenAI service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_openai_api_version" {
+  description = "The API version for Azure OpenAI service."
+  type        = string
+  default     = "2024-10-21"
+  nullable    = false
+}
+
+variable "azure_openai_deployment_name" {
+  description = "The deployment name for Azure OpenAI model."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_search_endpoint" {
+  description = "The endpoint URL for Azure AI Search service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_search_key" {
+  description = "The API key for Azure AI Search service."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_search_index_name" {
+  description = "The index name for Azure AI Search service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_document_intelligence_endpoint" {
+  description = "The endpoint URL for Azure Document Intelligence service."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_document_intelligence_key" {
+  description = "The API key for Azure Document Intelligence service."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_storage_account_name" {
+  description = "The name of the Azure Storage account."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_storage_account_key" {
+  description = "The access key for the Azure Storage account."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_storage_container_name" {
+  description = "The container name in Azure Storage for document storage."
   type        = string
   nullable    = false
 }
