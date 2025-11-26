@@ -18,7 +18,7 @@ else if (clientInstance === 'aot') {
     document.head.appendChild(script);
 }
 else if (clientInstance === 'aot-ks') {
-    var url = 'https://raw.githubusercontent.com/krishnan-aot/nr-ai-form/refs/heads/gh-pages/client-scripts/client.js' // url to aot's Krishnan S javascript
+    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
     var script = document.createElement("script");
     script.src = url;
     document.head.appendChild(script);
