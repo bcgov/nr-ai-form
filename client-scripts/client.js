@@ -17,7 +17,18 @@ else if (clientInstance === 'aot') {
     script.src = url;
     document.head.appendChild(script);
 }
-
+else if (clientInstance === 'aot-ks') {
+    var url = 'https://raw.githubusercontent.com/krishnan-aot/nr-ai-form/refs/heads/gh-pages/client-scripts/client.js' // url to aot's Krishnan S javascript
+    var script = document.createElement("script");
+    script.src = url;
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-aj') {
+    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
+    var script = document.createElement("script");
+    script.src = url;
+    document.head.appendChild(script);
+}    
 else if (clientInstance === 'css') {
     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
     var script = document.createElement("script");
