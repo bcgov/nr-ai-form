@@ -119,6 +119,9 @@ terraform.tfplan
 .env
 .env.local
 .env.*.local
+env_bk
+*.env.backup
+*.env.bak
 
 # Azure CLI
 .azure/
