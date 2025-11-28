@@ -1,0 +1,117 @@
+/* Basic external CSS for BC Water Licence Application sample form */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.4;
+  margin: 20px;
+  color: #111;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+form {
+  max-width: 900px;
+  background: #fff;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+fieldset {
+  margin: 36px 0 12px 0;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+legend {
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  margin: 8px 0 4px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="file"],
+select,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+/* Radio options inline: make label text flow inline when next to radios */
+/* Target radio/checkbox labels within the form so other labels remain block-level */
+#bc-water-licence-form label.inline-option,
+#bc-water-licence-form .option-group label {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 12px;
+  margin-bottom: 6px;
+}
+
+/* Tabs: container for tab buttons */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  background: #f1f1f1;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background: #0072c6;
+  color: #fff;
+  border-color: #005a9e;
+}
+
+/* Hide all tab panels by default */
+.tab-panel {
+  display: none;
+}
+
+/* Show active panel */
+.tab-panel.active {
+  display: block;
+}
+
+/* Small layout tweak for option groups inside panels */
+.option-group {
+  margin: 6px 0 12px;
+}
+
+button[type="submit"] {
+  background: #0072c6;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+button[type="submit"]:hover {
+  background: #005a9e;
+}

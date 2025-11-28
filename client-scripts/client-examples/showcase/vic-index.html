@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>City of Victoria - Building Permit Application (HTML)</title>
+  <style>
+    /* Simple, clean styling for the form (no frameworks required) */
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.4;margin:0;background:#f6f7fb;color:#111}
+    .container{max-width:980px;margin:28px auto;padding:24px;background:white;border-radius:10px;box-shadow:0 6px 24px rgba(12,20,40,0.06)}
+    h1{font-size:20px;margin:0 0 12px}
+    h2{font-size:14px;margin:18px 0 8px;color:#123}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    label{display:block;font-size:13px;margin-bottom:6px}
+    input[type=text], input[type=email], input[type=number], select, textarea{width:100%;padding:10px;border:1px solid #d6d9e6;border-radius:6px;font-size:14px;background:white}
+    textarea{min-height:100px}
+    .col{flex:1;min-width:220px}
+    .full{flex-basis:100%}
+    .checkboxes label{display:inline-flex;align-items:center;margin-right:12px}
+    .muted{font-size:12px;color:#666;margin-top:6px}
+    .section{padding:12px 0;border-top:1px dashed #e3e6ef}
+    .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:18px}
+    button{padding:10px 14px;border-radius:8px;border:0;background:#0b69ff;color:#fff;font-weight:600}
+    .secondary{background:#eef2ff;color:#0b69ff}
+    .uploads{display:flex;gap:12px;flex-wrap:wrap}
+    .small{font-size:12px;color:#444}
+    .inline{display:inline-block}
+    .notice{background:#fff4e5;border-left:4px solid #ffb020;padding:10px;border-radius:6px;margin-bottom:12px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>City of Victoria — Building Permit Application (HTML)</h1>
+    <p class="muted">This webform mirrors fields found in the official City of Victoria Building Permit Application PDF (application section, scope, owner/applicant information and supplemental checklists). Use this as a starting point — adapt validations and submission endpoint to match your backend.</p>
+
+    <form id="permitForm" enctype="multipart/form-data">
+
+      <!-- SECTION A - APPLICATION -->
+      <div class="section">
+        <h2>Section A — Permit Type & Project</h2>
+        <div class="row checkboxes full">
+          <label><input type="checkbox" name="permitType" value="complex"> Complex Building (new, additions, excavation)</label>
+          <label><input type="checkbox" name="permitType" value="singleFamily"> Single Family / Duplex / Accessory</label>
+          <label><input type="checkbox" name="permitType" value="interiorSfd"> Interior Alteration — SFD / Duplex</label>
+          <label><input type="checkbox" name="permitType" value="interiorOther"> Interior Alteration — Other Buildings</label>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Project / Business Name</label>
+            <input type="text" name="projectName" placeholder="Project or business name" />
+          </div>
+          <div class="col">
+            <label>Total Estimated Value of Construction (CAD)</label>
+            <input type="number" name="estimatedValue" step="0.01" min="0" placeholder="e.g. 125000.00" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Project Address — Unit / Street</label>
+            <input type="text" name="projectAddress" placeholder="Unit & street" />
+          </div>
+          <div class="col">
+            <label>City / Province / Postal Code</label>
+            <input type="text" name="projectCityPostal" placeholder="Victoria, BC V8W 1P6" />
+          </div>
+        </div>
+
+      </div>
+
+      <!-- OWNERSHIP INFORMATION -->
+      <div class="section">
+        <h2>Owner & Applicant Information</h2>
+        <div class="row">
+          <div class="col">
+            <label>Owner's Full Name</label>
+            <input type="text" name="ownerName" />
+          </div>
+          <div class="col">
+            <label>Owner's Email</label>
+            <input type="email" name="ownerEmail" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Owner's Mailing Address</label>
+            <input type="text" name="ownerAddress" placeholder="Unit, street, city" />
+          </div>
+          <div class="col">
+            <label>Owner's Phone</label>
+            <input type="text" name="ownerPhone" placeholder="250-555-1212" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Applicant's Name</label>
+            <input type="text" name="applicantName" />
+          </div>
+          <div class="col">
+            <label>Applicant's Email</label>
+            <input type="email" name="applicantEmail" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Applicant represents (company)</label>
+            <input type="text" name="applicantCompany" />
+          </div>
+          <div class="col">
+            <label>Applicant Phone</label>
+            <input type="text" name="applicantPhone" />
+          </div>
+        </div>
+
+        <div class="row">
+          <label><input type="checkbox" id="appSameAsOwner" name="appSameAsOwner"> Applicant is same as owner</label>
+        </div>
+      </div>
+
+      <!-- TENANT / SPECIAL CHECKS -->
+      <div class="section">
+        <h2>Special Notices & Tenant Protection</h2>
+        <div class="notice">
+          <strong>Tenant Protection & Displacement:</strong>
+          If the project results in demolition of rental units or displacement of tenants, additional Tenant Assistance Plan documents must be submitted.
+        </div>
+
+        <div class="row checkboxes">
+          <label><input type="checkbox" name="tenantStatus" value="current"> There are tenants currently residing on the property</label>
+          <label><input type="checkbox" name="tenantStatus" value="recent"> Tenants resided here within last 6 months</label>
+          <label><input type="checkbox" name="tenantStatus" value="none"> No tenants currently or in last 6 months</label>
+        </div>
+
+        <p class="muted">Select any applicable supplementary forms (e.g. EV readiness, Chimney/Woodstove, Affordable Housing Fee Exemption):</p>
+        <div class="row checkboxes">
+          <label><input type="checkbox" name="suppForms" value="ev"> EV Readiness</label>
+          <label><input type="checkbox" name="suppForms" value="chimney"> Chimney / Fireplace</label>
+          <label><input type="checkbox" name="suppForms" value="affordable"> Affordable Housing Fee Exemption</label>
+        </div>
+      </div>
+
+      <!-- SCOPE / PARTS -->
+      <div class="section">
+        <h2>Scope of Work — Select the Part that applies</h2>
+        <div class="row checkboxes full">
+          <label><input type="checkbox" name="scope" value="part1"> Part 1 — Complex Building</label>
+          <label><input type="checkbox" name="scope" value="part2"> Part 2 — Single Family / Duplex / Accessory</label>
+          <label><input type="checkbox" name="scope" value="part3"> Part 3 — Interior Alteration (SFD)</label>
+          <label><input type="checkbox" name="scope" value="part4"> Part 4 — Interior Alteration (Other)</label>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label>Proposed Use</label>
+            <input type="text" name="proposedUse" />
+          </div>
+          <div>
+            <label>Previous Use</label>
+            <input type="text" name="previousUse" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Area of Construction (sq. m or sq. ft.)</label>
+            <input type="text" name="areaOfConstruction" placeholder="e.g. 120 sq. m" />
+          </div>
+          <div class="col">
+            <label>Number of Dwelling Units (including secondary suites)</label>
+            <input type="number" name="numberOfUnits" min="0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFESSIONAL INVOLVEMENT & BUILDING SERVICES -->
+      <div class="section">
+        <h2>Professional Involvement & Services</h2>
+        <div class="row checkboxes">
+          <label><input type="checkbox" name="professionalInvolved" value="yes"> Professional (Engineer/Architect) involved</label>
+          <label><input type="checkbox" name="sprinklered" value="yes"> Building sprinklered</label>
+          <label><input type="checkbox" name="fireAlarm" value="yes"> Fire alarm present</label>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Structural Engineer (if applicable)</label>
+            <input type="text" name="engineerName" placeholder="Name & company" />
+          </div>
+          <div class="col">
+            <label>Architect (if applicable)</label>
+            <input type="text" name="architectName" />
+          </div>
+        </div>
+      </div>
+
+      <!-- UPLOADS / SUPPORTING DOCUMENTS -->
+      <div class="section">
+        <h2>Supporting Documents & Uploads</h2>
+        <p class="small">Attach required drawings and documents. Typical uploads: site plan, floor plans, elevations, structural drawings, title search, servicing info, EV plan, chimney form, tenant assistance plan (if needed), energy compliance, proof of warranty (new builds).</p>
+
+        <div class="uploads">
+          <div class="col">
+            <label>Site Plan (PDF)</label>
+            <input type="file" name="sitePlan" accept="application/pdf,image/*" />
+          </div>
+          <div class="col">
+            <label>Architectural Drawings (zipped or PDF)</label>
+            <input type="file" name="architecturalDrawings" accept="application/pdf,application/zip" />
+          </div>
+          <div class="col">
+            <label>Title Search / Certificate</label>
+            <input type="file" name="titleSearch" accept="application/pdf" />
+          </div>
+          <div class="col">
+            <label>Other supporting docs</label>
+            <input type="file" name="otherDocs" multiple />
+          </div>
+        </div>
+      </div>
+
+      <!-- DECLARATIONS & SIGNATURES -->
+      <div class="section">
+        <h2>Declarations & Signatures</h2>
+        <p class="small">By signing below, the owner(s) and applicant confirm they have read the Waiver, Release and Indemnification Agreement included with this form and that the information provided is accurate.</p>
+
+        <div class="row">
+          <div class="col">
+            <label>Owner's Signature (type full name)</label>
+            <input type="text" name="ownerSignature" placeholder="Owner full name" required />
+          </div>
+          <div class="col">
+            <label>Date</label>
+            <input type="date" name="ownerSignatureDate" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label>Applicant's Signature (type full name)</label>
+            <input type="text" name="applicantSignature" placeholder="Applicant full name" />
+          </div>
+          <div class="col">
+            <label>Date</label>
+            <input type="date" name="applicantSignatureDate" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="full">
+            <label>Scope / Notes (short description of work)</label>
+            <textarea name="scopeNotes" placeholder="Describe the scope of work clearly..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMISSION -->
+      <div class="section actions">
+        <button type="submit">Submit Application</button>
+        <button type="button" class="secondary" id="downloadPdf">Download as PDF</button>
+      </div>
+    </form>
+
+    <script>
+      // Simple client-side behaviour: copy owner -> applicant if checkbox checked
+      document.getElementById('appSameAsOwner').addEventListener('change', function(e){
+        if(e.target.checked){
+          document.querySelector('[name="applicantName"]').value = document.querySelector('[name="ownerName"]').value;
+          document.querySelector('[name="applicantEmail"]').value = document.querySelector('[name="ownerEmail"]').value;
+          document.querySelector('[name="applicantPhone"]').value = document.querySelector('[name="ownerPhone"]').value;
+          document.querySelector('[name="applicantCompany"]').value = '';
+        }
+      });
+
+      // Simple submit handler (replace with real backend endpoint)
+      document.getElementById('permitForm').addEventListener('submit', function(ev){
+        ev.preventDefault();
+        // Basic required field check
+        const ownerSig = document.querySelector('[name="ownerSignature"]').value.trim();
+        const ownerDate = document.querySelector('[name="ownerSignatureDate"]').value;
+        if(!ownerSig || !ownerDate){
+          alert('Please provide owner signature and date before submitting.');
+          return;
+        }
+
+        // Gather form data
+        const form = new FormData(ev.target);
+        // TODO: POST to your permit intake API. Example:
+        // fetch('/api/submit-permit', {method:'POST', body: form}).then(...)
+
+        alert('Form ready to submit (this demo does not actually send the files). Replace the TODO with a real endpoint.');
+      });
+
+      // Minimal "download as PDF" using browser print (for demo)
+      document.getElementById('downloadPdf').addEventListener('click', function(){
+        window.print();
+      });
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <link rel="icon" href="data:image/png;base64,iVBORw0KGgo=">
+
+    <title>Sample Web-form</title>
+
+    <!-- --- ---- ----- AI Form Assistant integration scripts ----- ---- --- -->
+    <!-- optional form context mapping (provided by client) -->
+    <script src="form-context-mapping.js"></script>
+    <!-- mock ai response for development (to be removed) -->
+    <script src="mock-api-response.js"></script>
+    <!-- required integration scripts -->
+    <script src="FormCapture.js"></script>
+    <script src="client.js"></script>
+
+  </head>
+  <body>
+  <h1>British Columbia Housing Permit Application</h1>
+
+  <form action="/submit-permit" method="POST" enctype="multipart/form-data">
+    
+    <!-- Applicant Information -->
+    <div class="section">
+      <h2>Applicant Information</h2>
+      <label for="applicantName">Full Name</label>
+      <input type="text" id="applicantName" name="applicantName" required>
+      
+      <label for="applicantEmail">Email Address</label>
+      <input type="email" id="applicantEmail" name="applicantEmail" required>
+      
+      <label for="applicantPhone">Phone Number</label>
+      <input type="tel" id="applicantPhone" name="applicantPhone" required>
+      
+      <label for="applicantAddress">Mailing Address</label>
+      <input type="text" id="applicantAddress" name="applicantAddress" required>
+    </div>
+
+    <!-- Property Information -->
+    <div class="section">
+      <h2>Property Information</h2>
+      <label for="propertyAddress">Property Address</label>
+      <input type="text" id="propertyAddress" name="propertyAddress" required>
+      
+      <label for="propertyID">Property ID (PID)</label>
+      <input type="text" id="propertyID" name="propertyID" required>
+      
+      <label for="zoning">Zoning</label>
+      <input type="text" id="zoning" name="zoning">
+    </div>
+
+    <!-- Project Details -->
+    <div class="section">
+      <h2>Project Details</h2>
+      <label for="projectType">Type of Work</label>
+      <select id="projectType" name="projectType" required>
+        <option value="">--Select--</option>
+        <option value="new_construction">New Construction</option>
+        <option value="renovation">Renovation</option>
+        <option value="demolition">Demolition</option>
+        <option value="addition">Addition</option>
+        <option value="other">Other</option>
+      </select>
+      
+      <label for="projectDescription">Project Description</label>
+      <textarea id="projectDescription" name="projectDescription" rows="4" required></textarea>
+      
+      <label for="estimatedValue">Estimated Project Value (CAD)</label>
+      <input type="number" id="estimatedValue" name="estimatedValue" required>
+
+      <!-- Dynamic Fields -->
+      <div id="newConstructionFields" class="hidden">
+        <label for="floors">Number of Floors</label>
+        <input type="number" id="floors" name="floors" min="1">
+        
+        <label for="squareFootage">Total Square Footage</label>
+        <input type="number" id="squareFootage" name="squareFootage">
+      </div>
+
+      <div id="renovationFields" class="hidden">
+        <label for="renovationType">Type of Renovation</label>
+        <input type="text" id="renovationType" name="renovationType">
+      </div>
+
+      <div id="demolitionFields" class="hidden">
+        <label for="demolitionReason">Reason for Demolition</label>
+        <textarea id="demolitionReason" name="demolitionReason" rows="3"></textarea>
+      </div>
+
+      <div id="additionFields" class="hidden">
+        <label for="additionSize">Size of Addition (sq ft)</label>
+        <input type="number" id="additionSize" name="additionSize">
+      </div>
+    </div>
+
+    <!-- Contractor Information -->
+    <div class="section">
+      <h2>Contractor Information</h2>
+      <label for="contractorName">Contractor Name</label>
+      <input type="text" id="contractorName" name="contractorName">
+      
+      <label for="contractorLicense">Contractor License Number</label>
+      <input type="text" id="contractorLicense" name="contractorLicense">
+    </div>
+
+    <!-- Document Uploads -->
+    <div class="section">
+      <h2>Supporting Documents</h2>
+      <label for="sitePlan">Site Plan / Plot Plan (PDF, JPG, PNG)</label>
+      <input type="file" id="sitePlan" name="sitePlan" accept=".pdf,.jpg,.jpeg,.png" required>
+      
+      <label for="floorPlans">Floor Plans / Architectural Drawings (PDF)</label>
+      <input type="file" id="floorPlans" name="floorPlans" accept=".pdf" required>
+      
+      <label for="structuralDrawings">Structural Drawings (PDF)</label>
+      <input type="file" id="structuralDrawings" name="structuralDrawings" accept=".pdf">
+      
+      <label for="otherDocuments">Other Supporting Documents</label>
+      <input type="file" id="otherDocuments" name="otherDocuments" multiple>
+    </div>
+
+    <!-- Declaration -->
+    <div class="section">
+      <h2>Declaration</h2>
+      <p>
+        I hereby certify that the information provided is true and correct to the best of my knowledge.  
+      </p>
+      <label>
+        <input type="checkbox" name="declaration" required> I agree
+      </label>
+    </div>
+
+    <button type="submit">Submit Application</button>
+  </form>
+    <!-- js for the form and webpage (not part of Form Service)-->
+    <link rel="stylesheet" href="form.css">
+    <script src="form.js"></script>
+
+  </body>
+</html>

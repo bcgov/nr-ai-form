@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BC Building Permit Application Form</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #0072C6;
+  }
+  form {
+    background: #fff;
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .section {
+    margin-top: 25px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+  }
+  label {
+    display: block;
+    margin-top: 12px;
+    font-weight: bold;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 7px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  textarea {
+    resize: vertical;
+  }
+  input[type="file"] {
+    padding: 3px;
+  }
+  button {
+    margin-top: 20px;
+    padding: 12px 25px;
+    font-size: 16px;
+    background-color: #0072C6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #005A9E;
+  }
+</style>
+</head>
+<body>
+
+<h1>BC Building Permit Application Form</h1>
+
+<form action="/submit-permit" method="POST" enctype="multipart/form-data">
+
+  <!-- Section 1: Applicant Information -->
+  <div class="section">
+    <h2>Applicant Information</h2>
+    <label for="applicantName">Full Name</label>
+    <input type="text" id="applicantName" name="applicantName" required>
+
+    <label for="applicantEmail">Email</label>
+    <input type="email" id="applicantEmail" name="applicantEmail" required>
+
+    <label for="applicantPhone">Phone Number</label>
+    <input type="tel" id="applicantPhone" name="applicantPhone" required>
+
+    <label for="applicantAddress">Mailing Address</label>
+    <input type="text" id="applicantAddress" name="applicantAddress" required>
+
+    <label for="ownerAuthorization">Letter of Authorization (if not owner)</label>
+    <input type="file" id="ownerAuthorization" name="ownerAuthorization" accept=".pdf,.jpg,.png">
+  </div>
+
+  <!-- Section 2: Property Information -->
+  <div class="section">
+    <h2>Property Information</h2>
+    <label for="propertyAddress">Property Address</label>
+    <input type="text" id="propertyAddress" name="propertyAddress" required>
+
+    <label for="propertyID">Property ID (PID)</label>
+    <input type="text" id="propertyID" name="propertyID" required>
+
+    <label for="legalDescription">Legal Description (Lot, Block, Plan)</label>
+    <input type="text" id="legalDescription" name="legalDescription">
+
+    <label for="zoning">Zoning Designation</label>
+    <input type="text" id="zoning" name="zoning">
+
+    <label for="siteNotes">Site Notes (Slopes, Floodplain, Easements)</label>
+    <textarea id="siteNotes" name="siteNotes" rows="3"></textarea>
+  </div>
+
+  <!-- Section 3: Project Details -->
+  <div class="section">
+    <h2>Project Details</h2>
+    <label for="projectType">Type of Work</label>
+    <select id="projectType" name="projectType" required>
+      <option value="">--Select--</option>
+      <option value="new_construction">New Construction</option>
+      <option value="renovation">Renovation</option>
+      <option value="demolition">Demolition</option>
+      <option value="addition">Addition</option>
+      <option value="other">Other</option>
+    </select>
+
+    <label for="projectDescription">Project Description</label>
+    <textarea id="projectDescription" name="projectDescription" rows="4" required></textarea>
+
+    <label for="estimatedValue">Estimated Project Value (CAD)</label>
+    <input type="number" id="estimatedValue" name="estimatedValue" required>
+
+    <!-- Dynamic Fields -->
+    <div id="newConstructionFields" class="hidden">
+      <label for="floors">Number of Floors</label>
+      <input type="number" id="floors" name="floors" min="1">
+
+      <label for="squareFootage">Total Square Footage</label>
+      <input type="number" id="squareFootage" name="squareFootage">
+    </div>
+
+    <div id="renovationFields" class="hidden">
+      <label for="renovationType">Renovation Type / Details</label>
+      <input type="text" id="renovationType" name="renovationType">
+    </div>
+
+    <div id="demolitionFields" class="hidden">
+      <label for="demolitionReason">Reason for Demolition</label>
+      <textarea id="demolitionReason" name="demolitionReason" rows="3"></textarea>
+    </div>
+
+    <div id="additionFields" class="hidden">
+      <label for="additionSize">Size of Addition (sq ft)</label>
+      <input type="number" id="additionSize" name="additionSize">
+    </div>
+  </div>
+
+  <!-- Section 4: Contractor Information -->
+  <div class="section">
+    <h2>Contractor Information</h2>
+    <label for="contractorName">Contractor Name</label>
+    <input type="text" id="contractorName" name="contractorName">
+
+    <label for="contractorLicense">Contractor License Number</label>
+    <input type="text" id="contractorLicense" name="contractorLicense">
+
+    <label for="contractorContact">Contractor Contact Information</label>
+    <input type="text" id="contractorContact" name="contractorContact">
+
+    <label for="contractorInsurance">WorkSafeBC / Insurance Certificate</label>
+    <input type="file" id="contractorInsurance" name="contractorInsurance" accept=".pdf,.jpg,.png">
+  </div>
+
+  <!-- Section 5: Plans & Drawings -->
+  <div class="section">
+    <h2>Plans & Drawings</h2>
+    <label for="sitePlan">Site Plan / Plot Plan</label>
+    <input type="file" id="sitePlan" name="sitePlan" accept=".pdf,.jpg,.png" required>
+
+    <label for="floorPlans">Floor Plans / Architectural Drawings</label>
+    <input type="file" id="floorPlans" name="floorPlans" accept=".pdf" required>
+
+    <label for="structuralDrawings">Structural Drawings</label>
+    <input type="file" id="structuralDrawings" name="structuralDrawings" accept=".pdf">
+
+    <label for="otherPlans">Other Supporting Plans</label>
+    <input type="file" id="otherPlans" name="otherPlans" multiple>
+  </div>
+
+  <!-- Section 6: Reports & Supporting Documents -->
+  <div class="section">
+    <h2>Reports & Supporting Documents</h2>
+    <label for="geotechReport">Geotechnical Report (if applicable)</label>
+    <input type="file" id="geotechReport" name="geotechReport" accept=".pdf">
+
+    <label for="arboristReport">Arborist Report (if applicable)</label>
+    <input type="file" id="arboristReport" name="arboristReport" accept=".pdf">
+
+    <label for="envReport">Environmental Assessment (if applicable)</label>
+    <input type="file" id="envReport" name="envReport" accept=".pdf">
+
+    <label for="otherDocs">Other Supporting Documents</label>
+    <input type="file" id="otherDocs" name="otherDocs" multiple>
+  </div>
+
+  <!-- Section 7: Declaration -->
+  <div class="section">
+    <h2>Declaration</h2>
+    <p>I hereby certify that the information provided is true and correct to the best of my knowledge.</p>
+    <label>
+      <input type="checkbox" name="declaration" required> I agree
+    </label>
+  </div>
+
+  <button type="submit">Submit Application</button>
+
+</form>
+
+<script>
+  // Dynamic fields based on project type
+  const projectType = document.getElementById('projectType');
+  const newConstructionFields = document.getElementById('newConstructionFields');
+  const renovationFields = document.getElementById('renovationFields');
+  const demolitionFields = document.getElementById('demolitionFields');
+  const additionFields = document.getElementById('additionFields');
+
+  projectType.addEventListener('change', () => {
+    newConstructionFields.classList.add('hidden');
+    renovationFields.classList.add('hidden');
+    demolitionFields.classList.add('hidden');
+    additionFields.classList.add('hidden');
+
+    switch(projectType.value) {
+      case 'new_construction':
+        newConstructionFields.classList.remove('hidden');
+        break;
+      case 'renovation':
+        renovationFields.classList.remove('hidden');
+        break;
+      case 'demolition':
+        demolitionFields.classList.remove('hidden');
+        break;
+      case 'addition':
+        additionFields.classList.remove('hidden');
+        break;
+      default:
+        break;
+    }
+  });
+</script>
+
+</body>
+</html>

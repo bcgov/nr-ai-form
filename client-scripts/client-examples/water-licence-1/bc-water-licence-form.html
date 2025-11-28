@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <link rel="icon" href="data:image/png;base64,iVBORw0KGgo=">
+
+    <title>BC Water Licence Application - Sample Form</title>
+
+    <!-- sample response for development -->
+    <script src="local_sample_api_response.js"></script>
+
+    <!-- required Form Service Integration scripts-->
+    <script src="FormCapture.js"></script>
+    <script src="client.js"></script>
+  </head>
+  <body>
+    <h1>BC Water Licence Application</h1>
+
+    <form id="bc-water-licence-form" action="#" method="post" novalidate>
+
+      <!-- Tab buttons -->
+      <div class="tabs" role="tablist" aria-label="Form sections">
+        <button type="button" class="tab-button active" data-target="panel-eligibility">Eligibility</button>
+        <button type="button" class="tab-button" data-target="panel-fee">Fee Exemption</button>
+        <button type="button" class="tab-button" data-target="panel-licences">Licences & Source</button>
+        <button type="button" class="tab-button" data-target="panel-purpose">Purpose & Timing</button>
+        <button type="button" class="tab-button" data-target="panel-quantities">Quantities</button>
+      </div>
+
+      <!-- Panels (one per original section) -->
+      <div id="panel-eligibility" class="tab-panel active" role="tabpanel">
+        <fieldset>
+          <legend>Eligibility & Project Context</legend>
+
+          <p>Answer the following eligibility questions:</p>
+
+          <div class="option-group">
+            <span>Are you eligible to apply for a water licence?</span>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_eligible" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_eligible" value="no"> No</label>
+          </div>
+
+          <div class="option-group">
+            <span>Is this application in relation to increasing the supply of housing units within British Columbia?</span>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_housing" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_housing" value="no"> No</label>
+          </div>
+
+          <div class="option-group">
+            <span>Is this application related to the North Coast Transmission Line?</span>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_north-coast-line" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_north-coast-line" value="no"> No</label>
+          </div>
+
+          <div class="option-group">
+            <span>Is this application related to a BC Hydro sustainment project?</span>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_bc-hydro-sustainability" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_bc-hydro-sustainability" value="no"> No</label>
+          </div>
+
+          <div class="option-group">
+            <span>Is this application related to a clean energy project that received an EPA from BC Hydro?</span>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_clean-energy" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="AnswerOnJob_clean-energy" value="no"> No</label>
+          </div>
+
+          <div>
+            <label for="EligibilityExplanation_100380943_185457063">If applicable, please explain</label>
+            <textarea id="EligibilityExplanation_100380943_185457063" name="EligibilityExplanation_100380943_185457063" rows="3"></textarea>
+          </div>
+
+        </fieldset>
+      </div>
+
+      <div id="panel-fee" class="tab-panel" role="tabpanel">
+        <fieldset>
+          <legend>Fee Exemption & Client Info</legend>
+
+          <div class="option-group">
+            <span>Do you belong to, or are you applying on behalf of, an entity eligible for fee exemption?</span>
+            <label class="inline-option"><input type="radio" name="V1IsEligibleForFeeExemption" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="V1IsEligibleForFeeExemption" value="no"> No</label>
+          </div>
+
+          <div class="option-group">
+            <span>Are you an existing exempt client?</span>
+            <label class="inline-option"><input type="radio" name="V1IsExistingExemptClient" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="V1IsExistingExemptClient" value="no"> No</label>
+          </div>
+
+          <div>
+            <label for="V1FeeExemptionClientNumber">Existing client number (if any)</label>
+            <input type="text" id="V1FeeExemptionClientNumber" name="V1FeeExemptionClientNumber">
+          </div>
+
+          <div>
+            <label for="V1FeeExemptionCategory">Fee exemption category</label>
+            <select id="V1FeeExemptionCategory" name="V1FeeExemptionCategory">
+              <option value="">(None)</option>
+              <option value="British Columbia Government Ministry">British Columbia Government Ministry</option>
+              <option value="Federal Government">Federal Government</option>
+              <option value="First Nations/Indian Band for use on Reserve">First Nations/Indian Band for use on Reserve</option>
+              <option value="Acting on behalf of a BC provincial ministry with a letter of permission from that ministry">Acting on behalf of a BC provincial ministry with a letter of permission from that ministry</option>
+              <option value="Other (Specify details below)">Other (Specify details below)</option>
+            </select>
+          </div>
+
+          <div class="option-group">
+            <span>Do you have supporting info for fee exemption?</span>
+            <label class="inline-option"><input type="radio" name="V1FeeExemptionSupportingInfo" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="V1FeeExemptionSupportingInfo" value="no"> No</label>
+          </div>
+
+        </fieldset>
+      </div>
+
+      <div id="panel-licences" class="tab-panel" role="tabpanel">
+        <fieldset>
+          <legend>Existing Licences & Source</legend>
+
+          <div class="option-group">
+            <span>Do you currently hold another valid Water Licence?</span>
+            <label class="inline-option"><input type="radio" name="WSLICDoYouHoldAnotherLicense" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="WSLICDoYouHoldAnotherLicense" value="no"> No</label>
+          </div>
+
+          <div>
+            <label for="WSLICClientNumber">Existing licence client number (if any)</label>
+            <input type="text" id="WSLICClientNumber" name="WSLICClientNumber">
+          </div>
+
+          <div>
+            <label for="SourceOfDiversion">Select the source of the new water diversion</label>
+            <select id="SourceOfDiversion" name="SourceOfDiversion">
+              <option value="Surface water">Surface water</option>
+              <option value="Groundwater">Groundwater</option>
+              <option value="Both">Both</option>
+            </select>
+          </div>
+
+        </fieldset>
+      </div>
+
+      <div id="panel-purpose" class="tab-panel" role="tabpanel">
+        <fieldset>
+          <legend>Purpose & Timing</legend>
+
+          <div>
+            <label for="PurposeUseSector_100534931_N0">What purpose do you want to use the water for?</label>
+            <select id="PurposeUseSector_100534931_N0" name="PurposeUseSector_100534931_N0">
+              <option value="">{select}</option>
+              <option value="67080257">Conservation</option>
+              <option value="67080259">Domestic</option>
+              <option value="67080261">Industrial</option>
+              <option value="80018174">Irrigation</option>
+              <option value="80018176">Land Improvement</option>
+              <option value="80018178">Mineralized Water</option>
+              <option value="67080263">Mining</option>
+              <option value="80018180">Oil and Gas</option>
+              <option value="67080265">Power</option>
+              <option value="67080267">Storage Purpose</option>
+              <option value="67080269">Waterworks</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="PurposeUseSector_100534931_N0_sub">Please select one of the following sub-purposes</label>
+            <select id="PurposeUseSector_100534931_N0_sub" name="PurposeUseSector_100534931_N0_sub">
+              <option value="">{select}</option>
+              <option value="80018348">Irrigation</option>
+              <option value="80018353">Irrigation - Water conveyed by local provider for Irrigation purposes</option>
+            </select>
+          </div>
+
+          <div class="option-group">
+            <span>Do you want to use the water only seasonally?</span>
+            <label class="inline-option"><input type="radio" name="WSLICUseOfWaterSeasonal_100536333_N0" value="yes"> Yes</label>
+            <label class="inline-option"><input type="radio" name="WSLICUseOfWaterSeasonal_100536333_N0" value="no"> No</label>
+          </div>
+
+          <div>
+            <label for="WSLICUseOfWaterFromMonth_100536333_N0">Select month you want to use water from</label>
+            <select id="WSLICUseOfWaterFromMonth_100536333_N0" name="WSLICUseOfWaterFromMonth_100536333_N0">
+              <option value="">(None)</option>
+              <option>January</option>
+              <option>February</option>
+              <option>March</option>
+              <option>April</option>
+              <option>May</option>
+              <option>June</option>
+              <option>July</option>
+              <option>August</option>
+              <option>September</option>
+              <option>October</option>
+              <option>November</option>
+              <option>December</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="WSLICUseOfWaterToMonth_100536333_N0">Select month you want to use water to</label>
+            <select id="WSLICUseOfWaterToMonth_100536333_N0" name="WSLICUseOfWaterToMonth_100536333_N0">
+              <option value="">(None)</option>
+              <option>January</option>
+              <option>February</option>
+              <option>March</option>
+              <option>April</option>
+              <option>May</option>
+              <option>June</option>
+              <option>July</option>
+              <option>August</option>
+              <option>September</option>
+              <option>October</option>
+              <option>November</option>
+              <option>December</option>
+            </select>
+          </div>
+
+        </fieldset>
+      </div>
+
+      <div id="panel-quantities" class="tab-panel" role="tabpanel">
+        <fieldset>
+          <legend>Quantities & Irrigation</legend>
+
+          <div>
+            <label for="Quantity_100534688_N0">Total Annual Quantity</label>
+            <input type="number" id="Quantity_100534688_N0" name="Quantity_100534688_N0" step="any">
+          </div>
+
+          <div>
+            <label for="Irrigation03AArea_100534394_N0">Area to be irrigated (ha)</label>
+            <input type="number" id="Irrigation03AArea_100534394_N0" name="Irrigation03AArea_100534394_N0" step="any">
+          </div>
+
+          <div>
+            <label for="MaximumRateOfDiversion_101016710_N0_sp">Maximum Rate of Diversion</label>
+            <input type="text" id="MaximumRateOfDiversion_101016710_N0_sp" name="MaximumRateOfDiversion_101016710_N0_sp">
+          </div>
+
+          <div>
+            <label for="Comments_100848882_N0">Comments</label>
+            <textarea id="Comments_100848882_N0" name="Comments_100848882_N0" rows="3"></textarea>
+          </div>
+
+        </fieldset>
+      </div>
+
+        <div>
+        <button type="submit" id="submit-button">Submit application</button>
+      </div>
+
+    </form>
+
+    <!-- js for the form and webpage (not part of Form Service)-->
+    <link rel="stylesheet" href="bc-water-licence-form.css">
+    <script src="bc-water-licence-form.js"></script>
+
+  </body>
+</html>
