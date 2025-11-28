@@ -5,6 +5,7 @@ Main FastAPI application with POST endpoint backbone
 import os
 import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from backend.formfiller.api import router as api_router
 from dotenv import load_dotenv
 from backend.search_indexer import web_crawler
@@ -38,6 +39,12 @@ app = FastAPI(
 
 # Log app init once
 logger.info("NR Agentic AI API initialized (log level=%s)", LOG_LEVEL)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[os.getenv("ALLOWED_HOSTS")],
+    allow_methods=["*"],  # Allows all methods
+)
 
 @app.get("/")
 async def root():
