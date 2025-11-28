@@ -53,6 +53,7 @@ class FormResponse(BaseModel):
     conversation_history: Optional[List[dict]] = None
 
 
+# The chat endpoint
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     """

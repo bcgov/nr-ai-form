@@ -92,14 +92,14 @@ def get_vector_store():
         _vector_store = AzureSearch(
             azure_search_endpoint=os.getenv("AZURE_SEARCH_ENDPOINT"),
             azure_search_key=os.getenv("AZURE_SEARCH_ADMIN_KEY"),
-            index_name="bc-water-index",  # Create if doesn't exist
+            index_name=os.getenv("AZURE_SEARCH_INDEX_NAME", "bc-water-index"),  # Create if doesn't exist
             embedding_function=get_embeddings().embed_query,
             search_type="hybrid",  # Enables vector + keyword
         )
     return _vector_store
 
 
-def verify_indexing(index_name="bc-water-index", wait_seconds=3):
+def verify_indexing(index_name=os.getenv("AZURE_SEARCH_INDEX_NAME", "bc-water-index"), wait_seconds=3):
     """
     Verify that documents have been successfully indexed.
     
