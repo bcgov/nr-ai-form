@@ -55,6 +55,19 @@ async def start_indexing():
     web_crawler.start_indexing()
     return {"message": "Indexing started"}
 
+@app.get("/indexer/test")
+async def test_index_single_file():
+    """Test endpoint to index the BCeID file specifically"""
+    try:
+        result = web_crawler.index_single_file(
+            blob_name="BCeIDTypesofBCeID.pdf",
+            file_url="https://cssaidevhub27077213787.blob.core.windows.net/source-docs-posse/BCeIDTypesofBCeID.pdf"
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error in test indexing: {e}", exc_info=True)
+        return {"error": str(e), "status": "failed"}
+
 app.include_router(api_router, prefix="/api")
 
 if __name__ == "__main__":
