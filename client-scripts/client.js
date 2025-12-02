@@ -10,14 +10,24 @@ if (clientInstance === 'ms') {
     script.src = url;
     document.head.appendChild(script);
 }
-
 else if (clientInstance === 'aot') {
     var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
     var script = document.createElement("script");
     script.src = url;
     document.head.appendChild(script);
 }
-
+else if (clientInstance === 'aot-ks') {
+    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
+    var script = document.createElement("script");
+    script.src = url;
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-aj') {
+    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
+    var script = document.createElement("script");
+    script.src = url;
+    document.head.appendChild(script);
+}    
 else if (clientInstance === 'css') {
     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
     var script = document.createElement("script");
@@ -31,12 +41,10 @@ else {
 
         // Configuration
         const env = 'dev'; // (use `dev` for Posse)
-        const mockResponse = true;
         const apiUrl = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/api/chat'
+        // const apiUrl = "http://127.0.0.1:8000/api/chat"
         const cacheExpire = 3600000;  // 1 hour in milliseconds
-        const mapping = window.formSchemaMappings.find(s => {
-            return (env === 'dev') ? s.name === 'waterFormSchema' : s.name === 'sampleFormSchema';
-        }).schema;
+        const mapping = window.formSchemaMappings.find(s => s.name === 'waterFormSchema').schema;
 
         // let sessionId = null;
         let chatModal = null;
@@ -187,23 +195,44 @@ else {
                 user_message: message,
                 ...fieldData,
             };
-            console.log('api request:', body);
+            user_message: message,
+                console.log('api request:', body);
 
             // make api call
             try {
                 let data;
-                // const response = (env === 'dev') ?
-                const response = (!mockResponse || env === 'dev') ?
-                    await fetch(apiUrl, {
+                let response;
+
+                // if mocking response
+                console.log('message:', message);
+                if (message === 'Help me fill out this form') {
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    response = await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse1 });
+                }
+                else if (message === 'Help me provide purpose and quantities') {
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    response = await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse2 });
+                }
+                else if (message === 'My property ID is 98798798') {
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    response = await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse3 });
+                }
+                else if (message === 'yes') {
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    response = await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse4 });
+                }
+                // else call API (don't mock)
+                else {
+                    response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(body)
-                    }) :
-                    // if mocking response locally
-                    await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse });
+                    });
+
+                }
 
                 if (!response.ok) {
                     displayMessage('assistant', 'No response received from AI service. Please try again later.');
@@ -293,13 +322,21 @@ else {
             const fieldId = field['data_id'];
             const fieldValue = field['fieldValue'];
 
-            // find the form field(s) in the DOM (as array)
-            let formFields;
-            if (document.querySelectorAll(`[data-id="${fieldId}"]`)?.length > 0) {
-                formFields = document.querySelectorAll(`[data-id="${fieldId}"]`);
+            // find the form field(s) in the DOM (as array or NodeList)
+            let formFields = [];
+            // Try data-id first, then name (radio groups often use name), then id
+            const byDataId = document.querySelectorAll(`[data-id="${fieldId}"]`);
+            if (byDataId && byDataId.length > 0) {
+                formFields = byDataId;
+            } else {
+                const byName = document.getElementsByName(fieldId);
+                if (byName && byName.length > 0) {
+                    formFields = byName;
+                } else {
+                    const byId = document.getElementById(fieldId);
+                    if (byId) formFields = [byId];
+                }
             }
-            else if (document.getElementById(fieldId)) formFields = [document.getElementById(fieldId)];
-            else formFields = document.getElementsByName(fieldId);
             console.log('populating field:', fieldId);
 
             // update value
@@ -328,8 +365,10 @@ else {
                         Array.from(formFields[0].options).forEach(option => {
                             option.selected = fieldValue.includes(option.value);
                         });
-                    } else {
+                    } else if (Array.isArray(fieldValue)) {
                         formFields[0].value = fieldValue[0];
+                    } else if (typeof fieldValue === "string") {
+                        formFields[0].value = fieldValue;
                     }
                     // trigger onChange event.. to reload page in posse
                     formFields[0].dispatchEvent(new Event('change'));
@@ -384,7 +423,7 @@ else {
             let fieldsArr = [];
             formsDataFromStorage.forEach(form => {
                 // only get fields from forms with specific formAction's 
-                if (form.formAction.includes('PosseObjectId') || form.formAction.includes('PosseFromObjectId')) {
+                if ((form.formAction.includes('PosseObjectId') || form.formAction.includes('PosseFromObjectId')) || env === 'local') {
                     form.fields.forEach(field => {
                         // because field name/id can change, do partial match (until we only use data-id attribute)
                         const f = mapping[field.data_id] || getPartialMatchFromMapping(mapping, field.data_id) || {};
@@ -462,10 +501,7 @@ else {
             if (env === 'dev') {
                 titleSpan = document.querySelector('td.title div#cphTitleBand_pnlTitleBand span.title');
                 validTitleText = 'Water Licence Application';
-            } else {
-                titleSpan = document.querySelector('.page-title');
-                validTitleText = 'Sample Form';
-            }
+            } else return true
             return titleSpan && titleSpan.textContent.includes(validTitleText);
         }
 
@@ -1177,6 +1213,7 @@ else {
         this.getPosition = PossePwPosition;
         this.openPopup = PossePwOpen;
     }
+
 
 }
 
