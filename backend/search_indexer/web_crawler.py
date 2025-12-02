@@ -98,13 +98,6 @@ def get_vector_store():
         )
     return _vector_store
 
-# For backward compatibility
-def vector_store():
-    return get_vector_store()
-
-def embeddings():
-    return get_embeddings()
-
 
 def verify_indexing(index_name="bc-water-index", wait_seconds=3):
     """
@@ -515,3 +508,113 @@ def start_indexing():
             exc_info=True,
         )
         return {"error": f"Indexing failed: {str(e)}"}
+
+
+def index_single_file(blob_name: str, file_url: str = None):
+    """
+    Index a single file from blob storage
+    
+    Args:
+        blob_name: Name of the blob file (e.g., "BCeIDTypesofBCeID.pdf")
+        file_url: Optional direct URL to the file
+        
+    Returns:
+        dict: Result of indexing operation
+    """
+    try:
+        logger.info("Starting single file indexing", blob_name=blob_name, file_url=file_url)
+        
+        # Get the blob data
+        blob_client = container_client.get_blob_client(blob_name)
+        blob_data = blob_client.download_blob().readall()
+        
+        logger.info("Successfully downloaded blob", blob_name=blob_name, size_bytes=len(blob_data))
+        
+        # Process with Document Intelligence
+        logger.info("Processing document with Document Intelligence", blob_name=blob_name)
+        document = process_document_with_intelligence(blob_name, blob_data)
+        
+        if not document:
+            error_msg = f"Failed to process document: {blob_name}"
+            logger.error(error_msg)
+            return {
+                "status": "failed",
+                "error": error_msg,
+                "blob_name": blob_name
+            }
+        
+        logger.info("Successfully processed document", blob_name=blob_name, content_length=len(document.page_content))
+        
+        # Split into chunks
+        logger.info("Starting text splitting")
+        splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=50)
+        chunks = splitter.split_documents([document])
+        logger.info("Text splitting completed", total_chunks=len(chunks))
+        
+        # Index chunks
+        logger.info("Starting vector store indexing")
+        vector_store = get_vector_store()
+        
+        # Use batch processing for reliability
+        indexing_result = add_documents_in_batches(
+            vector_store=vector_store,
+            chunks=chunks,
+            batch_size=10,
+            max_retries=3
+        )
+        
+        logger.info("Vector store indexing completed", indexing_result=indexing_result)
+        
+        # Verify by searching
+        logger.info("Verifying indexing by searching")
+        search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
+        search_key = os.getenv("AZURE_SEARCH_KEY") or os.getenv("AZURE_SEARCH_ADMIN_KEY")
+        search_index_name = os.getenv("AZURE_SEARCH_INDEX_NAME", "bc-water-index")
+        
+        search_client = SearchClient(
+            endpoint=search_endpoint,
+            index_name=search_index_name,
+            credential=AzureKeyCredential(search_key)
+        )
+        
+        # Search for BCeID to verify
+        results = search_client.search("BCeID", top=3)
+        found_results = list(results)
+        
+        return {
+            "status": "success",
+            "blob_name": blob_name,
+            "file_url": file_url,
+            "document_processed": True,
+            "content_length": len(document.page_content),
+            "chunks_created": len(chunks),
+            "indexing_result": indexing_result,
+            "verification": {
+                "search_query": "BCeID",
+                "results_found": len(found_results),
+                "sample_results": [
+                    {
+                        "title": r.get("title", "N/A"),
+                        "score": r.get("@search.score", 0)
+                    }
+                    for r in found_results[:3]
+                ]
+            }
+        }
+        
+    except Exception as e:
+        logger.error(
+            "Error indexing single file",
+            blob_name=blob_name,
+            error=str(e),
+            error_type=type(e).__name__,
+            full_traceback=traceback.format_exc(),
+            exc_info=True
+        )
+        return {
+            "status": "failed",
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "blob_name": blob_name
+        }
+
