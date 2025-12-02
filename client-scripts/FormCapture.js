@@ -293,15 +293,6 @@ const FormCapture = {
       // Mask password values if configured to capture but not show actual value
       if (fieldType === 'password') fieldValue = '••••••••';
     }
-    
-    console.log('captureField > field: ', {
-      data_id,
-      fieldType,
-      is_required,
-      fieldValue,
-      fieldLabel,
-      options
-    });
 
     return {
       data_id,

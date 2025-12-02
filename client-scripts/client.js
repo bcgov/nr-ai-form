@@ -27,7 +27,7 @@ else if (clientInstance === 'aot-aj') {
     var script = document.createElement("script");
     script.src = url;
     document.head.appendChild(script);
-}    
+}
 else if (clientInstance === 'css') {
     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
     var script = document.createElement("script");
@@ -180,6 +180,15 @@ else {
 
         }
 
+        function hasMockResponse(userMessage) {
+            mocks = {
+                "Whats a BCEID and Why should I use it": "A BCeID (British Columbia electronic ID) is a free, secure online authentication service that provides individuals, businesses, and organizations with a single user ID and password to securely access numerous online services offered by the BC government. It simplifies the login process and enhances security for users accessing government services online like Water Permit Applications.",
+                "I dont have a BCeID account, Can I still apply for Water Permit?": "Yes, you can still apply for a Water Permit without a BCeID account. Click on Apply without BCeID. However, having a BCeID account provides a more secure and streamlined experience when accessing government services online. It is recommended to create a BCeID account to take advantage of these benefits.",
+                "What is North Coast Transmission Line?": "For the purposes of this POC we would answer No to all questions. But, The North Coast Transmission Line (NCTL) is a major electrical transmission project in British Columbia, Canada. It involves the construction of a high-voltage transmission line that spans approximately 335 kilometers, connecting the Northwest Transmission Line near Terrace to the existing transmission system near Prince Rupert. The NCTL is designed to enhance the reliability and capacity of the electrical grid in the region, supporting economic development and providing a stable power supply to communities along the north coast.",
+            };
+            return mocks[userMessage];
+        }
+
         /**
          * Send a payload to the NR Form API and return the parsed response.
          * For local/demo mode this currently resolves to a sample response instead
@@ -195,34 +204,32 @@ else {
                 user_message: message,
                 ...fieldData,
             };
-            user_message: message,
-                console.log('api request:', body);
 
             // make api call
             try {
                 let data;
                 let response;
-
                 // if mocking response
-                console.log('message:', message);
-                if (message === 'Help me fill out this form') {
+                if (hasMockResponse(message)) {
+                    console.log('mocking api response');
                     await new Promise(resolve => setTimeout(resolve, 3000));
-                    response = await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse1 });
-                }
-                else if (message === 'Help me provide purpose and quantities') {
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    response = await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse2 });
-                }
-                else if (message === 'My property ID is 98798798') {
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    response = await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse3 });
-                }
-                else if (message === 'yes') {
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    response = await Promise.resolve({ ok: true, status: 200, json: async () => window.localSampleResponse4 });
+                    response = await Promise.resolve({
+                        ok: true,
+                        status: 200,
+                        json: async () => {
+                            return {
+                                filled_fields: [],
+                                current_field: [],
+                                missing_fields: [],
+                                ...fieldData,
+                                response_message: hasMockResponse(message)
+                            }
+                        }
+                    });
                 }
                 // else call API (don't mock)
                 else {
+                    console.log('api request:', body);
                     response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: {
