@@ -28,8 +28,20 @@ from azure.ai.documentintelligence.models import (
 )
 from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
+from azure.search.documents import SearchClient
+from azure.search.documents.indexes import SearchIndexClient
+from azure.core.exceptions import HttpResponseError
 import traceback
+import time
+from typing import List
 from backend.core.logging import get_logger
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables from .env file in backend directory
+backend_dir = Path(__file__).parent.parent
+env_file = backend_dir / ".env"
+load_dotenv(dotenv_path=env_file)
 
 # Initialize structured logger
 logger = get_logger(__name__)
@@ -94,25 +106,266 @@ def embeddings():
     return get_embeddings()
 
 
+def verify_indexing(index_name="bc-water-index", wait_seconds=3):
+    """
+    Verify that documents have been successfully indexed.
+    
+    Args:
+        index_name: Name of the search index
+        wait_seconds: Seconds to wait for indexing to complete
+        
+    Returns:
+        Dictionary with verification results
+    """
+    try:
+        # Wait for indexing to complete
+        logger.info(f"Waiting {wait_seconds} seconds for indexing to complete...")
+        time.sleep(wait_seconds)
+        
+        search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
+        search_key = os.getenv("AZURE_SEARCH_KEY") or os.getenv("AZURE_SEARCH_ADMIN_KEY")
+        
+        if not search_endpoint or not search_key:
+            logger.error("Missing Azure Search credentials for verification")
+            return {
+                "success": False,
+                "error": "Missing Azure Search credentials"
+            }
+        
+        credential = AzureKeyCredential(search_key)
+        
+        # Get index statistics
+        logger.info("Fetching index statistics")
+        index_client = SearchIndexClient(endpoint=search_endpoint, credential=credential)
+        stats = index_client.get_index_statistics(index_name)
+        
+        # Handle both dict and object responses
+        if isinstance(stats, dict):
+            document_count = stats.get('document_count', 0)
+            storage_size = stats.get('storage_size', 0)
+        else:
+            document_count = getattr(stats, 'document_count', 0)
+            storage_size = getattr(stats, 'storage_size', 0)
+        
+        logger.info(
+            "Index statistics retrieved",
+            document_count=document_count,
+            storage_size=storage_size
+        )
+        
+        # Search for sample documents
+        logger.info("Searching for sample documents")
+        search_client = SearchClient(
+            endpoint=search_endpoint,
+            index_name=index_name,
+            credential=credential
+        )
+        
+        # Search for all documents
+        results = list(search_client.search(search_text="*", top=5))
+        
+        logger.info(
+            "Sample documents retrieved",
+            sample_count=len(results)
+        )
+        
+        # Log sample document previews
+        for i, result in enumerate(results, 1):
+            content_preview = str(result.get('content', ''))[:100]
+            logger.debug(
+                f"Sample document {i}",
+                content_preview=content_preview
+            )
+        
+        verification_result = {
+            "success": True,
+            "document_count": document_count,
+            "storage_size": storage_size,
+            "sample_documents_found": len(results),
+            "has_documents": document_count > 0
+        }
+        
+        if document_count > 0:
+            logger.info(
+                "✅ Indexing verification successful",
+                **verification_result
+            )
+        else:
+            logger.warning("⚠️  No documents found in index")
+        
+        return verification_result
+        
+    except Exception as e:
+        logger.error(
+            "Error during indexing verification",
+            error=str(e),
+            error_type=type(e).__name__,
+            exc_info=True
+        )
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": type(e).__name__
+        }
+
+
+def add_documents_in_batches(vector_store, chunks: List[Document], batch_size: int = 10, max_retries: int = 3):
+    """
+    Add documents to vector store in smaller batches with retry logic.
+    
+    Args:
+        vector_store: The Azure Search vector store
+        chunks: List of document chunks to index
+        batch_size: Number of documents per batch (default: 10)
+        max_retries: Maximum number of retry attempts per batch (default: 3)
+        
+    Returns:
+        Dictionary with indexing results
+    """
+    total_chunks = len(chunks)
+    successful = 0
+    failed = 0
+    failed_batches = []
+    
+    logger.info(
+        "Starting batch indexing",
+        total_chunks=total_chunks,
+        batch_size=batch_size
+    )
+    
+    # Process chunks in batches
+    for i in range(0, total_chunks, batch_size):
+        batch = chunks[i:i + batch_size]
+        batch_num = (i // batch_size) + 1
+        total_batches = (total_chunks + batch_size - 1) // batch_size
+        
+        logger.info(
+            f"Processing batch {batch_num}/{total_batches}",
+            batch_start=i,
+            batch_end=min(i + batch_size, total_chunks)
+        )
+        
+        # Retry logic for each batch
+        for attempt in range(max_retries):
+            try:
+                vector_store.add_documents(batch)
+                successful += len(batch)
+                logger.info(
+                    f"✅ Batch {batch_num} indexed successfully",
+                    documents_in_batch=len(batch),
+                    attempt=attempt + 1
+                )
+                break  # Success, move to next batch
+                
+            except HttpResponseError as e:
+                if "Bad Gateway" in str(e) or "502" in str(e):
+                    if attempt < max_retries - 1:
+                        wait_time = (attempt + 1) * 2  # Exponential backoff: 2s, 4s, 6s
+                        logger.warning(
+                            f"Bad Gateway error on batch {batch_num}, retrying...",
+                            attempt=attempt + 1,
+                            max_retries=max_retries,
+                            wait_seconds=wait_time
+                        )
+                        time.sleep(wait_time)
+                    else:
+                        failed += len(batch)
+                        failed_batches.append(batch_num)
+                        logger.error(
+                            f"❌ Batch {batch_num} failed after {max_retries} attempts",
+                            error=str(e),
+                            documents_in_batch=len(batch)
+                        )
+                else:
+                    # Different error, don't retry
+                    failed += len(batch)
+                    failed_batches.append(batch_num)
+                    logger.error(
+                        f"❌ Batch {batch_num} failed with non-retryable error",
+                        error=str(e),
+                        error_type=type(e).__name__,
+                        documents_in_batch=len(batch)
+                    )
+                    break
+                    
+            except Exception as e:
+                failed += len(batch)
+                failed_batches.append(batch_num)
+                logger.error(
+                    f"❌ Batch {batch_num} failed with unexpected error",
+                    error=str(e),
+                    error_type=type(e).__name__,
+                    documents_in_batch=len(batch),
+                    exc_info=True
+                )
+                break
+        
+        # Small delay between batches to avoid overwhelming the service
+        if i + batch_size < total_chunks:
+            time.sleep(0.5)
+    
+    result = {
+        "total_chunks": total_chunks,
+        "successful": successful,
+        "failed": failed,
+        "failed_batches": failed_batches,
+        "success_rate": (successful / total_chunks * 100) if total_chunks > 0 else 0
+    }
+    
+    logger.info(
+        "Batch indexing completed",
+        **result
+    )
+    
+    return result
+
+
 def process_document_with_intelligence(blob_name, blob_data):
     """
-    Process a document using Azure Document Intelligence
+    Process a document using Azure Document Intelligence.
+    
+    Sends the document bytes directly to Document Intelligence (not via URL)
+    to avoid issues with private blob storage endpoints.
+    
     Returns a Document object with the extracted content
     """
     try:
-        # Create the request with the blob data
+        logger.info(
+            "Processing document with Document Intelligence",
+            blob_name=blob_name,
+            file_size=len(blob_data)
+        )
+        
+        # Create the request with the blob data bytes
+        # This sends the document content directly, avoiding blob URL access issues
         analyze_request = AnalyzeDocumentRequest(bytes_source=blob_data)
 
         # Use the prebuilt-read model for general document reading
+        # For tables and forms, consider using "prebuilt-layout"
         poller = document_intelligence_client.begin_analyze_document(
             "prebuilt-read",
             analyze_request,
             output_content_format=DocumentContentFormat.MARKDOWN,
         )
+        
+        # Wait for the analysis to complete
         result = poller.result()
 
         # Extract the content
         content = result.content if result.content else ""
+        
+        if not content:
+            logger.warning(
+                "Document Intelligence returned empty content",
+                blob_name=blob_name
+            )
+            return None
+
+        logger.info(
+            "Successfully processed document",
+            blob_name=blob_name,
+            content_length=len(content)
+        )
 
         # Create a Document object
         return Document(
@@ -120,11 +373,40 @@ def process_document_with_intelligence(blob_name, blob_data):
             metadata={
                 "source": blob_name,
                 "processed_with": "azure_document_intelligence",
+                "file_size": len(blob_data),
             },
         )
+        
+    except HttpResponseError as e:
+        # Handle specific HTTP errors
+        if "403" in str(e) or "Forbidden" in str(e):
+            logger.error(
+                "Document Intelligence access forbidden - check endpoint configuration",
+                blob_name=blob_name,
+                error=str(e),
+                suggestion="Verify AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT and KEY are correct"
+            )
+        elif "401" in str(e) or "Unauthorized" in str(e):
+            logger.error(
+                "Document Intelligence authentication failed",
+                blob_name=blob_name,
+                error=str(e),
+                suggestion="Check AZURE_DOCUMENT_INTELLIGENCE_KEY is valid"
+            )
+        else:
+            logger.error(
+                "Document Intelligence HTTP error",
+                blob_name=blob_name,
+                error=str(e),
+                status_code=getattr(e, 'status_code', 'unknown'),
+                error_type=type(e).__name__,
+                exc_info=True,
+            )
+        return None
+        
     except Exception as e:
         logger.error(
-            "Error processing document with Document Intelligence",
+            "Unexpected error processing document with Document Intelligence",
             blob_name=blob_name,
             error=str(e),
             error_type=type(e).__name__,
@@ -198,12 +480,31 @@ def start_indexing():
         chunks = splitter.split_documents(docs)
         logger.info("Text splitting completed", total_chunks=len(chunks))
 
-        # Index
-        logger.info("Starting vector store indexing")
-        vector_store.add_documents(chunks)
-        logger.info("Vector store indexing completed successfully")
+        # Index with batch processing and retry logic
+        logger.info("Starting vector store indexing with batch processing")
+        vector_store = get_vector_store()
+        
+        # Use smaller batches to avoid Bad Gateway errors
+        indexing_result = add_documents_in_batches(
+            vector_store=vector_store,
+            chunks=chunks,
+            batch_size=10,  # Process 10 documents at a time
+            max_retries=3    # Retry up to 3 times per batch
+        )
+        
+        logger.info("Vector store indexing completed")
 
-        return {"message": "Indexing completed successfully"}
+        # Verify indexing
+        logger.info("Starting indexing verification")
+        verification_result = verify_indexing()
+        
+        return {
+            "message": "Indexing completed successfully",
+            "documents_processed": len(docs),
+            "chunks_created": len(chunks),
+            "indexing_result": indexing_result,
+            "verification": verification_result
+        }
 
     except Exception as e:
         logger.error(
