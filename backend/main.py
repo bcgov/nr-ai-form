@@ -33,7 +33,7 @@ app = FastAPI(
         "An agentic AI API built with FastAPI, LangGraph, and LangChain. "
         "Features intelligent form filling and multi-agent workflows."
     ),
-    version="0.1.0"
+    version="0.1.1"
 )
 
 # Log app init once
