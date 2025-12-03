@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     
     # Project settings
     PROJECT_NAME: str = "AI Agent API"
-    PROJECT_VERSION: str = "0.1.0"
+    PROJECT_VERSION: str = "0.1.1"
     
     # Server settings
     HOST: str = "0.0.0.0"
