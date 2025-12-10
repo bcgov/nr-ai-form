@@ -160,3 +160,4 @@ dmypy.json
 *.pyd
 .ipynb_checkpoints/
 uv.lock
+docs/*
