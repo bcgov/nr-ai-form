@@ -19,9 +19,33 @@ variable "app_name" {
 }
 
 variable "app_service_sku_name_api" {
-  description = "SKU name for the API App Service Plan"
+  description = "SKU name for the API App Service Plan (deprecated - use Container Apps)"
   type        = string
   default     = "B1" # Basic tier 
+}
+
+variable "container_cpu" {
+  description = "CPU allocation for backend container app (in cores)"
+  type        = number
+  default     = 0.5
+}
+
+variable "container_memory" {
+  description = "Memory allocation for backend container app"
+  type        = string
+  default     = "1Gi"
+}
+
+variable "min_replicas" {
+  description = "Minimum number of replicas for backend container app"
+  type        = number
+  default     = 0 # Allow scale to zero for cost optimization
+}
+
+variable "max_replicas" {
+  description = "Maximum number of replicas for backend container app"
+  type        = number
+  default     = 10
 }
 
 variable "client_id" {
@@ -112,6 +136,12 @@ variable "dev_private_endpoint_subnet_id" {
 
 variable "dev_app_service_subnet_id" {
   description = "The subnet ID for app service in dev environment"
+  type        = string
+  default     = ""
+}
+
+variable "dev_container_apps_subnet_id" {
+  description = "The subnet ID for container apps in dev environment"
   type        = string
   default     = ""
 }

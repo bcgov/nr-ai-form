@@ -66,39 +66,35 @@ module "cosmos" {
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
-module "api" {
-  source = "./modules/api"
+module "container_apps" {
+  source = "./modules/container-apps"
 
   app_name            = var.app_name
   app_env             = var.app_env
-  repo_name           = var.repo_name
-  api_image           = var.api_image
+  backend_image       = var.api_image
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   common_tags         = var.common_tags
 
   # Networking
-  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.private_endpoint_subnet_id
-  app_service_subnet_id      = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.app_service_subnet_id
+  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
+  container_apps_subnet_id   = var.app_env == "dev" ? var.dev_container_apps_subnet_id : module.network.container_apps_subnet_id
 
-  # App Service
-  app_service_sku_name_api = var.app_service_sku_name_api
+  # Container Configuration
+  container_cpu    = var.container_cpu
+  container_memory = var.container_memory
+  min_replicas     = var.min_replicas
+  max_replicas     = var.max_replicas
 
   # CosmosDB
   cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
   cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
   cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
 
-
   # Monitoring
   log_analytics_workspace_id      = module.monitoring.log_analytics_workspace_id
   appinsights_instrumentation_key = module.monitoring.appinsights_instrumentation_key
   appinsights_connection_string   = module.monitoring.appinsights_connection_string
-
-  # Frontdoor
-  api_frontdoor_id                 = module.frontdoor.frontdoor_id
-  api_frontdoor_resource_guid      = module.frontdoor.frontdoor_resource_guid
-  api_frontdoor_firewall_policy_id = module.frontdoor.firewall_policy_id
 
   # Azure OpenAI
   azure_openai_api_key         = var.azure_openai_api_key
@@ -120,19 +116,19 @@ module "api" {
   azure_storage_account_key    = var.azure_storage_account_key
   azure_storage_container_name = var.azure_storage_container_name
 
-  depends_on = [module.frontdoor]
+  depends_on = [module.frontdoor, module.cosmos, module.monitoring, module.network]
 }
 
 
 
 
 # due to circular dependency issues this resource is created at root level
-// Assign the App Service's managed identity to the Cosmos DB SQL Database with Data Contributor role
+// Assign the Container App's managed identity to the Cosmos DB SQL Database with Data Contributor role
 
-resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_app_service_data_contributor" {
+resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_container_app_data_contributor" {
   resource_group_name = var.resource_group_name
   account_name        = module.cosmos.account_name
   role_definition_id  = "${module.cosmos.account_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  principal_id        = module.api.api_managed_identity_principal_id
+  principal_id        = module.container_apps.backend_managed_identity_principal_id
   scope               = module.cosmos.account_id
 }
