@@ -1,0 +1,62 @@
+{
+    "formname": "Water Licence Application (100483876)",
+    "stepnumber": "2",
+    "title": "Step 2 - Eligibility",
+    "properties": [
+        {
+            "id": "eligibleForWaterLicence",
+            "type": "string",
+            "title": "Are you eligible to apply for a water licence?",
+            "description": "Select Yes if you answer yes to ANY of the listed eligibility conditions. Eligible if you or your organization in British Columbia: the owner, entitled possessor, or having a substantial interest in land, a mine, or an undertaking where the water will be used; a holder of a certificate of public convenience and necessity; a municipality, regional district, improvement or development district, or water users' community; representing the government of BC or Canada, a commission/board managing Crown land or related undertakings, the Greater Vancouver Water District or any incorporated water district, or BC Hydro; or applying as an agent on behalf of any eligible applicant listed",
+            "SuggestedValues": [
+                "Yes",
+                "No"
+            ],
+            "required": "true"
+        },
+        {
+            "id": "issupplyofhousingunitsrelated",
+            "type": "string",
+            "title": "Is this application in relation to increasing the supply of housing units within British Columbia?",
+            "description": "A housing-related project must increase the number of housing units on the land/property.",
+            "SuggestedValues": [
+                "Yes",
+                "No"
+            ],
+            "required": "true"
+        },
+        {
+            "id": "isNorthCoastTransmissionLine",
+            "type": "string",
+            "title": "Is this application related to the North Coast Transmission Line?",
+            "description": "For PILOT release, applications related to the North Coast Transmission Line cannot be supported using AI Assistant.",
+            "SuggestedValues": [
+                "Yes",
+                "No"
+            ],
+            "required": "true"
+        },
+        {
+            "id": "isBCHydroSustainmentProject",
+            "type": "string",
+            "title": "Is this application related to a BC Hydro Sustainment Project?",
+            "description": "For PILOT release, applications related to a BC Hydro Sustainment Project cannot be supported using AI Assistant.",
+            "SuggestedValues": [
+                "Yes",
+                "No"
+            ],
+            "required": "true"
+        },
+        {
+            "id": "isCleanEnergyProject2024Onward",
+            "type": "string",
+            "title": "Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024–present?",
+            "description": "For PILOT release, applications related to a clean energy project that received a new Energy Purchase Agreement cannot be supported using AI Assistant.",
+            "SuggestedValues": [
+                "Yes",
+                "No"
+            ],
+            "required": "true"
+        }
+    ]
+}
