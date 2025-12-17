@@ -1,0 +1,50 @@
+import sys
+import os
+from dotenv import load_dotenv
+import asyncio
+from agent_framework.azure import AzureOpenAIChatClient
+
+
+from tools.azure_ai_search import azure_ai_search
+
+
+load_dotenv()
+
+
+class ConversationAgent:
+    
+    def __init__(self,endpoint, api_key):        
+        self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key).create_agent(
+            instructions=f"""
+                You are an assistant for BC Government's Water Permit Application. Use the azure_ai_search tool to answer user queries.                
+                Strict: Please do not return any other text other than the search results from the azure_ai_search tool.
+            """,
+            tools=azure_ai_search,
+            name="ConversationAgent"
+        ) 
+
+
+
+    async def run(self, userquery):
+        
+        result = await self.agent.run(userquery)
+        return result.text
+
+
+
+
+async def dryrun(query):
+    endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
+    api_key = os.environ["AZURE_OPENAI_API_KEY"]
+    model =  os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+    agent = ConversationAgent(endpoint,api_key)
+  
+    print("User Query is {0}".format(query))
+    result = await agent.run(query)
+    print(result)
+    
+
+if __name__ == "__main__":
+    query = sys.argv[-1]
+    asyncio.run(dryrun(query))    
+
