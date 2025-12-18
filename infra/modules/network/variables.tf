@@ -5,13 +5,6 @@ variable "apps_service_subnet_name" {
   nullable    = false
 }
 
-variable "container_apps_subnet_name" {
-  description = "Name of the subnet for Container Apps"
-  type        = string
-  default     = "container-apps-subnet"
-  nullable    = false
-}
-
 variable "deploy_network" {
   description = "Flag to control whether to deploy network resources. Set to false for dev environment."
   type        = bool
