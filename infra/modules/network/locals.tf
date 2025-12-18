@@ -6,5 +6,5 @@ locals {
   base_ip                       = "${local.octets[0]}.${local.octets[1]}.${local.octets[2]}"
   app_service_subnet_cidr       = "${local.base_ip}.0/27"
   private_endpoints_subnet_cidr = "${local.base_ip}.32/28"
-  container_apps_subnet_cidr    = "${local.base_ip}.48/28"  # Added for Container Apps Environment
+  container_apps_subnet_cidr    = "${local.base_ip}.32/28"  # Reuse private_endpoints_subnet_cidr
 }
