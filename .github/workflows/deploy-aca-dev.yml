@@ -1,0 +1,65 @@
+name: Deploy ACA to Dev
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  builds:
+    concurrency:
+      group: builds-aca-${{ github.event.number || 'latest' }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/.builds.yml
+    with:
+      tags: |
+        latest
+        dev-aca
+  
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - uses: actions/cache@v4
+        name: Cache plugin dir
+        with:
+          path: ~/.tflint.d/plugins
+          key: ubuntu-tflint-${{ hashFiles('.tflint.hcl') }}
+      
+      - uses: terraform-linters/setup-tflint@v4
+        name: Setup TFLint
+        with:
+          tflint_version: v0.52.0
+      
+      - name: Show version
+        run: tflint --version
+
+      - name: Init TFLint
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
+        run: tflint -f compact
+
+  deploy-aca-dev: 
+    name: Deploy Azure Container Apps to Dev
+    needs: builds
+    if: github.event_name == 'workflow_dispatch'    
+    concurrency:
+      group: deploy-aca-dev-${{ github.event.number || 'latest' }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/.deploy_aca_stack.yml
+    with:
+      command: apply
+      tag: dev-aca
+      app_env: dev
+      environment_name: dev
+      deployment_type: container_apps
+    secrets: inherit
