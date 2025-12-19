@@ -262,13 +262,11 @@ resource "azurerm_container_app" "backend" {
       latest_revision = true
     }
 
-    # IP restrictions to allow only Front Door traffic
-    ip_security_restriction {
-      name             = "AllowFrontDoor"
-      action           = "Allow"
-      ip_address_range = "AzureFrontDoor.Backend"
-      description      = "Allow traffic from Azure Front Door"
-    }
+    # Note: Container Apps doesn't support service tags like "AzureFrontDoor.Backend"
+    # Security is enforced through:
+    # 1. Internal-only ingress (external_enabled = false)
+    # 2. VNet integration
+    # 3. Front Door as the only entry point
   }
 
   tags = merge(var.common_tags, {
