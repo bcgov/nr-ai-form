@@ -1,28 +1,33 @@
-name: Deploy ACA to Dev (Not Supported)
+name: Deploy ACA to Dev
 
 on:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
 jobs:
-  error:
-    name: Container Apps Not Supported in Dev
+  builds:
+    concurrency:
+      group: builds-aca-${{ github.event.number || 'latest' }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/.builds.yml
+    with:
+      tags: |
+        latest
+        dev-aca
+  
+  lint:
+    name: Lint
     runs-on: ubuntu-24.04
     steps:
-      - name: Show Error Message
-        run: |
-          echo "❌ ERROR: Container Apps deployment is not supported in dev environment"
-          echo ""
-          echo "📋 Reason:"
-          echo "  Container Apps requires a dedicated subnet with delegation to Microsoft.App/environments"
-          echo "  Dev environment uses existing networking with pre-allocated subnets"
-          echo "  These subnets are already in use and cannot be shared with Container Apps"
-          echo ""
-          echo "✅ Solutions:"
-          echo "  1. Use 'Deploy to Dev' workflow for App Service deployment"
-          echo "  2. Test Container Apps in test/prod environments using 'Deploy ACA to Test' workflow"
-          echo ""
-          echo "📚 Documentation: docs/CONTAINER_APPS_NETWORKING.md"
-          exit 1
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - uses: actions/cache@v4
+        name: Cache plugin dir
         with:
           path: ~/.tflint.d/plugins
           key: ubuntu-tflint-${{ hashFiles('.tflint.hcl') }}

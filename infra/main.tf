@@ -1,7 +1,6 @@
 # -------------
 # Root Level Terraform Configuration
 # -------------
-
 # Create the main resource group for all application resources
 resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name
@@ -126,10 +125,8 @@ module "api" {
   depends_on = [module.frontdoor]
 }
 
-# Container Apps Module - Only for test/prod environments
-# Dev environment doesn't have dedicated Container Apps subnet
 module "container_apps" {
-  count  = var.deployment_type == "container_apps" && var.app_env != "dev" ? 1 : 0
+  count  = var.deployment_type == "container_apps" ? 1 : 0
   source = "./modules/container-apps"
 
   app_name            = var.app_name
@@ -201,7 +198,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_app_se
 
 # Assign the Container App's managed identity to the Cosmos DB SQL Database with Data Contributor role
 resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_container_app_data_contributor" {
-  count               = var.deployment_type == "container_apps" && var.app_env != "dev" ? 1 : 0
+  count               = var.deployment_type == "container_apps" ? 1 : 0
   resource_group_name = var.resource_group_name
   account_name        = module.cosmos.account_name
   role_definition_id  = "${module.cosmos.account_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
