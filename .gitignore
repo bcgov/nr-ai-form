@@ -110,10 +110,19 @@ __azurite_db*__.json
 # Terraform files
 *.tfstate
 *.tfstate.backup
+*.tfvars          # Never commit tfvars (contains secrets)
+*.tfvars.json     # Never commit tfvars JSON
 *.tfvars.backup
+!*.example.tfvars # Allow example tfvars as templates
 .terraform/
 .terraform.lock.hcl
 terraform.tfplan
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
 
 # Environment variables
 .env

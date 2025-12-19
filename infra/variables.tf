@@ -151,6 +151,12 @@ variable "dev_app_service_subnet_id" {
   default     = ""
 }
 
+variable "dev_container_apps_subnet_id" {
+  description = "The subnet ID for container apps in dev environment (must be dedicated and empty)"
+  type        = string
+  default     = ""
+}
+
 # Azure OpenAI Configuration
 variable "azure_openai_api_key" {
   description = "The API key for Azure OpenAI service. This will be passed as an environment variable to the backend application."
