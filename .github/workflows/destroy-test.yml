@@ -8,11 +8,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  stack-prefix:
+    name: Get Stack Prefix
+    uses: ./.github/workflows/.stack-prefix.yml
+    
   destroy-test:
+    name: Destroy Test Resources
+    needs: [stack-prefix]
     uses: ./.github/workflows/.deployer.yml
     with:
       environment_name: test
       command: destroy
-      stack_prefix: test-stack # Verify this matches your actual deployed stack prefix
-      app_env: test # Explicitly set app_env to match environment
+      stack_prefix: ${{ needs.stack-prefix.outputs.STACK_PREFIX }}
+      app_env: test
     secrets: inherit
