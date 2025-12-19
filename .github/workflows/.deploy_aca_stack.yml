@@ -1,0 +1,52 @@
+name: .Deploy ACA Stack
+
+on:
+  workflow_call:
+    inputs:
+      ### Required
+      environment_name:
+        description: 'The name of the environment to deploy to'
+        required: false
+        default: ''
+        type: string
+      command:
+        description: 'The terragrunt command to run'
+        required: true
+        default: 'apply'
+        type: string
+      tag:
+        description: 'The tag of the containers to deploy'
+        default: 'latest'
+        type: string
+        required: false
+      app_env:
+        required: false
+        type: string
+        description: 'The APP env separates between Azure ENV and Actual APP, since Azure dev is where PR, and TEST is deployed'
+      deployment_type:
+        required: false
+        type: string
+        default: 'container_apps'
+        description: 'The deployment type: container_apps or app_service'
+
+env:
+    AZURE_REGION: Canada Central
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: write # This is required for actions/checkout
+jobs:
+  stack-prefix:
+    name: Stack Prefix
+    uses: ./.github/workflows/.stack-prefix.yml
+  deploy:
+    name: Deploy ACA
+    needs: [stack-prefix]
+    uses: ./.github/workflows/.deployer_aca.yml
+    with:
+      environment_name: ${{ inputs.environment_name }}
+      command: ${{ inputs.command }}
+      stack_prefix: ${{ needs.stack-prefix.outputs.stack_prefix }}
+      app_env: ${{ inputs.app_env }}
+      tag: ${{ inputs.tag }}
+      deployment_type: ${{ inputs.deployment_type }}
+    secrets: inherit

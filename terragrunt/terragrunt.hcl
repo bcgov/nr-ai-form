@@ -9,6 +9,7 @@ locals {
   vnet_name                = get_env("vnet_name")                # Name of the existing VNet.
   target_env               = get_env("target_env")
   app_env                  = get_env("app_env") # Application environment (dev, test, prod).
+  deployment_type          = get_env("deployment_type", "app_service") # Deployment type (app_service or container_apps)
   azure_subscription_id    = get_env("azure_subscription_id")
   azure_tenant_id          = get_env("azure_tenant_id")
   azure_client_id          = get_env("azure_client_id")      # Azure service principal client ID.
@@ -66,6 +67,7 @@ generate "tfvars" {
 resource_group_name        = "${get_env("repo_name")}-${local.app_env}"
 app_name                  = "${local.stack_prefix}-${local.app_env}"
 app_env                   = "${local.app_env}"
+deployment_type           = "${local.deployment_type}"
 subscription_id           = "${local.azure_subscription_id}"
 tenant_id                 = "${local.azure_tenant_id}"
 client_id                 = "${local.azure_client_id}"

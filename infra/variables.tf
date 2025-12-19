@@ -2,6 +2,17 @@
 # Root Variables for Azure Infrastructure
 # -------------
 
+variable "deployment_type" {
+  description = "Type of deployment: 'app_service' or 'container_apps'"
+  type        = string
+  default     = "app_service"  # Default to App Service for backwards compatibility
+  
+  validation {
+    condition     = contains(["app_service", "container_apps"], var.deployment_type)
+    error_message = "deployment_type must be either 'app_service' or 'container_apps'"
+  }
+}
+
 variable "api_image" {
   description = "The image for the API container"
   type        = string
@@ -19,9 +30,33 @@ variable "app_name" {
 }
 
 variable "app_service_sku_name_api" {
-  description = "SKU name for the API App Service Plan"
+  description = "SKU name for the API App Service Plan (deprecated - use Container Apps)"
   type        = string
   default     = "B1" # Basic tier 
+}
+
+variable "container_cpu" {
+  description = "CPU allocation for backend container app (in cores)"
+  type        = number
+  default     = 0.5
+}
+
+variable "container_memory" {
+  description = "Memory allocation for backend container app"
+  type        = string
+  default     = "1Gi"
+}
+
+variable "min_replicas" {
+  description = "Minimum number of replicas for backend container app"
+  type        = number
+  default     = 0 # Allow scale to zero for cost optimization
+}
+
+variable "max_replicas" {
+  description = "Maximum number of replicas for backend container app"
+  type        = number
+  default     = 10
 }
 
 variable "client_id" {
