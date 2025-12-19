@@ -61,6 +61,38 @@ jobs:
       uses: autero1/action-terragrunt@aefb0a43c4f5503a91fefb307745c4d51c26ed0e # v3
       with:
         terragrunt-version: ${{ env.TG_VERSION }}
+    
+    - name: Pre-Migration State Cleanup
+      if: inputs.command == 'apply'
+      working-directory: terragrunt/${{ inputs.environment_name }}
+      env:
+          target_env: ${{ inputs.environment_name }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
+          vnet_name: ${{ vars.VNET_NAME }}
+          stack_prefix: ${{ inputs.stack_prefix }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          repo_name: ${{ github.event.repository.name }}
+          app_env: ${{ inputs.app_env }}
+          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
+      run: |
+        # Initialize Terragrunt to access state
+        echo "Initializing Terragrunt..."
+        terragrunt init -upgrade
+        
+        # Remove problematic resource directly from remote state using Terraform
+        echo "Checking remote state for problematic resource..."
+        if terragrunt state list 2>/dev/null | grep -q 'module.network.azapi_resource.container_apps_subnet'; then
+          echo "Found azapi_resource.container_apps_subnet - removing from remote state..."
+          # Use -lock=false to avoid lock conflicts
+          terragrunt state rm -lock=false 'module.network.azapi_resource.container_apps_subnet[0]' || true
+          echo "✅ Removed from state"
+        else
+          echo "ℹ️  Resource not found in state (may already be migrated)"
+        fi
+    
     - name: Image Tags
       id: image-tags
       shell: bash
@@ -86,9 +118,29 @@ jobs:
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
       run: |
         # Remove problematic azapi_resource from state if it exists
-        # This is needed due to migration from azapi_resource to azurerm_subnet
-        terragrunt state rm 'module.network.azapi_resource.container_apps_subnet[0]' || true
-        echo "State cleanup completed (if resource existed)"
+        echo "Checking for azapi_resource in state..."
+        if terragrunt state list | grep -q 'module.network.azapi_resource.container_apps_subnet'; then
+          echo "Found azapi_resource.container_apps_subnet - removing from state..."
+          terragrunt state rm 'module.network.azapi_resource.container_apps_subnet[0]' || true
+          
+          # Get the subnet ID and import to new resource
+          echo "Getting subnet ID from Azure..."
+          SUBNET_ID=$(az network vnet subnet show \
+            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
+            --vnet-name ${{ vars.VNET_NAME }} \
+            --name container-apps-subnet \
+            --query id -o tsv 2>/dev/null || echo "")
+          
+          if [ -n "$SUBNET_ID" ]; then
+            echo "Importing subnet to azurerm_subnet..."
+            terragrunt import 'module.network.azurerm_subnet.container_apps_subnet[0]' "$SUBNET_ID" || echo "Import skipped (may already exist)"
+          else
+            echo "Subnet not found in Azure - will be created by Terraform"
+          fi
+        else
+          echo "No azapi_resource found in state - skipping cleanup"
+        fi
+        echo "State migration completed"
     
     - name: Terragrunt ${{inputs.command}}
       working-directory: terragrunt/${{ inputs.environment_name }}
