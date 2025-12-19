@@ -1,0 +1,25 @@
+name: Destroy ACA Test Environment
+
+permissions:
+  contents: write
+  id-token: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stack-prefix:
+    name: Get Stack Prefix
+    uses: ./.github/workflows/.stack-prefix.yml
+    
+  destroy-aca-test:
+    name: Destroy ACA Test Resources
+    needs: [stack-prefix]
+    uses: ./.github/workflows/.deployer_aca.yml
+    with:
+      environment_name: test
+      command: destroy
+      stack_prefix: ${{ needs.stack-prefix.outputs.STACK_PREFIX }}
+      app_env: test
+      deployment_type: container_apps
+    secrets: inherit
