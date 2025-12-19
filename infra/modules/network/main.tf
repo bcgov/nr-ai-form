@@ -168,7 +168,7 @@ resource "azurerm_network_security_group" "container_apps" {
     protocol                   = "*"
     source_address_prefix      = local.private_endpoints_subnet_cidr
     source_port_range          = "*"
-    destination_address_prefix = local.private_endpoints_subnet_cidr
+    destination_address_prefix = local.container_apps_subnet_cidr
     destination_port_range     = "*"
   }
 
@@ -179,7 +179,7 @@ resource "azurerm_network_security_group" "container_apps" {
     access                     = "Allow"
     protocol                   = "*"
     destination_address_prefix = local.private_endpoints_subnet_cidr
-    source_address_prefix      = local.private_endpoints_subnet_cidr
+    source_address_prefix      = local.container_apps_subnet_cidr
     source_port_range          = "*"
     destination_port_range     = "*"
   }
@@ -190,7 +190,7 @@ resource "azurerm_network_security_group" "container_apps" {
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_address_prefix      = local.private_endpoints_subnet_cidr
+    source_address_prefix      = local.container_apps_subnet_cidr
     destination_address_prefix = "*"
     source_port_range          = "*"
     destination_port_ranges    = ["80", "443"]
@@ -202,5 +202,32 @@ resource "azurerm_network_security_group" "container_apps" {
       tags
     ]
   }
+}
+
+# Subnet for Container Apps Environment (dedicated, cannot be shared)
+resource "azapi_resource" "container_apps_subnet" {
+  count     = var.deploy_network && var.app_env != "dev" ? 1 : 0
+  type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
+  name      = var.container_apps_subnet_name
+  parent_id = data.azurerm_virtual_network.main.id
+  locks     = [data.azurerm_virtual_network.main.id]
+  body = {
+    properties = {
+      addressPrefix = local.container_apps_subnet_cidr
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.container_apps[0].id
+      }
+      delegations = [
+        {
+          name = "container-apps-delegation"
+          properties = {
+            serviceName = "Microsoft.App/environments"
+          }
+        }
+      ]
+    }
+  }
+  response_export_values = ["*"]
+  depends_on = [azapi_resource.app_service_subnet]
 }
 
