@@ -73,6 +73,29 @@ jobs:
         API_IMAGE="ghcr.io/${{ github.repository }}/backend:${{ inputs.tag }}"
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
     
+    - name: Fix Subnet State Migration
+      if: inputs.command == 'apply'
+      working-directory: terragrunt/${{ inputs.environment_name }}
+      env:
+          target_env: ${{ inputs.environment_name }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
+          vnet_name: ${{ vars.VNET_NAME }}
+          api_image: ${{ steps.image-tags.outputs.api-image }}
+          stack_prefix: ${{ inputs.stack_prefix }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          repo_name: ${{ github.event.repository.name }}
+          app_env: ${{ inputs.app_env }}
+          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
+          deployment_type: ${{ inputs.deployment_type }}
+      run: |
+        # Remove problematic azapi_resource from state if it exists
+        # This is needed due to migration from azapi_resource to azurerm_subnet
+        terragrunt state rm 'module.network.azapi_resource.container_apps_subnet[0]' || true
+        echo "State cleanup completed (if resource existed)"
+    
     - name: Terragrunt ${{inputs.command}}
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
