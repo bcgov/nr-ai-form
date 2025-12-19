@@ -137,10 +137,10 @@ module "container_apps" {
   common_tags         = var.common_tags
 
   # Networking - Container Apps requires dedicated subnet (cannot be shared)
-  # Dev environment: Not supported (requires dedicated empty subnet)
-  # Test/Prod: Uses dedicated container_apps_subnet created by network module
-  private_endpoint_subnet_id = module.network.private_endpoint_subnet_id
-  container_apps_subnet_id   = module.network.container_apps_subnet_id
+  # Dev: Uses dev_container_apps_subnet_id (must be manually created/provided)
+  # Test/Prod: Uses container_apps_subnet created by network module
+  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
+  container_apps_subnet_id   = var.app_env == "dev" ? var.dev_container_apps_subnet_id : module.network.container_apps_subnet_id
 
   # Container Configuration
   container_cpu    = var.container_cpu
