@@ -16,5 +16,5 @@ output "frontdoor_resource_guid" {
 
 output "frontdoor_endpoint_hostname" {
   description = "The hostname of the Front Door endpoint."
-  value       = try(azurerm_cdn_frontdoor_endpoint.frontend_endpoint[0].host_name, "")
+  value       = ""  # Endpoint needs to be created in frontdoor module
 }
