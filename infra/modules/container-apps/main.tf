@@ -302,19 +302,12 @@ resource "azurerm_monitor_diagnostic_setting" "container_app_env_diagnostics" {
 }
 
 # Diagnostic settings for Backend Container App
+# Note: Container Apps may not support log categories in all regions/configurations
+# Keeping only metrics which are universally supported
 resource "azurerm_monitor_diagnostic_setting" "backend_container_app_diagnostics" {
   name                       = "${var.app_name}-backend-ca-diagnostics"
   target_resource_id         = azurerm_container_app.backend.id
   log_analytics_workspace_id = var.log_analytics_workspace_id
-
-  # Container Apps specific log categories
-  enabled_log {
-    category = "ContainerAppConsoleLogs"
-  }
-
-  enabled_log {
-    category = "ContainerAppSystemLogs"
-  }
 
   enabled_metric {
     category = "AllMetrics"
