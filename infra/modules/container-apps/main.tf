@@ -307,8 +307,13 @@ resource "azurerm_monitor_diagnostic_setting" "backend_container_app_diagnostics
   target_resource_id         = azurerm_container_app.backend.id
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
+  # Container Apps specific log categories
   enabled_log {
-    category_group = "allLogs"
+    category = "ContainerAppConsoleLogs"
+  }
+
+  enabled_log {
+    category = "ContainerAppSystemLogs"
   }
 
   enabled_metric {
