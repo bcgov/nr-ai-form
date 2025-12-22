@@ -152,6 +152,12 @@ resource "azurerm_container_app" "backend" {
         value = var.log_level
       }
 
+      # Front Door validation - app can check X-Azure-FDID header matches this
+      env {
+        name  = "AZURE_FRONTDOOR_ID"
+        value = var.api_frontdoor_resource_guid
+      }
+
       # Application Insights
       env {
         name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
@@ -252,7 +258,7 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = false # Internal only, accessed via Front Door
+    external_enabled           = true  # Enable external access for Front Door
     target_port                = 8000
     transport                  = "http"
     allow_insecure_connections = false
@@ -262,11 +268,19 @@ resource "azurerm_container_app" "backend" {
       latest_revision = true
     }
 
+    # IP restriction to allow only Front Door
+    # Get Front Door Service Tag IP ranges from:
+    # https://www.microsoft.com/en-us/download/details.aspx?id=56519
+    ip_security_restriction {
+      action           = "Allow"
+      name             = "AllowFrontDoor"
+      description      = "Allow traffic from Azure Front Door"
+      ip_address_range = "0.0.0.0/0" # TODO: Restrict to Front Door Service Tag IPs
+    }
+
     # Note: Container Apps doesn't support service tags like "AzureFrontDoor.Backend"
-    # Security is enforced through:
-    # 1. Internal-only ingress (external_enabled = false)
-    # 2. VNet integration
-    # 3. Front Door as the only entry point
+    # For production, update ip_address_range with Front Door Service Tag IP ranges
+    # or use Front Door's X-Azure-FDID header validation in the application
   }
 
   tags = merge(var.common_tags, {
