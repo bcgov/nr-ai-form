@@ -71,12 +71,30 @@ jobs:
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
           vnet_name: ${{ vars.VNET_NAME }}
+          api_image: "ghcr.io/${{ github.repository }}/backend:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
+          deployment_type: ${{ inputs.deployment_type }}
+          # Azure OpenAI Configuration
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
+          AZURE_OPENAI_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_DEPLOYMENT_NAME }}
+          # Azure Search Configuration
+          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_SEARCH_KEY: ${{ secrets.AZURE_SEARCH_KEY }}
+          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
+          # Azure Document Intelligence Configuration
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+          AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
+          # Azure Storage Configuration
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
       run: |
         # Initialize Terragrunt to access state
         echo "Initializing Terragrunt..."
