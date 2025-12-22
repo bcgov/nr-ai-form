@@ -205,30 +205,30 @@ resource "azurerm_network_security_group" "container_apps" {
 }
 
 # Subnet for Container Apps Environment (dedicated, cannot be shared)
-resource "azurerm_subnet" "container_apps_subnet" {
-  count                = var.deploy_network && var.app_env != "dev" ? 1 : 0
-  name                 = var.container_apps_subnet_name
-  resource_group_name  = var.vnet_resource_group_name
-  virtual_network_name = data.azurerm_virtual_network.main.name
-  address_prefixes     = [local.container_apps_subnet_cidr]
-
-  delegation {
-    name = "container-apps-delegation"
-    service_delegation {
-      name = "Microsoft.App/environments"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action"
-      ]
+# Using azapi_resource with inline NSG to satisfy Azure policy requirement for NSG at creation time
+resource "azapi_resource" "container_apps_subnet" {
+  count     = var.deploy_network && var.app_env != "dev" ? 1 : 0
+  type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
+  name      = var.container_apps_subnet_name
+  parent_id = data.azurerm_virtual_network.main.id
+  locks     = [data.azurerm_virtual_network.main.id]
+  
+  body = {
+    properties = {
+      addressPrefix = local.container_apps_subnet_cidr
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.container_apps[0].id
+      }
+      delegations = [{
+        name = "container-apps-delegation"
+        properties = {
+          serviceName = "Microsoft.App/environments"
+        }
+      }]
     }
   }
-
+  
+  response_export_values = ["*"]
   depends_on = [azapi_resource.app_service_subnet]
-}
-
-# Associate NSG with Container Apps Subnet
-resource "azurerm_subnet_network_security_group_association" "container_apps" {
-  count                     = var.deploy_network && var.app_env != "dev" ? 1 : 0
-  subnet_id                 = azurerm_subnet.container_apps_subnet[0].id
-  network_security_group_id = azurerm_network_security_group.container_apps[0].id
 }
 

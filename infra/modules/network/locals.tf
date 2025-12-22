@@ -7,10 +7,10 @@ locals {
   
   # Subnet allocations (total /24 = 256 IPs):
   # - App Service: .0/27 (32 IPs) - .0 to .31
-  # - Container Apps: .32/27 (32 IPs) - .32 to .63 (minimum /27 required by Azure)
-  # - Private Endpoints: .64/27 (32 IPs) - .64 to .95
-  # - Reserved for future: .96/27 to .255/24
+  # - Private Endpoints: .32/28 (16 IPs) - .32 to .47 (keep existing to avoid disruption)
+  # - Container Apps: .64/27 (32 IPs) - .64 to .95 (minimum /27 required by Azure)
+  # - Reserved for future: .96 to .255
   app_service_subnet_cidr       = "${local.base_ip}.0/27"
-  container_apps_subnet_cidr    = "${local.base_ip}.32/27"  # Changed from /28 to /27
-  private_endpoints_subnet_cidr = "${local.base_ip}.64/27"  # Changed from .32/28 to .64/27
+  container_apps_subnet_cidr    = "${local.base_ip}.64/27"  # Changed from .32/27 to .64/27 to avoid conflict
+  private_endpoints_subnet_cidr = "${local.base_ip}.32/28"  # Keep existing CIDR to avoid disruption
 }

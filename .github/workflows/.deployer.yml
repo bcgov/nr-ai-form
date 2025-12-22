@@ -118,48 +118,6 @@ jobs:
         API_IMAGE="ghcr.io/${{ github.repository }}/backend:${{ inputs.tag }}"
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
     
-    - name: Fix Subnet State Migration
-      if: inputs.command == 'apply'
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
-          target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
-          vnet_name: ${{ vars.VNET_NAME }}
-          api_image: ${{ steps.image-tags.outputs.api-image }}
-          stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          repo_name: ${{ github.event.repository.name }}
-          app_env: ${{ inputs.app_env }}
-          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
-          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-      run: |
-        # Remove problematic azapi_resource from state if it exists
-        echo "Checking for azapi_resource in state..."
-        if terragrunt state list | grep -q 'module.network.azapi_resource.container_apps_subnet'; then
-          echo "Found azapi_resource.container_apps_subnet - removing from state..."
-          terragrunt state rm 'module.network.azapi_resource.container_apps_subnet[0]' || true
-          
-          # Get the subnet ID and import to new resource
-          echo "Getting subnet ID from Azure..."
-          SUBNET_ID=$(az network vnet subnet show \
-            --resource-group ${{ vars.RESOURCE_GROUP_NAME }} \
-            --vnet-name ${{ vars.VNET_NAME }} \
-            --name container-apps-subnet \
-            --query id -o tsv 2>/dev/null || echo "")
-          
-          if [ -n "$SUBNET_ID" ]; then
-            echo "Importing subnet to azurerm_subnet..."
-            terragrunt import 'module.network.azurerm_subnet.container_apps_subnet[0]' "$SUBNET_ID" || echo "Import skipped (may already exist)"
-          else
-            echo "Subnet not found in Azure - will be created by Terraform"
-          fi
-        else
-          echo "No azapi_resource found in state - skipping cleanup"
-        fi
-        echo "State migration completed"
-    
     - name: Terragrunt ${{inputs.command}}
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
