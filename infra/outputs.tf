@@ -36,3 +36,8 @@ output "backend_container_app_url" {
   sensitive   = true
 }
 
+output "container_apps_frontdoor_api_endpoint" {
+  description = "The Front Door endpoint URL for the Container Apps API"
+  value       = try(module.container_apps[0].frontdoor_api_endpoint, null)
+}
+

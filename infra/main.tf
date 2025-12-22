@@ -131,6 +131,7 @@ module "container_apps" {
 
   app_name            = var.app_name
   app_env             = var.app_env
+  repo_name           = var.repo_name
   backend_image       = var.api_image
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
@@ -158,6 +159,11 @@ module "container_apps" {
   appinsights_instrumentation_key = module.monitoring.appinsights_instrumentation_key
   appinsights_connection_string   = module.monitoring.appinsights_connection_string
 
+  # Front Door
+  api_frontdoor_id                 = module.frontdoor.frontdoor_id
+  api_frontdoor_resource_guid      = module.frontdoor.frontdoor_resource_guid
+  api_frontdoor_firewall_policy_id = module.frontdoor.firewall_policy_id
+
   # Azure OpenAI
   azure_openai_api_key         = var.azure_openai_api_key
   azure_openai_endpoint        = var.azure_openai_endpoint
@@ -178,7 +184,7 @@ module "container_apps" {
   azure_storage_account_key    = var.azure_storage_account_key
   azure_storage_container_name = var.azure_storage_container_name
 
-  depends_on = [module.network, module.cosmos, module.monitoring]
+  depends_on = [module.frontdoor, module.network, module.cosmos, module.monitoring]
 }
 
 
