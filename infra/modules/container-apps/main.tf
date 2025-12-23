@@ -5,8 +5,8 @@ resource "azurerm_container_app_environment" "main" {
   resource_group_name                = var.resource_group_name
   log_analytics_workspace_id         = var.log_analytics_workspace_id
   infrastructure_subnet_id           = var.container_apps_subnet_id
-  infrastructure_resource_group_name = "ME-${var.resource_group_name}"      # Changing this will force delete and recreate
-  internal_load_balancer_enabled     = true                                 # Enable internal load balancer for private access
+  infrastructure_resource_group_name = "ME-${var.resource_group_name}"
+  internal_load_balancer_enabled     = false
 
   workload_profile {
     name                  = "Consumption"
@@ -55,13 +55,12 @@ resource "azurerm_container_app" "backend" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = var.resource_group_name
   revision_mode                = "Single"
-  workload_profile_name        = "Consumption" # Use Consumption workload profile
+  workload_profile_name        = "Consumption"
 
   identity {
     type = var.enable_system_assigned_identity ? "SystemAssigned" : "None"
   }
 
-  # Secrets for the container app
   secret {
     name  = "appinsights-connection-string"
     value = var.appinsights_connection_string
@@ -244,7 +243,7 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = false # Internal only - Azure Policy blocks public IPs
+    external_enabled           = true # Public endpoint with IP restrictions (mirrors App Service config)
     target_port                = 8000
     transport                  = "http"
     allow_insecure_connections = false
@@ -254,12 +253,15 @@ resource "azurerm_container_app" "backend" {
       latest_revision = true
     }
 
-    # Note: Container Apps with external_enabled=false cannot be accessed via Front Door Standard
-    # Options for public access:
-    # 1. Use Front Door Premium with Private Link (requires SKU upgrade)
-    # 2. Request Azure Policy exemption for Container Apps external ingress
-    # 3. Use Application Gateway with VNet integration
-    # For now, Container App is internal-only, accessible within VNet
+    # IP Security Restrictions - Allow only Front Door traffic (mirrors App Service config)
+    # Note: When using Allow rules, all other traffic is implicitly denied
+    # This provides the same security as App Service: public endpoint exists but only Front Door can access it
+    ip_security_restriction {
+      name             = "AllowFromFrontDoor"
+      action           = "Allow"
+      ip_address_range = "AzureFrontDoor.Backend"
+      description      = "Allow traffic only from Azure Front Door service tag"
+    }
   }
 
   tags = merge(var.common_tags, {
