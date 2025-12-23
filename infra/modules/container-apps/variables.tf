@@ -12,6 +12,12 @@ variable "app_name" {
   nullable    = false
 }
 
+variable "repo_name" {
+  description = "Name of the repository"
+  type        = string
+  nullable    = false
+}
+
 variable "appinsights_connection_string" {
   description = "Application Insights connection string"
   type        = string
@@ -175,6 +181,25 @@ variable "log_level" {
   description = "Log level for the application"
   type        = string
   default     = "INFO"
+  nullable    = false
+}
+
+# Front Door Integration
+variable "api_frontdoor_id" {
+  description = "Front Door Profile ID for API integration"
+  type        = string
+  nullable    = false
+}
+
+variable "api_frontdoor_resource_guid" {
+  description = "Front Door Resource GUID for header validation"
+  type        = string
+  nullable    = false
+}
+
+variable "api_frontdoor_firewall_policy_id" {
+  description = "Front Door Firewall Policy ID for API protection"
+  type        = string
   nullable    = false
 }
 
