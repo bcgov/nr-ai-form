@@ -1,12 +1,4 @@
-#=============================================================================
-# Azure Container Apps Module - Backend API
-#=============================================================================
-# This module creates Azure Container Apps Environment with Consumption workload
-# and a backend Container App for the NR AI Form API service.
 
-#-----------------------------------------------------------------------------
-# Container Apps Environment with Consumption Workload Profile
-#-----------------------------------------------------------------------------
 resource "azurerm_container_app_environment" "main" {
   name                               = "${var.app_name}-${var.app_env}-containerenv"
   location                           = var.location
@@ -16,7 +8,6 @@ resource "azurerm_container_app_environment" "main" {
   infrastructure_resource_group_name = "ME-${var.resource_group_name}"      # Changing this will force delete and recreate
   internal_load_balancer_enabled     = true                                 # Enable internal load balancer for private access
 
-  # Consumption workload profile (serverless)
   workload_profile {
     name                  = "Consumption"
     workload_profile_type = "Consumption"
@@ -35,8 +26,6 @@ resource "azurerm_container_app_environment" "main" {
   logs_destination = "log-analytics"
 }
 
-# Private Endpoint for Container Apps Environment
-# Note: DNS zone association will be automatically managed by Azure Policy
 resource "azurerm_private_endpoint" "containerapps" {
   name                = "${var.app_name}-containerapps-pe"
   location            = var.location
@@ -61,9 +50,6 @@ resource "azurerm_private_endpoint" "containerapps" {
   }
 }
 
-#-----------------------------------------------------------------------------
-# Backend Container App - NR AI Form API Service
-#-----------------------------------------------------------------------------
 resource "azurerm_container_app" "backend" {
   name                         = "${var.app_name}-api"
   container_app_environment_id = azurerm_container_app_environment.main.id
@@ -258,7 +244,7 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true  # Enable external access for Front Door
+    external_enabled           = false # Internal only - Azure Policy blocks public IPs
     target_port                = 8000
     transport                  = "http"
     allow_insecure_connections = false
@@ -268,19 +254,12 @@ resource "azurerm_container_app" "backend" {
       latest_revision = true
     }
 
-    # IP restriction to allow only Front Door
-    # Get Front Door Service Tag IP ranges from:
-    # https://www.microsoft.com/en-us/download/details.aspx?id=56519
-    ip_security_restriction {
-      action           = "Allow"
-      name             = "AllowFrontDoor"
-      description      = "Allow traffic from Azure Front Door"
-      ip_address_range = "0.0.0.0/0" # TODO: Restrict to Front Door Service Tag IPs
-    }
-
-    # Note: Container Apps doesn't support service tags like "AzureFrontDoor.Backend"
-    # For production, update ip_address_range with Front Door Service Tag IP ranges
-    # or use Front Door's X-Azure-FDID header validation in the application
+    # Note: Container Apps with external_enabled=false cannot be accessed via Front Door Standard
+    # Options for public access:
+    # 1. Use Front Door Premium with Private Link (requires SKU upgrade)
+    # 2. Request Azure Policy exemption for Container Apps external ingress
+    # 3. Use Application Gateway with VNet integration
+    # For now, Container App is internal-only, accessible within VNet
   }
 
   tags = merge(var.common_tags, {
@@ -296,7 +275,7 @@ resource "azurerm_container_app" "backend" {
   depends_on = [azurerm_container_app_environment.main]
 }
 
-# Diagnostic settings for Container Apps Environment
+
 resource "azurerm_monitor_diagnostic_setting" "container_app_env_diagnostics" {
   name                       = "${var.app_name}-ca-env-diagnostics"
   target_resource_id         = azurerm_container_app_environment.main.id
@@ -315,9 +294,6 @@ resource "azurerm_monitor_diagnostic_setting" "container_app_env_diagnostics" {
   }
 }
 
-# Diagnostic settings for Backend Container App
-# Note: Container Apps may not support log categories in all regions/configurations
-# Keeping only metrics which are universally supported
 resource "azurerm_monitor_diagnostic_setting" "backend_container_app_diagnostics" {
   name                       = "${var.app_name}-backend-ca-diagnostics"
   target_resource_id         = azurerm_container_app.backend.id
@@ -328,9 +304,7 @@ resource "azurerm_monitor_diagnostic_setting" "backend_container_app_diagnostics
   }
 }
 
-# ============================================================================
-# Front Door Configuration
-# ============================================================================
+
 
 resource "azurerm_cdn_frontdoor_endpoint" "api_fd_endpoint" {
   name                     = "${var.repo_name}-${var.app_env}-api-fd"

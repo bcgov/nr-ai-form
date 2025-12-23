@@ -1,23 +1,5 @@
 # Container Apps Module Variables - NR AI Form Backend
 
-variable "api_frontdoor_firewall_policy_id" {
-  description = "The resource ID of the Front Door firewall policy for the API."
-  type        = string
-  nullable    = false
-}
-
-variable "api_frontdoor_id" {
-  description = "The resource ID of the Front Door profile for the API."
-  type        = string
-  nullable    = false
-}
-
-variable "api_frontdoor_resource_guid" {
-  description = "The resource GUID for the Front Door service associated with the API Container App."
-  type        = string
-  nullable    = false
-}
-
 variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string
@@ -218,12 +200,6 @@ variable "private_endpoint_subnet_id" {
 
 variable "resource_group_name" {
   description = "Name of the resource group"
-  type        = string
-  nullable    = false
-}
-
-variable "repo_name" {
-  description = "Repository name for Front Door endpoint naming"
   type        = string
   nullable    = false
 }

@@ -53,9 +53,3 @@ output "backend_managed_identity_tenant_id" {
   description = "Tenant ID of the backend Container App's managed identity"
   value       = var.enable_system_assigned_identity ? azurerm_container_app.backend.identity[0].tenant_id : null
 }
-
-# Front Door outputs
-output "frontdoor_api_endpoint" {
-  description = "The Front Door endpoint URL for the API"
-  value       = "https://${azurerm_cdn_frontdoor_endpoint.api_fd_endpoint.host_name}/"
-}
