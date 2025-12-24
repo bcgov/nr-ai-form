@@ -10,3 +10,14 @@ services:
     env_file:
       - ./agents/conversationagent/.env
     restart: unless-stopped
+
+  formsupport-agent:
+    build:
+      context: .
+      dockerfile: agents/formsupportagent/Dockerfile
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./agents/formsupportagent/.env
+    restart: unless-stopped
+

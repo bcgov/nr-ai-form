@@ -1,0 +1,35 @@
+{
+    "name": "FormSupportAgent",
+    "description": "A form support agent for BC Government's Water Permit Application that uses Azure AI Search tool.",
+    "url": "http://localhost:8001",
+    "version": "1.0.0",
+    "skills": [
+        {
+            "id": "form_support_skill",
+            "name": "BC Water Permit Form Support",
+            "description": "Answers questions about BC Government's Water Permit Application using Azure AI Search.",
+            "tags": [
+                "form-support",
+                "water-permit",
+                "search"
+            ],
+            "examples": [
+                {
+                    "prompt": "What is North coast Transmission Pipeline ?",
+                    "response": "\"{\"ID\": \"isNorthCoastTransmissionLine\",\"Description\": \"for pilot release, applications related to the north coast transmission line cannot be supported using ai assistant.\",\"SuggestedValue\": \"No\"}\""
+                },
+                {
+                    "prompt": "What is Dam Proposal Project report ?",
+                    "response": "No Match"
+                }
+            ],
+            "inputModes": [
+                "text"
+            ],
+            "outputModes": [
+                "text"
+            ]
+        }
+    ]
+}
+}

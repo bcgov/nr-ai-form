@@ -9,6 +9,8 @@ dependencies = [
     "azure-storage-blob>=12.27.1",
     "python-dotenv>=1.2.1",
     "utils",
+    "fastapi>=0.127.0",
+    "uvicorn>=0.38.0",
 ]
 
 [tool.uv.sources]
