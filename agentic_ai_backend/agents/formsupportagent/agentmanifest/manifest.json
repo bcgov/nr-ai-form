@@ -1,9 +1,14 @@
 {
-    "name": "FormSupportAgent",
-    "description": "A form support agent for BC Government's Water Permit Application that uses Azure AI Search tool.",
-    "url": "http://localhost:8001",
-    "version": "1.0.0",
-    "skills": [
+    "$schema": "https://a2a-protocol.org/schema/agent-card.json",
+    "identity": {
+        "name": "FormSupportAgent",
+        "author": "BC Government",
+        "description": "A form support agent for BC Government's Water Permit Application that uses Azure AI Search tool.",
+        "avatarUrl": "",
+        "version": "1.0.0",
+        "license": "MIT"
+    },
+    "capabilities": [
         {
             "id": "form_support_skill",
             "name": "BC Water Permit Form Support",
@@ -13,23 +18,29 @@
                 "water-permit",
                 "search"
             ],
-            "examples": [
-                {
-                    "prompt": "What is North coast Transmission Pipeline ?",
-                    "response": "\"{\"ID\": \"isNorthCoastTransmissionLine\",\"Description\": \"for pilot release, applications related to the north coast transmission line cannot be supported using ai assistant.\",\"SuggestedValue\": \"No\"}\""
-                },
-                {
-                    "prompt": "What is Dam Proposal Project report ?",
-                    "response": "No Match"
-                }
-            ],
-            "inputModes": [
-                "text"
-            ],
-            "outputModes": [
-                "text"
-            ]
+            "input": {
+                "type": "text",
+                "examples": [
+                    "What is North coast Transmission Pipeline ?",
+                    "What is Dam Proposal Project report ?"
+                ]
+            },
+            "output": {
+                "type": "text"
+            }
         }
-    ]
-}
+    ],
+    "interaction": {
+        "baseUrl": "http://localhost:8001",
+        "endpoints": {
+            "invoke": {
+                "url": "/invoke",
+                "method": "POST"
+            },
+            "discovery": {
+                "url": "/.well-known/agent.json",
+                "method": "GET"
+            }
+        }
+    }
 }
