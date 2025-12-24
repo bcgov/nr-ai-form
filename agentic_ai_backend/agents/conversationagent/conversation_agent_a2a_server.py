@@ -5,9 +5,7 @@ This is a standalone wrapper that imports and exposes the ConversationAgent via 
 import asyncio
 import os
 import sys
-from typing import Optional
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from dotenv import load_dotenv
 from conversationagent import ConversationAgent
 from models.conversationmodel import InvokeRequest, InvokeResponse
