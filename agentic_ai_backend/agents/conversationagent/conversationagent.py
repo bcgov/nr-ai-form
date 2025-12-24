@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import asyncio
 from agent_framework.azure import AzureOpenAIChatClient
 
+# Add parent directory to path to allow importing 'tools'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from tools.azure_ai_search import azure_ai_search
 

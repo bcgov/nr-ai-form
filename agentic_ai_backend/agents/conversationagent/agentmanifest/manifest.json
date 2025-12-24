@@ -1,0 +1,34 @@
+{
+    "name": "ConversationAgent",
+    "description": "A conversation agent for BC Government's Water Permit Application that uses Azure AI Search tool.",
+    "url": "http://localhost:8000",
+    "version": "1.0.0",
+    "skills": [
+        {
+            "id": "conversation_skill",
+            "name": "BC Water Permit Conversation",
+            "description": "Answers questions about BC Government's Water Permit Application using Azure AI Search.",
+            "tags": [
+                "conversation",
+                "water-permit",
+                "search"
+            ],
+            "examples": [
+                {
+                    "prompt": "What is the process for applying for a BC water permit?",
+                    "response": "The process for applying for a water permit involves..."
+                },
+                {
+                    "prompt": "Do I need to login to apply for a BC water permit?",
+                    "response": "No, you do not need to login to apply for a water permit."
+                }
+            ],
+            "inputModes": [
+                "text"
+            ],
+            "outputModes": [
+                "text"
+            ]
+        }
+    ]
+}
