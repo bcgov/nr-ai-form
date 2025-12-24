@@ -5,8 +5,8 @@ resource "azurerm_container_app_environment" "main" {
   resource_group_name                = var.resource_group_name
   log_analytics_workspace_id         = var.log_analytics_workspace_id
   infrastructure_subnet_id           = var.container_apps_subnet_id
-  infrastructure_resource_group_name = "ME-${var.resource_group_name}"
-  internal_load_balancer_enabled     = false
+  infrastructure_resource_group_name = "ME-${var.resource_group_name}"      # Changing this will force delete and recreate
+  internal_load_balancer_enabled     = true                                 # MUST be true to comply with Azure Policy
 
   workload_profile {
     name                  = "Consumption"
@@ -243,7 +243,7 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true # Public endpoint - Front Door will validate via X-Azure-FDID header
+    external_enabled           = false # MUST be false - internal only to comply with Azure Policy
     target_port                = 8000
     transport                  = "http"
     allow_insecure_connections = false
@@ -253,11 +253,14 @@ resource "azurerm_container_app" "backend" {
       latest_revision = true
     }
 
-    # NOTE: Container Apps doesn't support service tags in ip_security_restriction
-    # Security is enforced via:
-    # 1. Application validates X-Azure-FDID header (env var AZURE_FRONTDOOR_ID)
-    # 2. Front Door WAF policy blocks unauthorized access
-    # 3. Front Door is the only published endpoint
+    # Internal-only ingress - accessible within VNet
+    # Front Door CANNOT connect directly to internal Container Apps
+    # Options for public access with Azure Policy:
+    # 1. Request Azure Policy exemption for Container Apps (recommended)
+    # 2. Use Application Gateway in the VNet as intermediary
+    # 3. Upgrade to Front Door Premium + Private Link (expensive)
+    # 
+    # For now: Container App is internal-only, NOT accessible via Front Door
   }
 
   tags = merge(var.common_tags, {
