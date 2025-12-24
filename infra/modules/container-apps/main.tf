@@ -243,7 +243,7 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true # Public endpoint with IP restrictions (mirrors App Service config)
+    external_enabled           = true # Public endpoint - Front Door will validate via X-Azure-FDID header
     target_port                = 8000
     transport                  = "http"
     allow_insecure_connections = false
@@ -253,15 +253,11 @@ resource "azurerm_container_app" "backend" {
       latest_revision = true
     }
 
-    # IP Security Restrictions - Allow only Front Door traffic (mirrors App Service config)
-    # Note: When using Allow rules, all other traffic is implicitly denied
-    # This provides the same security as App Service: public endpoint exists but only Front Door can access it
-    ip_security_restriction {
-      name             = "AllowFromFrontDoor"
-      action           = "Allow"
-      ip_address_range = "AzureFrontDoor.Backend"
-      description      = "Allow traffic only from Azure Front Door service tag"
-    }
+    # NOTE: Container Apps doesn't support service tags in ip_security_restriction
+    # Security is enforced via:
+    # 1. Application validates X-Azure-FDID header (env var AZURE_FRONTDOOR_ID)
+    # 2. Front Door WAF policy blocks unauthorized access
+    # 3. Front Door is the only published endpoint
   }
 
   tags = merge(var.common_tags, {
