@@ -1,23 +1,5 @@
 # Container Apps Module Variables - NR AI Form Backend
 
-variable "api_frontdoor_firewall_policy_id" {
-  description = "The resource ID of the Front Door firewall policy for the API."
-  type        = string
-  nullable    = false
-}
-
-variable "api_frontdoor_id" {
-  description = "The resource ID of the Front Door profile for the API."
-  type        = string
-  nullable    = false
-}
-
-variable "api_frontdoor_resource_guid" {
-  description = "The resource GUID for the Front Door service associated with the API Container App."
-  type        = string
-  nullable    = false
-}
-
 variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string
@@ -26,6 +8,12 @@ variable "app_env" {
 
 variable "app_name" {
   description = "Name of the application"
+  type        = string
+  nullable    = false
+}
+
+variable "repo_name" {
+  description = "Name of the repository"
   type        = string
   nullable    = false
 }
@@ -196,6 +184,25 @@ variable "log_level" {
   nullable    = false
 }
 
+# Front Door Integration
+variable "api_frontdoor_id" {
+  description = "Front Door Profile ID for API integration"
+  type        = string
+  nullable    = false
+}
+
+variable "api_frontdoor_resource_guid" {
+  description = "Front Door Resource GUID for header validation"
+  type        = string
+  nullable    = false
+}
+
+variable "api_frontdoor_firewall_policy_id" {
+  description = "Front Door Firewall Policy ID for API protection"
+  type        = string
+  nullable    = false
+}
+
 variable "max_replicas" {
   description = "Maximum number of replicas for backend"
   type        = number
@@ -218,12 +225,6 @@ variable "private_endpoint_subnet_id" {
 
 variable "resource_group_name" {
   description = "Name of the resource group"
-  type        = string
-  nullable    = false
-}
-
-variable "repo_name" {
-  description = "Repository name for Front Door endpoint naming"
   type        = string
   nullable    = false
 }
