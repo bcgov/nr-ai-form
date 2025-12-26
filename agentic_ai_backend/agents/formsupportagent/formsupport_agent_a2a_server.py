@@ -57,9 +57,10 @@ async def agent_manifest():
     Provides the agent's manifest, describing its identity and skills.
     This is the standard A2A discovery endpoint.
     """
+    import json
     manifest = os.path.join(os.path.dirname(__file__), "agentmanifest", "manifest.json")
     with open(manifest, "r") as f:
-        return f.read()
+        return json.load(f)
 
 @app.post("/invoke", response_model=InvokeResponse)
 async def invoke_agent(request: InvokeRequest):
