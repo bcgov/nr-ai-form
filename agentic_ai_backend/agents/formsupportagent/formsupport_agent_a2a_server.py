@@ -24,32 +24,48 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Global agent instance (singleton pattern)
-_agent_instance = None
+# Cache of agent instances per step number (step_number -> agent_instance)
+_agent_cache = {}
 
-def get_agent():
-    """Get or create the agent instance"""
-    global _agent_instance
-    if _agent_instance is None:
-        try:            
-            endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
-            api_key = os.environ["AZURE_OPENAI_API_KEY"]
-            deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
-            
-            # Load Form Definitions
-            # Assuming formdefinitions is in the same directory as this script
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            json_path = os.path.join(base_dir, "formdefinitions", "step2.json")
-            
-            if not os.path.exists(json_path):
-                 raise FileNotFoundError(f"Form definition file not found: {json_path}")
-                 
-            form_context_str = get_form_context(json_path)
-            
-            _agent_instance = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str)
-        except Exception as e:
-            raise RuntimeError(f"Failed to initialize agent: {str(e)}")
-    return _agent_instance
+def get_agent(step_number: int = 2):
+    """
+    Get or create the agent instance for a specific step.
+    
+    Args:
+        step_number: The form step number (e.g., 2 for step2.json)
+    
+    Returns:
+        FormSupportAgent instance configured for the specified step
+    """
+    global _agent_cache
+    
+    # Return cached instance if available
+    if step_number in _agent_cache:
+        return _agent_cache[step_number]
+    
+    try:            
+        endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
+        api_key = os.environ["AZURE_OPENAI_API_KEY"]
+        deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+        
+        # Load Form Definitions dynamically based on step number
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(base_dir, "formdefinitions", f"step{step_number}.json")
+        
+        if not os.path.exists(json_path):
+            raise FileNotFoundError(f"Form definition file not found: {json_path}")
+             
+        form_context_str = get_form_context(json_path)
+        
+        # Create and cache the agent instance
+        agent_instance = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str)
+        _agent_cache[step_number] = agent_instance
+        
+        print(f"Created FormSupportAgent for step {step_number}")
+        return agent_instance
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to initialize agent for step {step_number}: {str(e)}")
 
 @app.get("/.well-known/agent.json")
 async def agent_manifest():
@@ -66,15 +82,25 @@ async def agent_manifest():
 async def invoke_agent(request: InvokeRequest):
     """
     Main A2A endpoint to invoke the form support agent.
-    Accepts a query and returns the agent's response.
+    Accepts a query, optional session_id, and optional step_number.
+    Returns the agent's response based on the specified form step.
     """
     try:
-        agent = get_agent()
+        # Get the step number from request (defaults to 2)
+        step_number = request.step_number if request.step_number else 2
+        
+        # Get agent instance for this step
+        agent = get_agent(step_number)
+        
+        # Run the agent
         result = await agent.run(request.query)
+        
         return InvokeResponse(
             response=result,
             session_id=request.session_id
         )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
 

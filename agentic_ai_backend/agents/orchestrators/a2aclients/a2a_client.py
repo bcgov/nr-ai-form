@@ -71,13 +71,14 @@ class CSS_AI_A2A_BaseClient:
                 
         return self._manifest
     
-    async def invoke(self, query: str, session_id: Optional[str] = None) -> str:
+    async def invoke(self, query: str, session_id: Optional[str] = None, **kwargs) -> str:
         """
         Invoke the agent with a query.
         
         Args:
             query: The user query to send to the agent
             session_id: Optional session ID for maintaining conversation context
+            **kwargs: Additional parameters to pass to the agent (e.g., step_number)
             
         Returns:
             str: The agent's response
@@ -88,7 +89,8 @@ class CSS_AI_A2A_BaseClient:
         url = f"{self.base_url}{manifest.invoke_endpoint}"
         payload = {
             "query": query,
-            "session_id": session_id
+            "session_id": session_id,
+            **kwargs  # Include any additional parameters (like step_number)
         }
         
         async with aiohttp.ClientSession(timeout=self.timeout) as session:
