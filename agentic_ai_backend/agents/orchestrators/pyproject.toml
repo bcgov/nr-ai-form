@@ -8,4 +8,6 @@ dependencies = [
  "agent-framework-core>=1.0.0b251211",
  "azure-core>=1.37.0",
  "azure-search-documents>=11.6.0",
+ "aiohttp>=3.9.0",
+ "python-dotenv>=1.0.0",
 ]
