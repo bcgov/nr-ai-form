@@ -330,7 +330,193 @@ class CSS_AI_A2A_BaseClient:
 - `ConversationAgentA2AClient` - Defaults to port 8000
 - `FormSupportAgentA2AClient` - Defaults to port 8001
 
-See complete documentation in this README.md file.
+### Benefits of A2A
+
+#### Before A2A (Direct Imports)
+```python
+# ❌ Tight coupling
+from formsupportagent.formsupportagent import FormSupportAgent
+from conversationagent.conversationagent import ConversationAgent
+
+# ❌ Path manipulation required
+sys.path.append(agents_dir)
+
+# ❌ All in one process
+# ❌ Can't scale independently
+# ❌ Hard to update separately
+```
+
+#### After A2A (HTTP Communication)
+```python
+# ✅ Loose coupling
+from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExecutor
+
+# ✅ No path manipulation
+# ✅ Independent processes
+# ✅ Scale each agent separately
+# ✅ Update agents independently
+```
+
+#### Key Advantages
+
+| Aspect | Direct Import | A2A Protocol |
+|--------|--------------|--------------|
+| **Coupling** | Tight | Loose |
+| **Deployment** | Monolithic | Microservices |
+| **Scaling** | Limited | Independent |
+| **Updates** | Risky | Safe |
+| **Language** | Same only | Any |
+| **Testing** | Difficult | Easy (mock servers) |
+| **Monitoring** | Limited | Per-service |
+| **Load Balancing** | N/A | Supported |
+
+---
+
+## Workflow Components
+
+### Dispatcher
+
+**Purpose**: Receives user query and broadcasts to all executors.
+
+```python
+class Dispatcher(Executor):
+    async def handle(self, userquery: str, ctx: WorkflowContext[str]):
+        if not userquery:
+            raise RuntimeError("Input must not be empty.")
+        await ctx.send_message(userquery)
+```
+
+**Pattern**: Fan-out (1 → N)
+
+### Executors
+
+**Purpose**: Communicate with remote agents via A2A and return responses.
+
+#### ConversationAgentA2AExecutor
+
+```python
+class ConversationAgentA2AExecutor(Executor):
+    def __init__(self, base_url: str = "http://localhost:8000"):
+        self.client = ConversationAgentA2AClient(base_url)
+    
+    async def handle(self, query: str, ctx: WorkflowContext[str]):
+        response = await self.client.invoke(query)
+        await ctx.send_message({
+            "source": self.id,
+            "response": response
+        })
+```
+
+#### FormSupportAgentA2AExecutor
+
+```python
+class FormSupportAgentA2AExecutor(Executor):
+    def __init__(self, base_url: str = "http://localhost:8001", 
+                 step_number: int = 2):
+        self.client = FormSupportAgentA2AClient(base_url)
+        self.step_number = step_number
+    
+    async def handle(self, query: str, ctx: WorkflowContext[str]):
+        response = await self.client.invoke(query, step_number=self.step_number)
+        await ctx.send_message({
+            "source": self.id,
+            "response": response,
+            "step_number": self.step_number
+        })
+```
+
+### Aggregator
+
+**Purpose**: Collects responses from all executors and yields final output.
+
+```python
+class Aggregator(Executor):
+    async def handle(self, results: list[Any], ctx: WorkflowContext):
+        await ctx.yield_output(results)
+```
+
+**Pattern**: Fan-in (N → 1)
+
+### Workflow Graph
+
+```
+                    ┌──────────────┐
+                    │  Dispatcher  │
+                    └──────┬───────┘
+                           │ Fan-Out
+         ┌─────────────────┼─────────────────┐
+         │                 │                 │
+         ▼                 ▼                 ▼
+┌────────────────┐  ┌────────────────┐  ...
+│ Executor 1     │  │ Executor 2     │
+│ (Conversation) │  │ (Form Support) │
+└───────┬────────┘  └───────┬────────┘
+        │                   │
+        └─────────┬─────────┘
+                  │ Fan-In
+                  ▼
+         ┌────────────────┐
+         │   Aggregator   │
+         └────────────────┘
+                  │
+                  ▼
+             Final Output
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+#### Orchestrator (`.env`)
+```bash
+# Agent URLs
+CONVERSATION_AGENT_A2A_URL="http://localhost:8000"
+FORM_SUPPORT_AGENT_A2A_URL="http://localhost:8001"
+
+# Form Configuration
+FORM_STEP_NUMBER=2
+
+# Azure OpenAI (if needed locally)
+AZURE_OPENAI_API_KEY="..."
+AZURE_OPENAI_ENDPOINT="..."
+AZURE_OPENAI_CHAT_DEPLOYMENT_NAME="..."
+AZURE_OPENAI_API_VERSION="..."
+
+# Azure AI Search (if needed locally)
+AZURE_SEARCH_API_KEY="..."
+AZURE_SEARCH_ENDPOINT="..."
+AZURE_SEARCH_INDEX_NAME="..."
+```
+
+#### Conversation Agent (`.env`)
+```bash
+HOST="0.0.0.0"
+PORT="8000"
+
+AZURE_OPENAI_API_KEY="..."
+AZURE_OPENAI_ENDPOINT="..."
+AZURE_OPENAI_CHAT_DEPLOYMENT_NAME="..."
+AZURE_OPENAI_API_VERSION="..."
+
+AZURE_SEARCH_API_KEY="..."
+AZURE_SEARCH_ENDPOINT="..."
+AZURE_SEARCH_INDEX_NAME="..."
+```
+
+#### Form Support Agent (`.env`)
+```bash
+HOST="0.0.0.0"
+PORT="8001"
+
+AZURE_OPENAI_API_KEY="..."
+AZURE_OPENAI_ENDPOINT="..."
+AZURE_OPENAI_CHAT_DEPLOYMENT_NAME="..."
+AZURE_OPENAI_API_VERSION="..."
+```
+
+See complete documentation regarding Usage, Deployment and more in the project documentation.
 
 ---
 
