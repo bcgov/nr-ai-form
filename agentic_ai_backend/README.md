@@ -31,20 +31,11 @@ The system uses the **A2A (Agent to Agent) protocol** for inter-agent communicat
 
 ## System Architecture
 
-### Interactive Architecture Diagram
+### Architecture Diagram
 
-📊 **[View Interactive Architecture Diagram](documentations/design_architecture/Technical%20Design%20CSS%20AI.html)**
+![System Architecture](documentations/design_architecture/TechnicalDesign.gif)
 
-For a detailed, interactive view of the complete system architecture, open the draw.io diagram:
-- **Local Path**: `documentations/design_architecture/Technical Design CSS AI.html`
-- **View**: Open the HTML file in your browser for an interactive, zoomable diagram
-
-This diagram provides a comprehensive visual representation of:
-- Component interactions and data flows
-- Integration with Azure services
-- Frontend-backend communication
-- A2A protocol implementation
-- Database and storage architecture
+*Interactive version available at: [Technical Design CSS AI.html](documentations/design_architecture/Technical%20Design%20CSS%20AI.html)*
 
 ### High-Level Architecture
 
