@@ -48,12 +48,12 @@ The system uses the **A2A (Agent to Agent) protocol** for inter-agent communicat
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                  Orchestrator Agent                         │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │            WorkflowBuilder                            │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │  │
-│  │  │Dispatcher│─▶│Executors │─▶│Aggregator│          │  │
-│  │  └──────────┘  └──────────┘  └──────────┘          │  │
-│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │            WorkflowBuilder                           │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐            │   │
+│  │  │Dispatcher│─▶│Executors │─▶│Aggregator│           │   │
+│  │  └──────────┘  └──────────┘  └──────────┘            │   │
+│  └──────────────────────────────────────────────────────┘   │
 └────────────────────┬──────────────────┬─────────────────────┘
                      │                  │
                      │ A2A Protocol     │ A2A Protocol
@@ -64,18 +64,18 @@ The system uses the **A2A (Agent to Agent) protocol** for inter-agent communicat
         │ Agent A2A Server │   │ Agent A2A Server     │
         │ Port: 8000       │   │ Port: 8001           │
         │                  │   │                      │
-        │ ┌──────────────┐ │   │ ┌────────────────┐  │
-        │ │ FastAPI      │ │   │ │ FastAPI        │  │
-        │ │ /.well-known/│ │   │ │ /.well-known/  │  │
-        │ │ /invoke      │ │   │ │ /invoke        │  │
-        │ │ /health      │ │   │ │ /health        │  │
-        │ └──────────────┘ │   │ └────────────────┘  │
+        │ ┌──────────────┐ │   │ ┌────────────────┐   │
+        │ │ FastAPI      │ │   │ │ FastAPI        │   │
+        │ │ /.well-known/│ │   │ │ /.well-known/  │   │
+        │ │ /invoke      │ │   │ │ /invoke        │   │
+        │ │ /health      │ │   │ │ /health        │   │
+        │ └──────────────┘ │   │ └────────────────┘   │
         │                  │   │                      │
-        │ ┌──────────────┐ │   │ ┌────────────────┐  │
-        │ │Conversation  │ │   │ │Form Support    │  │
-        │ │Agent Logic   │ │   │ │Agent Logic     │  │
-        │ │(Azure AI     │ │   │ │(Step-aware)    │  │
-        │ │ Search)      │ │   │ └────────────────┘  │
+        │ ┌──────────────┐ │   │ ┌────────────────┐   │
+        │ │Conversation  │ │   │ │Form Support    │   │
+        │ │Agent Logic   │ │   │ │Agent Logic     │   │
+        │ │(Azure AI     │ │   │ │(Step-aware)    │   │
+        │ │ Search)      │ │   │ └────────────────┘   │
         │ └──────────────┘ │   │                      │
         └──────────────────┘   └──────────────────────┘
 ```
