@@ -1,0 +1,800 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Technical Information - Works",
+    "properties": {
+        "InstrV1WaterWorks": {
+            "type": "string",
+            "id": "InstrV1WaterWorks_100827192_185549741",
+            "title": "Works Instructions",
+            "description": "Works are the physical equipment used to move the water from its source to where it will be used. For example, works can include a screened intake, pump, pipeline, irrigation system, dugout, storage structure etc. Scroll down the list provided to see all the options available for selection. For a formal definition of 'works', refer to Section 1(1) of the Water Sustainability Act. NOTE: For works not on the list, please describe them in the box below. Hover over the works list to see a quick definition of the work.",
+            "readOnly": true
+        },
+        "WorksGrid": {
+            "type": "grid",
+            "id": "WorksGrid_100826728",
+            "title": "Select all the major components of your works:",
+            "columns": [
+                {
+                    "name": "Selected",
+                    "type": "checkbox"
+                },
+                {
+                    "name": "Works",
+                    "type": "string"
+                },
+                {
+                    "name": "Status",
+                    "type": "select"
+                }
+            ],
+            "works": [
+                {
+                    "id": "Selected_Access_Road",
+                    "label": "Access Road",
+                    "description": "The access road allows you to access your works, e.g. a dam or reservoir.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657448",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Back_flood_control_structure",
+                    "label": "Back flood control structure",
+                    "description": "A structure to control water held back or forced back.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657450",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Balancing_Reservoir",
+                    "label": "Balancing Reservoir",
+                    "description": "A reservoir for the purpose of reducing discharge fluctuations due to peak-load operation. Please refer to the BC Dam Safety Regulation to ensure your proposed works do not constitute a dam as per Section 2 - Application.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657452",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Control_Gate",
+                    "label": "Control Gate",
+                    "description": "A gate which controls the flow of water.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657464",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Culvert",
+                    "label": "Culvert",
+                    "description": "A drain or pipe that allows water to flow under a road, railrod, trail, or similar obstruction.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657466",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Dam",
+                    "label": "Dam",
+                    "description": "A dam is any barrier that impounds water.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657534",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Deep_intake",
+                    "label": "Deep intake",
+                    "description": "An intake located deep in the water.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657468",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Distribution_system",
+                    "label": "Distribution system",
+                    "description": "A system which allows you to distribute water to multiple locations.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657470",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Ditch",
+                    "label": "Ditch",
+                    "description": "A small or moderate depression created to channel water.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657472",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Diversion_channel",
+                    "label": "Diversion channel",
+                    "description": "A channel used to divert (redirect) water from one spot to another.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657474",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Diversion_structure",
+                    "label": "Diversion structure",
+                    "description": "A structure that allows you to divert (redirect) water from one spot to another.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657476",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Dugout",
+                    "label": "Dugout",
+                    "description": "A dugout is an excavation in the ground that holds water. Dugouts may include, but are not limited to: borrow pits, water storage dugouts, or various excavation pits that collect and hold water. If the dugout contains water from more than one water source, you should indicate all of the water sources that supply the dugout in the comments box below. Provide the length, width and depth of the dugout in the comments.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657480",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Dyke",
+                    "label": "Dyke",
+                    "description": " ",
+                    "status": {
+                        "id": "Status_100826728_100827261_113567663",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Erosion_Protection",
+                    "label": "Erosion Protection",
+                    "description": "A material (i.e. riprap) that is used to prevent erosion of the stream bank and bed.",
+                    "status": {
+                        "id": "Status_100826728_100827261_129060535",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Fire_Suppression_System",
+                    "label": "Fire Suppression System",
+                    "description": "A system used to suppress fire.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657482",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Fish_ladder",
+                    "label": "Fish ladder",
+                    "description": "A structure on or around an artificial barrier (e.g. a dam) that allows fish to migrate.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657484",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Flow_measuring_device",
+                    "label": "Flow measuring device",
+                    "description": "A device that measures the flow of the water.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657486",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Hatchery",
+                    "label": "Hatchery",
+                    "description": "A hatchery is a facility where eggs are hatched under artificial conditions.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657490",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Head_Pond",
+                    "label": "Head Pond",
+                    "description": "A reservoir designed to maintain required hydrostatic head. Please refer to the BC Dam Safety Regulation to ensure your proposed works do not constitute a dam as per Section 2 - Application.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657492",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Heat_exchanger",
+                    "label": "Heat exchanger",
+                    "description": "A device used to transfer heat from a fluid on one side of a barrier to a fluid on the other side.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657496",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Hydrant",
+                    "label": "Hydrant",
+                    "description": "A hydrant is an outlet from a water main often consisting of an upright pipe with a valve attached from which fluid (e.g. water or fuel) can be tapped.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657498",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Infiltration_chamber/gallery",
+                    "label": "Infiltration chamber/gallery",
+                    "description": "Low gradient closed conduit (drain or tunnel) dug into an aquifer and collecting groundwater by gravity flow.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657544",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Intake",
+                    "label": "Intake",
+                    "description": "The intake is where you extract or divert the water from the source.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657546",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Irrigation_System",
+                    "label": "Irrigation System",
+                    "description": "A system to provide artificial application of water to lands for watering purposes.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657548",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Meter",
+                    "label": "Meter",
+                    "description": "A meter is used to measure how much water is used.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657552",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Outlet",
+                    "label": "Outlet",
+                    "description": "An opening through which water flows out or is extracted from a reservoir or stream.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657556",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Penstock",
+                    "label": "Penstock",
+                    "description": "A penstock is a sluice or gate or intake structure that controls water flow, or an enclosed pipe that delivers water to hydraulic turbines and sewerage systems.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657558",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Pipe",
+                    "label": "Pipe",
+                    "description": "A hollow cylinder used to convey water.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657560",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Pond",
+                    "label": "Pond",
+                    "description": "A pond is a body of standing water, either natural or man-made, that is usually smaller than a lake. Provide the length, width and depth of the pond in the comments.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657562",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Powerhouse",
+                    "label": "Powerhouse",
+                    "description": "A structure that usually contains a generator to generate electrical power.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657564",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Pressure_tank",
+                    "label": "Pressure tank",
+                    "description": "A closed cylindrical container designed to store water under pressure.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657566",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Pump",
+                    "label": "Pump",
+                    "description": "A pump is a device that moves fluids (liquids or gases), or sometimes slurries, by mechanical action.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657568",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Pumphouse",
+                    "label": "Pumphouse",
+                    "description": "A structure that houses a pump.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657570",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Reservoir",
+                    "label": "Reservoir",
+                    "description": "A reservoir, artificial lake or impoundment from a dam is used to store water. Reservoirs may be created in river valleys by the construction of a dam or may be built by excavation in the ground or by conventional construction techniques such as brickwork or cast concrete. Provide the length, width and depth of the pond in the comments.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657536",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Screened_Intake",
+                    "label": "Screened Intake",
+                    "description": "A screened intake is an intake covered by a screen which prevents fish and other wildlife to be sucked into the intake.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657574",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Settling_pond",
+                    "label": "Settling pond",
+                    "description": "A settling basin, settling pond or decant pond are devices used to treat turbidity in industrial wastewater. The basins are used to control water pollution in diverse industries such as agriculture, aquaculture, and mining.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657576",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Spillway",
+                    "label": "Spillway",
+                    "description": "A spillway is a structure used to provide the controlled release of flows from a dam or levee into a downstream area, typically being the river that was dammed. Spillways release floods so that the water does not overtop and damage or even destroy the dam.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657542",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Sprinklers",
+                    "label": "Sprinklers",
+                    "description": "Irrigation from above by freely falling drops of water.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657502",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Standpipe",
+                    "label": "Standpipe",
+                    "description": "A standpipe is a freestanding pipe fitted with a tap which is installed outdoors to dispense water in areas which do not have a running water supply to the buildings.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657504",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Sump",
+                    "label": "Sump",
+                    "description": "A sump is a low space that collects any often-undesirable liquids such as water or chemicals. A sump can also be an infiltration basin used to manage surface runoff water and recharge underground aquifers.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657508",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Switch_Yard",
+                    "label": "Switch Yard",
+                    "description": "A switching station with incoming and outgoing feeders but without the transformer. It is a type of substation but incoming feeders and outgoing feeders are of same voltage level. A switchyard connects and disconnects lines on the grid for various reasons.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657512",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Tailrace",
+                    "label": "Tailrace",
+                    "description": "A channel which conveys water away from a water-wheel or turbine.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657514",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Tank",
+                    "label": "Tank",
+                    "description": "A container holding liquid.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657516",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Transmission_Line",
+                    "label": "Transmission Line",
+                    "description": "A cable designed to carry electricity.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657520",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Treatment_facility/system",
+                    "label": "Treatment facility/system",
+                    "description": "A facility/system used in the process of making water suitable for its application.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657524",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Trough",
+                    "label": "Trough",
+                    "description": "A watering trough (or artificial watering point) is a receptacle intended to provide drinking water to animals. They are typically intended for livestock on farms or ranches, but may also be used by wild animals, either intentionally or consequentially.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657526",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Tunnel",
+                    "label": "Tunnel",
+                    "description": "A tunnel is an underground passageway, completely enclosed except for openings for ingress and egress, commonly at each end.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657528",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                },
+                {
+                    "id": "Selected_Weir",
+                    "label": "Weir",
+                    "description": "A weir is a barrier across a river designed to alter the flow characteristics. In most cases, weirs take the form of a barrier, smaller than most conventional dams, across a river that causes water to pool behind the structure and allows water to flow over the top.",
+                    "status": {
+                        "id": "Status_100826728_100827261_65657532",
+                        "type": "select",
+                        "enum": [
+                            "(None)",
+                            "Not Constructed",
+                            "Partly Constructed",
+                            "Fully Constructed"
+                        ]
+                    }
+                }
+            ]
+        },
+        "AdditionalWorksDetails": {
+            "type": "string",
+            "id": "AdditionalWorksDetails",
+            "title": "Please provide details about the works selected above, and your water system:",
+            "maxLength": 4000,
+            "required": false
+        },
+        "JumpToReview_RT": {
+            "type": "button",
+            "id": "JumpToReview_RT_100826576_185549741",
+            "title": "Review Application",
+            "description": "Review any outstanding issues on your application",
+            "tabindex": 8
+        },
+        "PrintLink2": {
+            "type": "button",
+            "id": "PrintLink2_100826576_185549741",
+            "title": "Print Page",
+            "description": "Print this page",
+            "action": "window.print()",
+            "tabindex": 9
+        },
+        "Previous": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_Previous",
+            "title": "Back",
+            "action": "PosseChangeColumnEscaped('185549741', 'LockdownDataCreateClientFees', 'N');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 0, 100730133)"
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl07_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx"
+        },
+        "Submit": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl10_Submit",
+            "title": "Save Application",
+            "action": "PosseChangeColumnEscaped('185549741', 'TransferToSaveApplication', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100826616)"
+        },
+        "Next": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl12_Next",
+            "title": "Next",
+            "action": "PosseChangeColumnEscaped('185549741', 'NavigateToSpecificWizardPane', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100827051)"
+        }
+    }
+}

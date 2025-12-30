@@ -1,0 +1,542 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Technical Information - Joint Works",
+    "properties": {
+        "JointWorksSection": {
+            "type": "section",
+            "id": "Text_1_100826666_185549741",
+            "title": "Joint Works",
+            "description": "Are your works connected to the works of another person or group of persons? If you share or are connected to another person's works, it is recommended that a Joint Works Agreement-outlining each party's role and responsibilities-be completed and uploaded"
+        },
+        "WSLICAreThereJointWorks": {
+            "type": "radio",
+            "id": "WSLICAreThereJointWorks_100826666_185549741",
+            "title": "Are any of your works joint with another person's or group's works?",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "required": true,
+            "tabindex": 5
+        },
+        "WaterUsersCommunitySection": {
+            "type": "section",
+            "id": "InstructionsWaterUsersCommunit_100826798_185549741",
+            "title": "Water Users' Community",
+            "description": "A Water Users? Community is a group of 6 or more licensees that have been issued a certificate of incorporation under the Water Users' Communities Act by the Comptroller of Water Rights incorporating the users into a water users' community."
+        },
+        "GWNAWaterSuppliedByUsersCommun": {
+            "type": "radio",
+            "id": "GWNAWaterSuppliedByUsersCommun_100826798_185549741",
+            "title": "Will the water be supplied by a Water Users' Community?",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "required": true,
+            "tabindex": 8
+        },
+        "GWNANameOfWaterUsersCommunity": {
+            "type": "select",
+            "id": "GWNANameOfWaterUsersCommunity_100826797_185549741",
+            "title": "Name of Water Users' Community:",
+            "options": [
+                {
+                    "value": "",
+                    "label": "(select)"
+                },
+                {
+                    "value": "44922722",
+                    "label": "Allendale WUC (37964)"
+                },
+                {
+                    "value": "44922631",
+                    "label": "Baerg Creek Dam WUC (8350)"
+                },
+                {
+                    "value": "108768323",
+                    "label": "Bagley Creek WUC (149260)"
+                },
+                {
+                    "value": "44922628",
+                    "label": "Beasley WUC (8346)"
+                },
+                {
+                    "value": "44922621",
+                    "label": "Beaton Creek WUC (57719)"
+                },
+                {
+                    "value": "44922639",
+                    "label": "Benvoulin WUC (8384)"
+                },
+                {
+                    "value": "44922640",
+                    "label": "Blenkinsop Lake WUC (8386)"
+                },
+                {
+                    "value": "44922641",
+                    "label": "Boat Harbour WUC (8387)"
+                },
+                {
+                    "value": "44922721",
+                    "label": "Bonaparte Dam WUC (33010)"
+                },
+                {
+                    "value": "44922642",
+                    "label": "Braeloch WUC (8388)"
+                },
+                {
+                    "value": "44922643",
+                    "label": "Brookmere WUC (8389)"
+                },
+                {
+                    "value": "44922726",
+                    "label": "Campbell Creek WUC (40018)"
+                },
+                {
+                    "value": "44922644",
+                    "label": "Cedar Creek WUC (8391)"
+                },
+                {
+                    "value": "44922624",
+                    "label": "China Creek WUC (8342)"
+                },
+                {
+                    "value": "44922737",
+                    "label": "Clayton Brook WUC (50137)"
+                },
+                {
+                    "value": "44922739",
+                    "label": "Crystal Springs WUC (52160)"
+                },
+                {
+                    "value": "44922724",
+                    "label": "Currie Brook WUC (39388)"
+                },
+                {
+                    "value": "44922626",
+                    "label": "Deer Park WUC (8344)"
+                },
+                {
+                    "value": "44922649",
+                    "label": "Denham Brook WUC (8397)"
+                },
+                {
+                    "value": "44922731",
+                    "label": "Dog Creek WUC (46391)"
+                },
+                {
+                    "value": "44922619",
+                    "label": "Dry Gulch WUC (8338)"
+                },
+                {
+                    "value": "44922652",
+                    "label": "Dungate Drive WUC (8401)"
+                },
+                {
+                    "value": "44922653",
+                    "label": "Durand Creek WUC (8402)"
+                },
+                {
+                    "value": "44922616",
+                    "label": "Eagle Creek WUC (8335)"
+                },
+                {
+                    "value": "44922734",
+                    "label": "Ed Hill WUC (48366)"
+                },
+                {
+                    "value": "44922725",
+                    "label": "Farleigh Lake WUC (39441)"
+                },
+                {
+                    "value": "57124158",
+                    "label": "Farrer Cove WUC (118696)"
+                },
+                {
+                    "value": "44922654",
+                    "label": "Fife WUC (8404)"
+                },
+                {
+                    "value": "44922730",
+                    "label": "Florence Lake WUC (44775)"
+                },
+                {
+                    "value": "44922614",
+                    "label": "Foster Creek WUC (8333)"
+                },
+                {
+                    "value": "44922625",
+                    "label": "Foursome Lake WUC (8343)"
+                },
+                {
+                    "value": "44922608",
+                    "label": "Gander Creek WUC (3893)"
+                },
+                {
+                    "value": "44922658",
+                    "label": "Gibson McNeil WUC (8408)"
+                },
+                {
+                    "value": "44922720",
+                    "label": "Guichon Creek WUC (32111)"
+                },
+                {
+                    "value": "44922661",
+                    "label": "Hallisey Creek WUC (8412)"
+                },
+                {
+                    "value": "44922663",
+                    "label": "Hatzic Prairie WUC (8414)"
+                },
+                {
+                    "value": "44922707",
+                    "label": "Hoggan Springs WUC (78942)"
+                },
+                {
+                    "value": "44922716",
+                    "label": "Honeymoon Creek WUC (25127)"
+                },
+                {
+                    "value": "44922765",
+                    "label": "Humming Bird Cove WUC (55216)"
+                },
+                {
+                    "value": "44922622",
+                    "label": "Jarvis Creek WUC (8340)"
+                },
+                {
+                    "value": "44922665",
+                    "label": "Kearsley Springs WUC (8418)"
+                },
+                {
+                    "value": "44922666",
+                    "label": "Kelowna View WUC (8419)"
+                },
+                {
+                    "value": "44922766",
+                    "label": "Kirby Lake WUC (53349)"
+                },
+                {
+                    "value": "44922668",
+                    "label": "Klim Brook WUC (8422)"
+                },
+                {
+                    "value": "52047840",
+                    "label": "Kootenay Bay WUC (114854)"
+                },
+                {
+                    "value": "44922669",
+                    "label": "Lakeview WUC (8423)"
+                },
+                {
+                    "value": "44922672",
+                    "label": "Larch Hill WUC (8425)"
+                },
+                {
+                    "value": "44922738",
+                    "label": "Little Goose WUC (50233)"
+                },
+                {
+                    "value": "44922633",
+                    "label": "Longbeach WUC (8352)"
+                },
+                {
+                    "value": "44922728",
+                    "label": "Longueval Creek WUC (40652)"
+                },
+                {
+                    "value": "44922673",
+                    "label": "Lookout Road WUC (8426)"
+                },
+                {
+                    "value": "44922674",
+                    "label": "Lucille Mountain WUC (8427)"
+                },
+                {
+                    "value": "44922609",
+                    "label": "Mallandaine WUC (6863)"
+                },
+                {
+                    "value": "44922675",
+                    "label": "Mckinney Road WUC (8428)"
+                },
+                {
+                    "value": "44922676",
+                    "label": "Meighan Creek WUC (8429)"
+                },
+                {
+                    "value": "44922770",
+                    "label": "Michael Creek WUC (62057)"
+                },
+                {
+                    "value": "44922610",
+                    "label": "Mirror Lake WUC (8329)"
+                },
+                {
+                    "value": "44922677",
+                    "label": "Mission Creek WUC (8430)"
+                },
+                {
+                    "value": "44922678",
+                    "label": "Monte Lake WUC (8431)"
+                },
+                {
+                    "value": "44922617",
+                    "label": "Morley Spring WUC (8336)"
+                },
+                {
+                    "value": "44922717",
+                    "label": "Mountain View WUC (27068)"
+                },
+                {
+                    "value": "87188399",
+                    "label": "Mt Gardner WUC (138436)"
+                },
+                {
+                    "value": "44922733",
+                    "label": "North Beach Heights WUC (47389)"
+                },
+                {
+                    "value": "44922632",
+                    "label": "North Boswell WUC (8351)"
+                },
+                {
+                    "value": "44922630",
+                    "label": "Oasis WUC (8348)"
+                },
+                {
+                    "value": "44922684",
+                    "label": "Peterson Creek WUC (8439)"
+                },
+                {
+                    "value": "44922611",
+                    "label": "Procter Spring WUC (8330)"
+                },
+                {
+                    "value": "44922723",
+                    "label": "Proctor Lake WUC (38864)"
+                },
+                {
+                    "value": "44922735",
+                    "label": "Prospect Lake & Tod Creek WUC (79298)"
+                },
+                {
+                    "value": "44922686",
+                    "label": "Puntledge Townsite WUC (8442)"
+                },
+                {
+                    "value": "44922671",
+                    "label": "Rainbow Creek WUC (67166)"
+                },
+                {
+                    "value": "44922627",
+                    "label": "Sandy Creek-Granite Road WUC (8345)"
+                },
+                {
+                    "value": "44922690",
+                    "label": "Seymour Arm WUC (8446)"
+                },
+                {
+                    "value": "44922691",
+                    "label": "Seymour Lake WUC (8447)"
+                },
+                {
+                    "value": "44922692",
+                    "label": "Silver Creek WUC (8448)"
+                },
+                {
+                    "value": "44922693",
+                    "label": "Sinclair Mills WUC (8449)"
+                },
+                {
+                    "value": "44922694",
+                    "label": "Sinmax Creek WUC (8450)"
+                },
+                {
+                    "value": "44922620",
+                    "label": "Six Mile WUC (8339)"
+                },
+                {
+                    "value": "44922696",
+                    "label": "South Kelowna WUC (8452)"
+                },
+                {
+                    "value": "44922695",
+                    "label": "Southbright WUC (8451)"
+                },
+                {
+                    "value": "44922768",
+                    "label": "Southside WUC (54279)"
+                },
+                {
+                    "value": "44922636",
+                    "label": "Spud Hill WUC (8354)"
+                },
+                {
+                    "value": "44922772",
+                    "label": "Sunset Beach WUC (71530)"
+                },
+                {
+                    "value": "44922699",
+                    "label": "Taghill WUC (8455)"
+                },
+                {
+                    "value": "44922618",
+                    "label": "Taghum Spring WUC (8337)"
+                },
+                {
+                    "value": "44922700",
+                    "label": "Tete Jaune WUC (8456)"
+                },
+                {
+                    "value": "44922701",
+                    "label": "Thomas Brook WUC (8457)"
+                },
+                {
+                    "value": "44922715",
+                    "label": "Thunderbird WUC (22498)"
+                },
+                {
+                    "value": "44922703",
+                    "label": "Tranquille Valley WUC (8460)"
+                },
+                {
+                    "value": "44922704",
+                    "label": "Trepanier Ditch WUC (8461)"
+                },
+                {
+                    "value": "44922769",
+                    "label": "Trisha Spring WUC (60605)"
+                },
+                {
+                    "value": "44922705",
+                    "label": "Tronson WUC (8462)"
+                },
+                {
+                    "value": "44922612",
+                    "label": "Twin Bays WUC (8331)"
+                },
+                {
+                    "value": "44922629",
+                    "label": "Upper Pass Creek WUC (8347)"
+                },
+                {
+                    "value": "44922613",
+                    "label": "Urmston Creek WUC (8332)"
+                },
+                {
+                    "value": "44922708",
+                    "label": "Vaseux Creek WUC (8464)",
+                    "selected": true
+                },
+                {
+                    "value": "44922709",
+                    "label": "Vaucroft WUC (8465)"
+                },
+                {
+                    "value": "44922615",
+                    "label": "West Brilliant WUC (8334)"
+                },
+                {
+                    "value": "44922718",
+                    "label": "Westwold Salmon River WUC (27564)"
+                },
+                {
+                    "value": "44922736",
+                    "label": "White Lake/White Creek WUC (49864)"
+                }
+            ],
+            "required": true,
+            "tabindex": 13
+        },
+        "PermissionToOccupyCrownLandSection": {
+            "type": "section",
+            "id": "Text_2_100826814_185549741",
+            "title": "Permission to occupy Crown Land",
+            "description": ""
+        },
+        "PCLStatement1Instructions": {
+            "type": "string",
+            "id": "InstructionsV1PCLStmt1_100826604_185549741",
+            "title": "PCL Statement 1 Instructions",
+            "description": "For any works that cross or otherwise affect (e.g. flood) Crown land, you will require permission. A Permit Over Crown Land (PCL) means an authority issued under the Water Sustainability Act which allows you to construct, maintain, or operate works on Crown land or to flood Crown land. Please answer the following questions to determine whether an authorization to occupy Crown Land will be required with your Water application. If a Permit Over Crown land is required, the applicable fee, if any, will be automatically calculated and added to your application. You should indicate 'Yes' to the following question if any of the following circumstances apply to your application: ? any of your works will be located on or crossing Crown land ? your well is or will be located on Crown Land ? you are proposing to flood Crown Land",
+            "readOnly": true
+        },
+        "V1PCLStatement1": {
+            "type": "radio",
+            "id": "V1PCLStatement1_100826604_185549741",
+            "title": "Do any of the above apply to your application?",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "required": false,
+            "tabindex": 78
+        },
+        "PCLStatement2Instructions": {
+            "type": "string",
+            "id": "InstructionsV1PCLStmt2_100826911_185549741",
+            "title": "PCL Statement 2 Instructions",
+            "description": "For certain activities or works a Land Act tenure is required. You should indicate 'Yes' to the following question if any one of the following conditions apply to the proposed use of Crown land: ? the purpose for the use of water is either 'Power Commercial' or 'Power General' based on the Water Use Purpose definitions; ? any of the works are consider major works (meaning for conveyance of 0.01 m³/s or more, for waterworks purpose or industrial purpose); ? your works include a dam higher than 9 metres or storage greater than 1,000,000 m³; or ? your works include a permanent access road, a power house, or transmission lines.",
+            "readOnly": true
+        },
+        "V1PCLStatement2": {
+            "type": "radio",
+            "id": "V1PCLStatement2_100826911_185549741",
+            "title": "Do any of the above apply to your application?",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "required": false,
+            "tabindex": 84
+        },
+        "PCLStatement2Warning": {
+            "type": "string",
+            "id": "InstructionsV1PCLStmt2Warn_100827255_185549741",
+            "title": "Land Act Tenure Warning",
+            "description": "Based on your answer you will require a Land Act tenure, review Crown Land Uses for more information. It is a condition of this application that the Land Act application is made at the same time as the water application. If the Land Act application is not submitted, your application is considered to be incomplete and may be rejected. If you have any questions, please contact FrontCounter BC at 1-877-855-3222 for assistance.",
+            "readOnly": true
+        },
+        "JumpToReview_RT": {
+            "type": "button",
+            "id": "JumpToReview_RT_100826762_185549741",
+            "title": "Review Application",
+            "description": "Review any outstanding issues on your application",
+            "tabindex": 146
+        },
+        "PrintLink2": {
+            "type": "button",
+            "id": "PrintLink2_100826762_185549741",
+            "title": "Print Page",
+            "description": "Print this page",
+            "action": "window.print()",
+            "tabindex": 147
+        },
+        "Previous": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_Previous",
+            "title": "Back",
+            "action": "PosseChangeColumnEscaped('185549741', 'LockdownDataCreateClientFees', 'N');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 0, 100827051)"
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl07_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx"
+        },
+        "Submit": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl10_Submit",
+            "title": "Save Application",
+            "action": "PosseChangeColumnEscaped('185549741', 'TransferToSaveApplication', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100535005)"
+        },
+        "Next": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl12_Next",
+            "title": "Next",
+            "action": "PosseChangeColumnEscaped('185549741', 'NavigateToSpecificWizardPane', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100534611)"
+        }
+    }
+}

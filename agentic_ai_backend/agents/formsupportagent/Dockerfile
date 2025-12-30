@@ -5,7 +5,7 @@ WORKDIR /app
 COPY utils/ ./utils/
 COPY agents/formsupportagent/ ./agents/formsupportagent/
 WORKDIR /app/agents/formsupportagent
-RUN uv sync --frozen
+RUN uv sync
 ENV PATH="/app/agents/formsupportagent/.venv/bin:$PATH"
 EXPOSE 8001
 CMD ["python", "formsupport_agent_a2a_server.py"]

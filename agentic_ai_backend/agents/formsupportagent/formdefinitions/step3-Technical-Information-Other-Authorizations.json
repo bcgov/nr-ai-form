@@ -1,0 +1,245 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Technical Information - Other Authorizations",
+    "properties": {
+        "ProgressBar": {
+            "type": "progressbar",
+            "id": "Text_1_100535316_185549741",
+            "title": "Application Progress",
+            "steps": [
+                {
+                    "step": 1,
+                    "status": "yet",
+                    "title": ""
+                },
+                {
+                    "step": 2,
+                    "status": "done",
+                    "title": "Eligibility"
+                },
+                {
+                    "step": 3,
+                    "status": "on",
+                    "title": "Step 3 - Technical Information"
+                },
+                {
+                    "step": 4,
+                    "status": "done",
+                    "title": "Location"
+                },
+                {
+                    "step": 5,
+                    "status": "done",
+                    "title": "Document Upload"
+                },
+                {
+                    "step": 6,
+                    "status": "done",
+                    "title": "Privacy Declaration"
+                },
+                {
+                    "step": 7,
+                    "status": "done",
+                    "title": "Contact Information"
+                },
+                {
+                    "step": 8,
+                    "status": "done",
+                    "title": "Review"
+                },
+                {
+                    "step": 9,
+                    "status": "yet",
+                    "title": ""
+                },
+                {
+                    "step": "Complete",
+                    "status": "yet",
+                    "title": "Complete"
+                }
+            ]
+        },
+        "OtherAuthorizationsSection": {
+            "type": "section",
+            "id": "Text_3_100535316_185549741",
+            "title": "Other Authorizations",
+            "description": ""
+        },
+        "OtherAuthorizationsInstructions": {
+            "type": "string",
+            "id": "Text_2_100535316_185549741",
+            "title": "Other Authorizations Instructions",
+            "description": "In many cases you might require other authorizations or permits in order to complete your project. In order to make that determination and point you in the right direction, please answer the questions below. More information can also be found on the Government Water website (https://www2.gov.bc.ca/gov/content/environment/air-land-water/water). In addition, your application may be referred to other agencies for comments.",
+            "readOnly": true
+        },
+        "V1CutTimberCrownLand": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549753",
+            "title": "Are you planning to cut timber on Crown Land?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "To cut timber on the Crown Land you may require an Occupant Licence to Cut. For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) nearest your application location.",
+            "tabindex": 2
+        },
+        "V1OpenFireBurnTimber": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549755",
+            "title": "Are you planning to use an open fire to burn timber or other materials?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "Review the Open fire and safe burning (https://www2.gov.bc.ca/gov/content?id=28DB52BC27B94C01B98E246B2DE423DB) website to learn more about your responsibilities and determine the appropriate fire category. A Category 3 fire must obtain a burn registration number by calling 1 888 797-1717.",
+            "tabindex": 2
+        },
+        "V1PotableWaterSupply": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549757",
+            "title": "Are you supplying potable water to consumers?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "Water suppliers are responsible for delivering safe drinking water that meets the requirements of the Drinking Water Protection Act and Drinking Water Protection Regulation, as well as the conditions set on your operating permits. These requirements include treating the water, if necessary, and ensuring water quality through monitoring. More information can be found on the Drinking Water Quality (https://www2.gov.bc.ca/gov/content?id=2890C295ACC74344A677CC5EC97B7DE5) website.",
+            "tabindex": 2
+        },
+        "V1FishWildlifeHabitatAffected": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549759",
+            "title": "Will fish or wildlife habitat be affected?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "Your application may be referred to other agencies for review and comment. Visit ecosystems (https://www2.gov.bc.ca/gov/content?id=D2AEA65E1B0995C028F5415CDA3491DD) to learn more about the plant and animal species living in a diversity of habitats and ecosystems in BC.",
+            "tabindex": 2
+        },
+        "V1MineralExploration": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549761",
+            "title": "Are you planning to undertake mineral exploration?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "If you are planning to undertake mineral exploration (https://www2.gov.bc.ca/gov/content?id=E2389D4562AD4A1DAE773A45370D2B36), a Notice of Work application may be required.",
+            "tabindex": 2
+        },
+        "V1ConstructRoadToDam": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549763",
+            "title": "Do you need to construct a road to the dam (if there are no existing roads)?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "Land Act authorization is required to build a road on Crown Land for private and public use. Review Land Use - Roadways (https://www2.gov.bc.ca/gov/content?id=D1069DAFCFDD4685885AFD876380B6C8) for more information and how to apply.",
+            "tabindex": 2
+        },
+        "V1WorksExistingForestRoad": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549765",
+            "title": "Do you want to construct works within an existing forest road right-of-way on Crown land?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "Forest Service Roads and Resource Roads may require permits (https://www2.gov.bc.ca/gov/content?id=0A48B7366232463E98005309EEFD3680) or you may need to negotiate maintenance agreements with an existing permit holder. For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) nearest your application location.",
+            "tabindex": 2
+        },
+        "V1TransportHeavyEquipment": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549767",
+            "title": "Do you want to transport heavy equipment or materials on an existing forest road?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "Forest Service Roads and Resource Roads may require permits (https://www2.gov.bc.ca/gov/content?id=0A48B7366232463E98005309EEFD3680) or you may need to negotiate maintenance agreements with an existing permit holder. For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) nearest your application location.",
+            "tabindex": 2
+        },
+        "V1LivestockWateringCrownLand": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549769",
+            "title": "Do you want to use the water for livestock watering on Crown land?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "You must have an authorization that allows livestock grazing on Crown Land. For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) nearest your application location.",
+            "tabindex": 2
+        },
+        "V1WorkPublicRoadAllowance": {
+            "type": "radio",
+            "id": "Answer_100536368_100534881_185549771",
+            "title": "Does any work occur within the public road allowance or has to cross a public road?",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ],
+            "required": true,
+            "notice": "Be advised that additional permits may be required including Resource and Forest Service Roads (https://www2.gov.bc.ca/gov/content?id=0A48B7366232463E98005309EEFD3680) and Provincial Highways (https://www2.gov.bc.ca/gov/content?id=3D337385B8D74451BD118FE8BC53F3B8). For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) and Development Services Office (https://twm.th.gov.bc.ca/?c=DAGoffices&lon=-115.02108119567546&lat=54.49097007244484&z=5&sb=1&) nearest your application location.",
+            "tabindex": 2
+        },
+        "JumpToReview_RT": {
+            "type": "button",
+            "id": "JumpToReview_RT_100553305_185549741",
+            "title": "Review Application",
+            "description": "Review any outstanding issues on your application",
+            "tabindex": 5
+        },
+        "PrintLink2": {
+            "type": "button",
+            "id": "PrintLink2_100553305_185549741",
+            "title": "Print Page",
+            "description": "Print this page",
+            "action": "window.print()",
+            "tabindex": 6
+        },
+        "Previous": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_Previous",
+            "title": "Back",
+            "action": "PosseChangeColumnEscaped('185549741', 'LockdownDataCreateClientFees', 'N');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 0, 100535349)"
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl07_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx"
+        },
+        "Submit": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl10_Submit",
+            "title": "Save Application",
+            "action": "PosseChangeColumnEscaped('185549741', 'TransferToSaveApplication', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100535316)"
+        },
+        "Next": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl12_Next",
+            "title": "Next",
+            "action": "PosseChangeColumnEscaped('185549741', 'NavigateToSpecificWizardPane', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100380355)"
+        }
+    }
+}

@@ -1,0 +1,193 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Dam/Reservoir - Add Individual",
+    "properties": {
+        "LegalNameSection": {
+            "type": "section",
+            "id": "Text_1_100376607_N0",
+            "title": "Legal Name",
+            "description": ""
+        },
+        "LastName": {
+            "type": "string",
+            "id": "LastName_100376607_N0",
+            "title": "Last Name:",
+            "maxLength": 60,
+            "required": true,
+            "tabindex": 2
+        },
+        "FirstName": {
+            "type": "string",
+            "id": "FirstName_100376607_N0",
+            "title": "First Name:",
+            "maxLength": 60,
+            "required": true,
+            "tabindex": 4
+        },
+        "MiddleName": {
+            "type": "string",
+            "id": "MiddleName_100376607_N0",
+            "title": "Middle Name:",
+            "maxLength": 60,
+            "required": false,
+            "tabindex": 5
+        },
+        "PhoneNumber": {
+            "type": "phone",
+            "id": "PhoneNumber_100376607_N0",
+            "title": "Phone:",
+            "parts": [
+                {
+                    "id": "PhoneNumber_100376607_N0_1",
+                    "name": "area",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 7
+                },
+                {
+                    "id": "PhoneNumber_100376607_N0_2",
+                    "name": "first",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 7
+                },
+                {
+                    "id": "PhoneNumber_100376607_N0_3",
+                    "name": "last",
+                    "maxLength": 4,
+                    "size": 4,
+                    "tabindex": 7
+                }
+            ],
+            "format": "(###) ###-####",
+            "required": false
+        },
+        "DaytimePhoneNumber": {
+            "type": "phone",
+            "id": "DaytimePhoneNumber_100376607_N0",
+            "title": "Daytime Phone:",
+            "parts": [
+                {
+                    "id": "DaytimePhoneNumber_100376607_N0_1",
+                    "name": "area",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 10
+                },
+                {
+                    "id": "DaytimePhoneNumber_100376607_N0_2",
+                    "name": "first",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 10
+                },
+                {
+                    "id": "DaytimePhoneNumber_100376607_N0_3",
+                    "name": "last",
+                    "maxLength": 4,
+                    "size": 4,
+                    "tabindex": 10
+                }
+            ],
+            "format": "(###) ###-####",
+            "required": false
+        },
+        "DaytimePhoneNumberExtension": {
+            "type": "number",
+            "id": "DaytimePhoneNumberExtension_100376607_N0",
+            "title": "Ext:",
+            "maxLength": 4,
+            "size": 5,
+            "required": false,
+            "tabindex": 11
+        },
+        "FaxNumber": {
+            "type": "phone",
+            "id": "FaxNumber_100376607_N0",
+            "title": "Fax:",
+            "parts": [
+                {
+                    "id": "FaxNumber_100376607_N0_1",
+                    "name": "area",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 12
+                },
+                {
+                    "id": "FaxNumber_100376607_N0_2",
+                    "name": "first",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 12
+                },
+                {
+                    "id": "FaxNumber_100376607_N0_3",
+                    "name": "last",
+                    "maxLength": 4,
+                    "size": 4,
+                    "tabindex": 12
+                }
+            ],
+            "format": "(###) ###-####",
+            "required": false
+        },
+        "Email": {
+            "type": "string",
+            "id": "Email_100376607_N0",
+            "title": "Email:",
+            "maxLength": 60,
+            "required": false,
+            "tabindex": 14
+        },
+        "MailingAddressSection": {
+            "type": "section",
+            "id": "Text_10_100376607_N0",
+            "title": "Mailing Address",
+            "description": "",
+            "required": true
+        },
+        "AddressGrid": {
+            "type": "grid",
+            "id": "Address_100376607_N0",
+            "title": "Mailing Address",
+            "columns": [
+                {
+                    "name": "Address",
+                    "type": "string"
+                },
+                {
+                    "name": "Delete",
+                    "type": "action"
+                }
+            ],
+            "actions": [
+                {
+                    "type": "edit",
+                    "id": "Link_1_100374044_100377730",
+                    "title": "Edit Address",
+                    "action": "PossePopup",
+                    "tabindex": 15
+                },
+                {
+                    "type": "delete",
+                    "id": "Delete_1_100374044_100377730",
+                    "title": "Delete this line",
+                    "action": "PosseDelete",
+                    "tabindex": 15
+                }
+            ]
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "window.close()"
+        },
+        "Submit": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl06_Submit",
+            "title": "Save",
+            "action": "PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/EditRelatedObject.aspx?FromObjectId=185549741&EndPoint=WSLICDamResIndivContact&PossePresentation=OtherContact&PosseObjectDef=o_VF_ApplicationClient', 2, 100376607)"
+        }
+    }
+}

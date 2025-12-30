@@ -1,6 +1,6 @@
 
 from agent_framework import Executor, WorkflowContext, handler
-from typing import Any, Optional
+from typing import Any, Optional, Union
 from a2aclients.formsupportagentclient import FormSupportAgentA2AClient
 
 class FormSupportAgentA2AExecutor(Executor):
@@ -12,7 +12,7 @@ class FormSupportAgentA2AExecutor(Executor):
     def __init__(
         self, 
         base_url: str = "http://localhost:8001",
-        step_number: Optional[int] = 2,
+        step_number: Optional[Union[int, str]] = "step2-Eligibility",
         id: str = "FormSupportAgentA2A",
         name: str = "Form Support Agent (A2A)",
         instructions: str = "Handles form support queries using A2A protocol"

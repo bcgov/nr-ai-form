@@ -1,0 +1,53 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 4 - Location - Spatial Files - Multi-File Upload",
+    "properties": {
+        "Uploader": {
+            "type": "multifileupload",
+            "id": "uploader",
+            "title": "Multi-File Upload",
+            "description": "Add files to the upload queue and click the start button.",
+            "dropText": "Drag files here.",
+            "columns": [
+                {
+                    "id": "plupload_file_name",
+                    "title": "Filename"
+                },
+                {
+                    "id": "plupload_file_status",
+                    "title": "Status"
+                },
+                {
+                    "id": "plupload_file_size",
+                    "title": "Size"
+                },
+                {
+                    "id": "plupload_file_description",
+                    "title": "Description"
+                }
+            ],
+            "items": [
+                {
+                    "id": "p1jcphfp8m1an0c7t10ve1qfimi4",
+                    "fileName": "sample_locations.geojson",
+                    "status": "0%",
+                    "size": "2 KB",
+                    "descriptionId": "p1jcphfp8m1an0c7t10ve1qfimi4_description"
+                }
+            ],
+            "statusText": "Uploaded 0/1 files",
+            "buttons": {
+                "addFiles": {
+                    "id": "uploader_browse",
+                    "title": "Add files",
+                    "tabindex": 1000000
+                },
+                "startUpload": {
+                    "id": "uploader_start",
+                    "title": "Start upload",
+                    "tabindex": 1000001
+                }
+            }
+        }
+    }
+}

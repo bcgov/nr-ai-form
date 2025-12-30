@@ -7,7 +7,7 @@ import sys
 import asyncio
 from agent_framework import Executor, WorkflowBuilder, WorkflowContext, WorkflowOutputEvent, handler
 from typing_extensions import Never
-from typing import Any
+from typing import Any, Union
 from dotenv import load_dotenv
 
 # Import A2A executors
@@ -22,7 +22,7 @@ load_dotenv()
 async def orchestrate_a2a(query: str, 
                           conversation_agent_url: str = "http://localhost:8000",
                           form_support_agent_url: str = "http://localhost:8001",
-                          step_number: int = 2):
+                          step_number: Union[int, str] = "step2-Eligibility"):
     """
     Orchestrate using A2A protocol to communicate with remote agents.
     
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     form_support_url = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
     
     # Get step number from environment or use default
-    step_number = int(os.getenv("FORM_STEP_NUMBER", "2"))
+    step_number = os.getenv("FORM_STEP_NUMBER", "step2-Eligibility")
     
     print(f"Starting Orchestrator with A2A communication")
     print(f"Conversation Agent: {conversation_url}")

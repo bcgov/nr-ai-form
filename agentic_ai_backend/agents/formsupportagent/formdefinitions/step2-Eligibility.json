@@ -1,0 +1,171 @@
+{
+  "formName": "Water Licence Application",
+  "formDescription": "Step 2 - Eligibility",
+  "properties": {
+    "ProgressBar": {
+      "type": "progressbar",
+      "id": "Text_1_100374029_185550103",
+      "title": "Application Progress",
+      "steps": [
+        {
+          "step": 1,
+          "status": "yet",
+          "title": ""
+        },
+        {
+          "step": 2,
+          "status": "on",
+          "title": "Step 2 - Eligibility"
+        },
+        {
+          "step": 3,
+          "status": "done",
+          "title": "Technical Information"
+        },
+        {
+          "step": 4,
+          "status": "done",
+          "title": "Location"
+        },
+        {
+          "step": 5,
+          "status": "done",
+          "title": "Document Upload"
+        },
+        {
+          "step": 6,
+          "status": "done",
+          "title": "Privacy Declaration"
+        },
+        {
+          "step": 7,
+          "status": "done",
+          "title": "Contact Information"
+        },
+        {
+          "step": 8,
+          "status": "done",
+          "title": "Review"
+        },
+        {
+          "step": 9,
+          "status": "yet",
+          "title": ""
+        },
+        {
+          "step": "Complete",
+          "status": "yet",
+          "title": "Complete"
+        }
+      ]
+    },
+    "EligibilityInstructions": {
+      "type": "string",
+      "id": "Step3Instruction_100374029_185550103",
+      "title": "Instructions",
+      "description": "Please answer the following questions related to your Water Licence Application.",
+      "readOnly": true,
+      "help": "Text_3_100374029_185550103"
+    },
+    "AnswerOnJob_eligible": {
+      "type": "radio",
+      "id": "AnswerOnJob_100378005_100384531_185550105",
+      "title": "Are you eligible to apply for a water licence?",
+      "description": "If you answer yes to any ONE of the questions below, select the 'Yes' option.\n\n- Are you the owner of land or a mine in British Columbia where the water will be used?\n- Are you entitled to possession of land or a mine in British Columbia where the water will be used?\n- Do you have a substantial interest in the land, mine, or an undertaking in British Columbia where the water will be used?\n- Are you a holder of a certificate of public convenience and necessity issued under the Public Utilities Act, the Utilities Commission Act or the Water Utility Act?\n- Are you a municipality, regional district, improvement district, development district or water users' community?\n- Are you representing the government of British Columbia or Canada?\n- Are you representing a commission, board or person having charge of the administration of Crown land or a mine or an undertaking on Crown land, administered by British Columbia or Canada or controlled by a ministry, department, branch or other subdivision of the government of British Columbia or Canada?\n- Are you representing the Greater Vancouver Water District or any other water district incorporated by an Act?\n- Are you representing the British Columbia Hydro and Power Authority?\n- Are you applying as an agent on behalf of an eligible applicant as described above?",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes",
+      "required": true,
+      "tabindex": 3
+    },
+    "AnswerOnJob_housing": {
+      "type": "radio",
+      "id": "AnswerOnJob_100378005_100384531_185550113",
+      "title": "Is this application in relation to increasing the supply of housing units within British Columbia?",
+      "description": "A Housing related project, for the purpose of this application, must be for a specific development and the development must increase the number of housing units on the land/property.",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No",
+      "required": true,
+      "tabindex": 3
+    },
+    "AnswerOnJob_north-coast-line": {
+      "type": "radio",
+      "id": "AnswerOnJob_100378005_100384531_185550107",
+      "title": "Is this application related to the North Coast Transmission Line?",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No",
+      "required": true,
+      "tabindex": 3
+    },
+    "AnswerOnJob_bc-hydro-sustainability": {
+      "type": "radio",
+      "id": "AnswerOnJob_100378005_100384531_185550109",
+      "title": "Is this application related to a BC Hydro Sustainment Project required for the maintenance and upgrading of existing electricity infrastructure, such as replacing aging equipment, improving transmission systems, or reinforcing substations to support long-term energy needs?",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No",
+      "required": true,
+      "tabindex": 3
+    },
+    "AnswerOnJob_clean-energy": {
+      "type": "radio",
+      "id": "AnswerOnJob_100378005_100384531_185550111",
+      "title": "Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024-present?",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No",
+      "required": true,
+      "tabindex": 3
+    },
+    "ApplicationFee": {
+      "type": "string",
+      "id": "FormattedApplicationFee_100385020_185550103",
+      "title": "Application and Associated Fees",
+      "description": "$250.00 CAD plus applicable taxes",
+      "readOnly": true
+    },
+    "Back": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl03_Previous",
+      "title": "Back",
+      "action": "PosseChangeColumnEscaped('185550103', 'LockdownDataCreateClientFees', 'N');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185550103', 0, 100377102)"
+    },
+    "Cancel": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl06_hlkFunctionLink",
+      "title": "Cancel",
+      "action": "window.location='https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx'"
+    },
+    "SaveApplication": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl09_Submit",
+      "title": "Save Application",
+      "action": "PosseChangeColumnEscaped('185550103', 'TransferToSaveApplication', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185550103', 2, 100374029)"
+    },
+    "Next": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl11_Next",
+      "title": "Next",
+      "action": "PosseChangeColumnEscaped('185550103', 'NavigateToSpecificWizardPane', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185550103', 2, 101239328)"
+    },
+    "PrintPage": {
+      "type": "button",
+      "id": "PrintLink2_100385020_185550103",
+      "title": "Print Page",
+      "tabindex": 7,
+      "action": "window.print()"
+    }
+  }
+}
