@@ -1,0 +1,33 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 5 - File Upload",
+    "properties": {
+        "DocumentTypeObjectId_100376180_100383475_185549540": {
+            "type": "string",
+            "enum": [
+                "",
+                "65657168",
+                "65657170",
+                "65657166",
+                "65657164"
+            ],
+            "id": "DocumentTypeObjectId_100376180_100383475_185549540",
+            "title": "Type of Document",
+            "required": true,
+            "options": {
+                "": "(None)",
+                "65657168": "Copy of Private Lease (if applicable)",
+                "65657170": "Drawing to Scale",
+                "65657166": "Joint Works Agreement",
+                "65657164": "Other"
+            }
+        },
+        "Description_100376180_100383475_185549540": {
+            "type": "string",
+            "id": "Description_100376180_100383475_185549540",
+            "title": "Description",
+            "required": true,
+            "maxLength": 500
+        }
+    }
+}
