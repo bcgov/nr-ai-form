@@ -1,0 +1,14 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 9 - Declaration",
+    "properties": {
+        "DeclarationConfirmation_100375029_185549445": {
+            "type": "boolean",
+            "id": "DeclarationConfirmation_100375029_185549445",
+            "title": "I declare that the information contained on this form is complete and accurate.",
+            "required": true,
+            "trueValue": "Y",
+            "falseValue": "N"
+        }
+    }
+}

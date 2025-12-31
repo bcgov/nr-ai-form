@@ -1,0 +1,57 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 7 - Referral",
+    "properties": {
+        "ReferralContactOrgName_100377297_185549445": {
+            "type": "string",
+            "id": "ReferralContactOrgName_100377297_185549445",
+            "title": "Company / Organization / Government",
+            "required": false,
+            "maxLength": 150
+        },
+        "ReferralContactName_100377297_185549445": {
+            "type": "string",
+            "id": "ReferralContactName_100377297_185549445",
+            "title": "Contact Name",
+            "required": true,
+            "maxLength": 200
+        },
+        "ReferralContactAddress_100377297_185549445": {
+            "type": "string",
+            "id": "ReferralContactAddress_100377297_185549445",
+            "title": "Contact Address",
+            "required": true,
+            "maxLength": 500,
+            "multiline": true
+        },
+        "ReferralContactPhone_100377297_185549445": {
+            "type": "string",
+            "id": "ReferralContactPhone_100377297_185549445",
+            "title": "Contact Phone",
+            "required": false,
+            "format": "phone",
+            "composite": true,
+            "parts": [
+                "ReferralContactPhone_100377297_185549445_1",
+                "ReferralContactPhone_100377297_185549445_2",
+                "ReferralContactPhone_100377297_185549445_3"
+            ]
+        },
+        "ReferralContactEmail_100377297_185549445": {
+            "type": "string",
+            "id": "ReferralContactEmail_100377297_185549445",
+            "title": "Contact Email",
+            "required": false,
+            "maxLength": 60,
+            "format": "email"
+        },
+        "GrantReferralPermission_100374064_185549445": {
+            "type": "boolean",
+            "id": "GrantReferralPermission_100374064_185549445",
+            "title": "Consent to referral and First Nation consultation",
+            "required": true,
+            "trueValue": "Y",
+            "falseValue": "N"
+        }
+    }
+}

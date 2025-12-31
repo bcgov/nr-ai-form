@@ -1,0 +1,96 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 7 - Add Business Co-applicant",
+    "properties": {
+        "LegalName_100380466_N0": {
+            "type": "string",
+            "id": "LegalName_100380466_N0",
+            "title": "Legal Name",
+            "required": true,
+            "maxLength": 250
+        },
+        "DoingBusinessAs_100380466_N0": {
+            "type": "string",
+            "id": "DoingBusinessAs_100380466_N0",
+            "title": "Doing Business As",
+            "required": false,
+            "maxLength": 150
+        },
+        "PhoneNumber_100380466_N0": {
+            "type": "string",
+            "id": "PhoneNumber_100380466_N0",
+            "title": "Phone Number",
+            "required": true,
+            "format": "phone",
+            "composite": true,
+            "parts": [
+                "PhoneNumber_100380466_N0_1",
+                "PhoneNumber_100380466_N0_2",
+                "PhoneNumber_100380466_N0_3"
+            ]
+        },
+        "PhoneExtension_100380466_N0": {
+            "type": "string",
+            "id": "PhoneExtension_100380466_N0",
+            "title": "Phone Extension",
+            "required": false,
+            "maxLength": 4
+        },
+        "FaxNumber_100380466_N0": {
+            "type": "string",
+            "id": "FaxNumber_100380466_N0",
+            "title": "Fax Number",
+            "required": false,
+            "format": "phone",
+            "composite": true,
+            "parts": [
+                "FaxNumber_100380466_N0_1",
+                "FaxNumber_100380466_N0_2",
+                "FaxNumber_100380466_N0_3"
+            ]
+        },
+        "Email_100380466_N0": {
+            "type": "string",
+            "id": "Email_100380466_N0",
+            "title": "Email",
+            "required": false,
+            "maxLength": 60,
+            "format": "email"
+        },
+        "BCIncNo_100380466_N0": {
+            "type": "string",
+            "id": "BCIncNo_100380466_N0",
+            "title": "BC Incorporation Number",
+            "required": false,
+            "maxLength": 30
+        },
+        "BusinessRegistrationNumber_100380466_N0": {
+            "type": "string",
+            "id": "BusinessRegistrationNumber_100380466_N0",
+            "title": "Extra Provincial Inc. No",
+            "required": false,
+            "maxLength": 30
+        },
+        "SocietyNo_100380466_N0": {
+            "type": "string",
+            "id": "SocietyNo_100380466_N0",
+            "title": "Society Number",
+            "required": false,
+            "maxLength": 30
+        },
+        "GSTRegistrationNo_100380466_N0": {
+            "type": "string",
+            "id": "GSTRegistrationNo_100380466_N0",
+            "title": "GST Registration Number",
+            "required": false,
+            "maxLength": 30
+        },
+        "ContactName_100380466_N0": {
+            "type": "string",
+            "id": "ContactName_100380466_N0",
+            "title": "Contact Name",
+            "required": false,
+            "maxLength": 4000
+        }
+    }
+}

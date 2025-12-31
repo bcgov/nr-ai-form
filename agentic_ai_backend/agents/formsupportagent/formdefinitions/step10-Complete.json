@@ -1,0 +1,95 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 10 - Complete",
+    "properties": {
+        "V1OtherInformation_100741582_185549445": {
+            "type": "string",
+            "id": "V1OtherInformation_100741582_185549445",
+            "title": "Is there any other information you would like us to know (where possible, do not include personal information)",
+            "required": false,
+            "maxLength": 4000,
+            "multiline": true
+        },
+        "Step12PaymentMethod_100559849_185549445": {
+            "type": "string",
+            "id": "Step12PaymentMethod_100559849_185549445",
+            "title": "Please choose a method of payment",
+            "required": true,
+            "control": "radio",
+            "enum": [
+                "Online with credit card",
+                "Mail in payment",
+                "Pay in person"
+            ],
+            "options": {
+                "Online with credit card": "By Credit Card online",
+                "Mail in payment": "Mail in your cheque or money order",
+                "Pay in person": "Pay in person at a FrontCounter BC office"
+            },
+            "inputs": [
+                "Step12PaymentMethod_100559849_185549445_1",
+                "Step12PaymentMethod_100559849_185549445_2",
+                "Step12PaymentMethod_100559849_185549445_3"
+            ],
+            "default": "Online with credit card"
+        },
+        "RelatedToAnotherAppAuth_100480185_185549445": {
+            "type": "string",
+            "id": "RelatedToAnotherAppAuth_100480185_185549445",
+            "title": "Is this application for an activity or project which requires more than one natural resource authorization from the Province of BC?",
+            "required": false,
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "control": "radio",
+            "inputs": [
+                "RelatedToAnotherAppAuth_100480185_185549445_1",
+                "RelatedToAnotherAppAuth_100480185_185549445_2"
+            ]
+        },
+        "NameOfProject_100480147_185549445": {
+            "type": "string",
+            "id": "NameOfProject_100480147_185549445",
+            "title": "What is the name of your project?",
+            "required": false,
+            "maxLength": 150
+        },
+        "RelatedAppNumbersDescription_100480147_185549445": {
+            "type": "string",
+            "id": "RelatedAppNumbersDescription_100480147_185549445",
+            "title": "Reference / project / tracking numbers or other descriptive information to group related applications",
+            "required": true,
+            "maxLength": 4000,
+            "multiline": true
+        },
+        "VFCBCOffice_100480203_185549445": {
+            "type": "string",
+            "id": "VFCBCOffice_100480203_185549445",
+            "title": "Select the office you wish to submit your application to",
+            "required": true,
+            "enum": [
+                "",
+                "6579188",
+                "6579189",
+                "6579190",
+                "6579191",
+                "6579192",
+                "6579193",
+                "6579194",
+                "6579196"
+            ],
+            "options": {
+                "": "(None)",
+                "6579188": "Cranbrook",
+                "6579189": "Fort St. John",
+                "6579190": "Kamloops",
+                "6579191": "Nanaimo",
+                "6579192": "Prince George",
+                "6579193": "Smithers",
+                "6579194": "Surrey",
+                "6579196": "Williams Lake"
+            }
+        }
+    }
+}
