@@ -1,0 +1,311 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 4 - Location",
+    "properties": {
+        "ProgressBar": {
+            "type": "progressbar",
+            "id": "ProgressBar_100374587_185549741",
+            "title": "Application Progress",
+            "steps": [
+                {
+                    "step": 1,
+                    "status": "yet",
+                    "title": ""
+                },
+                {
+                    "step": 2,
+                    "status": "done",
+                    "title": "Eligibility"
+                },
+                {
+                    "step": 3,
+                    "status": "done",
+                    "title": "Technical Information"
+                },
+                {
+                    "step": 4,
+                    "status": "on",
+                    "title": "Step 4 - Location"
+                },
+                {
+                    "step": 5,
+                    "status": "done",
+                    "title": "Document Upload"
+                },
+                {
+                    "step": 6,
+                    "status": "done",
+                    "title": "Privacy Declaration"
+                },
+                {
+                    "step": 7,
+                    "status": "done",
+                    "title": "Contact Information"
+                },
+                {
+                    "step": 8,
+                    "status": "done",
+                    "title": "Review"
+                },
+                {
+                    "step": 9,
+                    "status": "yet",
+                    "title": ""
+                },
+                {
+                    "step": "Complete",
+                    "status": "yet",
+                    "title": "Complete"
+                }
+            ]
+        },
+        "LandDetailsSection": {
+            "type": "section",
+            "id": "Text_3_100374394_185549741",
+            "title": "Land Details Where Water Will Be Used",
+            "description": "List all parcels of land where the water will be used. Click \"Add Land Information\" button to add each parcel of land.",
+            "help": "Text_1_100374394_185549741"
+        },
+        "LandAffectedGrid": {
+            "type": "grid",
+            "id": "LandAffected_100374394_185549741",
+            "columns": [
+                {
+                    "title": "Action",
+                    "id": "Link_1_100373723_100384196_185550092"
+                },
+                {
+                    "title": "Details",
+                    "id": "FormattedDisplaySQL_100373723_100384196_185550092"
+                }
+            ],
+            "items": [
+                {
+                    "id": "185550092",
+                    "details": "Private Land - Parcel ID: 343434 - Legal Description: wewewewe"
+                }
+            ]
+        },
+        "AddLandInformation_Used": {
+            "type": "button",
+            "id": "AddLandInfo_100374394_185549741",
+            "title": "Add Land Information",
+            "tabindex": 5,
+            "action": "PossePopup('AddLandInfo_100374394_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=VFAppLandInfoFromApp&PossePresentation=Public&PosseObjectDef=o_VF_LandInformation&None', 750, 600)"
+        },
+        "OtherLandsAffectedSection": {
+            "type": "section",
+            "id": "Text_1_100826470_185549741",
+            "title": "Other Lands Physically Affected",
+            "description": "Do your works physically affect another private landowner's property, e.g. is a pipe running over your neighbour's land to divert the water to your land? If yes, you will need to obtain their permission. If the land is owned by a private landowner a prefilled form that can be signed by the other landowner will be provided at the Signature step later in the application process. If the affected property is Crown land, do not choose Yes on this step. The permission for Crown land option is captured in a previous step."
+        },
+        "OtherLandownersAffected": {
+            "type": "radio",
+            "id": "OtherLandownersAffected_100826470_185549741",
+            "title": "Are there other lands that are physically affected by your works?",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "Yes",
+            "tabindex": 69,
+            "help": "Text_4_100826470_185549741"
+        },
+        "OtherLandsAffectedInstructions": {
+            "type": "string",
+            "id": "InstructLandAffected_text_100827044_185549741",
+            "title": "Information",
+            "description": "If your application for a licence is granted you are strongly encouraged to obtain access to the land in question by negotiating with the affected landowner to obtain an easement. As an interim measure prior to obtaining the easement you may also complete a written agreement with the affected landowner. If you have already negotiated an easement, or have a written agreement, you can upload a copy of the agreement in the `Document Upload' section of the application.\n\nIf you are unable to negotiate an easement agreement you may also investigate expropriation of the land.\n\nPlease click on \"Add Land Information\" button below to enter the required information about each affected land parcel. Repeat the process until details of all affected land parcels have been entered.",
+            "readOnly": true
+        },
+        "OtherLandsAffectedGrid": {
+            "type": "grid",
+            "id": "OtherLandsAffectedGrid_100826783",
+            "columns": [
+                {
+                    "title": "Action",
+                    "id": "Link_1_100826783_100376655_185550094"
+                },
+                {
+                    "title": "Details",
+                    "id": "FormattedDisplaySQL_100826783_100376655_185550094"
+                }
+            ],
+            "items": [
+                {
+                    "id": "185550094",
+                    "details": "Private Land - Name of owner of land that is affected by your works: sdsd - Civic Address or other location description of affected land: dsdsdsd"
+                }
+            ]
+        },
+        "AddLandInformation_Affected": {
+            "type": "button",
+            "id": "AddLandInfo_100827221_185549741",
+            "title": "Add Land Information",
+            "tabindex": 71,
+            "action": "PossePopup('AddLandInfo_100827221_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=VFLandInfo&PossePresentation=Public&PosseObjectDef=o_VF_LandInformation&None', 750, 600)"
+        },
+        "DrawingsSection": {
+            "type": "section",
+            "id": "InstrMappingTitleOverride_100459603_185549741",
+            "title": "Drawings",
+            "description": "A Drawing to Scale is required that meets the Licence Application Drawing Standards (https://www2.gov.bc.ca/assets/download/800D760A9B3340D7B3634EB5BFA4F675). Choose one of the options below to submit the required map/drawing.\n\nAdditionally, it is recommended that you provide a topographical map showing the general location of the property where the water is proposed to be used and the works constructed in relation to nearby communities, highways, railways and other water sources.\n\n(this additional map will not be necessary if your Drawing to Scale is provided using the Geomark Service or a spatial file such as .KML or .KMZ)",
+            "help": "Text_3_100459603_185549741"
+        },
+        "MappingOptionsTitle": {
+            "type": "string",
+            "id": "MappingOptions_Header_100459603",
+            "title": "Mapping Options",
+            "required": true,
+            "readOnly": true
+        },
+        "IsUsingGeomarkURLs": {
+            "type": "boolean",
+            "id": "IsUsingGeomarkURLs_100459942_185549741",
+            "title": "I have already built my map(s) using the GeoMark service",
+            "default": true,
+            "tabindex": 90
+        },
+        "GeomarkSection": {
+            "type": "section",
+            "id": "Text_1_100459718_185549741",
+            "title": "Geomark Url's",
+            "description": "Do you already have the URL of a GeoMark? If you do please add it here. You can add one or more GeoMark URLs.",
+            "help": "Text_3_100459718_185549741"
+        },
+        "GeomarkURLsGrid": {
+            "type": "grid",
+            "id": "GeoMarkURLs_100459718_185549741",
+            "columns": [
+                {
+                    "title": "URL",
+                    "id": "URL_100459684_100385286_N0"
+                },
+                {
+                    "title": "Description",
+                    "id": "Description_100459684_100385286_N0"
+                }
+            ],
+            "items": []
+        },
+        "AddGeoMarkURL": {
+            "type": "button",
+            "id": "AddGeoMarkURL_100459718_185549741",
+            "title": "Add GeoMark URL",
+            "tabindex": 95,
+            "action": "PosseProcessRoundTripClicked('', 100459718, 'AddGeoMarkURL', 'None', '185549741', '', '_self')"
+        },
+        "IsUsingMapFiles": {
+            "type": "boolean",
+            "id": "IsUsingMapFiles_100460016_185549741",
+            "title": "I have map(s) saved to my computer and wish to provide these with my application",
+            "default": true,
+            "tabindex": 100
+        },
+        "MapFilesSection": {
+            "type": "section",
+            "id": "Text_1_100459889_185549741",
+            "title": "Map Files",
+            "description": "Do you have a PDF or image file of a drawn map? You can upload it here.",
+            "help": "Text_3_100459889_185549741"
+        },
+        "MapFilesGrid": {
+            "type": "grid",
+            "id": "MapFiles_100459889_185549741",
+            "columns": [
+                {
+                    "title": "Description",
+                    "id": "Description_MapFile"
+                },
+                {
+                    "title": "File Name",
+                    "id": "FileName_MapFile"
+                }
+            ],
+            "items": []
+        },
+        "UploadMapFile": {
+            "type": "button",
+            "id": "UplMapFile_100459889_185549741",
+            "title": "Upload File",
+            "tabindex": 105,
+            "action": "PossePopup('UplMapFile_100459889_185549741', 'UploadMulti.aspx?PosseObjectId=185549741&UploadEndpoint=MapFileDoc&UploadObjectDef=d_WebDocument&PosseObjectDefId=2804&PosseCreatedBy=vFCBC%2C%20Web%20Guest&PosseAutoSave=None', 600, 500)"
+        },
+        "IsUsingSpatialFiles": {
+            "type": "boolean",
+            "id": "IsUsingSpatialFiles_100459534_185549741",
+            "title": "I have created my map(s) using my own Geographic Information System (GIS)",
+            "default": true,
+            "tabindex": 109
+        },
+        "SpatialFilesSection": {
+            "type": "section",
+            "id": "Text_1_100459312_185549741",
+            "title": "Spatial Files",
+            "description": "Do you have a spatial file from your GIS system? You can upload it here.\n\nNOTE: Shapefile is the preferred format and requires a closed polygon, projection in BC Albers/NAD 83 and the .dbf, .shp, .shx and .prj files. Other Commonly Used Spatial File Formats (https://portal.nrs.gov.bc.ca/documents/10184/0/SpatialFileFormats.pdf/39b29b91-d2a7-b8d1-af1b-7216f8db38b4) may also be submitted.",
+            "help": "Text_3_100459312_185549741"
+        },
+        "SpatialFilesGrid": {
+            "type": "grid",
+            "id": "SpatialFiles_100459312_185549741",
+            "columns": [
+                {
+                    "title": "Description",
+                    "id": "Description_SpatialFile"
+                },
+                {
+                    "title": "File Name",
+                    "id": "FileName_SpatialFile"
+                }
+            ],
+            "items": []
+        },
+        "UploadSpatialFile": {
+            "type": "button",
+            "id": "UplSpatialFile_100459312_185549741",
+            "title": "Upload File",
+            "tabindex": 114,
+            "action": "PossePopup('UplSpatialFile_100459312_185549741', 'SpatialFileUpload.aspx?PosseObjectId=185549741&UploadEndpoint=SpatialFileDoc&UploadObjectDef=d_SpatialFile&PosseObjectDefId=100378026&PosseCreatedBy=vFCBC%2C%20Web%20Guest&PosseAutoSave=Y', 600, 500)"
+        },
+        "JumpToReview_RT": {
+            "type": "button",
+            "id": "JumpToReview_RT_100383185_185549741",
+            "title": "Review Application",
+            "description": "Review any outstanding issues on your application",
+            "tabindex": 136,
+            "action": "PosseProcessRoundTripClicked('', 100383185, 'JumpToReview_RT', 'None', '185549741', '', '_self')"
+        },
+        "PrintLink2": {
+            "type": "button",
+            "id": "PrintLink2_100383185_185549741",
+            "title": "Print Page",
+            "description": "Print this page",
+            "tabindex": 137,
+            "action": "window.print()"
+        },
+        "Back": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_Previous",
+            "title": "Back",
+            "action": "PosseChangeColumnEscaped('185549741', 'LockdownDataCreateClientFees', 'N');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 0, 100866592)"
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl07_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "window.location='https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx'"
+        },
+        "SaveApplication": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl10_Submit",
+            "title": "Save Application",
+            "action": "PosseChangeColumnEscaped('185549741', 'TransferToSaveApplication', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100374587)"
+        },
+        "Next": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl12_Next",
+            "title": "Next",
+            "action": "PosseChangeColumnEscaped('185549741', 'NavigateToSpecificWizardPane', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100375972)"
+        }
+    }
+}

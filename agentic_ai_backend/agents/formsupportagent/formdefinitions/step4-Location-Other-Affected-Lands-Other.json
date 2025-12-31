@@ -1,0 +1,50 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 4 - Location - Other Lands Physically Affected - Other",
+    "properties": {
+        "LandOwnershipCategory": {
+            "type": "radio",
+            "id": "LandOwnershipCategory_100374140_N0",
+            "title": "What is the category of land ownership?",
+            "enum": [
+                "Private Land",
+                "Provincial Crown Land",
+                "Other"
+            ],
+            "required": true,
+            "tabindex": 1,
+            "default": "Other"
+        },
+        "LandOwnerAffected": {
+            "type": "string",
+            "id": "LandOwnerAffected_100802011_N0",
+            "title": "Name of owner of land that is affected by your works:",
+            "required": true,
+            "tabindex": 7,
+            "maxLength": 4000,
+            "help": "Text_2_100802011_N0"
+        },
+        "LocationDescription": {
+            "type": "string",
+            "id": "LocationDescription_100802149_N0",
+            "title": "Location description of land (e.g. address, legal description, metes and bounds or other):",
+            "required": true,
+            "tabindex": 10,
+            "rows": 3,
+            "maxLength": 4000,
+            "help": "Text_2_100802149_N0"
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "window.close()"
+        },
+        "Save": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl06_Submit",
+            "title": "Save",
+            "action": "PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/EditRelatedObject.aspx?PossePresentation=Public&PosseObjectDef=o_VF_LandInformation', 2, 100374140)"
+        }
+    }
+}

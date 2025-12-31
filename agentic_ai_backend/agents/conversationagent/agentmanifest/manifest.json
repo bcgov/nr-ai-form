@@ -1,0 +1,46 @@
+{
+    "$schema": "https://a2a-protocol.org/schema/agent-card.json",
+    "identity": {
+        "name": "ConversationAgent",
+        "author": "BC Government",
+        "description": "A conversation agent for BC Government's Water Permit Application that uses Azure AI Search tool.",
+        "avatarUrl": "",
+        "version": "1.0.0",
+        "license": "MIT"
+    },
+    "capabilities": [
+        {
+            "id": "conversation_skill",
+            "name": "BC Water Permit Conversation",
+            "description": "Answers questions about BC Government's Water Permit Application using Azure AI Search.",
+            "tags": [
+                "conversation",
+                "water-permit",
+                "search"
+            ],
+            "input": {
+                "type": "text",
+                "examples": [
+                    "What is the process for applying for a BC water permit?",
+                    "Do I need to login to apply for a BC water permit?"
+                ]
+            },
+            "output": {
+                "type": "text"
+            }
+        }
+    ],
+    "interaction": {
+        "baseUrl": "http://localhost:8000",
+        "endpoints": {
+            "invoke": {
+                "url": "/invoke",
+                "method": "POST"
+            },
+            "discovery": {
+                "url": "/.well-known/agent.json",
+                "method": "GET"
+            }
+        }
+    }
+}

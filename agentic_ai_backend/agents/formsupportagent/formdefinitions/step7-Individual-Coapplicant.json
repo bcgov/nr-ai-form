@@ -1,0 +1,35 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 7 - Individual Coapplicant",
+    "properties": {
+        "LastName_100383723_N0": {
+            "type": "string",
+            "id": "LastName_100383723_N0",
+            "title": "Last Name",
+            "required": true,
+            "maxLength": 60
+        },
+        "FirstName_100383723_N0": {
+            "type": "string",
+            "id": "FirstName_100383723_N0",
+            "title": "First Name",
+            "required": true,
+            "maxLength": 60
+        },
+        "MiddleName_100383723_N0": {
+            "type": "string",
+            "id": "MiddleName_100383723_N0",
+            "title": "Middle Name",
+            "required": false,
+            "maxLength": 60
+        },
+        "Email_100383723_N0": {
+            "type": "string",
+            "id": "Email_100383723_N0",
+            "title": "Email",
+            "required": false,
+            "maxLength": 60,
+            "format": "email"
+        }
+    }
+}

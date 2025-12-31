@@ -1,0 +1,53 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 4 - Location - Map Files - Multi-File Upload",
+    "properties": {
+        "Uploader": {
+            "type": "multifileupload",
+            "id": "uploader",
+            "title": "Multi-File Upload",
+            "description": "Add files to the upload queue and click the start button.",
+            "dropText": "Drag files here.",
+            "columns": [
+                {
+                    "id": "plupload_file_name",
+                    "title": "Filename"
+                },
+                {
+                    "id": "plupload_file_status",
+                    "title": "Status"
+                },
+                {
+                    "id": "plupload_file_size",
+                    "title": "Size"
+                },
+                {
+                    "id": "plupload_file_description",
+                    "title": "Description"
+                }
+            ],
+            "items": [
+                {
+                    "id": "p1jcph6hrq1mspf624qd15a5i654",
+                    "fileName": "sample.pdf",
+                    "status": "0%",
+                    "size": "18 KB",
+                    "descriptionId": "p1jcph6hrq1mspf624qd15a5i654_description"
+                }
+            ],
+            "statusText": "Uploaded 0/1 files",
+            "buttons": {
+                "addFiles": {
+                    "id": "uploader_browse",
+                    "title": "Add files",
+                    "tabindex": 1000000
+                },
+                "startUpload": {
+                    "id": "uploader_start",
+                    "title": "Start upload",
+                    "tabindex": 1000001
+                }
+            }
+        }
+    }
+}

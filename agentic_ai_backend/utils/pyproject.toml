@@ -1,0 +1,15 @@
+[project]
+name = "utils"
+version = "0.1.1"
+description = "Shared utility functions"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["utils"]
+package-dir = {"utils" = "."}

@@ -1,0 +1,130 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Technical Information - Water Diversion",
+    "properties": {
+        "WSLICDoYouHoldAnotherLicense": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "id": "WSLICDoYouHoldAnotherLicense",
+            "title": "Do you currently hold another valid Water Licence?",
+            "required": true
+        },
+        "WSLICClientNumber": {
+            "type": "string",
+            "id": "WSLICClientNumber",
+            "title": "Please enter your client number:",
+            "maxLength": 100,
+            "required": false
+        },
+        "SourceOfDiversion": {
+            "type": "string",
+            "enum": [
+                "Surface water",
+                "Groundwater",
+                "Both"
+            ],
+            "id": "SourceOfDiversion",
+            "title": "Select the source of the new water diversion being applied for:",
+            "required": true
+        },
+        "InstructionsWSLICPurposes": {
+            "type": "string",
+            "id": "InstructionsWSLICPurposes_100536005_185549741",
+            "title": "Purposes of Water Use Instructions",
+            "description": "Please select the purpose for which the diverted water will be used. Please note that the purpose you indicate may be changed during the application review process to better reflect the use of the water, in which case you will be notified of the change. For definitions of Water Use Purpose, click here. NOTE: A water licence is not required for groundwater that is used for a domestic purpose. Domestic groundwater users have deemed rights for domestic use of up to 2 m3/day (2000 litres per day) under the Water Sustainability Act and it is therefore not possible to submit an application for a licence.",
+            "readOnly": true
+        },
+        "PurposeGrid": {
+            "type": "grid",
+            "id": "PurposeGrid_100536005_185549741",
+            "title": "Purposes of Water Use",
+            "columns": [
+                {
+                    "name": "Edit",
+                    "type": "action"
+                },
+                {
+                    "name": "Purpose",
+                    "type": "string"
+                },
+                {
+                    "name": "Quantity",
+                    "type": "string"
+                },
+                {
+                    "name": "ApplicationUnits",
+                    "type": "string"
+                },
+                {
+                    "name": "Fee",
+                    "type": "currency"
+                },
+                {
+                    "name": "Delete",
+                    "type": "action"
+                }
+            ],
+            "actions": {
+                "edit": {
+                    "type": "popup",
+                    "url": "editrelatedobject.aspx?PossePresentation=Default&PosseObjectId={objectId}&SourceOfDiversion=Both&PostIssue11307=Y",
+                    "width": 685,
+                    "height": 800
+                },
+                "delete": {
+                    "type": "confirm",
+                    "message": "Are you sure you want to delete this?"
+                }
+            }
+        },
+        "AddPurposeRT": {
+            "type": "button",
+            "id": "AddPurposeRT_100536005_185549741",
+            "title": "Add Purpose",
+            "action": "PossePopup('AddPurposeRT_100536005_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=WaterPurpose&PossePresentation=Default&PosseObjectDef=o_VF_WaterPurpose&SourceOfDiversion=Both&PostIssue11307=Y', 685, 800, 'AddPurposeRT_100536005_185549741')",
+            "tabindex": 15
+        },
+        "JumpToReview_RT": {
+            "type": "button",
+            "id": "JumpToReview_RT_100553300_185549741",
+            "title": "Review Application",
+            "description": "Review any outstanding issues on your application",
+            "tabindex": 24
+        },
+        "PrintLink2": {
+            "type": "button",
+            "id": "PrintLink2_100553300_185549741",
+            "title": "Print Page",
+            "description": "Print this page",
+            "action": "window.print()",
+            "tabindex": 25
+        },
+        "Previous": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_Previous",
+            "title": "Back",
+            "action": "PosseChangeColumnEscaped('185549741', 'LockdownDataCreateClientFees', 'N');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 0, 100536407)"
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl07_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx"
+        },
+        "Submit": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl10_Submit",
+            "title": "Save Application",
+            "action": "PosseChangeColumnEscaped('185549741', 'TransferToSaveApplication', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100535697)"
+        },
+        "Next": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl12_Next",
+            "title": "Next",
+            "action": "PosseChangeColumnEscaped('185549741', 'NavigateToSpecificWizardPane', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100730133)"
+        }
+    }
+}
