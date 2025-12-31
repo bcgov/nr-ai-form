@@ -1,0 +1,134 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 7 - Add Business Co-applicant",
+    "properties": {
+        "VFCNewApplicantType_100605328_185549445": {
+            "type": "string",
+            "enum": [
+                "Individual",
+                "Company/Organization/Government"
+            ],
+            "id": "VFCNewApplicantType_100605328_185549445",
+            "title": "If approved, will the authorization be issued to an Individual or Company/Organization/Government?",
+            "required": true,
+            "control": "radio"
+        },
+        "VFCOnBehalfOf_100605587_185549445": {
+            "type": "string",
+            "enum": [
+                "",
+                "62225109",
+                "78054608",
+                "62225111",
+                "78054606",
+                "62316696",
+                "70809077",
+                "80860303",
+                "78064577",
+                "62316694",
+                "62316695"
+            ],
+            "id": "VFCOnBehalfOf_100605587_185549445",
+            "title": "What is your relationship to the Company/Organization/Government?",
+            "required": true,
+            "options": {
+                "": "(select)",
+                "62225109": "Agent",
+                "78054608": "Board Member",
+                "62225111": "Consultant",
+                "78054606": "Employee",
+                "62316696": "Executor, Administrator, Trustee of Applicant's Estate",
+                "70809077": "Lawyer / Notary",
+                "80860303": "Owner",
+                "78064577": "Power of Attorney",
+                "62316694": "Representative",
+                "62316695": "Trustee in Bankruptcy"
+            }
+        },
+        "APPL_CompanyName_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_CompanyName_100604891_185549445",
+            "title": "Legal Name",
+            "required": true,
+            "maxLength": 150
+        },
+        "APPL_DoingBusinessAs_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_DoingBusinessAs_100604891_185549445",
+            "title": "Doing Business As",
+            "required": false,
+            "maxLength": 150
+        },
+        "APPL_PhoneNumber_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_PhoneNumber_100604891_185549445",
+            "title": "Phone",
+            "required": true,
+            "format": "phone",
+            "composite": true,
+            "parts": [
+                "APPL_PhoneNumber_100604891_185549445_1",
+                "APPL_PhoneNumber_100604891_185549445_2",
+                "APPL_PhoneNumber_100604891_185549445_3"
+            ]
+        },
+        "APPL_PhoneExtension_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_PhoneExtension_100604891_185549445",
+            "title": "Phone Extension",
+            "required": false,
+            "maxLength": 5
+        },
+        "APPL_FaxNumber_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_FaxNumber_100604891_185549445",
+            "title": "Fax",
+            "required": false,
+            "format": "phone",
+            "composite": true
+        },
+        "APPL_Email_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_Email_100604891_185549445",
+            "title": "Email",
+            "required": false,
+            "maxLength": 60,
+            "format": "email"
+        },
+        "APPL_BCIncNo_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_BCIncNo_100604891_185549445",
+            "title": "BC Incorporation Number",
+            "required": false,
+            "maxLength": 30
+        },
+        "APPL_BusinessRegNo_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_BusinessRegNo_100604891_185549445",
+            "title": "Extra Provincial Inc. No",
+            "required": false,
+            "maxLength": 30
+        },
+        "APPL_SocietyNo_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_SocietyNo_100604891_185549445",
+            "title": "Society Number",
+            "required": false,
+            "maxLength": 30
+        },
+        "APPL_GSTRegistrationNo_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_GSTRegistrationNo_100604891_185549445",
+            "title": "GST Registration Number",
+            "required": false,
+            "maxLength": 30
+        },
+        "APPL_CompanyContactName_100604891_185549445": {
+            "type": "string",
+            "id": "APPL_CompanyContactName_100604891_185549445",
+            "title": "Contact Name",
+            "required": true,
+            "maxLength": 150
+        }
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 6 - Privacy Confirmation",
+    "properties": {
+        "PrivacyConfirmation_100380724_185549445": {
+            "type": "boolean",
+            "id": "PrivacyConfirmation_100380724_185549445",
+            "title": "I have read and agree to the privacy declaration stated above",
+            "required": true,
+            "valueMap": {
+                "true": "Y",
+                "false": "N"
+            },
+            "default": true
+        }
+    }
+}
