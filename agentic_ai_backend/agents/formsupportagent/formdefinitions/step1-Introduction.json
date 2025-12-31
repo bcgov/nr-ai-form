@@ -1,0 +1,27 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "New Water Licence Application - Start your application. Please select one of the options below to start your application. IMPORTANT NOTICES ABOUT THIS APPLICATION: If you only want to use the water for 24 months or less, please consider if the Short-term use of water approval application would meet your needs. For details on what a domestic purpose means, please review the Water Sustainability Act. If you wish to use groundwater to support an oil and gas activity under the Oil and Gas Activities Act or the Petroleum and Natural Gas Act contact the BC Energy Regulator. About the Online Application: A Red Asterisk * indicates a mandatory field however, most do not require immediate entry to move forward in the application. You will be required to fill in the mandatory fields before submission. Use the Review Application button to generate a list of the missing mandatory fields that you must go back to. If you used a BCeID to sign in, use the Save Application button frequently to ensure you don't lose information. Recommended browsers for this application: Chrome, Microsoft Edge and Safari. If you are experiencing issues, ensure you are using the latest version of your browser and if issues persist, try a different browser.",
+    "properties": {
+        "ApplicationApplyWithoutBCeID_100378054_79376007_sp": {
+            "type": "string",
+            "id": "ApplicationApplyWithoutBCeID_100378054_79376007_sp",
+            "title": "Application Notice",
+            "description": "Applying without a BCeID means that if you leave your computer for a long time without submitting your application, all information you have entered will be lost. There is no way to stop and then continue later unless you sign in with a BCeID.",
+            "readOnly": true
+        },
+        "ApplyWithYourBCeID_100560145_79376007": {
+            "type": "button",
+            "id": "ApplyWithYourBCeID_100560145_79376007",
+            "title": "Apply with your BCeID",
+            "action": "https://train.j200.gov.bc.ca/ext/vfcbc/StartApplication.aspx?AppFormCode=GWNA",
+            "tabindex": 7
+        },
+        "ApplywithoutBCeID_100378054_79376007": {
+            "type": "button",
+            "id": "ApplywithoutBCeID_100378054_79376007",
+            "title": "Apply without BCeID",
+            "action": "StartApplication.aspx?AppFormCode=GWNA",
+            "tabindex": 17
+        }
+    }
+}

@@ -1,0 +1,100 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Technical Information - Upload Well Construction Report",
+    "properties": {
+        "UploadInstructions": {
+            "type": "string",
+            "id": "UploadInstructions",
+            "title": "Upload Instructions",
+            "description": "Fill in filename (including path), the description and then click [Upload] to send.",
+            "readOnly": true
+        },
+        "AcceptedFileTypes": {
+            "type": "string",
+            "id": "AcceptedFileTypes",
+            "title": "Accepted File Types",
+            "description": "Remember that uploads are only accepted for files with extensions of: .bmp, .dbf, .doc, .docx, .gif, .jpeg, .jpg, .mp4, .log, .pdf, .png, .pps, .ppsx, .ppt, .pptm, .pptx, .prj, .rtf, .sbn, .sbx, .shp, .shx, .tif, .tiff, .txt, .xls, .xlsx, .xml or .zip",
+            "readOnly": true
+        },
+        "fullFileName": {
+            "type": "file",
+            "id": "cphPaneBand_fullFileName",
+            "title": "File Name:",
+            "description": "Select the file to upload",
+            "required": true,
+            "maxFileSize": 104857600,
+            "maxFileSizeDescription": "100 Megabytes",
+            "acceptedExtensions": [
+                ".bmp",
+                ".dbf",
+                ".doc",
+                ".docx",
+                ".gif",
+                ".jpeg",
+                ".jpg",
+                ".mp4",
+                ".log",
+                ".pdf",
+                ".png",
+                ".pps",
+                ".ppsx",
+                ".ppt",
+                ".pptm",
+                ".pptx",
+                ".prj",
+                ".rtf",
+                ".sbn",
+                ".sbx",
+                ".shp",
+                ".shx",
+                ".tif",
+                ".tiff",
+                ".txt",
+                ".xls",
+                ".xlsx",
+                ".xml",
+                ".zip"
+            ]
+        },
+        "txtDescription": {
+            "type": "string",
+            "id": "cphPaneBand_txtDescription",
+            "title": "Description:",
+            "description": "Provide a description of the document",
+            "maxLength": 500,
+            "required": true
+        },
+        "btnUpload": {
+            "type": "button",
+            "id": "cphPaneBand_btnUpload",
+            "title": "Upload",
+            "action": "submit",
+            "description": "Click to upload the selected file"
+        },
+        "ValidationSummary": {
+            "type": "validation",
+            "id": "cphPaneBand_ValidationSummary",
+            "validators": [
+                {
+                    "id": "cphPaneBand_rfvFileName",
+                    "type": "required",
+                    "controlToValidate": "cphPaneBand_fullFileName",
+                    "errorMessage": "File Name is required."
+                },
+                {
+                    "id": "cphPaneBand_cvFileDetails",
+                    "type": "custom",
+                    "controlToValidate": "cphPaneBand_fullFileName",
+                    "errorMessage": "[FileDetailsError]",
+                    "clientValidationFunction": "checkFile"
+                },
+                {
+                    "id": "cphPaneBand_rfvDescription",
+                    "type": "required",
+                    "controlToValidate": "cphPaneBand_txtDescription",
+                    "errorMessage": "Description is required."
+                }
+            ]
+        }
+    }
+}

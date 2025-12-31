@@ -11,9 +11,14 @@ from dotenv import load_dotenv
 # Add parent directories to path to allow importing modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from agents.formsupportagent.formsupportagent import FormSupportAgent
+from agents.formsupportagent.formsupportagent import (
+    FormSupportAgent, 
+    extract_step_from_query, 
+    resolve_agent_assets
+)
 from agents.formsupportagent.models.formsupportmodel import InvokeRequest, InvokeResponse
 from utils.formutils import get_form_context
+from typing import Union
 
 load_dotenv()
 
@@ -27,45 +32,56 @@ app = FastAPI(
 # Cache of agent instances per step number (step_number -> agent_instance)
 _agent_cache = {}
 
-def get_agent(step_number: int = 2):
+def get_agent(step_identifier: Union[int, str]):
     """
     Get or create the agent instance for a specific step.
     
     Args:
-        step_number: The form step number (e.g., 2 for step2.json)
+        step_identifier: The form step identifier (e.g., "step3-Add-Well")
     
     Returns:
         FormSupportAgent instance configured for the specified step
     """
     global _agent_cache
     
+    # Convert to string for consistent lookup
+    step_key = str(step_identifier)
+    
     # Return cached instance if available
-    if step_number in _agent_cache:
-        return _agent_cache[step_number]
+    if step_key in _agent_cache:
+        return _agent_cache[step_key]
     
     try:            
         endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
         api_key = os.environ["AZURE_OPENAI_API_KEY"]
         deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
         
-        # Load Form Definitions dynamically based on step number
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        json_path = os.path.join(base_dir, "formdefinitions", f"step{step_number}.json")
+        # Load assets using shared utility
+        json_path, prompt_path, step_key = resolve_agent_assets(step_identifier)
         
-        if not os.path.exists(json_path):
-            raise FileNotFoundError(f"Form definition file not found: {json_path}")
-             
+        if not json_path:
+            raise FileNotFoundError(f"Form definition file not found for identifier: {step_key}")
+
         form_context_str = get_form_context(json_path)
         
-        # Create and cache the agent instance
-        agent_instance = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str)
-        _agent_cache[step_number] = agent_instance
+        custom_instructions = None
+        if prompt_path:
+            with open(prompt_path, 'r', encoding='utf-8') as f:
+                custom_instructions = f.read()
+            print(f"Loaded custom instructions from {os.path.basename(prompt_path)}")
+
+        if not custom_instructions:
+            raise FileNotFoundError(f"No prompt template (.md) found for step: {step_key}. A specialized prompt is required.")
         
-        print(f"Created FormSupportAgent for step {step_number}")
+        # Create and cache the agent instance
+        agent_instance = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str, instructions=custom_instructions)
+        _agent_cache[step_key] = agent_instance
+        
+        print(f"Created FormSupportAgent for step {step_key} using {os.path.basename(json_path)}")
         return agent_instance
         
     except Exception as e:
-        raise RuntimeError(f"Failed to initialize agent for step {step_number}: {str(e)}")
+        raise RuntimeError(f"Failed to initialize agent for step {step_key}: {str(e)}")
 
 @app.get("/.well-known/agent.json")
 async def agent_manifest():
@@ -86,14 +102,22 @@ async def invoke_agent(request: InvokeRequest):
     Returns the agent's response based on the specified form step.
     """
     try:
-        # Get the step number from request (defaults to 2)
-        step_number = request.step_number if request.step_number else 2
+        # Try to extract step from query string (e.g. "step3: my query")
+        extracted_step, cleaned_query = extract_step_from_query(request.query)
         
+        # Use the most specific identifier available
+        step_identifier = extracted_step or request.step_number
+        query = cleaned_query
+        
+        # Verify step_identifier is present
+        if not step_identifier:
+            raise HTTPException(status_code=400, detail="step_number is required either in the request body or as a prefix in the query (e.g. 'step1: query')")
+            
         # Get agent instance for this step
-        agent = get_agent(step_number)
+        agent = get_agent(step_identifier)
         
-        # Run the agent
-        result = await agent.run(request.query)
+        # Run the agent with the cleaned query (or original if no step was found)
+        result = await agent.run(query)
         
         return InvokeResponse(
             response=result,

@@ -1,0 +1,197 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Add Purpose - Domestic",
+    "properties": {
+        "PurposeUseSector": {
+            "type": "select",
+            "id": "PurposeUseSector_100534931_N0",
+            "title": "What purpose do you want to use the water for?",
+            "enum": [
+                "(select)",
+                "Conservation",
+                "Domestic",
+                "Industrial",
+                "Irrigation",
+                "Land Improvement",
+                "Mineralized Water",
+                "Mining",
+                "Oil and Gas",
+                "Power",
+                "Storage Purpose",
+                "Waterworks"
+            ],
+            "default": "Domestic",
+            "required": true,
+            "tabindex": 6
+        },
+        "PurposeUse": {
+            "type": "select",
+            "id": "PurposeUse_100536054_N0",
+            "title": "Please select one of the following sub-purposes",
+            "enum": [
+                "(select)",
+                "Domestic"
+            ],
+            "default": "Domestic",
+            "required": true,
+            "tabindex": 9
+        },
+        "Explanation": {
+            "type": "string",
+            "id": "Explanation_100534646_N0",
+            "title": "Explanation",
+            "description": "\"Domestic purpose\" means the use of water for household purposes by the occupants of, subject to the regulations, one or more private dwellings, other than multi-family apartment buildings, including, without limitation, hotels and strata titled or cooperative buildings, located on a single parcel, including, without limitation, the following use:\n\n(a) drinking water, food preparation and sanitation;\n(b) fire prevention; \n(c) providing water to animals or poultry kept \n      (i) for household use, or\n      (ii) as pets;\n(d) irrigation of a garden not exceeding 1 000 m2 that is adjoining and occupied with a dwelling\n\nThe typical amount of water allocated for domestic use for one dwelling is 2.0 cubic meters per day.",
+            "readOnly": true
+        },
+        "DesignatedAreasSection": {
+            "type": "section",
+            "id": "Text_1_100535465_N0",
+            "title": "Designated Areas",
+            "help": "Text_2_100535465_N0"
+        },
+        "DesignatedAreasNote": {
+            "type": "string",
+            "id": "Text_3_100535465_N0",
+            "title": "Designated Areas Note",
+            "description": "Not applicable – designated areas have not been implemented.",
+            "readOnly": true
+        },
+        "InADesignatedArea": {
+            "type": "radio",
+            "id": "InADesignatedAreaListedAbove_100535465_N0",
+            "title": "Are you applying for a water licence to withdraw groundwater in a designated area?",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "Yes",
+            "required": true,
+            "help": "Text_6_100535465_N0",
+            "tabindex": 16
+        },
+        "UseOfWaterSection": {
+            "type": "section",
+            "id": "Text_1_100848747_N0",
+            "title": "Use of Water",
+            "help": "StringEdit_1_100848747_N0"
+        },
+        "SeasonalUse": {
+            "type": "radio",
+            "id": "WSLICUseOfWaterSeasonal_100536333_N0",
+            "title": "Do you want to use the water only seasonally?",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "Yes",
+            "required": true,
+            "help": "Text_6_100536333_N0",
+            "tabindex": 23
+        },
+        "UseOfWaterFromMonth": {
+            "type": "select",
+            "id": "WSLICUseOfWaterFromMonth_100536333_N0",
+            "title": "During which months do you want to use the water?",
+            "enum": [
+                "(None)",
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+            ],
+            "required": true,
+            "help": "Text_7_100536333_N0",
+            "tabindex": 26
+        },
+        "UseOfWaterToMonth": {
+            "type": "select",
+            "id": "WSLICUseOfWaterToMonth_100536333_N0",
+            "title": "to",
+            "enum": [
+                "(None)",
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+            ],
+            "required": true,
+            "tabindex": 27
+        },
+        "TotalAnnualQuantity": {
+            "type": "number",
+            "id": "Quantity_100534688_N0",
+            "title": "Total Annual Quantity",
+            "required": true,
+            "help": "Text_7_100534688_N0",
+            "units": "m3/day",
+            "tabindex": 38,
+            "maxLength": 17
+        },
+        "UnitConversionTool": {
+            "type": "button",
+            "id": "ConvTool_100534688_N0",
+            "title": "Unit Conversion Tool",
+            "action": "https://portal.nrs.gov.bc.ca/web/client/-/unit-converter",
+            "tabindex": 42
+        },
+        "NumberOfDwellings": {
+            "type": "number",
+            "id": "NumberOfDwellings_100536021_N0",
+            "title": "Number of dwellings:",
+            "required": true,
+            "help": "Text_2_100536021_N0",
+            "tabindex": 53,
+            "maxLength": 6,
+            "min": 1,
+            "max": 999999
+        },
+        "MaximumRateOfDiversion": {
+            "type": "number",
+            "id": "MaximumRateOfDiversion_101016710_N0",
+            "title": "Maximum Rate of Diversion (m3/sec)",
+            "description": "The maximum rate you will divert the water measured in m3/sec.",
+            "required": false,
+            "help": "Text_2_101016710_N0",
+            "tabindex": 66,
+            "maxLength": 16
+        },
+        "Comments": {
+            "type": "textarea",
+            "id": "Comments_100848882_N0",
+            "title": "Comments",
+            "required": false,
+            "help": "Text_2_100848882_N0",
+            "tabindex": 70,
+            "rows": 4,
+            "maxLength": 4000
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "window.close();"
+        },
+        "Save": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl06_Submit",
+            "title": "Save",
+            "action": "PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/EditRelatedObject.aspx?PossePresentation=Default&PosseObjectDef=o_VF_WaterPurpose', 2, 100535726)"
+        }
+    }
+}

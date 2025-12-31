@@ -1,0 +1,191 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Dam and Reservoir - Add an Organization",
+    "properties": {
+        "LegalName": {
+            "type": "string",
+            "id": "LegalName_100384851_N0",
+            "title": "Legal Name:",
+            "maxLength": 250,
+            "required": true,
+            "tabindex": 2
+        },
+        "DoingBusinessAs": {
+            "type": "string",
+            "id": "DoingBusinessAs_100384851_N0",
+            "title": "Doing Business As:",
+            "maxLength": 150,
+            "required": false,
+            "tabindex": 3
+        },
+        "PhoneNumber": {
+            "type": "phone",
+            "id": "PhoneNumber_100384851_N0",
+            "title": "Phone Number:",
+            "parts": [
+                {
+                    "id": "PhoneNumber_100384851_N0_1",
+                    "name": "area",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 4
+                },
+                {
+                    "id": "PhoneNumber_100384851_N0_2",
+                    "name": "first",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 4
+                },
+                {
+                    "id": "PhoneNumber_100384851_N0_3",
+                    "name": "last",
+                    "maxLength": 4,
+                    "size": 4,
+                    "tabindex": 4
+                }
+            ],
+            "format": "(###) ###-####",
+            "required": true
+        },
+        "PhoneExtension": {
+            "type": "number",
+            "id": "PhoneExtension_100384851_N0",
+            "title": "Ext:",
+            "maxLength": 4,
+            "size": 6,
+            "min": 0,
+            "max": 9999,
+            "required": false,
+            "tabindex": 5
+        },
+        "FaxNumber": {
+            "type": "phone",
+            "id": "FaxNumber_100384851_N0",
+            "title": "Fax Number:",
+            "parts": [
+                {
+                    "id": "FaxNumber_100384851_N0_1",
+                    "name": "area",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 7
+                },
+                {
+                    "id": "FaxNumber_100384851_N0_2",
+                    "name": "first",
+                    "maxLength": 3,
+                    "size": 3,
+                    "tabindex": 7
+                },
+                {
+                    "id": "FaxNumber_100384851_N0_3",
+                    "name": "last",
+                    "maxLength": 4,
+                    "size": 4,
+                    "tabindex": 7
+                }
+            ],
+            "format": "(###) ###-####",
+            "required": false
+        },
+        "Email": {
+            "type": "string",
+            "id": "Email_100384851_N0",
+            "title": "Email:",
+            "maxLength": 60,
+            "required": false,
+            "tabindex": 8
+        },
+        "BCIncNo": {
+            "type": "string",
+            "id": "BCIncNo_100384851_N0",
+            "title": "BC Incorporation Number:",
+            "maxLength": 30,
+            "required": false,
+            "tabindex": 9
+        },
+        "BusinessRegistrationNumber": {
+            "type": "string",
+            "id": "BusinessRegistrationNumber_100384851_N0",
+            "title": "Extra Provincial Inc. No:",
+            "maxLength": 30,
+            "required": false,
+            "tabindex": 11
+        },
+        "SocietyNo": {
+            "type": "string",
+            "id": "SocietyNo_100384851_N0",
+            "title": "Society Number:",
+            "maxLength": 30,
+            "required": false,
+            "tabindex": 12
+        },
+        "GSTRegistrationNo": {
+            "type": "string",
+            "id": "GSTRegistrationNo_100384851_N0",
+            "title": "GST Registration No:",
+            "maxLength": 30,
+            "required": false,
+            "tabindex": 13
+        },
+        "ContactName": {
+            "type": "string",
+            "id": "ContactName_100384851_N0",
+            "title": "Contact Name:",
+            "maxLength": 4000,
+            "required": false,
+            "tabindex": 14
+        },
+        "MailingAddressSection": {
+            "type": "section",
+            "id": "Text_12_100384851_N0",
+            "title": "Mailing Address:",
+            "description": "",
+            "required": true
+        },
+        "AddressGrid": {
+            "type": "grid",
+            "id": "Address_SubPane_100384851_N0",
+            "title": "Mailing Address",
+            "columns": [
+                {
+                    "name": "Address",
+                    "type": "string"
+                },
+                {
+                    "name": "Delete",
+                    "type": "action"
+                }
+            ],
+            "actions": [
+                {
+                    "type": "edit",
+                    "id": "Address_Link_100383245_100377184",
+                    "title": "Go to Address",
+                    "action": "PossePopup",
+                    "tabindex": 16
+                },
+                {
+                    "type": "delete",
+                    "id": "Delete_1_100383245_100377184",
+                    "title": "Delete this line",
+                    "action": "PosseDelete",
+                    "tabindex": 16
+                }
+            ]
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "window.close()"
+        },
+        "Submit": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl06_Submit",
+            "title": "Save",
+            "action": "PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/EditRelatedObject.aspx?FromObjectId=185549741&EndPoint=WSLICDamResBusContact&PossePresentation=OtherContact&PosseObjectDef=o_VF_ApplicationBusiness', 2, 100384851)"
+        }
+    }
+}

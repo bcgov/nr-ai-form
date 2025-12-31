@@ -1,0 +1,184 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Add a Purpose - Industrial - Livestock and Animal",
+    "properties": {
+        "PurposeUseSector_100534931_N0": {
+            "type": "string",
+            "enum": [
+                "(select)",
+                "Conservation",
+                "Domestic",
+                "Industrial",
+                "Irrigation",
+                "Land Improvement",
+                "Mineralized Water",
+                "Mining",
+                "Oil and Gas",
+                "Power",
+                "Storage Purpose",
+                "Waterworks"
+            ],
+            "id": "PurposeUseSector_100534931_N0",
+            "title": "What purpose do you want to use the water for?",
+            "required": true
+        },
+        "PurposeUse_100536054_N0": {
+            "type": "string",
+            "enum": [
+                "(select)",
+                "Camps & Public Facilities",
+                "Commercial Enterprise",
+                "Cooling",
+                "Crop harvesting, protection and composting",
+                "Fish Hatchery",
+                "Fresh Water Bottling",
+                "Greenhouse and Nursery",
+                "Heat Exchangers - Industrial & Commercial",
+                "Heat Exchangers - Residential",
+                "Ice & Snow making",
+                "Lawn, Fairway and Garden",
+                "Livestock and Animal",
+                "Miscellaneous Industrial",
+                "Pond and Aquaculture",
+                "Processing and Manufacturing",
+                "Pulp Mills",
+                "Swimming Pool",
+                "Vehicle and Equipment",
+                "Waste Management",
+                "Well Drilling and Transportation or Utility Corridor Management"
+            ],
+            "id": "PurposeUse_100536054_N0",
+            "title": "Please select one of the following sub-purposes",
+            "required": true
+        },
+        "Explanation_100534646_N0": {
+            "type": "string",
+            "id": "Explanation_100534646_N0",
+            "title": "Explanation",
+            "description": "The diversion and use of water to provide drinking water and sanitation requirements in the operation or maintenance of a kennel, an animal shelter or boarding facility, a ranch or feedlot operation, or a game farm, dairy farm, pig farm or poultry farm, or similar enterprise for rearing livestock. Water Sustainability Regulation, Schedule A section 1. Game farm has the same meaning as in the Game Farm Regulation [Animal Health Act]. Use the BC Agriculture Water Calculator to help you determine your required quantity.",
+            "readOnly": true
+        },
+        "WSLICUseOfWaterSeasonal_100536333_N0": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "id": "WSLICUseOfWaterSeasonal_100536333_N0",
+            "title": "Do you want to use the water only seasonally?",
+            "required": true
+        },
+        "WSLICUseOfWaterFromMonth_100536333_N0": {
+            "type": "string",
+            "enum": [
+                "(None)",
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+            ],
+            "id": "WSLICUseOfWaterFromMonth_100536333_N0",
+            "title": "During which months do you want to use the water?",
+            "required": true
+        },
+        "WSLICUseOfWaterToMonth_100536333_N0": {
+            "type": "string",
+            "enum": [
+                "(None)",
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+            ],
+            "id": "WSLICUseOfWaterToMonth_100536333_N0",
+            "title": "to",
+            "required": true
+        },
+        "Quantity_100534688_N0": {
+            "type": "string",
+            "id": "Quantity_100534688_N0",
+            "title": "Total Annual Quantity:",
+            "maxLength": 17,
+            "units": "m³/year",
+            "required": true
+        },
+        "ConvTool_100534688_N0": {
+            "type": "button",
+            "id": "ConvTool_100534688_N0",
+            "title": "Unit Conversion Tool",
+            "action": "https://portal.nrs.gov.bc.ca/web/client/-/unit-converter",
+            "target": "_blank",
+            "tabindex": 42
+        },
+        "TypeOfStock_100536098_N0": {
+            "type": "string",
+            "enum": [
+                "(None)",
+                "Beef",
+                "Dairy",
+                "Sheep and Goats",
+                "Bison, Horse, Mule",
+                "Swine",
+                "Poultry",
+                "Ostrich",
+                "Deer, Llama, Alpaca",
+                "Elk, Donkey",
+                "Other/Mixture"
+            ],
+            "id": "TypeOfStock_100536098_N0",
+            "title": "Type of Stock:",
+            "required": true
+        },
+        "NumberOfStock_100536098_N0": {
+            "type": "string",
+            "id": "NumberOfStock_100536098_N0",
+            "title": "Quantity of Stock:",
+            "maxLength": 6,
+            "required": true
+        },
+        "MaximumRateOfDiversion_101016710_N0": {
+            "type": "string",
+            "id": "MaximumRateOfDiversion_101016710_N0",
+            "title": "Maximum Rate of Diversion:",
+            "description": "The maximum rate you will divert the water measured in m3/sec.",
+            "maxLength": 16,
+            "units": "m³/sec",
+            "required": false
+        },
+        "Comments_100848882_N0": {
+            "type": "string",
+            "id": "Comments_100848882_N0",
+            "title": "Comments",
+            "maxLength": 4000,
+            "required": false
+        },
+        "Cancel": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
+            "title": "Cancel",
+            "action": "window.close()"
+        },
+        "Submit": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl06_Submit",
+            "title": "Save",
+            "action": "PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/EditRelatedObject.aspx?PossePresentation=Default&PosseObjectDef=o_VF_WaterPurpose', 2, 100535726)"
+        }
+    }
+}
