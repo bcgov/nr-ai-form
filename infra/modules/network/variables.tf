@@ -67,3 +67,9 @@ variable "vnet_resource_group_name" {
   type        = string
   nullable    = false
 }
+
+variable "deployment_type" {
+  description = "Type of deployment: 'app_service' or 'container_apps'"
+  type        = string
+  default     = "app_service"
+}

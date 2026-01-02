@@ -20,6 +20,7 @@ module "network" {
   source = "./modules/network"
   
   app_env                  = var.app_env
+  deployment_type          = var.deployment_type
   common_tags              = var.common_tags
   resource_group_name      = azurerm_resource_group.main.name
   vnet_address_space       = var.vnet_address_space
