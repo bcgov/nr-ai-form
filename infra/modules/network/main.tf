@@ -207,7 +207,7 @@ resource "azurerm_network_security_group" "container_apps" {
 # Subnet for Container Apps Environment (dedicated, cannot be shared)
 # Using azapi_resource with inline NSG to satisfy Azure policy requirement for NSG at creation time
 resource "azapi_resource" "container_apps_subnet" {
-  count     = var.deploy_network && var.app_env != "dev" ? 1 : 0
+  count     = var.deploy_network && var.app_env != "dev" && var.deployment_type == "container_apps" ? 1 : 0
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
   name      = var.container_apps_subnet_name
   parent_id = data.azurerm_virtual_network.main.id
