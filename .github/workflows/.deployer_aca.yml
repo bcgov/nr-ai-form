@@ -76,7 +76,7 @@ jobs:
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
           vnet_name: ${{ vars.VNET_NAME }}
-          api_image: "ghcr.io/${{ github.repository }}/backend:${{ inputs.tag }}"
+          api_image: "ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
@@ -130,7 +130,7 @@ jobs:
       id: image-tags
       shell: bash
       run: |
-        API_IMAGE="ghcr.io/${{ github.repository }}/backend:${{ inputs.tag }}"
+        API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
     
     - name: Terragrunt ${{inputs.command}}
