@@ -516,7 +516,7 @@ AZURE_OPENAI_CHAT_DEPLOYMENT_NAME="..."
 AZURE_OPENAI_API_VERSION="..."
 ```
 
-See complete documentation regarding Usage, Deployment and more in the project documentation.
+
 
 ---
 
