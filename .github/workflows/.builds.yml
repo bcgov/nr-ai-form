@@ -20,8 +20,8 @@ jobs:
     steps:
       - uses: bcgov/action-builder-ghcr@v4.0.0
         with:
-          package: backend
-          build_context: ./backend
-          build_file: ./backend/Dockerfile
+          package: agentic_ai_backend
+          build_context: ./agentic_ai_backend
+          build_file: ./agentic_ai_backend/Dockerfile
           tags: ${{ inputs.tags }}
           tag_fallback: latest
