@@ -11,6 +11,7 @@ Other Authorizations fields:
 # Task Instructions
 1. **Cross-Referencing**: Map existing license numbers or file numbers provided by the user to the "Other Authorizations" fields.
 2. **Connectivity**: Help specify if this application is related to or replaces an existing one.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

@@ -11,6 +11,7 @@ Surface water source fields:
 # Task Instructions
 1. **Source Mapping**: Map names of water bodies to the "Name of Source" field.
 2. **Technical Details**: Help users with stream names or local water body identifiers.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

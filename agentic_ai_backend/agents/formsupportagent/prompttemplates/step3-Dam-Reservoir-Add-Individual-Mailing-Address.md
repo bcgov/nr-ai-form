@@ -11,6 +11,7 @@ Contact and Address fields:
 # Task Instructions
 1. **Identification**: Specific to whether the user is an **Individual** or an **Organization**.
 2. **Address Verification**: Map street, city, province, and postal code to the appropriate mailing address fields.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

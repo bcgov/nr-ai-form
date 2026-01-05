@@ -11,6 +11,7 @@ Joint Works fields:
 # Task Instructions
 1. **Sharing Details**: Map questions about shared infrastructure, agreements, or other parties involved to the joint works fields.
 2. **Identification**: help users identify the IDs or names of other participants in the shared works.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

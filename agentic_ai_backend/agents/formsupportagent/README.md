@@ -189,17 +189,20 @@ Check:
 
 ### Testing
 
-Run the agent with various queries to test field matching:
+The project includes unit, E2E, and live integration tests. Use the following commands to run them:
 
 ```bash
-# Test eligibility matching
-uv run formsupportagent.py "Am I eligible for a water licence?"
+# Run all tests (Unit, E2E, Integration)
+uv run python -m pytest -v tests/
 
-# Test housing-related matching
-uv run formsupportagent.py "Is this for housing units?"
+# Run only unit tests
+uv run python -m pytest -v tests/test_formsupportagent.py
 
-# Test no-match scenario
-uv run formsupportagent.py "random unrelated query"
+# Run only mocked E2E tests
+uv run python -m pytest -v tests/test_dryrun_e2e.py
+
+# Run only live integration tests (Real Model) and see full output
+uv run python -m pytest -v -rA .\tests\test_dryrun_integration.py
 ```
 
 ### Extending the Agent

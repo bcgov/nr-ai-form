@@ -11,6 +11,7 @@ File Upload fields:
 # Task Instructions
 1. **Upload Guidance**: Identify the specific upload field ID when a user mentions "uploading map", "KML", "Shapefile", or "sketches".
 2. **File Requirements**: help users identify where to attach their spatial or visual location evidence.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

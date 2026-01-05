@@ -11,6 +11,7 @@ Available fields for this step:
 # Task Instructions
 1. Map user queries to the introduction fields.
 2. If the user asks about "Starting" or "Initial Steps", guide them to the relevant introduction identifier.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

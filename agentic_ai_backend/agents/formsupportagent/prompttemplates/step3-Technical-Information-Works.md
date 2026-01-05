@@ -11,6 +11,7 @@ Water Works fields:
 # Task Instructions
 1. **Component Mapping**: Map user terms like "piping", "pumping station", "ditch", or "conduit" to the correct field IDs.
 2. **Technical Specs**: Help users identify fields for pipe diameter, pump horsepower, or construction status.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

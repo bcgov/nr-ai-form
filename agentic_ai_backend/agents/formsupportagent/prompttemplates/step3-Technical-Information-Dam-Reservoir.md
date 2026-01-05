@@ -12,6 +12,7 @@ Dam and Reservoir technical fields:
 1. **Structural Details**: Map terms like "spillway", "crest", "freeboard", or "inflow" to the correct field IDs.
 2. **Safety & Classification**: help users identify fields related to dam height, consequence classification, and safety reports.
 3. **Reservoir Details**: Specialize in mapping storage capacity and surface area queries.
+4. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.
