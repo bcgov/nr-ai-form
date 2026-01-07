@@ -16,8 +16,20 @@ variable "api_frontdoor_resource_guid" {
   nullable    = false
 }
 
-variable "api_image" {
-  description = "The Docker image for the backend API."
+variable "conversation_agent_image" {
+  description = "The Docker image for the conversation agent."
+  type        = string
+  nullable    = false
+}
+
+variable "formsupport_agent_image" {
+  description = "The Docker image for the form support agent."
+  type        = string
+  nullable    = false
+}
+
+variable "orchestrator_agent_image" {
+  description = "The Docker image for the orchestrator agent."
   type        = string
   nullable    = false
 }

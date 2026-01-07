@@ -1,3 +1,43 @@
+# Local values for Docker Compose configuration
+locals {
+  # Docker Compose configuration for multi-container deployment
+  docker_compose_config = yamlencode({
+    version = "3.8"
+    services = {
+      conversation-agent = {
+        image = var.conversation_agent_image
+        ports = ["8000:8000"]
+        restart = "unless-stopped"
+        environment = {
+          PORT = "8000"
+          LOG_LEVEL = "INFO"
+        }
+      }
+      formsupport-agent = {
+        image = var.formsupport_agent_image 
+        ports = ["8001:8001"]
+        restart = "unless-stopped"
+        environment = {
+          PORT = "8001"
+          LOG_LEVEL = "INFO"
+        }
+      }
+      orchestrator-agent = {
+        image = var.orchestrator_agent_image
+        ports = ["8002:8002"]
+        restart = "unless-stopped"
+        environment = {
+          PORT = "8002"
+          LOG_LEVEL = "INFO"
+          CONVERSATION_AGENT_A2A_URL = "http://conversation-agent:8000"
+          FORM_SUPPORT_AGENT_A2A_URL = "http://formsupport-agent:8001"
+        }
+        depends_on = ["conversation-agent", "formsupport-agent"]
+      }
+    }
+  })
+}
+
 # API App Service Plan
 resource "azurerm_service_plan" "api" {
   name                = "${var.app_name}-api-asp"
@@ -30,10 +70,10 @@ resource "azurerm_linux_web_app" "api" {
     minimum_tls_version                     = "1.3"
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
-    application_stack {
-      docker_image_name   = var.api_image
-      docker_registry_url = var.container_registry_url
-    }
+    
+    # Multi-container configuration using Docker Compose
+    linux_fx_version = "COMPOSE|${base64encode(local.docker_compose_config)}"
+    
     ftps_state = "Disabled"
     cors {
       allowed_origins     = ["*"]
@@ -63,9 +103,13 @@ resource "azurerm_linux_web_app" "api" {
   }
   app_settings = {
     # Python/FastAPI settings
-    PORT                                  = "8000"
-    WEBSITES_PORT                         = "8000"
+    PORT                                  = "8002"  # Orchestrator port (main entry point)
+    WEBSITES_PORT                         = "8002"
     DOCKER_ENABLE_CI                      = "true"
+    
+    # Multi-container communication
+    CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
+    FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:8001"
     
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string

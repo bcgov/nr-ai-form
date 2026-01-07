@@ -16,13 +16,16 @@ jobs:
   builds:
     name: Builds
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       matrix:
         package:
-          - name: agentic_ai_backend
+          - name: conversation_agent
+            context: ./agentic_ai_backend/agents
+            dockerfile: ./agentic_ai_backend/agents/conversationagent/Dockerfile
+          - name: formsupport_agent
             context: ./agentic_ai_backend
-            dockerfile: ./agentic_ai_backend/Dockerfile
+            dockerfile: ./agentic_ai_backend/agents/formsupportagent/Dockerfile
           - name: orchestrator_agent
             context: ./agentic_ai_backend
             dockerfile: ./agentic_ai_backend/agents/orchestrators/Dockerfile
