@@ -13,8 +13,18 @@ variable "deployment_type" {
   }
 }
 
-variable "api_image" {
-  description = "The image for the API container"
+variable "conversation_agent_image" {
+  description = "The image for the conversation agent container"
+  type        = string
+}
+
+variable "formsupport_agent_image" {
+  description = "The image for the form support agent container"  
+  type        = string
+}
+
+variable "orchestrator_agent_image" {
+  description = "The image for the orchestrator agent container"
   type        = string
 }
 

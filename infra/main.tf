@@ -72,10 +72,12 @@ module "api" {
   count  = var.deployment_type == "app_service" ? 1 : 0
   source = "./modules/api"
 
-  app_name            = var.app_name
-  app_env             = var.app_env
-  repo_name           = var.repo_name
-  api_image           = var.api_image
+  app_name                     = var.app_name
+  app_env                      = var.app_env
+  repo_name                    = var.repo_name
+  conversation_agent_image     = var.conversation_agent_image
+  formsupport_agent_image      = var.formsupport_agent_image
+  orchestrator_agent_image     = var.orchestrator_agent_image
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   common_tags         = var.common_tags
@@ -133,7 +135,7 @@ module "container_apps" {
   app_name            = var.app_name
   app_env             = var.app_env
   repo_name           = var.repo_name
-  backend_image       = var.api_image
+  backend_image       = var.conversation_agent_image
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   common_tags         = var.common_tags
