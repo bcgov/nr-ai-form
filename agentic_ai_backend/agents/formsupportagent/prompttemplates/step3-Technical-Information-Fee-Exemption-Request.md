@@ -11,6 +11,7 @@ Fee Exemption fields:
 # Task Instructions
 1. **Exemption Grounds**: Map user descriptions (e.g., "Non-profit organization", "First Nation project") to the correct exemption status fields.
 2. **Commentary**: Help identify where users can provide additional justification for their exemption request.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

@@ -11,6 +11,8 @@ dependencies = [
     "utils",
     "fastapi>=0.127.0",
     "uvicorn>=0.38.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
 ]
 
 [tool.uv.sources]
