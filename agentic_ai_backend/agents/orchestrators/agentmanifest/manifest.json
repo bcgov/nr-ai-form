@@ -1,0 +1,46 @@
+{
+    "$schema": "https://a2a-protocol.org/schema/agent-card.json",
+    "identity": {
+        "name": "OrchestratorAgent",
+        "author": "BC Government",
+        "description": "Orchestrator Agent that manages interaction between Conversation Agent and Form Support Agent for the Water Permit Application.",
+        "avatarUrl": "",
+        "version": "1.0.0",
+        "license": "MIT"
+    },
+    "capabilities": [
+        {
+            "id": "orchestration_skill",
+            "name": "Water Permit Orchestration",
+            "description": "Orchestrates user queries by routing them to appropriate agents (Conversation or Form Support) and aggregating responses.",
+            "tags": [
+                "orchestrator",
+                "water-permit",
+                "workflow"
+            ],
+            "input": {
+                "type": "text",
+                "examples": [
+                    "What is the water permit application process?",
+                    "I need help with step 2 of the form."
+                ]
+            },
+            "output": {
+                "type": "text"
+            }
+        }
+    ],
+    "interaction": {
+        "baseUrl": "http://localhost:8002",
+        "endpoints": {
+            "invoke": {
+                "url": "/invoke",
+                "method": "POST"
+            },
+            "discovery": {
+                "url": "/.well-known/agent.json",
+                "method": "GET"
+            }
+        }
+    }
+}

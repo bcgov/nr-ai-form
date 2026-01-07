@@ -10,4 +10,6 @@ dependencies = [
  "azure-search-documents>=11.6.0",
  "aiohttp>=3.9.0",
  "python-dotenv>=1.0.0",
+ "fastapi>=0.127.0",
+ "uvicorn>=0.38.0",
 ]
