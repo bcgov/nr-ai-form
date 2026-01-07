@@ -18,3 +18,18 @@ services:
     env_file:
       - ./agents/formsupportagent/.env
     restart: unless-stopped
+
+  orchestrator-agent:
+    build:
+      context: .
+      dockerfile: agents/orchestrators/Dockerfile
+    ports:
+      - "8002:8002"
+    env_file:
+      - ./agents/orchestrators/.env
+    environment:
+      - CONVERSATION_AGENT_A2A_URL=http://conversation-agent:8000
+      - FORM_SUPPORT_AGENT_A2A_URL=http://formsupport-agent:8001
+    depends_on:
+      - conversation-agent
+      - formsupport-agent
