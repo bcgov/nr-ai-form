@@ -109,8 +109,8 @@ resource "azurerm_linux_web_app" "api" {
     DOCKER_ENABLE_CI                      = "true"
     
     # Multi-container communication (localhost since all containers are in same app)
-    CONVERSATION_AGENT_A2A_URL           = "http://conversation-agent:8000"
-    FORM_SUPPORT_AGENT_A2A_URL           = "http://formsupport-agent:8001"
+    CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
+    FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:8001"
     
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
