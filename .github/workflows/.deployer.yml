@@ -71,6 +71,7 @@ jobs:
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
           vnet_name: ${{ vars.VNET_NAME }}
+          api_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
           conversation_agent_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
           formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
           orchestrator_agent_image: "ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
@@ -134,6 +135,7 @@ jobs:
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
           vnet_name: ${{ vars.VNET_NAME }}
+          api_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
