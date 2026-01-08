@@ -28,6 +28,13 @@ variable "orchestrator_agent_image" {
   type        = string
 }
 
+# Legacy variable for Container Apps compatibility - will use conversation_agent_image
+variable "api_image" {
+  description = "The image for the API container (used by Container Apps - defaults to conversation_agent_image)"
+  type        = string
+  default     = ""
+}
+
 variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string

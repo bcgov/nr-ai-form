@@ -4,7 +4,9 @@ terraform {
 
 locals {
   stack_prefix             = get_env("stack_prefix")
-  api_image                = get_env("api_image")
+  conversation_agent_image = get_env("conversation_agent_image")
+  formsupport_agent_image  = get_env("formsupport_agent_image")
+  orchestrator_agent_image = get_env("orchestrator_agent_image")
   vnet_resource_group_name = get_env("vnet_resource_group_name") # Resource group where the VNet exists.
   vnet_name                = get_env("vnet_name")                # Name of the existing VNet.
   target_env               = get_env("target_env")
@@ -73,7 +75,10 @@ tenant_id                 = "${local.azure_tenant_id}"
 client_id                 = "${local.azure_client_id}"
 vnet_name                 = "${local.vnet_name}"
 vnet_resource_group_name  = "${local.vnet_resource_group_name}"
-api_image                 = "${local.api_image}"
+api_image                 = "${local.conversation_agent_image}"  # For Container Apps compatibility
+conversation_agent_image  = "${local.conversation_agent_image}"
+formsupport_agent_image   = "${local.formsupport_agent_image}"
+orchestrator_agent_image  = "${local.orchestrator_agent_image}"
 vnet_address_space        = "${local.vnet_address_space}"
 repo_name                 = "${get_env("repo_name")}"
 
