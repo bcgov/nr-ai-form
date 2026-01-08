@@ -71,8 +71,11 @@ resource "azurerm_linux_web_app" "api" {
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
     
-    # Multi-container configuration using Docker Compose
-    linux_fx_version = "COMPOSE|${base64encode(local.docker_compose_config)}"
+    # Single container deployment - using orchestrator as main service
+    application_stack {
+      docker_image_name   = var.orchestrator_agent_image
+      docker_registry_url = var.container_registry_url
+    }
     
     ftps_state = "Disabled"
     cors {
@@ -102,14 +105,15 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Python/FastAPI settings
-    PORT                                  = "8002"  # Orchestrator port (main entry point)
+    # Python/FastAPI settings for orchestrator
+    PORT                                  = "8002"  # Orchestrator port
     WEBSITES_PORT                         = "8002"
     DOCKER_ENABLE_CI                      = "true"
     
-    # Multi-container communication
-    CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
-    FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:8001"
+    # For single-container deployment, orchestrator will need to communicate with external services
+    # These URLs would point to separate deployments or external services
+    # CONVERSATION_AGENT_A2A_URL           = "https://conversation-agent-service-url"
+    # FORM_SUPPORT_AGENT_A2A_URL           = "https://formsupport-agent-service-url"
     
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
