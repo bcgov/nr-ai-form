@@ -70,9 +70,6 @@ resource "azurerm_linux_web_app" "api" {
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
     
-    # Multi-container deployment using Docker Compose
-    linux_fx_version = "COMPOSE|${base64encode(local.docker_compose_config)}"
-    
     ftps_state = "Disabled"
     cors {
       allowed_origins     = ["*"]
@@ -101,7 +98,8 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Multi-container deployment settings
+    # Docker Compose Configuration for multi-container deployment
+    DOCKER_CUSTOM_IMAGE_NAME              = "COMPOSE|${base64encode(local.docker_compose_config)}"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
     
     # Python/FastAPI settings - orchestrator is the main entry point
@@ -147,7 +145,6 @@ resource "azurerm_linux_web_app" "api" {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
     WEBSITE_ENABLE_SYNC_UPDATE_SITE       = "1"
     WEBSITES_CONTAINER_START_TIME_LIMIT   = "600"
-    DOCKER_REGISTRY_SERVER_URL            = "https://ghcr.io"
   }
   logs {
     detailed_error_messages = true
