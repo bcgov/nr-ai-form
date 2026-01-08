@@ -53,7 +53,7 @@ resource "azurerm_service_plan" "api" {
 
 # API App Service
 resource "azurerm_linux_web_app" "api" {
-  name                      = "${var.repo_name}-${var.app_env}-api"
+  name                      = "${var.repo_name}-${var.app_env}-api-multi"
   resource_group_name       = var.resource_group_name
   location                  = var.location
   service_plan_id           = azurerm_service_plan.api.id
@@ -70,9 +70,6 @@ resource "azurerm_linux_web_app" "api" {
     minimum_tls_version                     = "1.3"
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
-    
-    # Multi-container configuration using Docker Compose
-    linux_fx_version = "COMPOSE|${base64encode(local.docker_compose_config)}"
     
     ftps_state = "Disabled"
     cors {
@@ -102,12 +99,16 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Python/FastAPI settings
+    # Docker Compose Configuration for multi-container deployment
+    DOCKER_CUSTOM_IMAGE_NAME              = "COMPOSE|${base64encode(local.docker_compose_config)}"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
+    
+    # Python/FastAPI settings - orchestrator is the main entry point
     PORT                                  = "8002"  # Orchestrator port (main entry point)
     WEBSITES_PORT                         = "8002"
     DOCKER_ENABLE_CI                      = "true"
     
-    # Multi-container communication
+    # Multi-container communication (localhost since all containers are in same app)
     CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
     FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:8001"
     
