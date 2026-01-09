@@ -52,7 +52,7 @@ resource "azurerm_service_plan" "api" {
 
 # API App Service
 resource "azurerm_linux_web_app" "api" {
-  name                      = "${var.repo_name}-${var.app_env}-api-multi"
+  name                      = "${var.repo_name}-${var.app_env}-api-multi-agent"
   resource_group_name       = var.resource_group_name
   location                  = var.location
   service_plan_id           = azurerm_service_plan.api.id
