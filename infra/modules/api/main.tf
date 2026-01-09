@@ -69,9 +69,10 @@ resource "azurerm_linux_web_app" "api" {
     minimum_tls_version                     = "1.3"
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
-    
-    # Multi-container deployment using Docker Compose
-    linux_fx_version = "COMPOSE|${base64encode(local.docker_compose_config)}"
+
+    application_stack {
+      docker_image_name = "COMPOSE|${base64encode(local.docker_compose_config)}"
+    }
     
     ftps_state = "Disabled"
     cors {
