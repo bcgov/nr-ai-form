@@ -165,7 +165,7 @@ resource "azurerm_linux_web_app" "api" {
 }
 
 # LinuxFxVersion patch for multi-container deployment (not yet supported via azurerm provider)
-resource "azapi_resource" "api_linuxfx_patch" {
+resource "azapi_update_resource" "api_linuxfx_patch" {
   name      = azurerm_linux_web_app.api.name
   parent_id = data.azurerm_resource_group.api.id
   type      = "Microsoft.Web/sites@2024-11-01"
