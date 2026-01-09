@@ -170,13 +170,13 @@ resource "azapi_resource" "api_linuxfx_patch" {
   parent_id = data.azurerm_resource_group.api.id
   type      = "Microsoft.Web/sites@2024-11-01"
 
-  body = jsonencode({
+  body = {
     properties = {
       siteConfig = {
         linuxFxVersion = "COMPOSE|${base64encode(local.docker_compose_config)}"
       }
     }
-  })
+  }
 
   response_export_values = ["properties.siteConfig.linuxFxVersion"]
   depends_on             = [azurerm_linux_web_app.api]
