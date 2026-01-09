@@ -5,9 +5,10 @@ from typing import Dict, Any, Optional
 from utils.blobservice import BlobService
 
 class FormDefinitionService:
-    def __init__(self, blob_service: BlobService, container_name: str):
+    def __init__(self, blob_service: BlobService, container_name: str, directory_path: str = "formdefinitions"):
         self.blob_service = blob_service
         self.container_name = container_name
+        self.directory_path = directory_path
         self.cache: Dict[str, Any] = {}
 
     def fetch_form_definition(self, definition_name: str) -> Optional[Dict[str, Any]]:
@@ -16,8 +17,11 @@ class FormDefinitionService:
             return self.cache[definition_name]
 
         try:
-            json_content = self.blob_service.read_blob_text(self.container_name, definition_name)
-            form_data = json.loads(json_content)
+            # Construct blob name with directory path
+            blob_name = f"{self.directory_path}/{definition_name}" if self.directory_path else definition_name
+            
+            json_content = self.blob_service.read_blob_text(self.container_name, blob_name)
+            form_data = json.loads(json_content)            
             self.cache[definition_name] = form_data
             return form_data
         except Exception as e:
@@ -26,7 +30,7 @@ class FormDefinitionService:
 
     def list_available_definitions(self) -> list[str]:
         try:
-            blobs = self.blob_service.list_blobs(self.container_name)
+            blobs = self.blob_service.list_blobs(self.container_name, name_starts_with=self.directory_path)
             return [b for b in blobs if b.endswith('.json')]
         except Exception as e:
             print(f"Error listing form definitions: {e}")

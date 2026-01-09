@@ -12,12 +12,13 @@ class TestFormDefinitionServiceIntegration(unittest.TestCase):
     def setUp(self):
         self.connection_string = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
         self.container_name = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
+        self.directory = "formdefinitions"
         
         if not self.connection_string:
             self.skipTest("AZURE_BLOBSTORAGE_CONNECTIONSTRING not set in .env")
             
         self.blob_service = BlobService(self.connection_string)
-        self.service = FormDefinitionService(self.blob_service, self.container_name)
+        self.service = FormDefinitionService(self.blob_service, self.container_name, self.directory)
         
         print(f"\nUsing Container: {self.container_name}")
 
