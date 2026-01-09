@@ -1,4 +1,8 @@
 # Local values for Docker Compose configuration
+data "azurerm_resource_group" "api" {
+  name = var.resource_group_name
+}
+
 locals {
   # Docker Compose configuration for multi-container deployment
   docker_compose_config = yamlencode({
@@ -163,8 +167,8 @@ resource "azurerm_linux_web_app" "api" {
 # LinuxFxVersion patch for multi-container deployment (not yet supported via azurerm provider)
 resource "azapi_resource" "api_linuxfx_patch" {
   name      = azurerm_linux_web_app.api.name
-  parent_id = azurerm_linux_web_app.api.resource_group_id
-  type      = "Microsoft.Web/sites@2023-09-01"
+  parent_id = data.azurerm_resource_group.api.id
+  type      = "Microsoft.Web/sites@2024-11-01"
 
   body = jsonencode({
     properties = {
