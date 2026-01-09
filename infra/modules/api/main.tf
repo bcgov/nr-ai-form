@@ -29,10 +29,9 @@ locals {
         environment = {
           PORT = "8002"
           LOG_LEVEL = "INFO"
-          CONVERSATION_AGENT_A2A_URL = "http://conversation-agent:8000"
-          FORM_SUPPORT_AGENT_A2A_URL = "http://formsupport-agent:8001"
+          CONVERSATION_AGENT_A2A_URL = "http://localhost:8000"
+          FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:8001"
         }
-        depends_on = ["conversation-agent", "formsupport-agent"]
       }
     }
   })
@@ -101,7 +100,6 @@ resource "azurerm_linux_web_app" "api" {
   app_settings = {
     # Docker Compose Configuration for multi-container deployment
     DOCKER_CUSTOM_IMAGE_NAME              = "COMPOSE|${base64encode(local.docker_compose_config)}"
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
     
     # Python/FastAPI settings - orchestrator is the main entry point
     PORT                                  = "8002"  # Orchestrator port (main entry point)
@@ -141,10 +139,14 @@ resource "azurerm_linux_web_app" "api" {
     AZURE_STORAGE_ACCOUNT_KEY             = var.azure_storage_account_key
     AZURE_STORAGE_CONTAINER_NAME          = var.azure_storage_container_name
     
-    # Azure App Service specific settings
+    # Azure App Service specific settings for multi-container
     WEBSITE_SKIP_RUNNING_KUDUAGENT        = "false"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
     WEBSITE_ENABLE_SYNC_UPDATE_SITE       = "1"
+    WEBSITES_CONTAINER_START_TIME_LIMIT   = "600"
+    # Force multi-container deployment
+    DOCKER_CUSTOM_IMAGE_RUN_COMMAND       = ""
+    WEBSITES_ENABLE_MULTI_CONTAINER       = "true"
   }
   logs {
     detailed_error_messages = true
