@@ -5,30 +5,30 @@ locals {
     version = "3.8"
     services = {
       conversation-agent = {
-        image = var.conversation_agent_image
-        ports = ["8000:8000"]
+        image   = var.conversation_agent_image
+        ports   = ["8000:8000"]
         restart = "unless-stopped"
         environment = {
-          PORT = "8000"
+          PORT      = "8000"
           LOG_LEVEL = "INFO"
         }
       }
       formsupport-agent = {
-        image = var.formsupport_agent_image 
-        ports = ["8001:8001"]
+        image   = var.formsupport_agent_image
+        ports   = ["8001:8001"]
         restart = "unless-stopped"
         environment = {
-          PORT = "8001"
+          PORT      = "8001"
           LOG_LEVEL = "INFO"
         }
       }
       orchestrator-agent = {
-        image = var.orchestrator_agent_image
-        ports = ["8002:8002"]
+        image   = var.orchestrator_agent_image
+        ports   = ["8002:8002"]
         restart = "unless-stopped"
         environment = {
-          PORT = "8002"
-          LOG_LEVEL = "INFO"
+          PORT                       = "8002"
+          LOG_LEVEL                  = "INFO"
           CONVERSATION_AGENT_A2A_URL = "http://localhost:8000"
           FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:8001"
         }
@@ -52,7 +52,7 @@ resource "azurerm_service_plan" "api" {
 
 # API App Service
 resource "azurerm_linux_web_app" "api" {
-  name                      = "${var.repo_name}-${var.app_env}-api-multi-agent"
+  name                      = "${var.repo_name}-${var.app_env}-api-multi-ai"
   resource_group_name       = var.resource_group_name
   location                  = var.location
   service_plan_id           = azurerm_service_plan.api.id
@@ -69,7 +69,7 @@ resource "azurerm_linux_web_app" "api" {
     minimum_tls_version                     = "1.3"
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
-    
+
     ftps_state = "Disabled"
     cors {
       allowed_origins     = ["*"]
@@ -99,50 +99,50 @@ resource "azurerm_linux_web_app" "api" {
   }
   app_settings = {
     # Docker Compose Configuration for multi-container deployment
-    DOCKER_CUSTOM_IMAGE_NAME              = "COMPOSE|${base64encode(local.docker_compose_config)}"
-    
+    DOCKER_CUSTOM_IMAGE_NAME = "COMPOSE|${base64encode(local.docker_compose_config)}"
+
     # Python/FastAPI settings - orchestrator is the main entry point
-    PORT                                  = "8002"  # Orchestrator port (main entry point)
-    WEBSITES_PORT                         = "8002"
-    
+    PORT          = "8002" # Orchestrator port (main entry point)
+    WEBSITES_PORT = "8002"
+
     # Multi-container communication (localhost since all containers are in same app)
-    CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
-    FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:8001"
-    
+    CONVERSATION_AGENT_A2A_URL = "http://localhost:8000"
+    FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:8001"
+
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key
-    
+
     # Cosmos DB
-    COSMOS_DB_ENDPOINT                    = var.cosmosdb_endpoint
-    COSMOS_DB_DATABASE_NAME               = var.cosmosdb_db_name
-    COSMOS_DB_CONTAINER_NAME              = var.cosmosdb_container_name
-    
+    COSMOS_DB_ENDPOINT       = var.cosmosdb_endpoint
+    COSMOS_DB_DATABASE_NAME  = var.cosmosdb_db_name
+    COSMOS_DB_CONTAINER_NAME = var.cosmosdb_container_name
+
     # Azure OpenAI Configuration (required for the AI agent)
-    AZURE_OPENAI_API_KEY                  = var.azure_openai_api_key
-    AZURE_OPENAI_ENDPOINT                 = var.azure_openai_endpoint
-    AZURE_OPENAI_API_VERSION              = var.azure_openai_api_version
-    AZURE_OPENAI_DEPLOYMENT_NAME          = var.azure_openai_deployment_name
-    
+    AZURE_OPENAI_API_KEY         = var.azure_openai_api_key
+    AZURE_OPENAI_ENDPOINT        = var.azure_openai_endpoint
+    AZURE_OPENAI_API_VERSION     = var.azure_openai_api_version
+    AZURE_OPENAI_DEPLOYMENT_NAME = var.azure_openai_deployment_name
+
     # Azure Search Configuration
-    AZURE_SEARCH_ENDPOINT                 = var.azure_search_endpoint
-    AZURE_SEARCH_KEY                      = var.azure_search_key
-    AZURE_SEARCH_INDEX_NAME               = var.azure_search_index_name
-    
+    AZURE_SEARCH_ENDPOINT   = var.azure_search_endpoint
+    AZURE_SEARCH_KEY        = var.azure_search_key
+    AZURE_SEARCH_INDEX_NAME = var.azure_search_index_name
+
     # Azure Document Intelligence Configuration
-    AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT  = var.azure_document_intelligence_endpoint
-    AZURE_DOCUMENT_INTELLIGENCE_KEY       = var.azure_document_intelligence_key
-    
+    AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT = var.azure_document_intelligence_endpoint
+    AZURE_DOCUMENT_INTELLIGENCE_KEY      = var.azure_document_intelligence_key
+
     # Azure Storage Configuration
-    AZURE_STORAGE_ACCOUNT_NAME            = var.azure_storage_account_name
-    AZURE_STORAGE_ACCOUNT_KEY             = var.azure_storage_account_key
-    AZURE_STORAGE_CONTAINER_NAME          = var.azure_storage_container_name
-    
+    AZURE_STORAGE_ACCOUNT_NAME   = var.azure_storage_account_name
+    AZURE_STORAGE_ACCOUNT_KEY    = var.azure_storage_account_key
+    AZURE_STORAGE_CONTAINER_NAME = var.azure_storage_container_name
+
     # Azure App Service specific settings for multi-container
-    WEBSITE_SKIP_RUNNING_KUDUAGENT        = "false"
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
-    WEBSITE_ENABLE_SYNC_UPDATE_SITE       = "1"
-    WEBSITES_CONTAINER_START_TIME_LIMIT   = "600"
+    WEBSITE_SKIP_RUNNING_KUDUAGENT      = "false"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+    WEBSITE_ENABLE_SYNC_UPDATE_SITE     = "1"
+    WEBSITES_CONTAINER_START_TIME_LIMIT = "600"
   }
   logs {
     detailed_error_messages = true
@@ -158,6 +158,24 @@ resource "azurerm_linux_web_app" "api" {
   lifecycle {
     ignore_changes = [tags]
   }
+}
+
+# LinuxFxVersion patch for multi-container deployment (not yet supported via azurerm provider)
+resource "azapi_resource" "api_linuxfx_patch" {
+  name      = azurerm_linux_web_app.api.name
+  parent_id = azurerm_linux_web_app.api.resource_group_id
+  type      = "Microsoft.Web/sites@2023-09-01"
+
+  body = jsonencode({
+    properties = {
+      siteConfig = {
+        linuxFxVersion = "COMPOSE|${base64encode(local.docker_compose_config)}"
+      }
+    }
+  })
+
+  response_export_values = ["properties.siteConfig.linuxFxVersion"]
+  depends_on             = [azurerm_linux_web_app.api]
 }
 
 # API Autoscaler
