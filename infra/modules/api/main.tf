@@ -70,6 +70,9 @@ resource "azurerm_linux_web_app" "api" {
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
     
+    # Multi-container deployment using Docker Compose
+    linux_fx_version = "COMPOSE|${base64encode(local.docker_compose_config)}"
+    
     ftps_state = "Disabled"
     cors {
       allowed_origins     = ["*"]
@@ -98,13 +101,9 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Docker Compose Configuration for multi-container deployment
-    DOCKER_CUSTOM_IMAGE_NAME              = "COMPOSE|${base64encode(local.docker_compose_config)}"
-    
     # Python/FastAPI settings - orchestrator is the main entry point
     PORT                                  = "8002"  # Orchestrator port (main entry point)
     WEBSITES_PORT                         = "8002"
-    DOCKER_ENABLE_CI                      = "true"
     
     # Multi-container communication (localhost since all containers are in same app)
     CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
@@ -144,9 +143,6 @@ resource "azurerm_linux_web_app" "api" {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
     WEBSITE_ENABLE_SYNC_UPDATE_SITE       = "1"
     WEBSITES_CONTAINER_START_TIME_LIMIT   = "600"
-    # Force multi-container deployment
-    DOCKER_CUSTOM_IMAGE_RUN_COMMAND       = ""
-    WEBSITES_ENABLE_MULTI_CONTAINER       = "true"
   }
   logs {
     detailed_error_messages = true
