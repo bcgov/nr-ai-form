@@ -69,10 +69,6 @@ resource "azurerm_linux_web_app" "api" {
     minimum_tls_version                     = "1.3"
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
-
-    application_stack {
-      docker_image_name = "COMPOSE|${base64encode(local.docker_compose_config)}"
-    }
     
     ftps_state = "Disabled"
     cors {
@@ -102,6 +98,9 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
+    # Docker Compose Configuration for multi-container deployment
+    DOCKER_CUSTOM_IMAGE_NAME              = "COMPOSE|${base64encode(local.docker_compose_config)}"
+    
     # Python/FastAPI settings - orchestrator is the main entry point
     PORT                                  = "8002"  # Orchestrator port (main entry point)
     WEBSITES_PORT                         = "8002"
