@@ -1,13 +1,23 @@
 
 import json
 
-def get_form_context(file_path):
+def get_form_context(form_data):
     """
     Reads the JSON form definition and returns a structured string of fields
     for the LLM context.
+    
+    Args:
+        form_data: Either a file path (str) or a dictionary containing the form definition
     """
-    with open(file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    if isinstance(form_data, str):
+        # It's a file path
+        with open(form_data, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    elif isinstance(form_data, dict):
+        # It's already a dictionary
+        data = form_data
+    else:
+        raise ValueError("form_data must be either a file path (str) or a dictionary")
         
     # Handle both list and dictionary structures for properties
     properties_raw = data.get('properties', [])
