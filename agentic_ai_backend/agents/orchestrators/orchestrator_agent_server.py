@@ -85,4 +85,4 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", "8002"))
     
     print(f"Starting Orchestrator Agent API on {host}:{port}")
-    uvicorn.run(app, host=host, port=port)
+    uvicorn.run(app, host=host, port=port, log_level="info")
