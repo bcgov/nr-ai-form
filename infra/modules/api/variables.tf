@@ -245,10 +245,4 @@ variable "formsupport_agent_port" {
   nullable    = false
 }
 
-variable "container_registry_url" {
-  description = "The URL of the container registry (used for sidecar authentication)."
-  type        = string
-  default     = ""
-}
-
 
