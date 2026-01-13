@@ -110,9 +110,9 @@ jobs:
         if terragrunt state list 2>/dev/null | grep -q 'module.network.azurerm_subnet.container_apps_subnet'; then
           echo "Found azurerm_subnet.container_apps_subnet - removing from state..."
           terragrunt state rm -lock=false 'module.network.azurerm_subnet.container_apps_subnet[0]' || true
-          echo "✅ Removed azurerm_subnet from state"
+          echo "Removed azurerm_subnet from state"
         else
-          echo "ℹ️  azurerm_subnet not found in state"
+          echo "azurerm_subnet not found in state"
         fi
         
         # Check and remove azurerm_subnet_network_security_group_association if it exists
@@ -120,9 +120,9 @@ jobs:
         if terragrunt state list 2>/dev/null | grep -q 'module.network.azurerm_subnet_network_security_group_association.container_apps'; then
           echo "Found NSG association - removing from state..."
           terragrunt state rm -lock=false 'module.network.azurerm_subnet_network_security_group_association.container_apps[0]' || true
-          echo "✅ Removed NSG association from state"
+          echo "Removed NSG association from state"
         else
-          echo "ℹ️  NSG association not found in state"
+          echo "NSG association not found in state"
         fi
 
     
