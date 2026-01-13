@@ -254,3 +254,28 @@ variable "azure_storage_container_name" {
   type        = string
   nullable    = false
 }
+
+# Sidecar Deployment Configuration
+variable "orchestrator_agent_port" {
+  description = "The port on which the Orchestrator Agent (main container) listens."
+  type        = number
+  default     = 8002
+}
+
+variable "conversation_agent_port" {
+  description = "The port on which the Conversation Agent (sidecar) listens."
+  type        = number
+  default     = 8000
+}
+
+variable "formsupport_agent_port" {
+  description = "The port on which the Form Support Agent (sidecar) listens."
+  type        = number
+  default     = 8001
+}
+
+variable "container_registry_url" {
+  description = "The URL of the container registry for pulling sidecar images."
+  type        = string
+  default     = ""
+}

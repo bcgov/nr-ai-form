@@ -1,40 +1,8 @@
-# Local values for Docker Compose configuration
+# Variables for sidecar ports
 locals {
-  # Docker Compose configuration for multi-container deployment
-  docker_compose_config = yamlencode({
-    version = "3.8"
-    services = {
-      conversation-agent = {
-        image = var.conversation_agent_image
-        ports = ["8000:8000"]
-        restart = "unless-stopped"
-        environment = {
-          PORT = "8000"
-          LOG_LEVEL = "INFO"
-        }
-      }
-      formsupport-agent = {
-        image = var.formsupport_agent_image 
-        ports = ["8001:8001"]
-        restart = "unless-stopped"
-        environment = {
-          PORT = "8001"
-          LOG_LEVEL = "INFO"
-        }
-      }
-      orchestrator-agent = {
-        image = var.orchestrator_agent_image
-        ports = ["8002:8002"]
-        restart = "unless-stopped"
-        environment = {
-          PORT = "8002"
-          LOG_LEVEL = "INFO"
-          CONVERSATION_AGENT_A2A_URL = "http://localhost:8000"
-          FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:8001"
-        }
-      }
-    }
-  })
+  orchestrator_port       = var.orchestrator_agent_port
+  conversation_port       = var.conversation_agent_port
+  formsupport_port        = var.formsupport_agent_port
 }
 
 # API App Service Plan
@@ -70,6 +38,9 @@ resource "azurerm_linux_web_app" "api" {
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
     
+    # Enable sidecar support for Linux custom containers
+    linux_fx_version = "sitecontainers"
+    
     ftps_state = "Disabled"
     cors {
       allowed_origins     = ["*"]
@@ -98,15 +69,15 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Docker Compose Configuration for multi-container deployment
-    DOCKER_CUSTOM_IMAGE_NAME              = "COMPOSE|${base64encode(local.docker_compose_config)}"
+    # Sidecar deployment configuration
+    # No Docker Compose settings needed - sidecars are configured via azurerm_web_app_sitecontainer resources
     
     # Python/FastAPI settings - orchestrator is the main entry point
     PORT                                  = "8002"  # Orchestrator port (main entry point)
     WEBSITES_PORT                         = "8002"
-    DOCKER_ENABLE_CI                      = "true"
     
-    # Multi-container communication (localhost since all containers are in same app)
+    # Multi-container communication via sidecar containers
+    # All containers share the same network namespace, so localhost access works
     CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
     FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:8001"
     
@@ -138,15 +109,6 @@ resource "azurerm_linux_web_app" "api" {
     AZURE_STORAGE_ACCOUNT_NAME            = var.azure_storage_account_name
     AZURE_STORAGE_ACCOUNT_KEY             = var.azure_storage_account_key
     AZURE_STORAGE_CONTAINER_NAME          = var.azure_storage_container_name
-    
-    # Azure App Service specific settings for multi-container
-    WEBSITE_SKIP_RUNNING_KUDUAGENT        = "false"
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
-    WEBSITE_ENABLE_SYNC_UPDATE_SITE       = "1"
-    WEBSITES_CONTAINER_START_TIME_LIMIT   = "600"
-    # Force multi-container deployment
-    DOCKER_CUSTOM_IMAGE_RUN_COMMAND       = ""
-    WEBSITES_ENABLE_MULTI_CONTAINER       = "true"
   }
   logs {
     detailed_error_messages = true
