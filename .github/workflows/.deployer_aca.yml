@@ -127,6 +127,21 @@ jobs:
         else
           echo "NSG association not found in state"
         fi
+        
+        # Import container-apps-subnet if it exists in Azure but not in state
+        echo "Checking if container-apps-subnet needs to be imported..."
+        CONTAINER_APPS_SUBNET_ID="/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/d94cca-${TARGET_ENV}-networking/providers/Microsoft.Network/virtualNetworks/d94cca-${TARGET_ENV}-vwan-spoke/subnets/container-apps-subnet"
+        
+        # Check if this resource exists in state
+        if ! terragrunt state list 2>/dev/null | grep -q 'module.network.azapi_resource.container_apps_subnet'; then
+          echo "container-apps-subnet not in state, attempting to import..."
+          terragrunt import -lock=false "module.network.azapi_resource.container_apps_subnet[0]" "$CONTAINER_APPS_SUBNET_ID" 2>&1 || {
+            # Import might fail if resource doesn't exist in Azure, which is fine
+            echo "Import attempt completed (resource may not exist in Azure yet)"
+          }
+        else
+          echo "container-apps-subnet already in state"
+        fi
 
     
     - name: Image Tags
