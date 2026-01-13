@@ -13,9 +13,26 @@ variable "deployment_type" {
   }
 }
 
-variable "api_image" {
-  description = "The image for the API container"
+variable "conversation_agent_image" {
+  description = "The image for the conversation agent container"
   type        = string
+}
+
+variable "formsupport_agent_image" {
+  description = "The image for the form support agent container"  
+  type        = string
+}
+
+variable "orchestrator_agent_image" {
+  description = "The image for the orchestrator agent container"
+  type        = string
+}
+
+# Legacy variable for Container Apps compatibility - will use conversation_agent_image
+variable "api_image" {
+  description = "The image for the API container (used by Container Apps - defaults to conversation_agent_image)"
+  type        = string
+  default     = ""
 }
 
 variable "app_env" {

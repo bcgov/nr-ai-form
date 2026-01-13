@@ -11,6 +11,7 @@ Available eligibility fields:
 # Task Instructions
 1. **Eligibility Check**: If a user describes their situation (e.g., "I own land near a creek"), map it to the "Are you eligible" field.
 2. **Housing/Projects**: Identify if the user is asking about housing units or specific transmission line projects.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

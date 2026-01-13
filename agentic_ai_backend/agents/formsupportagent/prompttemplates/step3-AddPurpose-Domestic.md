@@ -11,6 +11,7 @@ Domestic Water Use fields:
 # Task Instructions
 1. **Household Use**: Map queries about garden watering, drinking water, or private ponds to the domestic purpose fields.
 2. **Quantities**: Help users estimate their daily household water needs if they are unsure.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.

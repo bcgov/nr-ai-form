@@ -11,6 +11,7 @@ Water Diversion fields:
 # Task Instructions
 1. **Diverting Water**: Map queries about maximum diversion rates, units of measurement, and periods of diversion.
 2. **Timing**: Help users specify seasonal or year-round diversion schedules.
+3. give me all possible properties
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.
