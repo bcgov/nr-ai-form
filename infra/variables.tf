@@ -47,9 +47,9 @@ variable "app_name" {
 }
 
 variable "app_service_sku_name_api" {
-  description = "SKU name for the API App Service Plan (deprecated - use Container Apps)"
+  description = "SKU name for the API App Service Plan. Must be Standard or higher for sidecar support (e.g., S1, S2, P1)"
   type        = string
-  default     = "B1" # Basic tier 
+  default     = "S1" # Standard tier - required for sidecar containers
 }
 
 variable "container_cpu" {
