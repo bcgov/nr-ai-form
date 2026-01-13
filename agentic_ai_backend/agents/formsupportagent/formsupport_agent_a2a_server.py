@@ -19,6 +19,9 @@ from agents.formsupportagent.formsupportagent import (
 from agents.formsupportagent.models.formsupportmodel import InvokeRequest, InvokeResponse
 from utils.formutils import get_form_context
 from typing import Union
+from services.formdefinitionservice import FormDefinitionService
+from services.prompttemplateservice import PromptTemplateService
+from utils.blobservice import BlobService
 
 load_dotenv()
 
@@ -28,6 +31,21 @@ app = FastAPI(
     description="Agent-to-Agent API Server for BC Government's Water Permit Application Form Support",
     version="1.0.0"
 )
+
+# Initialize Blob Services
+blob_connection_string = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
+blob_container = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
+form_def_service = None
+prompt_temp_service = None
+
+if blob_connection_string and blob_container:
+    try:
+        blob_service = BlobService(blob_connection_string)
+        form_def_service = FormDefinitionService(blob_service, blob_container)
+        prompt_temp_service = PromptTemplateService(blob_service, blob_container)
+        print(f"Initialized Blob Services for container: {blob_container}")
+    except Exception as e:
+        print(f"Failed to initialize Blob Services: {e}")
 
 # Cache of agent instances per step number (step_number -> agent_instance)
 _agent_cache = {}
@@ -42,7 +60,7 @@ def get_agent(step_identifier: Union[int, str]):
     Returns:
         FormSupportAgent instance configured for the specified step
     """
-    global _agent_cache
+    global _agent_cache#TODO ABIN: Need to implement agent caching on an distributed cache. 
     
     # Convert to string for consistent lookup
     step_key = str(step_identifier)
@@ -57,27 +75,26 @@ def get_agent(step_identifier: Union[int, str]):
         deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
         
         # Load assets using shared utility
-        json_path, prompt_path, step_key = resolve_agent_assets(step_identifier)
+        form_definition, custom_instructions, step_key = resolve_agent_assets(
+            step_identifier, 
+            form_definition_service=form_def_service, 
+            prompt_template_service=prompt_temp_service
+        )
         
-        if not json_path:
-            raise FileNotFoundError(f"Form definition file not found for identifier: {step_key}")
+        if not form_definition:
+            raise FileNotFoundError(f"Form definition not found for identifier: {step_key}")
 
-        form_context_str = get_form_context(json_path)
+        # get_form_context handles dict or string path (though we expect dict from service or dict/content from local fallback now)
+        form_context_str = get_form_context(form_definition)
         
-        custom_instructions = None
-        if prompt_path:
-            with open(prompt_path, 'r', encoding='utf-8') as f:
-                custom_instructions = f.read()
-            print(f"Loaded custom instructions from {os.path.basename(prompt_path)}")
-
         if not custom_instructions:
-            raise FileNotFoundError(f"No prompt template (.md) found for step: {step_key}. A specialized prompt is required.")
+            raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
         
         # Create and cache the agent instance
         agent_instance = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str, instructions=custom_instructions)
-        _agent_cache[step_key] = agent_instance
+        _agent_cache[step_key] = agent_instance #TODO ABIN: Need to implement agent caching on an distributed cache. 
         
-        print(f"Created FormSupportAgent for step {step_key} using {os.path.basename(json_path)}")
+        print(f"Created FormSupportAgent for step {step_key}")
         return agent_instance
         
     except Exception as e:

@@ -26,47 +26,29 @@ def extract_step_from_query(query):
     
     return step_identifier, actual_query
 
-def resolve_agent_assets(step_identifier):
+from services.formdefinitionservice import FormDefinitionService
+from services.prompttemplateservice import PromptTemplateService
+from utils.blobservice import BlobService
+
+def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_template_service=None):
     """
-    Locates the JSON schema and Markdown prompt template for a given step identifier.
-    Returns (json_path, prompt_path, step_identifier)
+    Resolves form definition JSON and prompt template for a given step identifier.
+    Returns (form_definition_dict, prompt_template_str, step_identifier)
     """
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    form_defs_dir = os.path.join(base_dir, "formdefinitions")
-    prompt_templates_dir = os.path.join(base_dir, "prompttemplates")
-    
+    print(f"Resolving assets for step: {step_identifier}")
     step_key = str(step_identifier)
-    possible_filenames = [
-        f"{step_key}.json",
-        f"step{step_key}.json",
-        f"{step_key}" if step_key.endswith(".json") else f"{step_key}.json"
-    ]
     
-    json_path = None
-    # 1. Try direct patterns
-    for fname in possible_filenames:
-        tmp_path = os.path.join(form_defs_dir, fname)
-        if os.path.exists(tmp_path):
-            json_path = tmp_path
-            break
-            
-    # 2. Try prefix matching
-    if not json_path:
-        for fname in os.listdir(form_defs_dir):
-            if fname.startswith(f"step{step_key}-") or fname.startswith(f"{step_key}-"):
-                json_path = os.path.join(form_defs_dir, fname)
-                break
+    # 1. Cloud/Service Path
+    if form_definition_service and prompt_template_service:
+        json_filename = f"{step_key}.json"
+        md_filename = f"{step_key}.md"
+        
+        form_definition = form_definition_service.fetch_form_definition(json_filename)
+        prompt_template = prompt_template_service.fetch_prompt_template(md_filename)
+        
+        return form_definition, prompt_template, step_key
+    
 
-    if not json_path:
-        return None, None, step_key
-
-    # 3. Resolve prompt path (.md ONLY)
-    prompt_filename = os.path.basename(json_path).replace(".json", ".md")
-    prompt_path = os.path.join(prompt_templates_dir, prompt_filename)
-    if not os.path.exists(prompt_path):
-        prompt_path = None
-            
-    return json_path, prompt_path, step_key
 
 
 class FormSupportAgent():
@@ -101,26 +83,42 @@ async def dryrun(query):
     api_key = os.environ["AZURE_OPENAI_API_KEY"]
     deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
 
+    # Initialize Services
+    connection_string = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
+    container_name = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
+    
+    blob_service = None
+    form_def_service = None
+    prompt_service = None
+    
+    if connection_string and container_name:
+        try:
+            blob_service = BlobService(connection_string)
+            form_def_service = FormDefinitionService(blob_service, container_name)
+            prompt_service = PromptTemplateService(blob_service, container_name)
+            print(f"Initialized Blob Services for container: {container_name}")
+        except Exception as e:
+            print(f"Failed to initialize Blob Services: {e}")
+           
+
     step_identifier, actual_query = extract_step_from_query(query)
 
     if not step_identifier:
         print("WARNING: Step identifier is required. Please use the format 'step-name: query'")
         return
 
-    json_path, prompt_path, step_key = resolve_agent_assets(step_identifier)
+    step_form_definition, custom_instructions, step_key = resolve_agent_assets(
+        step_identifier, 
+        form_definition_service=form_def_service, 
+        prompt_template_service=prompt_service
+    )
 
-    if not json_path:
-        print(f"Form definition file not found for identifier: {step_key}")
+    if not step_form_definition:
+        print(f"Form definition not found for identifier: {step_key}")
         return        
         
-    print(f"Using form schema: {os.path.basename(json_path)}")
-    form_context_str = get_form_context(json_path)  
-
-    custom_instructions = None
-    if prompt_path:
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            custom_instructions = f.read()
-            print(f"Loaded custom instructions from {os.path.basename(prompt_path)}")
+    print(f"Using form schema for step: {step_key}")
+    form_context_str = get_form_context(step_form_definition)  
 
     if not custom_instructions:
         print(f"WARNING: No prompt template (.md) found for step: {step_identifier}. Step is required to have a specialized prompt.")

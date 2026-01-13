@@ -4,7 +4,9 @@ version = "0.1.1"
 description = "Shared utility functions"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "azure-storage-blob>=12.27.1"
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]
