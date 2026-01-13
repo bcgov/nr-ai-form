@@ -1,8 +1,42 @@
-# Variables for sidecar ports
+# Local values for Docker Compose configuration
 locals {
-  orchestrator_port       = var.orchestrator_agent_port
-  conversation_port       = var.conversation_agent_port
-  formsupport_port        = var.formsupport_agent_port
+  # Docker Compose configuration for multi-container deployment
+  # NOTE: This is a temporary solution. When azurerm provider supports azurerm_web_app_sitecontainer (v4.5.0+),
+  # we will migrate to native sidecar resources defined in sidecontainers.tf
+  docker_compose_config = yamlencode({
+    version = "3.8"
+    services = {
+      orchestrator-agent = {
+        image = var.orchestrator_agent_image
+        ports = ["${var.orchestrator_agent_port}:${var.orchestrator_agent_port}"]
+        restart = "unless-stopped"
+        environment = {
+          PORT = var.orchestrator_agent_port
+          LOG_LEVEL = "INFO"
+          CONVERSATION_AGENT_A2A_URL = "http://localhost:${var.conversation_agent_port}"
+          FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:${var.formsupport_agent_port}"
+        }
+      }
+      conversation-agent = {
+        image = var.conversation_agent_image
+        ports = ["${var.conversation_agent_port}:${var.conversation_agent_port}"]
+        restart = "unless-stopped"
+        environment = {
+          PORT = var.conversation_agent_port
+          LOG_LEVEL = "INFO"
+        }
+      }
+      formsupport-agent = {
+        image = var.formsupport_agent_image
+        ports = ["${var.formsupport_agent_port}:${var.formsupport_agent_port}"]
+        restart = "unless-stopped"
+        environment = {
+          PORT = var.formsupport_agent_port
+          LOG_LEVEL = "INFO"
+        }
+      }
+    }
+  })
 }
 
 # API App Service Plan
@@ -38,9 +72,6 @@ resource "azurerm_linux_web_app" "api" {
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
     
-    # Enable sidecar support for Linux custom containers
-    linux_fx_version = "sitecontainers"
-    
     ftps_state = "Disabled"
     cors {
       allowed_origins     = ["*"]
@@ -69,17 +100,23 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Sidecar deployment configuration
-    # No Docker Compose settings needed - sidecars are configured via azurerm_web_app_sitecontainer resources
+    # Docker Compose Multi-Container Configuration
+    DOCKER_REGISTRY_SERVER_URL            = var.container_registry_url
+    DOCKER_REGISTRY_SERVER_USERNAME       = var.container_registry_username
+    DOCKER_REGISTRY_SERVER_PASSWORD       = var.container_registry_password
+    DOCKER_CUSTOM_IMAGE_NAME              = "docker-compose"
+    DOCKER_ENABLE_CI                      = "true"
+    DOCKER_ENABLE_CI_WITH_COMPOSER        = "true"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
+    WEBSITES_PORT                         = var.orchestrator_agent_port
     
     # Python/FastAPI settings - orchestrator is the main entry point
-    PORT                                  = "8002"  # Orchestrator port (main entry point)
-    WEBSITES_PORT                         = "8002"
+    PORT                                  = var.orchestrator_agent_port  # Orchestrator port (main entry point)
     
-    # Multi-container communication via sidecar containers
-    # All containers share the same network namespace, so localhost access works
-    CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
-    FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:8001"
+    # Multi-container communication via Docker Compose network
+    # All containers share the same Docker Compose network, so localhost access works
+    CONVERSATION_AGENT_A2A_URL           = "http://localhost:${var.conversation_agent_port}"
+    FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:${var.formsupport_agent_port}"
     
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string

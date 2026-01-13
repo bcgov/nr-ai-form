@@ -96,6 +96,22 @@ variable "container_registry_url" {
   default     = "https://ghcr.io"
 }
 
+variable "container_registry_username" {
+  description = "The username for authenticating with the container registry."
+  type        = string
+  nullable    = true
+  default     = null
+  sensitive   = true
+}
+
+variable "container_registry_password" {
+  description = "The password/token for authenticating with the container registry."
+  type        = string
+  nullable    = true
+  default     = null
+  sensitive   = true
+}
+
 variable "cosmosdb_container_name" {
   description = "The name of the Cosmos DB container."
   type        = string
