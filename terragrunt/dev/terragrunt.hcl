@@ -6,6 +6,9 @@ inputs = {
   deploy_network = false
   
   # Deployment type: "app_service" (default) or "container_apps"
+  # This will be overridden by the workflow's deployment_type environment variable if provided
+  # deploy-to-dev -> app_service
+  # deploy-aca-dev -> container_apps
   deployment_type = "app_service"
 
   # Subnet IDs for dev environment
