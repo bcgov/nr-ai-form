@@ -99,7 +99,7 @@ async def dryrun(query):
             print(f"Initialized Blob Services for container: {container_name}")
         except Exception as e:
             print(f"Failed to initialize Blob Services: {e}")
-            print("Falling back to local files.")
+           
 
     step_identifier, actual_query = extract_step_from_query(query)
 
@@ -107,18 +107,18 @@ async def dryrun(query):
         print("WARNING: Step identifier is required. Please use the format 'step-name: query'")
         return
 
-    form_definition, custom_instructions, step_key = resolve_agent_assets(
+    step_form_definition, custom_instructions, step_key = resolve_agent_assets(
         step_identifier, 
         form_definition_service=form_def_service, 
         prompt_template_service=prompt_service
     )
 
-    if not form_definition:
+    if not step_form_definition:
         print(f"Form definition not found for identifier: {step_key}")
         return        
         
     print(f"Using form schema for step: {step_key}")
-    form_context_str = get_form_context(form_definition)  
+    form_context_str = get_form_context(step_form_definition)  
 
     if not custom_instructions:
         print(f"WARNING: No prompt template (.md) found for step: {step_identifier}. Step is required to have a specialized prompt.")
