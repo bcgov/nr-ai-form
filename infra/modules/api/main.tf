@@ -73,6 +73,8 @@ resource "azurerm_linux_web_app" "api" {
     health_check_eviction_time_in_min       = 2
     
     # Container image configuration for Orchestrator Agent
+    # Note: var.orchestrator_agent_image should be in format: "bcgov/nr-ai-form/orchestrator_agent:tag"
+    # WITHOUT the registry prefix (ghcr.io/ is added via docker_registry_url)
     application_stack {
       docker_image_name   = var.orchestrator_agent_image
       docker_registry_url = "https://ghcr.io"
