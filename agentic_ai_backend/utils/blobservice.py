@@ -14,20 +14,21 @@ class BlobService:
         except Exception as e:
             raise RuntimeError(f"Failed to initialize BlobServiceClient: {e}")
 
-    def download_blob(self, container_name: str, blob_name: str, destination_path: str) -> str:
+    # TODO  ABIN: for read access testing for az cli testing only. Not for production use.
+    # def download_blob(self, container_name: str, blob_name: str, destination_path: str) -> str:
 
-        try:
-            blob_client = self.blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+    #     try:
+    #         blob_client = self.blob_service_client.get_blob_client(container=container_name, blob=blob_name)
             
-            # Ensure directory exists
-            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+    #         # Ensure directory exists
+    #         os.makedirs(os.path.dirname(destination_path), exist_ok=True)
             
-            with open(destination_path, "wb") as download_file:
-                download_file.write(blob_client.download_blob().readall())
+    #         with open(destination_path, "wb") as download_file:
+    #             download_file.write(blob_client.download_blob().readall())
                 
-            return os.path.abspath(destination_path)
-        except Exception as e:
-            raise RuntimeError(f"Failed to download blob {blob_name}: {e}")
+    #         return os.path.abspath(destination_path)
+    #     except Exception as e:
+    #         raise RuntimeError(f"Failed to download blob {blob_name}: {e}")
 
     def read_blob_text(self, container_name: str, blob_name: str, encoding: str = 'utf-8') -> str:
 
