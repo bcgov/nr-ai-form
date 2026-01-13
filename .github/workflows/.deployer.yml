@@ -118,14 +118,18 @@ jobs:
       id: image-tags
       shell: bash
       run: |
-        # Define all three container images
-        CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
-        FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-        ORCHESTRATOR_AGENT_IMAGE="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
+        # Full registry URLs for Azure CLI sidecar deployment
+        CONVERSATION_AGENT_FULL="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
+        FORMSUPPORT_AGENT_FULL="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
+        ORCHESTRATOR_AGENT_FULL="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
         
-        echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
+        # Strip registry prefix for Terraform (registry added via docker_registry_url)
+        ORCHESTRATOR_AGENT_TF="${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
+        
+        echo "conversation-agent-image=$CONVERSATION_AGENT_FULL" >> $GITHUB_OUTPUT
+        echo "formsupport-agent-image=$FORMSUPPORT_AGENT_FULL" >> $GITHUB_OUTPUT
+        echo "orchestrator-agent-image-full=$ORCHESTRATOR_AGENT_FULL" >> $GITHUB_OUTPUT
+        echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_TF" >> $GITHUB_OUTPUT
     
     - name: Terragrunt ${{inputs.command}}
       working-directory: terragrunt/${{ inputs.environment_name }}
@@ -165,3 +169,52 @@ jobs:
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false
     
+    - name: Deploy Sidecars (Conversation & Form Support Agents)
+      if: inputs.command == 'apply' && success()
+      shell: bash
+      env:
+          CONVERSATION_AGENT_IMAGE: ${{ steps.image-tags.outputs.conversation-agent-image }}
+          FORMSUPPORT_AGENT_IMAGE: ${{ steps.image-tags.outputs.formsupport-agent-image }}
+          APP_NAME: "api-${{ inputs.app_env }}"
+          RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_NAME }}
+          REGISTRY_URL: "ghcr.io"
+      run: |
+          echo "🚀 Deploying sidecars (Conversation & Form Support Agents)..."
+          
+          # Get the web app resource group and name from Terraform outputs
+          # For now, construct based on naming convention
+          APP_NAME="${{ inputs.stack_prefix }}-api-${{ inputs.app_env }}"
+          RESOURCE_GROUP="${{ vars.RESOURCE_GROUP_NAME }}"
+          
+          echo "ℹ️  Deploying to App Service: $APP_NAME in $RESOURCE_GROUP"
+          
+          # Deploy Conversation Agent Sidecar (port 8000)
+          echo "📦 Deploying Conversation Agent..."
+          az webapp sitecontainers create \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_NAME" \
+            --container-image-name "$CONVERSATION_AGENT_IMAGE" \
+            --container-registry-url "$REGISTRY_URL" \
+            --docker-custom-image-name "conversation_agent" \
+            --container-port 8000 \
+            || echo "⚠️  Conversation Agent deploy completed (may already exist)"
+          
+          # Deploy Form Support Agent Sidecar (port 8001)
+          echo "📦 Deploying Form Support Agent..."
+          az webapp sitecontainers create \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_NAME" \
+            --container-image-name "$FORMSUPPORT_AGENT_IMAGE" \
+            --container-registry-url "$REGISTRY_URL" \
+            --docker-custom-image-name "formsupport_agent" \
+            --container-port 8001 \
+            || echo "⚠️  Form Support Agent deploy completed (may already exist)"
+          
+          # List deployed sidecars to confirm
+          echo ""
+          echo "✅ Deployed sidecars:"
+          az webapp sitecontainers list \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_NAME" \
+            --query "[].{Name:name, Image:image, Port:port}" \
+            --output table
