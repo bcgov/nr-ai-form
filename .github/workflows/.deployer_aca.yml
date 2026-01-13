@@ -130,7 +130,15 @@ jobs:
       id: image-tags
       shell: bash
       run: |
+        # Build full registry URLs for agent images
+        ORCHESTRATOR_AGENT_IMAGE="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
+        CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
+        FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
         API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
+        
+        echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
+        echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
+        echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
     
     - name: Terragrunt ${{inputs.command}}
@@ -142,13 +150,16 @@ jobs:
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: ${{ steps.image-tags.outputs.api-image }}
+          orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
+          conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
+          formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-          deployment_type: ${{ inputs.deployment_type }}  # Pass deployment type to Terraform
+          deployment_type: ${{ inputs.deployment_type }}
           # Azure OpenAI Configuration
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
           AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
