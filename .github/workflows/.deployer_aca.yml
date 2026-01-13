@@ -130,15 +130,24 @@ jobs:
         
         # Import container-apps-subnet if it exists in Azure but not in state
         echo "Checking if container-apps-subnet needs to be imported..."
-        CONTAINER_APPS_SUBNET_ID="/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/d94cca-${TARGET_ENV}-networking/providers/Microsoft.Network/virtualNetworks/d94cca-${TARGET_ENV}-vwan-spoke/subnets/container-apps-subnet"
+        CONTAINER_APPS_SUBNET_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/virtualNetworks/${vnet_name}/subnets/container-apps-subnet"
+        
+        # Debug: Show the resource ID being used
+        echo "Resource ID: $CONTAINER_APPS_SUBNET_ID"
         
         # Check if this resource exists in state
         if ! terragrunt state list 2>/dev/null | grep -q 'module.network.azapi_resource.container_apps_subnet'; then
           echo "container-apps-subnet not in state, attempting to import..."
-          terragrunt import -lock=false "module.network.azapi_resource.container_apps_subnet[0]" "$CONTAINER_APPS_SUBNET_ID" 2>&1 || {
-            # Import might fail if resource doesn't exist in Azure, which is fine
-            echo "Import attempt completed (resource may not exist in Azure yet)"
-          }
+          if terragrunt import -lock=false "module.network.azapi_resource.container_apps_subnet[0]" "$CONTAINER_APPS_SUBNET_ID"; then
+            echo "Successfully imported container-apps-subnet into state"
+          else
+            echo "Import failed - checking if resource exists in Azure or if it's already managed..."
+            # Try to delete the resource in Azure so Terraform can create it fresh
+            echo "Attempting to delete existing container-apps-subnet from Azure..."
+            az network vnet subnet delete --name container-apps-subnet --resource-group "${vnet_resource_group_name}" --vnet-name "${vnet_name}" 2>&1 || {
+              echo "Subnet deletion failed - it may not exist or may be in use"
+            }
+          fi
         else
           echo "container-apps-subnet already in state"
         fi
