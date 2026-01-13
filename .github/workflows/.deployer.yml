@@ -72,9 +72,9 @@ jobs:
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
-          conversation_agent_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
-          formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-          orchestrator_agent_image: "ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
+          conversation_agent_image: "${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
+          formsupport_agent_image: "${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
+          orchestrator_agent_image: "${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
