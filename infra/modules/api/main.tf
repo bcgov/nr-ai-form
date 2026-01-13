@@ -1,44 +1,32 @@
-# Local values for Docker Compose configuration
+# Local values for App Service sidecar configuration
 data "azurerm_resource_group" "api" {
   name = var.resource_group_name
 }
 
 locals {
-  # Docker Compose configuration for multi-container deployment
-  docker_compose_config = yamlencode({
-    version = "3.8"
-    services = {
-      conversation-agent = {
-        image   = var.conversation_agent_image
-        ports   = ["8000:8000"]
-        restart = "unless-stopped"
-        environment = {
-          PORT      = "8000"
-          LOG_LEVEL = "INFO"
-        }
-      }
-      formsupport-agent = {
-        image   = var.formsupport_agent_image
-        ports   = ["8001:8001"]
-        restart = "unless-stopped"
-        environment = {
-          PORT      = "8001"
-          LOG_LEVEL = "INFO"
-        }
-      }
-      orchestrator-agent = {
-        image   = var.orchestrator_agent_image
-        ports   = ["8002:8002"]
-        restart = "unless-stopped"
-        environment = {
-          PORT                       = "8002"
-          LOG_LEVEL                  = "INFO"
-          CONVERSATION_AGENT_A2A_URL = "http://localhost:8000"
-          FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:8001"
-        }
-      }
+  agent_containers = {
+    orchestrator = {
+      container_name   = "orchestrator"
+      image            = var.orchestrator_agent_image
+      target_port      = 8002
+      port_app_setting = "ORCHESTRATOR_AGENT_PORT"
+      is_main          = true
     }
-  })
+    conversation = {
+      container_name   = "conversation"
+      image            = var.conversation_agent_image
+      target_port      = 8000
+      port_app_setting = "CONVERSATION_AGENT_PORT"
+      is_main          = false
+    }
+    formsupport = {
+      container_name   = "formsupport"
+      image            = var.formsupport_agent_image
+      target_port      = 8001
+      port_app_setting = "FORM_SUPPORT_AGENT_PORT"
+      is_main          = false
+    }
+  }
 }
 
 # API App Service Plan
@@ -102,16 +90,15 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Docker Compose Configuration for multi-container deployment
-    DOCKER_CUSTOM_IMAGE_NAME = "COMPOSE|${base64encode(local.docker_compose_config)}"
-
-    # Python/FastAPI settings - orchestrator is the main entry point
-    PORT          = "8002" # Orchestrator port (main entry point)
-    WEBSITES_PORT = "8002"
+    # Container-specific ports (referenced by App Service sidecar definitions)
+    ORCHESTRATOR_AGENT_PORT = tostring(local.agent_containers.orchestrator.target_port)
+    CONVERSATION_AGENT_PORT = tostring(local.agent_containers.conversation.target_port)
+    FORM_SUPPORT_AGENT_PORT = tostring(local.agent_containers.formsupport.target_port)
+    LOG_LEVEL               = "INFO"
 
     # Multi-container communication (localhost since all containers are in same app)
-    CONVERSATION_AGENT_A2A_URL = "http://localhost:8000"
-    FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:8001"
+    CONVERSATION_AGENT_A2A_URL = format("http://localhost:%s", local.agent_containers.conversation.target_port)
+    FORM_SUPPORT_AGENT_A2A_URL = format("http://localhost:%s", local.agent_containers.formsupport.target_port)
 
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
@@ -173,13 +160,40 @@ resource "azapi_update_resource" "api_linuxfx_patch" {
   body = {
     properties = {
       siteConfig = {
-        linuxFxVersion = "COMPOSE|${base64encode(local.docker_compose_config)}"
+        linuxFxVersion = "sitecontainers"
       }
     }
   }
 
   response_export_values = ["properties.siteConfig.linuxFxVersion"]
   depends_on             = [azurerm_linux_web_app.api]
+}
+
+resource "azapi_resource" "api_sidecar_container" {
+  for_each  = local.agent_containers
+  name      = "${azurerm_linux_web_app.api.name}/${each.value.container_name}"
+  parent_id = azurerm_linux_web_app.api.id
+  type      = "Microsoft.Web/sites/sitecontainers@2025-03-01"
+
+  body = {
+    properties = {
+      authType                               = "Anonymous"
+      image                                  = each.value.image
+      isMain                                 = each.value.is_main
+      targetPort                             = tostring(each.value.target_port)
+      inheritAppSettingsAndConnectionStrings = true
+      environmentVariables = [
+        {
+          name  = "PORT"
+          value = each.value.port_app_setting
+        }
+      ]
+    }
+  }
+
+  depends_on = [
+    azapi_update_resource.api_linuxfx_patch
+  ]
 }
 
 # API Autoscaler

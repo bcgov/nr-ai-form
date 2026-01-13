@@ -52,6 +52,39 @@ jobs:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Ensure App Service uses sidecar mode
+      if: inputs.command == 'apply'
+      env:
+        RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_NAME }}
+        APP_ENV_INPUT: ${{ inputs.app_env }}
+        ENVIRONMENT_FALLBACK: ${{ inputs.environment_name }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        APP_ENV="$APP_ENV_INPUT"
+        if [ -z "$APP_ENV" ]; then
+          APP_ENV="$ENVIRONMENT_FALLBACK"
+        fi
+        if [ -z "$APP_ENV" ]; then
+          echo "App environment not provided; skipping sidecar conversion step"
+          exit 0
+        fi
+
+        if [ -z "$RESOURCE_GROUP_NAME" ]; then
+          echo "RESOURCE_GROUP_NAME repo variable is not set; skipping sidecar conversion step"
+          exit 0
+        fi
+
+        WEBAPP_NAME="${{ github.event.repository.name }}-${APP_ENV}-api-multi-ai"
+        echo "Checking for existing App Service $WEBAPP_NAME in resource group $RESOURCE_GROUP_NAME"
+
+        if az webapp show --name "$WEBAPP_NAME" --resource-group "$RESOURCE_GROUP_NAME" >/dev/null 2>&1; then
+          echo "Ensuring $WEBAPP_NAME is configured for sidecar containers"
+          az webapp sitecontainers convert --mode sitecontainers --name "$WEBAPP_NAME" --resource-group "$RESOURCE_GROUP_NAME" || echo "Sidecar conversion command completed with non-blocking exit code"
+        else
+          echo "App Service $WEBAPP_NAME does not exist yet; Terraform will create it as sidecar-enabled"
+        fi
     
     - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
       with:
