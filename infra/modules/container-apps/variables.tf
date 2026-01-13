@@ -109,8 +109,58 @@ variable "azure_storage_container_name" {
 }
 
 variable "backend_image" {
-  description = "Container image for the backend API"
+  description = "Container image for the backend API (deprecated - use orchestrator_agent_image)"
   type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "orchestrator_agent_image" {
+  description = "Container image for the Orchestrator Agent"
+  type        = string
+  default     = ""
+  nullable    = true
+}
+
+variable "conversation_agent_image" {
+  description = "Container image for the Conversation Agent"
+  type        = string
+  default     = ""
+  nullable    = true
+}
+
+variable "formsupport_agent_image" {
+  description = "Container image for the Form Support Agent"
+  type        = string
+  default     = ""
+  nullable    = true
+}
+
+variable "orchestrator_agent_port" {
+  description = "Port for the Orchestrator Agent"
+  type        = number
+  default     = 8002
+  nullable    = false
+}
+
+variable "conversation_agent_port" {
+  description = "Port for the Conversation Agent"
+  type        = number
+  default     = 8000
+  nullable    = false
+}
+
+variable "formsupport_agent_port" {
+  description = "Port for the Form Support Agent"
+  type        = number
+  default     = 8001
+  nullable    = false
+}
+
+variable "container_registry_url" {
+  description = "Container registry URL for image pulls"
+  type        = string
+  default     = "https://ghcr.io"
   nullable    = false
 }
 

@@ -141,7 +141,13 @@ module "container_apps" {
   app_name            = var.app_name
   app_env             = var.app_env
   repo_name           = var.repo_name
-  backend_image       = var.conversation_agent_image
+  
+  # Agent Images
+  orchestrator_agent_image   = var.orchestrator_agent_image
+  conversation_agent_image   = var.conversation_agent_image
+  formsupport_agent_image    = var.formsupport_agent_image
+  backend_image              = var.conversation_agent_image  # Fallback for compatibility
+  
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   common_tags         = var.common_tags
@@ -157,6 +163,12 @@ module "container_apps" {
   container_memory = var.container_memory
   min_replicas     = var.min_replicas
   max_replicas     = var.max_replicas
+
+  # Agent Ports
+  orchestrator_agent_port = var.orchestrator_agent_port
+  conversation_agent_port = var.conversation_agent_port
+  formsupport_agent_port  = var.formsupport_agent_port
+  container_registry_url  = var.container_registry_url
 
   # CosmosDB
   cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint

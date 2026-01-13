@@ -108,9 +108,9 @@ jobs:
           echo "Found azapi_resource.container_apps_subnet - removing from remote state..."
           # Use -lock=false to avoid lock conflicts
           terragrunt state rm -lock=false 'module.network.azapi_resource.container_apps_subnet[0]' || true
-          echo "✅ Removed from state"
+          echo "Removed from state"
         else
-          echo "ℹ️  Resource not found in state (may already be migrated)"
+          echo "Resource not found in state (may already be migrated)"
         fi
     
     - name: Image Tags
@@ -175,16 +175,16 @@ jobs:
           CONVERSATION_AGENT_IMAGE: ${{ steps.image-tags.outputs.conversation-agent-image }}
           FORMSUPPORT_AGENT_IMAGE: ${{ steps.image-tags.outputs.formsupport-agent-image }}
       run: |
-          echo "🚀 Deploying sidecars (Conversation & Form Support Agents)..."
+          echo "Deploying sidecars (Conversation & Form Support Agents)..."
           
           # Construct app name from stack prefix and environment
           APP_NAME="${{ inputs.stack_prefix }}-api-${{ inputs.app_env }}"
           RESOURCE_GROUP="${{ vars.RESOURCE_GROUP_NAME }}"
           
-          echo "ℹ️  Deploying to App Service: $APP_NAME in $RESOURCE_GROUP"
+          echo "Deploying to App Service: $APP_NAME in $RESOURCE_GROUP"
           
           # Deploy Conversation Agent Sidecar (port 8000)
-          echo "📦 Deploying Conversation Agent..."
+          echo "Deploying Conversation Agent..."
           az webapp sitecontainers create \
             --resource-group "$RESOURCE_GROUP" \
             --name "$APP_NAME" \
@@ -193,10 +193,10 @@ jobs:
             --target-port 8000 \
             --is-main false \
             --system-assigned-identity true \
-            || echo "⚠️  Conversation Agent deploy completed (may already exist)"
+            || echo "Conversation Agent deploy completed (may already exist)"
           
           # Deploy Form Support Agent Sidecar (port 8001)
-          echo "📦 Deploying Form Support Agent..."
+          echo "Deploying Form Support Agent..."
           az webapp sitecontainers create \
             --resource-group "$RESOURCE_GROUP" \
             --name "$APP_NAME" \
@@ -205,11 +205,11 @@ jobs:
             --target-port 8001 \
             --is-main false \
             --system-assigned-identity true \
-            || echo "⚠️  Form Support Agent deploy completed (may already exist)"
+            || echo "Form Support Agent deploy completed (may already exist)"
           
           # List deployed sidecars to confirm
           echo ""
-          echo "✅ Deployed sidecars:"
+          echo "Deployed sidecars:"
           az webapp sitecontainers list \
             --resource-group "$RESOURCE_GROUP" \
             --name "$APP_NAME" \
