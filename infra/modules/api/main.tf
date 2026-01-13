@@ -101,9 +101,6 @@ resource "azurerm_linux_web_app" "api" {
   }
   app_settings = {
     # Docker Compose Multi-Container Configuration
-    DOCKER_REGISTRY_SERVER_URL            = var.container_registry_url
-    DOCKER_REGISTRY_SERVER_USERNAME       = var.container_registry_username
-    DOCKER_REGISTRY_SERVER_PASSWORD       = var.container_registry_password
     DOCKER_CUSTOM_IMAGE_NAME              = "docker-compose"
     DOCKER_ENABLE_CI                      = "true"
     DOCKER_ENABLE_CI_WITH_COMPOSER        = "true"

@@ -279,3 +279,18 @@ variable "container_registry_url" {
   type        = string
   default     = ""
 }
+
+variable "container_registry_username" {
+  description = "The username for authenticating with the container registry."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "container_registry_password" {
+  description = "The password/token for authenticating with the container registry."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
