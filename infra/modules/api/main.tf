@@ -73,7 +73,12 @@ resource "azurerm_linux_web_app" "api" {
     health_check_eviction_time_in_min       = 2
     
     # Container image configuration for Orchestrator Agent
-    linux_fx_version = "DOCKER|${var.orchestrator_agent_image}"
+    application_stack {
+      docker_image_name        = var.orchestrator_agent_image
+      docker_registry_url      = "https://ghcr.io"
+      docker_registry_username = ""
+      docker_registry_password = ""
+    }
     
     ftps_state = "Disabled"
     cors {
