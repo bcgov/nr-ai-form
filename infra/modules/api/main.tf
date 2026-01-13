@@ -74,10 +74,8 @@ resource "azurerm_linux_web_app" "api" {
     
     # Container image configuration for Orchestrator Agent
     application_stack {
-      docker_image_name        = var.orchestrator_agent_image
-      docker_registry_url      = "https://ghcr.io"
-      docker_registry_username = ""
-      docker_registry_password = ""
+      docker_image_name   = var.orchestrator_agent_image
+      docker_registry_url = "https://ghcr.io"
     }
     
     ftps_state = "Disabled"
