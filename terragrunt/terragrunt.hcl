@@ -39,6 +39,16 @@ locals {
   azure_storage_account_name   = get_env("AZURE_STORAGE_ACCOUNT_NAME")
   azure_storage_account_key    = get_env("AZURE_STORAGE_ACCOUNT_KEY")
   azure_storage_container_name = get_env("AZURE_STORAGE_CONTAINER_NAME")
+  
+  # Container Registry Configuration
+  container_registry_url      = get_env("CONTAINER_REGISTRY_URL", "https://ghcr.io")
+  container_registry_username = get_env("CONTAINER_REGISTRY_USERNAME", "")
+  container_registry_password = get_env("CONTAINER_REGISTRY_PASSWORD", "")
+  
+  # Agent Port Configuration
+  orchestrator_agent_port  = get_env("ORCHESTRATOR_AGENT_PORT", "8002")
+  conversation_agent_port  = get_env("CONVERSATION_AGENT_PORT", "8000")
+  formsupport_agent_port   = get_env("FORMSUPPORT_AGENT_PORT", "8001")
 }
 
 # Remote Azure Storage backend for Terraform
@@ -101,6 +111,16 @@ azure_document_intelligence_key      = "${local.azure_document_intelligence_key}
 azure_storage_account_name   = "${local.azure_storage_account_name}"
 azure_storage_account_key    = "${local.azure_storage_account_key}"
 azure_storage_container_name = "${local.azure_storage_container_name}"
+
+# Container Registry Configuration
+container_registry_url      = "${local.container_registry_url}"
+container_registry_username = "${local.container_registry_username}"
+container_registry_password = "${local.container_registry_password}"
+
+# Agent Port Configuration
+orchestrator_agent_port = "${local.orchestrator_agent_port}"
+conversation_agent_port = "${local.conversation_agent_port}"
+formsupport_agent_port  = "${local.formsupport_agent_port}"
 
 common_tags = {
   "Environment" = "${local.target_env}"
