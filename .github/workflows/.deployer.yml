@@ -184,27 +184,27 @@ jobs:
           echo "ℹ️  Deploying to App Service: $APP_NAME in $RESOURCE_GROUP"
           
           # Deploy Conversation Agent Sidecar (port 8000)
-          # Note: container-image-name already includes full registry URL (ghcr.io/...)
-          # Do NOT provide --container-registry-url to avoid duplication
           echo "📦 Deploying Conversation Agent..."
           az webapp sitecontainers create \
             --resource-group "$RESOURCE_GROUP" \
             --name "$APP_NAME" \
-            --container-image-name "$CONVERSATION_AGENT_IMAGE" \
-            --docker-custom-image-name "conversation_agent" \
-            --container-port 8000 \
+            --container-name "conversation_agent" \
+            --image "$CONVERSATION_AGENT_IMAGE" \
+            --target-port 8000 \
+            --is-main false \
+            --system-assigned-identity true \
             || echo "⚠️  Conversation Agent deploy completed (may already exist)"
           
           # Deploy Form Support Agent Sidecar (port 8001)
-          # Note: container-image-name already includes full registry URL (ghcr.io/...)
-          # Do NOT provide --container-registry-url to avoid duplication
           echo "📦 Deploying Form Support Agent..."
           az webapp sitecontainers create \
             --resource-group "$RESOURCE_GROUP" \
             --name "$APP_NAME" \
-            --container-image-name "$FORMSUPPORT_AGENT_IMAGE" \
-            --docker-custom-image-name "formsupport_agent" \
-            --container-port 8001 \
+            --container-name "formsupport_agent" \
+            --image "$FORMSUPPORT_AGENT_IMAGE" \
+            --target-port 8001 \
+            --is-main false \
+            --system-assigned-identity true \
             || echo "⚠️  Form Support Agent deploy completed (may already exist)"
           
           # List deployed sidecars to confirm
@@ -213,5 +213,5 @@ jobs:
           az webapp sitecontainers list \
             --resource-group "$RESOURCE_GROUP" \
             --name "$APP_NAME" \
-            --query "[].{Name:name, Image:image, Port:port}" \
+            --query "[].{Name:name, Image:image, Port:targetPort, Auth:authType}" \
             --output table
