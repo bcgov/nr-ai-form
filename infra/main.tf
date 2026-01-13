@@ -125,6 +125,12 @@ module "api" {
   azure_storage_account_key    = var.azure_storage_account_key
   azure_storage_container_name = var.azure_storage_container_name
 
+  # Sidecar Configuration
+  orchestrator_agent_port  = var.orchestrator_agent_port
+  conversation_agent_port  = var.conversation_agent_port
+  formsupport_agent_port   = var.formsupport_agent_port
+  container_registry_url   = var.container_registry_url
+
   depends_on = [module.frontdoor]
 }
 
