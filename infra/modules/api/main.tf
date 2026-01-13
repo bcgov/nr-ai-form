@@ -72,6 +72,9 @@ resource "azurerm_linux_web_app" "api" {
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
     
+    # Container image configuration for Orchestrator Agent
+    linux_fx_version = "DOCKER|${var.orchestrator_agent_image}"
+    
     ftps_state = "Disabled"
     cors {
       allowed_origins     = ["*"]
@@ -100,18 +103,17 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Docker Compose Multi-Container Configuration
-    DOCKER_CUSTOM_IMAGE_NAME              = "docker-compose"
-    DOCKER_ENABLE_CI                      = "true"
-    DOCKER_ENABLE_CI_WITH_COMPOSER        = "true"
+    # Container image - Orchestrator Agent (main entry point)
+    DOCKER_ENABLE_CI                      = "false"
     WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
     WEBSITES_PORT                         = var.orchestrator_agent_port
     
     # Python/FastAPI settings - orchestrator is the main entry point
-    PORT                                  = var.orchestrator_agent_port  # Orchestrator port (main entry point)
+    PORT                                  = var.orchestrator_agent_port
     
-    # Multi-container communication via Docker Compose network
-    # All containers share the same Docker Compose network, so localhost access works
+    # Agent-to-Agent communication URLs
+    # These point to localhost:port assuming sidecars run in same container instance
+    # OR configure these to point to internal Azure networking if using separate sidecars
     CONVERSATION_AGENT_A2A_URL           = "http://localhost:${var.conversation_agent_port}"
     FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:${var.formsupport_agent_port}"
     

@@ -1,158 +1,71 @@
-# Sidecar Container Definitions for App Service
+# Sidecar Container Deployment for App Service
 #
-# NOTE: Azure App Service sidecars require Azure provider >= 4.5.0 with azurerm_web_app_sitecontainer resources
-# Current provider version (~> 4.3) does not support these resource types.
-# This file contains commented examples for future migration.
+# CURRENT DEPLOYMENT STRATEGY:
+# 1. Orchestrator Agent deployed as main container via Terraform (linux_fx_version)
+# 2. Conversation and Form Support agents deployed as sidecars via Azure CLI
 #
-# CURRENT IMPLEMENTATION: Docker Compose (see main.tf for configuration)
-# Docker Compose multi-container approach works with current provider and provides
-# all necessary inter-agent communication via localhost networking.
+# WHY CLI-BASED APPROACH:
+# - Terraform azurerm provider ~> 4.3 does not support azurerm_web_app_sitecontainer resources
+# - These resources require provider >= 4.5.0
+# - Using Azure CLI allows immediate deployment while maintaining IaC compatibility
 #
-# FOR FUTURE MIGRATION TO NATIVE SIDECARS:
-# When upgrading Azure provider to >= 4.5.0, uncomment the resources below
-# and remove Docker Compose configuration from main.tf app_settings.
-#
-# Manual setup (if desired before provider upgrade):
-# 1. Enable sidecar mode on the App Service:
-#    az webapp config appsettings set \
-#      --name <app-name> \
-#      --resource-group <resource-group> \
-#      --settings DOCKER_ENABLE_CI=true DOCKER_ENABLE_CI_WITH_COMPOSER=true WEBSITES_ENABLE_APP_SERVICE_STORAGE=false
-#
-# 2. Create Orchestrator Agent (main container):
-#    az webapp sitecontainers create \
-#      --name <app-name> \
-#      --resource-group <resource-group> \
-#      --container-name orchestrator-agent \
-#      --image <orchestrator-image>:tag \
-#      --target-port 8002
-#
-# 3. Create Conversation Agent Sidecar:
-#    az webapp sitecontainers create \
-#      --name <app-name> \
-#      --resource-group <resource-group> \
-#      --container-name conversation-agent \
-#      --image <conversation-image>:tag \
-#      --target-port 8000
-#
-# 4. Create Form Support Agent Sidecar:
-#    az webapp sitecontainers create \
-#      --name <app-name> \
-#      --resource-group <resource-group> \
-#      --container-name formsupport-agent \
-#      --image <formsupport-image>:tag \
-#      --target-port 8001
+# SIDECAR DEPLOYMENT INSTRUCTIONS:
+# Execute these commands after the App Service is created and Orchestrator Agent is running
 #
 # ============================================================================
-# TERRAFORM RESOURCES FOR FUTURE USE (Uncomment when provider >= 4.5.0)
+# DEPLOY CONVERSATION AGENT SIDECAR
 # ============================================================================
 #
-# # Main Container: Orchestrator Agent
-# resource "azurerm_web_app_sitecontainer" "orchestrator_agent" {
-#   name                 = "orchestrator-agent"
-#   web_app_id           = azurerm_linux_web_app.api.id
-#   image                = var.orchestrator_agent_image
-#   is_main              = true
-#   target_port          = var.orchestrator_agent_port
-#   auth_type            = "SystemAssigned"
+# az webapp sitecontainers create \
+#   --name "${APP_NAME}" \
+#   --resource-group "${RESOURCE_GROUP}" \
+#   --container-name "conversation-agent" \
+#   --image "${CONVERSATION_AGENT_IMAGE}" \
+#   --target-port 8000 \
+#   --cpu 1.0 \
+#   --memory 2.0
 #
-#   environment_variables = [
-#     {
-#       name  = "PORT"
-#       value = var.orchestrator_agent_port
-#     },
-#     {
-#       name  = "LOG_LEVEL"
-#       value = "INFO"
-#     },
-#     {
-#       name  = "CONVERSATION_AGENT_A2A_URL"
-#       value = "http://localhost:${var.conversation_agent_port}"
-#     },
-#     {
-#       name  = "FORM_SUPPORT_AGENT_A2A_URL"
-#       value = "http://localhost:${var.formsupport_agent_port}"
-#     },
-#     {
-#       name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
-#       value = var.appinsights_connection_string
-#     },
-#     {
-#       name  = "APPINSIGHTS_INSTRUMENTATIONKEY"
-#       value = var.appinsights_instrumentation_key
-#     },
-#     {
-#       name  = "COSMOS_DB_ENDPOINT"
-#       value = var.cosmosdb_endpoint
-#     },
-#     {
-#       name  = "COSMOS_DB_DATABASE_NAME"
-#       value = var.cosmosdb_db_name
-#     },
-#     {
-#       name  = "COSMOS_DB_CONTAINER_NAME"
-#       value = var.cosmosdb_container_name
-#     },
-#     {
-#       name  = "AZURE_OPENAI_API_KEY"
-#       value = var.azure_openai_api_key
-#     },
-#     {
-#       name  = "AZURE_OPENAI_ENDPOINT"
-#       value = var.azure_openai_endpoint
-#     },
-#     {
-#       name  = "AZURE_OPENAI_API_VERSION"
-#       value = var.azure_openai_api_version
-#     },
-#     {
-#       name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-#       value = var.azure_openai_deployment_name
-#     },
-#     {
-#       name  = "AZURE_SEARCH_ENDPOINT"
-#       value = var.azure_search_endpoint
-#     },
-#     {
-#       name  = "AZURE_SEARCH_KEY"
-#       value = var.azure_search_key
-#     },
-#     {
-#       name  = "AZURE_SEARCH_INDEX_NAME"
-#       value = var.azure_search_index_name
-#     },
-#     {
-#       name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-#       value = var.azure_document_intelligence_endpoint
-#     },
-#     {
-#       name  = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-#       value = var.azure_document_intelligence_key
-#     },
-#     {
-#       name  = "AZURE_STORAGE_ACCOUNT_NAME"
-#       value = var.azure_storage_account_name
-#     },
-#     {
-#       name  = "AZURE_STORAGE_ACCOUNT_KEY"
-#       value = var.azure_storage_account_key
-#     },
-#     {
-#       name  = "AZURE_STORAGE_CONTAINER_NAME"
-#       value = var.azure_storage_container_name
-#     },
-#   ]
-# }
+# ============================================================================
+# DEPLOY FORM SUPPORT AGENT SIDECAR
+# ============================================================================
+#
+# az webapp sitecontainers create \
+#   --name "${APP_NAME}" \
+#   --resource-group "${RESOURCE_GROUP}" \
+#   --container-name "formsupport-agent" \
+#   --image "${FORMSUPPORT_AGENT_IMAGE}" \
+#   --target-port 8001 \
+#   --cpu 1.0 \
+#   --memory 2.0
+#
+# ============================================================================
+# VERIFY SIDECARS ARE RUNNING
+# ============================================================================
+#
+# az webapp sitecontainers list \
+#   --name "${APP_NAME}" \
+#   --resource-group "${RESOURCE_GROUP}"
+#
+# ============================================================================
+# TERRAFORM MIGRATION (Future - when provider >= 4.5.0)
+# ============================================================================
+#
+# When Azure provider is upgraded to >= 4.5.0, uncomment the resources below
+# and remove the Azure CLI deployment steps above.
+#
+# # Main Container: Orchestrator Agent (already deployed via linux_fx_version)
+# # This resource would transition the main container management to Terraform
 #
 # # Sidecar: Conversation Agent
 # resource "azurerm_web_app_sitecontainer" "conversation_agent" {
-#   name                = "conversation-agent"
-#   web_app_id          = azurerm_linux_web_app.api.id
-#   image               = var.conversation_agent_image
-#   is_main             = false
-#   target_port         = var.conversation_agent_port
-#   auth_type           = "SystemAssigned"
-#   depends_on_main     = true
+#   web_app_id      = azurerm_linux_web_app.api.id
+#   name            = "conversation-agent"
+#   image           = var.conversation_agent_image
+#   is_main         = false
+#   target_port     = var.conversation_agent_port
+#   cpu             = "1.0"
+#   memory          = "2.0"
+#   depends_on_main = true
 #
 #   environment_variables = [
 #     {
@@ -160,10 +73,6 @@
 #       value = var.conversation_agent_port
 #     },
 #     {
-#       name  = "LOG_LEVEL"
-#       value = "INFO"
-#     },
-#     {
 #       name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
 #       value = var.appinsights_connection_string
 #     },
@@ -183,54 +92,19 @@
 #       name  = "COSMOS_DB_CONTAINER_NAME"
 #       value = var.cosmosdb_container_name
 #     },
-#     {
-#       name  = "AZURE_OPENAI_API_KEY"
-#       value = var.azure_openai_api_key
-#     },
-#     {
-#       name  = "AZURE_OPENAI_ENDPOINT"
-#       value = var.azure_openai_endpoint
-#     },
-#     {
-#       name  = "AZURE_OPENAI_API_VERSION"
-#       value = var.azure_openai_api_version
-#     },
-#     {
-#       name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-#       value = var.azure_openai_deployment_name
-#     },
-#     {
-#       name  = "AZURE_SEARCH_ENDPOINT"
-#       value = var.azure_search_endpoint
-#     },
-#     {
-#       name  = "AZURE_SEARCH_KEY"
-#       value = var.azure_search_key
-#     },
-#     {
-#       name  = "AZURE_SEARCH_INDEX_NAME"
-#       value = var.azure_search_index_name
-#     },
-#     {
-#       name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-#       value = var.azure_document_intelligence_endpoint
-#     },
-#     {
-#       name  = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-#       value = var.azure_document_intelligence_key
-#     },
 #   ]
 # }
 #
 # # Sidecar: Form Support Agent
 # resource "azurerm_web_app_sitecontainer" "formsupport_agent" {
-#   name                = "formsupport-agent"
-#   web_app_id          = azurerm_linux_web_app.api.id
-#   image               = var.formsupport_agent_image
-#   is_main             = false
-#   target_port         = var.formsupport_agent_port
-#   auth_type           = "SystemAssigned"
-#   depends_on_main     = true
+#   web_app_id      = azurerm_linux_web_app.api.id
+#   name            = "formsupport-agent"
+#   image           = var.formsupport_agent_image
+#   is_main         = false
+#   target_port     = var.formsupport_agent_port
+#   cpu             = "1.0"
+#   memory          = "2.0"
+#   depends_on_main = true
 #
 #   environment_variables = [
 #     {
@@ -238,10 +112,6 @@
 #       value = var.formsupport_agent_port
 #     },
 #     {
-#       name  = "LOG_LEVEL"
-#       value = "INFO"
-#     },
-#     {
 #       name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
 #       value = var.appinsights_connection_string
 #     },
@@ -260,42 +130,6 @@
 #     {
 #       name  = "COSMOS_DB_CONTAINER_NAME"
 #       value = var.cosmosdb_container_name
-#     },
-#     {
-#       name  = "AZURE_OPENAI_API_KEY"
-#       value = var.azure_openai_api_key
-#     },
-#     {
-#       name  = "AZURE_OPENAI_ENDPOINT"
-#       value = var.azure_openai_endpoint
-#     },
-#     {
-#       name  = "AZURE_OPENAI_API_VERSION"
-#       value = var.azure_openai_api_version
-#     },
-#     {
-#       name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-#       value = var.azure_openai_deployment_name
-#     },
-#     {
-#       name  = "AZURE_SEARCH_ENDPOINT"
-#       value = var.azure_search_endpoint
-#     },
-#     {
-#       name  = "AZURE_SEARCH_KEY"
-#       value = var.azure_search_key
-#     },
-#     {
-#       name  = "AZURE_SEARCH_INDEX_NAME"
-#       value = var.azure_search_index_name
-#     },
-#     {
-#       name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-#       value = var.azure_document_intelligence_endpoint
-#     },
-#     {
-#       name  = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-#       value = var.azure_document_intelligence_key
 #     },
 #   ]
 # }
