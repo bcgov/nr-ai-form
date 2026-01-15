@@ -135,37 +135,6 @@
       "title": "Application and Associated Fees",
       "description": "$250.00 CAD plus applicable taxes",
       "readOnly": true
-    },
-    "Back": {
-      "type": "button",
-      "id": "cphBottomFunctionBand_ctl03_Previous",
-      "title": "Back",
-      "action": "PosseChangeColumnEscaped('185550103', 'LockdownDataCreateClientFees', 'N');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185550103', 0, 100377102)"
-    },
-    "Cancel": {
-      "type": "button",
-      "id": "cphBottomFunctionBand_ctl06_hlkFunctionLink",
-      "title": "Cancel",
-      "action": "window.location='https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx'"
-    },
-    "SaveApplication": {
-      "type": "button",
-      "id": "cphBottomFunctionBand_ctl09_Submit",
-      "title": "Save Application",
-      "action": "PosseChangeColumnEscaped('185550103', 'TransferToSaveApplication', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185550103', 2, 100374029)"
-    },
-    "Next": {
-      "type": "button",
-      "id": "cphBottomFunctionBand_ctl11_Next",
-      "title": "Next",
-      "action": "PosseChangeColumnEscaped('185550103', 'NavigateToSpecificWizardPane', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185550103', 2, 101239328)"
-    },
-    "PrintPage": {
-      "type": "button",
-      "id": "PrintLink2_100385020_185550103",
-      "title": "Print Page",
-      "tabindex": 7,
-      "action": "window.print()"
     }
   }
 }

@@ -9,7 +9,11 @@ Fee Exemption fields:
 {form_context_str}
 
 # Task Instructions
-1. **Exemption Grounds**: Map user descriptions (e.g., "Non-profit organization", "First Nation project") to the correct exemption status fields.
+1. **Exemption Grounds**: 
+    - Map user descriptions to the correct exemption status fields.
+    - If a property has an enum list (other than "yes"/"no") and the user mentions a value outside the list:
+        - If there is an option like "Other" or "Other (Specify details below)", choose it and provide the details in the `V1FeeExemptionSupportingInfo` (Supporting Information) field.
+        - If there is no "Other" option, choose "(None)".
 2. **Commentary**: Help identify where users can provide additional justification for their exemption request.
 3. give me all possible properties
 
