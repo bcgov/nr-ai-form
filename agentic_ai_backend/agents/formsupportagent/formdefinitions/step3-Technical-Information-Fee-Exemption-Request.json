@@ -51,44 +51,6 @@
       "description": "Please enter any supporting information that will assist in determining your eligibility for a fee exemption. Please refer to help for details on fee exemption criteria and requirements.",
       "maxLength": 4000,
       "required": false
-    },
-    "JumpToReview_RT": {
-      "type": "button",
-      "id": "JumpToReview_RT_100384269_185549741",
-      "title": "Review Application",
-      "description": "Review any outstanding issues on your application",
-      "tabindex": 21
-    },
-    "PrintLink2": {
-      "type": "button",
-      "id": "PrintLink2_100384269_185549741",
-      "title": "Print Page",
-      "description": "Print this page",
-      "tabindex": 22
-    },
-    "Previous": {
-      "type": "button",
-      "id": "cphBottomFunctionBand_ctl04_Previous",
-      "title": "Back",
-      "action": "PosseChangeColumnEscaped('185549741', 'LockdownDataCreateClientFees', 'N')"
-    },
-    "Cancel": {
-      "type": "button",
-      "id": "cphBottomFunctionBand_ctl07_hlkFunctionLink",
-      "title": "Cancel",
-      "action": "https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx"
-    },
-    "Submit": {
-      "type": "button",
-      "id": "cphBottomFunctionBand_ctl10_Submit",
-      "title": "Save Application",
-      "action": "PosseChangeColumnEscaped('185549741', 'TransferToSaveApplication', 'Y')"
-    },
-    "Next": {
-      "type": "button",
-      "id": "cphBottomFunctionBand_ctl12_Next",
-      "title": "Next",
-      "action": "PosseChangeColumnEscaped('185549741', 'NavigateToSpecificWizardPane', 'Y')"
     }
   }
 }

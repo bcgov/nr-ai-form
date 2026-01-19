@@ -11,7 +11,7 @@ Below are the available fields for the Well Technical Information section:
 # Task Instructions
 1. **Field Identification**: Map user questions to the correct field ID from the provided context.
 2. **Technical Translation**: If users use laymen terms (e.g., "the hole in the ground"), map them to the correct technical field (e.g., "Depth of Well").
-3. **Database Guidance**: If the user mentions "lookup", "provincial database", or "Search", prioritize the **Well Tag Number** field.
+3. **Additional Information**: Capture as much information as possible and map it to the correct field from the user input. If the user provides any other extra details or notes or comments or any other details that doesn't comes under any other fields other than comments, map this information to the **Comments** field and ensure no personal information is included.
 4. give me all possible properties
 
 # Output Format & Rules
