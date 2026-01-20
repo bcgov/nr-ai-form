@@ -47,9 +47,9 @@ variable "app_name" {
 }
 
 variable "app_service_sku_name_api" {
-  description = "SKU name for the API App Service Plan (deprecated - use Container Apps)"
+  description = "SKU name for the API App Service Plan. Must be Standard or higher for sidecar support (e.g., S1, S2, P1)"
   type        = string
-  default     = "B1" # Basic tier 
+  default     = "S1" # Standard tier - required for sidecar containers
 }
 
 variable "container_cpu" {
@@ -254,3 +254,43 @@ variable "azure_storage_container_name" {
   type        = string
   nullable    = false
 }
+
+# Sidecar Deployment Configuration
+variable "orchestrator_agent_port" {
+  description = "The port on which the Orchestrator Agent (main container) listens."
+  type        = number
+  default     = 8002
+}
+
+variable "conversation_agent_port" {
+  description = "The port on which the Conversation Agent (sidecar) listens."
+  type        = number
+  default     = 8000
+}
+
+variable "formsupport_agent_port" {
+  description = "The port on which the Form Support Agent (sidecar) listens."
+  type        = number
+  default     = 8001
+}
+
+variable "container_registry_url" {
+  description = "The URL of the container registry for pulling sidecar images."
+  type        = string
+  default     = ""
+}
+
+variable "container_registry_username" {
+  description = "The username for authenticating with the container registry."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "container_registry_password" {
+  description = "The password/token for authenticating with the container registry."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+

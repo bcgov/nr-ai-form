@@ -96,24 +96,25 @@ resource "azurerm_container_app" "backend" {
     min_replicas                     = var.min_replicas
     termination_grace_period_seconds = 10
 
+    # Orchestrator Agent Container - Main Application
     container {
-      name   = "backend-api"
-      image  = var.backend_image
+      name   = "orchestrator-agent"
+      image  = var.orchestrator_agent_image != "" ? var.orchestrator_agent_image : var.backend_image
       cpu    = var.container_cpu
       memory = var.container_memory
 
-      # Health probes for the FastAPI backend
+      # Health probes for Orchestrator Agent
       startup_probe {
         transport = "HTTP"
         path      = "/health"
-        port      = 8000
+        port      = var.orchestrator_agent_port
         timeout   = 5
       }
 
       readiness_probe {
         transport               = "HTTP"
         path                    = "/health"
-        port                    = 8000
+        port                    = var.orchestrator_agent_port
         timeout                 = 5
         failure_count_threshold = 3
       }
@@ -121,15 +122,15 @@ resource "azurerm_container_app" "backend" {
       liveness_probe {
         transport               = "HTTP"
         path                    = "/health"
-        port                    = 8000
+        port                    = var.orchestrator_agent_port
         timeout                 = 5
         failure_count_threshold = 3
       }
 
-      # Application configuration
+      # Environment variables for Orchestrator Agent
       env {
         name  = "PORT"
-        value = "8000"
+        value = tostring(var.orchestrator_agent_port)
       }
 
       env {
@@ -137,10 +138,289 @@ resource "azurerm_container_app" "backend" {
         value = var.log_level
       }
 
-      # Front Door validation - app can check X-Azure-FDID header matches this
+      # A2A URLs - use internal Container Apps DNS for service discovery
+      env {
+        name  = "CONVERSATION_AGENT_A2A_URL"
+        value = "http://conversation-agent:${var.conversation_agent_port}"
+      }
+
+      env {
+        name  = "FORM_SUPPORT_AGENT_A2A_URL"
+        value = "http://formsupport-agent:${var.formsupport_agent_port}"
+      }
+
+      # Front Door validation
       env {
         name  = "AZURE_FRONTDOOR_ID"
         value = var.api_frontdoor_resource_guid
+      }
+
+      # Application Insights
+      env {
+        name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        secret_name = "appinsights-connection-string"
+      }
+
+      env {
+        name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
+        secret_name = "appinsights-instrumentation-key"
+      }
+
+      # Cosmos DB Configuration
+      env {
+        name  = "COSMOS_DB_ENDPOINT"
+        value = var.cosmosdb_endpoint
+      }
+
+      env {
+        name  = "COSMOS_DB_DATABASE_NAME"
+        value = var.cosmosdb_db_name
+      }
+
+      env {
+        name  = "COSMOS_DB_CONTAINER_NAME"
+        value = var.cosmosdb_container_name
+      }
+
+      # Azure OpenAI Configuration
+      env {
+        name        = "AZURE_OPENAI_API_KEY"
+        secret_name = "azure-openai-api-key"
+      }
+
+      env {
+        name  = "AZURE_OPENAI_ENDPOINT"
+        value = var.azure_openai_endpoint
+      }
+
+      env {
+        name  = "AZURE_OPENAI_API_VERSION"
+        value = var.azure_openai_api_version
+      }
+
+      env {
+        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
+        value = var.azure_openai_deployment_name
+      }
+
+      # Azure Search Configuration
+      env {
+        name  = "AZURE_SEARCH_ENDPOINT"
+        value = var.azure_search_endpoint
+      }
+
+      env {
+        name        = "AZURE_SEARCH_KEY"
+        secret_name = "azure-search-key"
+      }
+
+      env {
+        name  = "AZURE_SEARCH_INDEX_NAME"
+        value = var.azure_search_index_name
+      }
+
+      # Azure Document Intelligence Configuration
+      env {
+        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+        value = var.azure_document_intelligence_endpoint
+      }
+
+      env {
+        name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
+        secret_name = "azure-document-intelligence-key"
+      }
+
+      # Azure Storage Configuration
+      env {
+        name  = "AZURE_STORAGE_ACCOUNT_NAME"
+        value = var.azure_storage_account_name
+      }
+
+      env {
+        name        = "AZURE_STORAGE_ACCOUNT_KEY"
+        secret_name = "azure-storage-account-key"
+      }
+
+      env {
+        name  = "AZURE_STORAGE_CONTAINER_NAME"
+        value = var.azure_storage_container_name
+      }
+    }
+
+    # Conversation Agent Container - Sidecar 1
+    container {
+      name   = "conversation-agent"
+      image  = var.conversation_agent_image != "" ? var.conversation_agent_image : ""
+      cpu    = var.container_cpu
+      memory = var.container_memory
+
+      # Health probes for Conversation Agent
+      startup_probe {
+        transport = "HTTP"
+        path      = "/health"
+        port      = var.conversation_agent_port
+        timeout   = 5
+      }
+
+      readiness_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = var.conversation_agent_port
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      liveness_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = var.conversation_agent_port
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      # Environment variables for Conversation Agent
+      env {
+        name  = "PORT"
+        value = tostring(var.conversation_agent_port)
+      }
+
+      env {
+        name  = "LOG_LEVEL"
+        value = var.log_level
+      }
+
+      # Application Insights
+      env {
+        name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        secret_name = "appinsights-connection-string"
+      }
+
+      env {
+        name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
+        secret_name = "appinsights-instrumentation-key"
+      }
+
+      # Cosmos DB Configuration
+      env {
+        name  = "COSMOS_DB_ENDPOINT"
+        value = var.cosmosdb_endpoint
+      }
+
+      env {
+        name  = "COSMOS_DB_DATABASE_NAME"
+        value = var.cosmosdb_db_name
+      }
+
+      env {
+        name  = "COSMOS_DB_CONTAINER_NAME"
+        value = var.cosmosdb_container_name
+      }
+
+      # Azure OpenAI Configuration
+      env {
+        name        = "AZURE_OPENAI_API_KEY"
+        secret_name = "azure-openai-api-key"
+      }
+
+      env {
+        name  = "AZURE_OPENAI_ENDPOINT"
+        value = var.azure_openai_endpoint
+      }
+
+      env {
+        name  = "AZURE_OPENAI_API_VERSION"
+        value = var.azure_openai_api_version
+      }
+
+      env {
+        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
+        value = var.azure_openai_deployment_name
+      }
+
+      # Azure Search Configuration
+      env {
+        name  = "AZURE_SEARCH_ENDPOINT"
+        value = var.azure_search_endpoint
+      }
+
+      env {
+        name        = "AZURE_SEARCH_KEY"
+        secret_name = "azure-search-key"
+      }
+
+      env {
+        name  = "AZURE_SEARCH_INDEX_NAME"
+        value = var.azure_search_index_name
+      }
+
+      # Azure Document Intelligence Configuration
+      env {
+        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+        value = var.azure_document_intelligence_endpoint
+      }
+
+      env {
+        name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
+        secret_name = "azure-document-intelligence-key"
+      }
+
+      # Azure Storage Configuration
+      env {
+        name  = "AZURE_STORAGE_ACCOUNT_NAME"
+        value = var.azure_storage_account_name
+      }
+
+      env {
+        name        = "AZURE_STORAGE_ACCOUNT_KEY"
+        secret_name = "azure-storage-account-key"
+      }
+
+      env {
+        name  = "AZURE_STORAGE_CONTAINER_NAME"
+        value = var.azure_storage_container_name
+      }
+    }
+
+    # Form Support Agent Container - Sidecar 2
+    container {
+      name   = "formsupport-agent"
+      image  = var.formsupport_agent_image != "" ? var.formsupport_agent_image : ""
+      cpu    = var.container_cpu
+      memory = var.container_memory
+
+      # Health probes for Form Support Agent
+      startup_probe {
+        transport = "HTTP"
+        path      = "/health"
+        port      = var.formsupport_agent_port
+        timeout   = 5
+      }
+
+      readiness_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = var.formsupport_agent_port
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      liveness_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = var.formsupport_agent_port
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      # Environment variables for Form Support Agent
+      env {
+        name  = "PORT"
+        value = tostring(var.formsupport_agent_port)
+      }
+
+      env {
+        name  = "LOG_LEVEL"
+        value = var.log_level
       }
 
       # Application Insights
@@ -244,7 +524,7 @@ resource "azurerm_container_app" "backend" {
 
   ingress {
     external_enabled           = false # MUST be false - internal only to comply with Azure Policy
-    target_port                = 8000
+    target_port                = var.orchestrator_agent_port
     transport                  = "http"
     allow_insecure_connections = false
 
@@ -252,15 +532,6 @@ resource "azurerm_container_app" "backend" {
       percentage      = 100
       latest_revision = true
     }
-
-    # Internal-only ingress - accessible within VNet
-    # Front Door CANNOT connect directly to internal Container Apps
-    # Options for public access with Azure Policy:
-    # 1. Request Azure Policy exemption for Container Apps (recommended)
-    # 2. Use Application Gateway in the VNet as intermediary
-    # 3. Upgrade to Front Door Premium + Private Link (expensive)
-    # 
-    # For now: Container App is internal-only, NOT accessible via Front Door
   }
 
   tags = merge(var.common_tags, {

@@ -77,6 +77,9 @@ jobs:
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: "ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
+          orchestrator_agent_image: "ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
+          conversation_agent_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
+          formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
@@ -110,9 +113,9 @@ jobs:
         if terragrunt state list 2>/dev/null | grep -q 'module.network.azurerm_subnet.container_apps_subnet'; then
           echo "Found azurerm_subnet.container_apps_subnet - removing from state..."
           terragrunt state rm -lock=false 'module.network.azurerm_subnet.container_apps_subnet[0]' || true
-          echo "✅ Removed azurerm_subnet from state"
+          echo "Removed azurerm_subnet from state"
         else
-          echo "ℹ️  azurerm_subnet not found in state"
+          echo "azurerm_subnet not found in state"
         fi
         
         # Check and remove azurerm_subnet_network_security_group_association if it exists
@@ -120,9 +123,33 @@ jobs:
         if terragrunt state list 2>/dev/null | grep -q 'module.network.azurerm_subnet_network_security_group_association.container_apps'; then
           echo "Found NSG association - removing from state..."
           terragrunt state rm -lock=false 'module.network.azurerm_subnet_network_security_group_association.container_apps[0]' || true
-          echo "✅ Removed NSG association from state"
+          echo "Removed NSG association from state"
         else
-          echo "ℹ️  NSG association not found in state"
+          echo "NSG association not found in state"
+        fi
+        
+        # Import container-apps-subnet if it exists in Azure but not in state
+        echo "Checking if container-apps-subnet needs to be imported..."
+        CONTAINER_APPS_SUBNET_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/virtualNetworks/${vnet_name}/subnets/container-apps-subnet"
+        
+        # Debug: Show the resource ID being used
+        echo "Resource ID: $CONTAINER_APPS_SUBNET_ID"
+        
+        # Check if this resource exists in state
+        if ! terragrunt state list 2>/dev/null | grep -q 'module.network.azapi_resource.container_apps_subnet'; then
+          echo "container-apps-subnet not in state, attempting to import..."
+          if terragrunt import -lock=false "module.network.azapi_resource.container_apps_subnet[0]" "$CONTAINER_APPS_SUBNET_ID"; then
+            echo "Successfully imported container-apps-subnet into state"
+          else
+            echo "Import failed - checking if resource exists in Azure or if it's already managed..."
+            # Try to delete the resource in Azure so Terraform can create it fresh
+            echo "Attempting to delete existing container-apps-subnet from Azure..."
+            az network vnet subnet delete --name container-apps-subnet --resource-group "${vnet_resource_group_name}" --vnet-name "${vnet_name}" 2>&1 || {
+              echo "Subnet deletion failed - it may not exist or may be in use"
+            }
+          fi
+        else
+          echo "container-apps-subnet already in state"
         fi
 
     
@@ -130,7 +157,15 @@ jobs:
       id: image-tags
       shell: bash
       run: |
+        # Build full registry URLs for agent images
+        ORCHESTRATOR_AGENT_IMAGE="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
+        CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
+        FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
         API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
+        
+        echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
+        echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
+        echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
     
     - name: Terragrunt ${{inputs.command}}
@@ -142,13 +177,16 @@ jobs:
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: ${{ steps.image-tags.outputs.api-image }}
+          orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
+          conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
+          formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-          deployment_type: ${{ inputs.deployment_type }}  # Pass deployment type to Terraform
+          deployment_type: ${{ inputs.deployment_type }}
           # Azure OpenAI Configuration
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
           AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}

@@ -1,36 +1,38 @@
 # Local values for Docker Compose configuration
 locals {
   # Docker Compose configuration for multi-container deployment
+  # NOTE: This is a temporary solution. When azurerm provider supports azurerm_web_app_sitecontainer (v4.5.0+),
+  # we will migrate to native sidecar resources defined in sidecontainers.tf
   docker_compose_config = yamlencode({
     version = "3.8"
     services = {
-      conversation-agent = {
-        image = var.conversation_agent_image
-        ports = ["8000:8000"]
+      orchestrator-agent = {
+        image = var.orchestrator_agent_image
+        ports = ["${var.orchestrator_agent_port}:${var.orchestrator_agent_port}"]
         restart = "unless-stopped"
         environment = {
-          PORT = "8000"
+          PORT = var.orchestrator_agent_port
+          LOG_LEVEL = "INFO"
+          CONVERSATION_AGENT_A2A_URL = "http://localhost:${var.conversation_agent_port}"
+          FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:${var.formsupport_agent_port}"
+        }
+      }
+      conversation-agent = {
+        image = var.conversation_agent_image
+        ports = ["${var.conversation_agent_port}:${var.conversation_agent_port}"]
+        restart = "unless-stopped"
+        environment = {
+          PORT = var.conversation_agent_port
           LOG_LEVEL = "INFO"
         }
       }
       formsupport-agent = {
-        image = var.formsupport_agent_image 
-        ports = ["8001:8001"]
+        image = var.formsupport_agent_image
+        ports = ["${var.formsupport_agent_port}:${var.formsupport_agent_port}"]
         restart = "unless-stopped"
         environment = {
-          PORT = "8001"
+          PORT = var.formsupport_agent_port
           LOG_LEVEL = "INFO"
-        }
-      }
-      orchestrator-agent = {
-        image = var.orchestrator_agent_image
-        ports = ["8002:8002"]
-        restart = "unless-stopped"
-        environment = {
-          PORT = "8002"
-          LOG_LEVEL = "INFO"
-          CONVERSATION_AGENT_A2A_URL = "http://localhost:8000"
-          FORM_SUPPORT_AGENT_A2A_URL = "http://localhost:8001"
         }
       }
     }
@@ -70,6 +72,14 @@ resource "azurerm_linux_web_app" "api" {
     health_check_path                       = "/health"
     health_check_eviction_time_in_min       = 2
     
+    # Container image configuration for Orchestrator Agent
+    # Note: var.orchestrator_agent_image should be in format: "bcgov/nr-ai-form/orchestrator_agent:tag"
+    # WITHOUT the registry prefix (ghcr.io/ is added via docker_registry_url)
+    application_stack {
+      docker_image_name   = var.orchestrator_agent_image
+      docker_registry_url = "https://ghcr.io"
+    }
+    
     ftps_state = "Disabled"
     cors {
       allowed_origins     = ["*"]
@@ -98,17 +108,19 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
   app_settings = {
-    # Docker Compose Configuration for multi-container deployment
-    DOCKER_CUSTOM_IMAGE_NAME              = "COMPOSE|${base64encode(local.docker_compose_config)}"
+    # Container image - Orchestrator Agent (main entry point)
+    DOCKER_ENABLE_CI                      = "false"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
+    WEBSITES_PORT                         = var.orchestrator_agent_port
     
     # Python/FastAPI settings - orchestrator is the main entry point
-    PORT                                  = "8002"  # Orchestrator port (main entry point)
-    WEBSITES_PORT                         = "8002"
-    DOCKER_ENABLE_CI                      = "true"
+    PORT                                  = var.orchestrator_agent_port
     
-    # Multi-container communication (localhost since all containers are in same app)
-    CONVERSATION_AGENT_A2A_URL           = "http://localhost:8000"
-    FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:8001"
+    # Agent-to-Agent communication URLs
+    # These point to localhost:port assuming sidecars run in same container instance
+    # OR configure these to point to internal Azure networking if using separate sidecars
+    CONVERSATION_AGENT_A2A_URL           = "http://localhost:${var.conversation_agent_port}"
+    FORM_SUPPORT_AGENT_A2A_URL           = "http://localhost:${var.formsupport_agent_port}"
     
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
@@ -138,15 +150,6 @@ resource "azurerm_linux_web_app" "api" {
     AZURE_STORAGE_ACCOUNT_NAME            = var.azure_storage_account_name
     AZURE_STORAGE_ACCOUNT_KEY             = var.azure_storage_account_key
     AZURE_STORAGE_CONTAINER_NAME          = var.azure_storage_container_name
-    
-    # Azure App Service specific settings for multi-container
-    WEBSITE_SKIP_RUNNING_KUDUAGENT        = "false"
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
-    WEBSITE_ENABLE_SYNC_UPDATE_SITE       = "1"
-    WEBSITES_CONTAINER_START_TIME_LIMIT   = "600"
-    # Force multi-container deployment
-    DOCKER_CUSTOM_IMAGE_RUN_COMMAND       = ""
-    WEBSITES_ENABLE_MULTI_CONTAINER       = "true"
   }
   logs {
     detailed_error_messages = true

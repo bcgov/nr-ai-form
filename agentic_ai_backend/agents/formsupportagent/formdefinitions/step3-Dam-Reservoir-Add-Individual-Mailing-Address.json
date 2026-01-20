@@ -1073,18 +1073,6 @@
             "required": false,
             "tabindex": 12,
             "autocomplete": "off"
-        },
-        "Cancel": {
-            "type": "button",
-            "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
-            "title": "Cancel",
-            "action": "window.close()"
-        },
-        "Submit": {
-            "type": "button",
-            "id": "cphBottomFunctionBand_ctl06_Submit",
-            "title": "Save",
-            "action": "PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/EditRelatedObject.aspx?FromObjectId=N0&EndPoint=Address&PossePresentation=vFCBCPublic&PosseObjectDef=o_Address', 2, 101178588)"
         }
     }
 }

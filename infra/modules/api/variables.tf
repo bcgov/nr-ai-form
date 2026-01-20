@@ -96,6 +96,22 @@ variable "container_registry_url" {
   default     = "https://ghcr.io"
 }
 
+variable "container_registry_username" {
+  description = "The username for authenticating with the container registry."
+  type        = string
+  nullable    = true
+  default     = null
+  sensitive   = true
+}
+
+variable "container_registry_password" {
+  description = "The password/token for authenticating with the container registry."
+  type        = string
+  nullable    = true
+  default     = null
+  sensitive   = true
+}
+
 variable "cosmosdb_container_name" {
   description = "The name of the Cosmos DB container."
   type        = string
@@ -222,4 +238,27 @@ variable "azure_storage_container_name" {
   type        = string
   nullable    = false
 }
+
+# Sidecar deployment configuration variables
+variable "orchestrator_agent_port" {
+  description = "The port on which the Orchestrator Agent (main container) listens."
+  type        = number
+  default     = 8002
+  nullable    = false
+}
+
+variable "conversation_agent_port" {
+  description = "The port on which the Conversation Agent (sidecar) listens."
+  type        = number
+  default     = 8000
+  nullable    = false
+}
+
+variable "formsupport_agent_port" {
+  description = "The port on which the Form Support Agent (sidecar) listens."
+  type        = number
+  default     = 8001
+  nullable    = false
+}
+
 

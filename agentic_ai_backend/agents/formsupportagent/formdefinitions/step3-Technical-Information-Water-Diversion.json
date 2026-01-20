@@ -86,45 +86,6 @@
             "title": "Add Purpose",
             "action": "PossePopup('AddPurposeRT_100536005_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=WaterPurpose&PossePresentation=Default&PosseObjectDef=o_VF_WaterPurpose&SourceOfDiversion=Both&PostIssue11307=Y', 685, 800, 'AddPurposeRT_100536005_185549741')",
             "tabindex": 15
-        },
-        "JumpToReview_RT": {
-            "type": "button",
-            "id": "JumpToReview_RT_100553300_185549741",
-            "title": "Review Application",
-            "description": "Review any outstanding issues on your application",
-            "tabindex": 24
-        },
-        "PrintLink2": {
-            "type": "button",
-            "id": "PrintLink2_100553300_185549741",
-            "title": "Print Page",
-            "description": "Print this page",
-            "action": "window.print()",
-            "tabindex": 25
-        },
-        "Previous": {
-            "type": "button",
-            "id": "cphBottomFunctionBand_ctl04_Previous",
-            "title": "Back",
-            "action": "PosseChangeColumnEscaped('185549741', 'LockdownDataCreateClientFees', 'N');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 0, 100536407)"
-        },
-        "Cancel": {
-            "type": "button",
-            "id": "cphBottomFunctionBand_ctl07_hlkFunctionLink",
-            "title": "Cancel",
-            "action": "https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx"
-        },
-        "Submit": {
-            "type": "button",
-            "id": "cphBottomFunctionBand_ctl10_Submit",
-            "title": "Save Application",
-            "action": "PosseChangeColumnEscaped('185549741', 'TransferToSaveApplication', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100535697)"
-        },
-        "Next": {
-            "type": "button",
-            "id": "cphBottomFunctionBand_ctl12_Next",
-            "title": "Next",
-            "action": "PosseChangeColumnEscaped('185549741', 'NavigateToSpecificWizardPane', 'Y');PosseSubmitLinkReturn('https://train.j200.gov.bc.ca/pub/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=185549741', 2, 100730133)"
         }
     }
 }
