@@ -1,0 +1,207 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Step 4 - LOCATION; Land Details Where Water Will Be Used, Other Lands Affected, Drawings, Mapping options",
+    "sections": {
+        "LandInformation": {
+            "description": "Land Details Where Water Will Be Used and List all parcels of land where the water will be used",
+            "Categoryoflandownership": [
+                {
+                    "name": "PrivateLand",
+                    "identifier": "LandOwnershipCategory_N0",
+                    "description": "Private Land",
+                    "ParcelIdentifierPID": {
+                        "type": "string",
+                        "id": "ParcelIdentifierPID",
+                        "title": "Parcel Identifier(PID)",
+                        "required": true
+                    },
+                    "LegalDescription": {
+                        "type": "string",
+                        "id": "LegalDescription_N0",
+                        "title": "Legal Description",
+                        "required": true
+                    },
+                    "CertificateOfTitleNo": {
+                        "type": "FileUpload",
+                        "id": "CertificateOfTitleNo",
+                        "title": "Certificate of Title No.",
+                        "required": false
+                    }
+                },
+                {
+                    "name": "ProvincialCrownLand",
+                    "identifier": "LandOwnershipCategory_N0",
+                    "description": "Provincial Crown Land",
+                    "LegalDescription": {
+                        "type": "string",
+                        "id": "LegalDescription",
+                        "title": "Legal Description",
+                        "required": false
+                    },
+                    "MetesAndBounds": {
+                        "type": "string",
+                        "id": "MetesAndBounds",
+                        "title": "Metes and Bounds",
+                        "required": false
+                    },
+                    "MineralTenureNumber": {
+                        "type": "string",
+                        "id": "MineralTenureNumber",
+                        "title": "Mineral Tenure Number",
+                        "required": false
+                    },
+                    "LandTenureNumber": {
+                        "type": "string",
+                        "id": "LandTenureNumber",
+                        "title": "Land Tenure Number",
+                        "required": false
+                    },
+                    "OtherPermits": {
+                        "type": "string",
+                        "id": "OtherPermits",
+                        "title": "Other Permits",
+                        "required": false
+                    }
+                },
+                {
+                    "name": "Other",
+                    "identifier": "LandOwnershipCategory_N0",
+                    "description": "Other",
+                    "LegalDescription": {
+                        "type": "string",
+                        "id": "LegalDescription",
+                        "title": "Legal Description",
+                        "required": false
+                    },
+                    "MetesAndBounds": {
+                        "type": "string",
+                        "id": "MetesAndBounds",
+                        "title": "Metes and Bounds",
+                        "required": false
+                    }
+                }
+            ]
+        },
+        "OtherLandsAffected": {
+            "description": "Other Lands and parcels of land that may be affected by the proposed works",
+            "Categoryoflandownership": [
+                {
+                    "name": "PrivateLand",
+                    "identifier": "LandOwnershipCategory_N0",
+                    "description": "other Private Land affected by the proposed work",
+                    "ParcelIdentifierPID": {
+                        "type": "string",
+                        "id": "ParcelIdentifierPID",
+                        "title": "Parcel Identifier(PID)",
+                        "required": true
+                    },
+                    "LegalDescription": {
+                        "type": "string",
+                        "id": "LegalDescription_N0",
+                        "title": "Legal Description",
+                        "required": true
+                    },
+                    "CertificateOfTitleNo": {
+                        "type": "FileUpload",
+                        "id": "CertificateOfTitleNo",
+                        "title": "Certificate of Title No.",
+                        "required": false
+                    }
+                },
+                {
+                    "name": "ProvincialCrownLand",
+                    "identifier": "LandOwnershipCategory_N0",
+                    "description": "other Provincial Crown Land affected by the proposed work",
+                    "LegalDescription": {
+                        "type": "string",
+                        "id": "LegalDescription",
+                        "title": "Legal Description",
+                        "required": false
+                    },
+                    "MetesAndBounds": {
+                        "type": "string",
+                        "id": "MetesAndBounds",
+                        "title": "Metes and Bounds",
+                        "required": false
+                    },
+                    "MineralTenureNumber": {
+                        "type": "string",
+                        "id": "MineralTenureNumber",
+                        "title": "Mineral Tenure Number",
+                        "required": false
+                    },
+                    "LandTenureNumber": {
+                        "type": "string",
+                        "id": "LandTenureNumber",
+                        "title": "Land Tenure Number",
+                        "required": false
+                    },
+                    "OtherPermits": {
+                        "type": "string",
+                        "id": "OtherPermits",
+                        "title": "Other Permits",
+                        "required": false
+                    }
+                },
+                {
+                    "name": "Other",
+                    "identifier": "LandOwnershipCategory_N0",
+                    "description": "Other land affected by the proposed work",
+                    "LegalDescription": {
+                        "type": "string",
+                        "id": "LegalDescription",
+                        "title": "Legal Description",
+                        "required": false
+                    },
+                    "MetesAndBounds": {
+                        "type": "string",
+                        "id": "MetesAndBounds",
+                        "title": "Metes and Bounds",
+                        "required": false
+                    }
+                }
+            ]
+        },
+        "Drawings": {
+            "description": "A Drawing to Scale is required that meets the Application Drawing Standards. A topographical map showing the general location of the property where the water is proposed to be used and the works constructed in relation to nearby communities, highways, railways and other water sources.",
+            "MappingOptions": [
+                {
+                    "name": "GeoMarkService",
+                    "identifier": "IsUsingGeomarkURLs",
+                    "description": "URL of a GeoMark",
+                    "labeltext": "I have already built my map(s) using the GeoMark service",
+                    "GeoMarkURL": {
+                        "type": "string",
+                        "id": "URL",
+                        "title": "URL",
+                        "required": false
+                    }
+                },
+                {
+                    "name": "MapFiles",
+                    "identifier": "IsUsingMapFiles",
+                    "description": "Map Files Upload.  a PDF or image file of a drawn map",
+                    "labeltext": "I have map(s) saved to my computer and wish to provide these with my application",
+                    "MapFilesUpload": {
+                        "type": "FileUpload",
+                        "id": "MapFilesUpload",
+                        "title": "Map Files Upload",
+                        "required": false
+                    }
+                },
+                {
+                    "name": "GISMapFile",
+                    "identifier": "IsUsingSpatialFiles",
+                    "description": "Map Files Upload.  a PDF or image file of a drawn map. Shapefile is the preferred format and requires a closed polygon, projection in BC Albers/NAD 83 and the .dbf, .shp, .shx and .prj files.",
+                    "labeltext": "I have created my map(s) using my own Geographic Information System (GIS)",
+                    "SpatialFilesUpload": {
+                        "type": "FileUpload",
+                        "id": "SpatialFilesUpload",
+                        "title": "Multi-File Upload",
+                        "required": false
+                    }
+                }
+            ]
+        }
+    }
+}
