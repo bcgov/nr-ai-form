@@ -5,10 +5,10 @@ import os
 
 
     
-@ai_function(name="azure_ai_search", description="Retrieves information related with Water permit application")
+@ai_function(name="azure_ai_search", description="Retrieves information related with Permit Applications using Azure AI Search")
 def azure_ai_search(query: str) -> str:
     """
-        Retrieves information related with Water permit application
+        Retrieves information related with BC government permit application
     """
     try:
         print("Azure AI Search Tool calling...")
