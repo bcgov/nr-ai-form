@@ -1,56 +1,56 @@
 {
-  "formName": "Water Licence Application",
-  "formDescription": "Step 3 - Technical Information - Government and First Nation Fee Exemption Request",
-  "properties": {
-    "V1IsEligibleForFeeExemption": {
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "id": "V1IsEligibleForFeeExemption",
-      "title": "Do you belong to, are you applying on behalf of, or are you an eligible government or First Nation entity for fee exemption?",
-      "description": "Do you belong to, are you applying on behalf of, or are you:\n• A provincial government ministry\n• The Government of Canada\n• A First Nation for water use on reserve land\n• A person applying to use water on Treaty Lands\n• A Nisga'a citizen\n• An entity applying to use water from the Nisga'a Water Reservation?",
-      "required": true
-    },
-    "V1IsExistingExemptClient": {
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "id": "V1IsExistingExemptClient",
-      "title": "Are you an existing exempt client?",
-      "required": true
-    },
-    "V1FeeExemptionClientNumber": {
-      "type": "string",
-      "id": "V1FeeExemptionClientNumber",
-      "title": "Please enter your client number:",
-      "maxLength": 4000,
-      "required": true
-    },
-    "V1FeeExemptionCategory": {
-      "type": "string",
-      "enum": [
-        "(None)",
-        "British Columbia Government Ministry",
-        "Federal Government",
-        "First Nations/Indian Band for use on Reserve",
-        "Acting on behalf of a BC provincial ministry with a letter of permission from that ministry",
-        "Other (Specify details below)"
-      ],
-      "id": "V1FeeExemptionCategory",
-      "title": "Fee Exemption Category:",
-      "required": true
-    },
-    "V1FeeExemptionSupportingInfo": {
-      "type": "string",
-      "id": "V1FeeExemptionSupportingInfo",
-      "title": "Supporting Information",
-      "description": "Please enter any supporting information that will assist in determining your eligibility for a fee exemption. Please refer to help for details on fee exemption criteria and requirements.",
-      "maxLength": 4000,
-      "required": false
+    "formName": "Water Licence Application",
+    "formDescription": "Step 3 - Technical Information - Government and First Nation Fee Exemption Request",
+    "properties": {
+        "V1IsEligibleForFeeExemption": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "id": "V1IsEligibleForFeeExemption",
+            "title": "Do you belong to, are you applying on behalf of, or are you an eligible government or First Nation entity for fee exemption?",
+            "description": "Do you belong to, are you applying on behalf of, or are you:\n\u2022 A provincial government ministry\n\u2022 The Government of Canada\n\u2022 A First Nation for water use on reserve land\n\u2022 A person applying to use water on Treaty Lands\n\u2022 A Nisga'a citizen\n\u2022 An entity applying to use water from the Nisga'a Water Reservation?",
+            "required": true
+        },
+        "V1IsExistingExemptClient": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "id": "V1IsExistingExemptClient",
+            "title": "Are you an existing exempt client?",
+            "required": true
+        },
+        "V1FeeExemptionClientNumber": {
+            "type": "string",
+            "id": "V1FeeExemptionClientNumber",
+            "title": "Please enter your client number:",
+            "maxLength": 4000,
+            "required": true
+        },
+        "V1FeeExemptionCategory": {
+            "type": "string",
+            "enum": [
+                "(None)",
+                "British Columbia Government Ministry",
+                "Federal Government",
+                "First Nations/Indian Band for use on Reserve",
+                "Acting on behalf of a BC provincial ministry with a letter of permission from that ministry",
+                "Other (Specify details below)"
+            ],
+            "id": "V1FeeExemptionCategory",
+            "title": "Fee Exemption Category:",
+            "required": true
+        },
+        "V1FeeExemptionSupportingInfo": {
+            "type": "string",
+            "id": "V1FeeExemptionSupportingInfo",
+            "title": "Supporting Information",
+            "description": "Please enter any supporting information that will assist in determining your eligibility for a fee exemption. Please refer to help for details on fee exemption criteria and requirements.",
+            "maxLength": 4000,
+            "required": false
+        }
     }
-  }
 }

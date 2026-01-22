@@ -12,7 +12,6 @@
                 "Other"
             ],
             "required": true,
-            "tabindex": 1,
             "default": "Other"
         },
         "LegalDescription": {
@@ -20,7 +19,6 @@
             "id": "LegalDescription_100382209_N0",
             "title": "Legal Description:",
             "required": false,
-            "tabindex": 15,
             "maxLength": 4000,
             "rows": 3,
             "help": "Text_2_100382209_N0"
@@ -30,7 +28,6 @@
             "id": "MetesAndBounds_100375576_N0",
             "title": "Metes and Bounds (description of unsurveyed land):",
             "required": false,
-            "tabindex": 30,
             "rows": 3,
             "maxLength": 4000,
             "help": "Text_2_100375576_N0"

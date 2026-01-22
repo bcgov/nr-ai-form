@@ -2,115 +2,6 @@
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Technical Information - Source of Water for Application",
     "properties": {
-        "WellWorksSection": {
-            "type": "section",
-            "id": "WellWorksSection_100826749",
-            "title": "Well Works",
-            "description": ""
-        },
-        "WaterDivertedUsingWell": {
-            "type": "radio",
-            "id": "WaterDivertedUsingWell_100826749_185549741",
-            "title": "Is the water you are applying for coming from a well?",
-            "enum": [
-                "Yes",
-                "No"
-            ],
-            "required": true,
-            "tabindex": 4
-        },
-        "WellWorksGrid": {
-            "type": "grid",
-            "id": "WellWorksGrid_100826927",
-            "title": "Well Works",
-            "columns": [
-                {
-                    "name": "Actions",
-                    "type": "actions"
-                },
-                {
-                    "name": "Works",
-                    "type": "string",
-                    "sortable": true
-                },
-                {
-                    "name": "Common Well Name",
-                    "type": "string"
-                },
-                {
-                    "name": "Status",
-                    "type": "string",
-                    "sortable": true
-                },
-                {
-                    "name": "Delete",
-                    "type": "action"
-                }
-            ],
-            "actions": [
-                {
-                    "type": "edit",
-                    "id": "Link_1_100826927_100703783",
-                    "title": "Edit Well Information",
-                    "action": "PossePopup",
-                    "tabindex": 6
-                },
-                {
-                    "type": "delete",
-                    "id": "Delete_1_100826927_100703783",
-                    "title": "Delete this line",
-                    "action": "PosseDelete",
-                    "tabindex": 6
-                }
-            ]
-        },
-        "AddWellWorksInstructions": {
-            "type": "string",
-            "id": "Text_1_100826568_185549741",
-            "title": "Well Works Instructions",
-            "description": "Select the Add Well button for each Well and enter the Well details.",
-            "readOnly": true
-        },
-        "AddWellWorks": {
-            "type": "button",
-            "id": "AddWellWorks_100826568_185549741",
-            "title": "Add Well",
-            "action": "PossePopup('AddWellWorks_100826568_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=WaterWorks&PossePresentation=Public&PosseObjectDef=o_VF_WaterWorks&DefaultWellType=Y', 950, 750, 'AddWellWorks_100826568_185549741')",
-            "tabindex": 6
-        },
-        "ProximityToSurfaceWaterSection": {
-            "type": "section",
-            "id": "ProximityToSurfaceWaterSection_100846853",
-            "title": "Proximity to Surface Water",
-            "description": "In order to consider all relevant factors concerning your licence application, it is necessary to understand any potential connections between the aquifer from which you propose to withdraw water and connected surface water."
-        },
-        "GWNAWellHydraulicallyConnected": {
-            "type": "radio",
-            "id": "GWNAWellHydraulicallyConnected_100846853_185549741",
-            "title": "Does any documentation, such as a well construction report, indicate that there is a hydraulic connection between the well and a surface water source?",
-            "enum": [
-                "Yes",
-                "No",
-                "Unknown"
-            ],
-            "required": true,
-            "tabindex": 18
-        },
-        "GWNASourceOfSurfaceWater": {
-            "type": "string",
-            "id": "GWNASourceOfSurfaceWater_100846844_185549741",
-            "title": "Please describe the source of the nearby surface water (e.g., lake, stream, spring).",
-            "maxLength": 4000,
-            "required": true,
-            "tabindex": 20
-        },
-        "SurfaceWaterSourcesSection": {
-            "type": "section",
-            "id": "SurfaceWaterSourcesSection_100826421",
-            "title": "Surface Water Sources",
-            "description": "",
-            "required": true
-        },
         "SurfaceWaterSourcesGrid": {
             "type": "grid",
             "id": "SurfaceWaterSourcesGrid_100826612",
@@ -150,31 +41,20 @@
                     "type": "edit",
                     "id": "Link_1_100826612_100827007",
                     "title": "Edit Surface Water Source information",
-                    "action": "PossePopup",
-                    "tabindex": 27
+                    "action": "PossePopup"
                 },
                 {
                     "type": "delete",
                     "id": "Delete_1_100826612_100827007",
                     "title": "Delete this line",
-                    "action": "PosseDelete",
-                    "tabindex": 27
+                    "action": "PosseDelete"
                 }
             ]
         },
-        "SurfaceWaterSourceInstructions": {
-            "type": "string",
-            "id": "ButtonInstructions_100845885_185549741",
-            "title": "Surface Water Source Instructions",
-            "description": "Select the Add Surface Water Source button for each water source and enter the water source details.",
-            "readOnly": true
-        },
         "AddSurfaceWaterSourceRT": {
             "type": "button",
-            "id": "AddSurfaceWaterSourceRT_100845885_185549741",
-            "title": "Add Surface Water Source",
-            "action": "PossePopup('AddSurfaceWaterSourceRT_100845885_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=VFSurfaceWaterSource&PossePresentation=Public&PosseObjectDef=o_VF_SurfaceWaterSource&None', 725, 570, 'AddSurfaceWaterSourceRT_100845885_185549741')",
-            "tabindex": 27
+            "id": "AddSurfaceWaterSourceRT_100845885_185632262",
+            "title": "Add Surface Water Source"
         }
     }
 }

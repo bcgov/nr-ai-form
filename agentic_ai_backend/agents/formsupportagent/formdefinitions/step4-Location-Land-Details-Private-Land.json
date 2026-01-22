@@ -12,7 +12,6 @@
                 "Other"
             ],
             "required": true,
-            "tabindex": 1,
             "default": "Private Land"
         },
         "ParcelIdentifierPID": {
@@ -20,7 +19,6 @@
             "id": "ParcelIdentifierPID_100383613_N0",
             "title": "Parcel Identifier (PID):",
             "required": true,
-            "tabindex": 3,
             "maxLength": 4000,
             "help": "Text_2_100383613_N0"
         },
@@ -29,7 +27,6 @@
             "id": "LegalDescription_100382209_N0",
             "title": "Legal Description:",
             "required": true,
-            "tabindex": 15,
             "maxLength": 4000,
             "rows": 3,
             "help": "Text_2_100382209_N0"
@@ -38,16 +35,13 @@
             "type": "string",
             "id": "CertificateOfTitleNo_100379395_N0",
             "title": "Certificate of Title No:",
-            "tabindex": 25,
             "maxLength": 30
         },
         "UploadCertificate": {
             "type": "button",
             "id": "Upload_1_100380352_N0",
             "title": "Upload Certificate",
-            "description": "Upload a Certificate of Title",
-            "tabindex": 26,
-            "action": "PossePopup('Upload_1_100380352_N0', 'https://train.j200.gov.bc.ca/pub/vfcbc/Upload.aspx?PosseObjectId=N0&UploadEndpoint=CertificateOfTitleDoc&UploadObjectDef=d_WebDocument&PosseObjectDefId=2804&PosseCreatedBy=vFCBC%2C%20Web%20Guest&PosseAutoSubmit=N', 600, 500)"
+            "description": "Upload a Certificate of Title"
         }
     }
 }

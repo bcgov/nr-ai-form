@@ -2,119 +2,6 @@
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Technical Information - Dam/Reservoir",
     "properties": {
-        "ProgressBar": {
-            "type": "progressbar",
-            "id": "Text_1_100535349_185549741",
-            "title": "Application Progress",
-            "steps": [
-                {
-                    "step": 1,
-                    "status": "yet",
-                    "title": ""
-                },
-                {
-                    "step": 2,
-                    "status": "done",
-                    "title": "Eligibility"
-                },
-                {
-                    "step": 3,
-                    "status": "on",
-                    "title": "Step 3 - Technical Information"
-                },
-                {
-                    "step": 4,
-                    "status": "done",
-                    "title": "Location"
-                },
-                {
-                    "step": 5,
-                    "status": "done",
-                    "title": "Document Upload"
-                },
-                {
-                    "step": 6,
-                    "status": "done",
-                    "title": "Privacy Declaration"
-                },
-                {
-                    "step": 7,
-                    "status": "done",
-                    "title": "Contact Information"
-                },
-                {
-                    "step": 8,
-                    "status": "done",
-                    "title": "Review"
-                },
-                {
-                    "step": 9,
-                    "status": "yet",
-                    "title": ""
-                },
-                {
-                    "step": "Complete",
-                    "status": "yet",
-                    "title": "Complete"
-                }
-            ]
-        },
-        "DamReservoirSection": {
-            "type": "section",
-            "id": "Text_2_100535349_185549741",
-            "title": "Dam/Reservoir",
-            "description": ""
-        },
-        "InstructionsWSLICDamReservoir": {
-            "type": "string",
-            "id": "InstructionsWSLICDamReservoir_100535349_185549741",
-            "title": "Dam/Reservoir Instructions",
-            "description": "You have indicated that you are proposing to use a dam/reservoir. Please provide us with some information about it. Construction of licensed work shall not commence until written leave to commence has been issued by the Dam Safety Officer.",
-            "readOnly": true
-        },
-        "OtherContactsSection": {
-            "type": "section",
-            "id": "Text_2_100535043_185549741",
-            "title": "Other Contacts",
-            "description": ""
-        },
-        "InstrWSLICDamResContacts": {
-            "type": "string",
-            "id": "InstrWSLICDamResContacts_100535043_185549741",
-            "title": "Dam Safety Program Information",
-            "description": "The BC Dam Safety Program covers dams that are regulated under the Water Sustainability Act. Regulated dams are those that exceed a certain size, as specified in the BC Dam Safety Regulation, that are constructed across a stream or constructed off-stream and supplied by diversion of water taken from a stream. For additional information of or assistance please contact the Dam Safety Program www.env.gov.bc.ca/wsd/public_safety/dam_safety/",
-            "readOnly": true
-        },
-        "ContactTypeGrid": {
-            "type": "grid",
-            "id": "ContactTypeGrid_100535043_185549741",
-            "title": "Contact Types",
-            "columns": [
-                {
-                    "name": "Type of Contact",
-                    "type": "string",
-                    "sortable": true
-                },
-                {
-                    "name": "Description",
-                    "type": "string",
-                    "sortable": true
-                }
-            ],
-            "data": [
-                {
-                    "typeOfContact": "Project Consultant",
-                    "description": "Professional Engineer registered in BC who has experience in dam design and construction."
-                }
-            ]
-        },
-        "AddContactsInstructions": {
-            "type": "string",
-            "id": "Text_3_100535043_185549741",
-            "title": "Add Contacts Instructions",
-            "description": "Please identify all relevant consultants, professional engineers and others involved with the design and supervision of construction and/or maintenance of the dam or reservoir.",
-            "readOnly": true
-        },
         "ContactGrid": {
             "type": "grid",
             "id": "ContactGrid_100535043_185549741",
@@ -143,36 +30,24 @@
                 {
                     "type": "edit",
                     "title": "Edit",
-                    "action": "PossePopup",
-                    "tabindex": 7
+                    "action": "PossePopup"
                 },
                 {
                     "type": "delete",
                     "title": "Delete this line",
-                    "action": "PosseDelete",
-                    "tabindex": 7
+                    "action": "PosseDelete"
                 }
             ]
         },
         "AddIndividual": {
             "type": "button",
             "id": "AddIndividual_100535043_185549741",
-            "title": "Add Individual",
-            "action": "PossePopup('AddIndividual_100535043_185549741', 'editrelatedobject.aspx?FromObjectId=185549741&EndPoint=WSLICDamResIndivContact&PossePresentation=OtherContact&PosseObjectDef=o_VF_ApplicationClient&None&IsSearch=Y', 700, 550, 'AddIndividual_100535043_185549741')",
-            "tabindex": 8
+            "title": "Add Individual"
         },
         "AddOrganization": {
             "type": "button",
             "id": "AddOrganization_100535043_185549741",
-            "title": "Add Organization",
-            "action": "PossePopup('AddOrganization_100535043_185549741', 'editrelatedobject.aspx?FromObjectId=185549741&EndPoint=WSLICDamResBusContact&PossePresentation=OtherContact&PosseObjectDef=o_VF_ApplicationBusiness&None&IsSearch=Y', 700, 550, 'AddOrganization_100535043_185549741')",
-            "tabindex": 9
-        },
-        "DugoutPondSection": {
-            "type": "section",
-            "id": "Text_1_100535313_185549741",
-            "title": "Dugout/Pond",
-            "description": ""
+            "title": "Add Organization"
         },
         "WSLICDugoutPondLocation": {
             "type": "radio",
@@ -180,25 +55,21 @@
             "title": "Location of dugout/pond:",
             "options": [
                 {
-                    "value": "In the Stream Channel",
                     "label": "In the Stream Channel"
                 },
                 {
-                    "value": "Off the Stream Channel",
                     "label": "Off the Stream Channel"
                 }
             ],
-            "required": false,
-            "tabindex": 15
+            "required": false
         },
         "WSLICDugoutStorageCapacity": {
             "type": "string",
             "id": "WSLICDugoutStorageCapacity_100535313_185549741",
             "title": "Storage Capacity:",
-            "unit": "m³",
+            "unit": "m\u00b3",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 18
+            "required": false
         },
         "WSLICDugoutLength": {
             "type": "string",
@@ -206,8 +77,7 @@
             "title": "Length:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 19
+            "required": false
         },
         "WSLICDugoutWidth": {
             "type": "string",
@@ -215,8 +85,7 @@
             "title": "Width:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 21
+            "required": false
         },
         "WSLICDugoutMaximumDepth": {
             "type": "string",
@@ -224,14 +93,7 @@
             "title": "Maximum depth:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 22
-        },
-        "DamSection": {
-            "type": "section",
-            "id": "Text_1_100535236_185549741",
-            "title": "Dam",
-            "description": ""
+            "required": false
         },
         "WSLICDamHeight": {
             "type": "string",
@@ -239,8 +101,7 @@
             "title": "Height:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 43
+            "required": false
         },
         "WSLICDamLength": {
             "type": "string",
@@ -248,8 +109,7 @@
             "title": "Length:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 45
+            "required": false
         },
         "WSLICDamCrestWidth": {
             "type": "string",
@@ -257,8 +117,7 @@
             "title": "Crest Width:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 47
+            "required": false
         },
         "WSLICDamFootprintArea": {
             "type": "string",
@@ -266,8 +125,7 @@
             "title": "Foot print area for dam (allow 10 metres beyond actual dam structure for building materials):",
             "unit": "ha",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 49
+            "required": false
         },
         "WSLICDamMaterial": {
             "type": "select",
@@ -275,71 +133,63 @@
             "title": "Dam Material:",
             "options": [
                 {
-                    "value": "",
                     "label": "(None)",
-                    "selected": true
+                    "value": ""
                 },
                 {
-                    "value": "105151690",
-                    "label": "Combination"
+                    "label": "Combination",
+                    "value": "105151690"
                 },
                 {
-                    "value": "42465008",
-                    "label": "Concrete?arch"
+                    "label": "Concrete–arch",
+                    "value": "42465008"
                 },
                 {
-                    "value": "42465009",
-                    "label": "Concrete?gravity"
+                    "label": "Concrete–gravity",
+                    "value": "42465009"
                 },
                 {
-                    "value": "105151692",
-                    "label": "Concrete?rolled/compact"
+                    "label": "Concrete–rolled/compact",
+                    "value": "105151692"
                 },
                 {
-                    "value": "42465007",
-                    "label": "Concrete?slab/buttress"
+                    "label": "Concrete–slab/buttress",
+                    "value": "42465007"
                 },
                 {
-                    "value": "105151695",
-                    "label": "Embankment?homogenous"
+                    "label": "Embankment–homogenous",
+                    "value": "105151695"
                 },
                 {
-                    "value": "42465012",
-                    "label": "Embankment?unknown"
+                    "label": "Embankment–unknown",
+                    "value": "42465012"
                 },
                 {
-                    "value": "105151694",
-                    "label": "Embankment?zoned"
+                    "label": "Embankment–zoned",
+                    "value": "105151694"
                 },
                 {
-                    "value": "42465025",
-                    "label": "Log crib"
+                    "label": "Log crib",
+                    "value": "42465025"
                 },
                 {
-                    "value": "42465024",
-                    "label": "Other"
+                    "label": "Other",
+                    "value": "42465024"
                 },
                 {
-                    "value": "42465019",
-                    "label": "Rockfill"
+                    "label": "Rockfill",
+                    "value": "42465019"
                 },
                 {
-                    "value": "42465022",
-                    "label": "Steel"
+                    "label": "Steel",
+                    "value": "42465022"
                 },
                 {
-                    "value": "42465016",
-                    "label": "Unknown"
+                    "label": "Unknown",
+                    "value": "42465016"
                 }
             ],
-            "required": false,
-            "tabindex": 59
-        },
-        "ReservoirSection": {
-            "type": "section",
-            "id": "Text_1_100534676_185549741",
-            "title": "Reservoir",
-            "description": ""
+            "required": false
         },
         "WSLICReservoirLocation": {
             "type": "radio",
@@ -347,25 +197,21 @@
             "title": "Location of reservoir:",
             "options": [
                 {
-                    "value": "In the Stream Channel",
                     "label": "In the Stream Channel"
                 },
                 {
-                    "value": "Off the Stream Channel",
                     "label": "Off the Stream Channel"
                 }
             ],
-            "required": false,
-            "tabindex": 64
+            "required": false
         },
         "WSLICReservoirStorageCapacity": {
             "type": "string",
             "id": "WSLICReservoirStorageCapacity_100534676_185549741",
             "title": "Storage Capacity:",
-            "unit": "m³",
+            "unit": "m\u00b3",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 68
+            "required": false
         },
         "WSLICReservoirFloodedArea": {
             "type": "string",
@@ -373,8 +219,7 @@
             "title": "Flooded Area:",
             "unit": "ha",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 70
+            "required": false
         },
         "WSLICReservoirFreeboard": {
             "type": "string",
@@ -382,14 +227,7 @@
             "title": "Freeboard:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 72
-        },
-        "SpillwaySection": {
-            "type": "section",
-            "id": "Text_1_100534729_185549741",
-            "title": "Spillway",
-            "description": ""
+            "required": false
         },
         "WSLICSpillwayType": {
             "type": "select",
@@ -397,21 +235,17 @@
             "title": "Spillway Type:",
             "options": [
                 {
-                    "value": "",
                     "label": "(None)"
                 },
                 {
-                    "value": "105163531",
                     "label": "Controlled",
                     "selected": true
                 },
                 {
-                    "value": "105163532",
                     "label": "Uncontrolled"
                 }
             ],
-            "required": false,
-            "tabindex": 82
+            "required": false
         },
         "WSLICSpillwayGateType": {
             "type": "select",
@@ -419,62 +253,48 @@
             "title": "Spillway Gate Type:",
             "options": [
                 {
-                    "value": "",
                     "label": "(None)"
                 },
                 {
-                    "value": "105163528",
-                    "label": "Drop Structure",
-                    "selected": true
+                    "label": "Drop Structure"
                 },
                 {
-                    "value": "105163527",
                     "label": "Flash Boards"
                 },
                 {
-                    "value": "105163529",
                     "label": "Open Channel"
                 },
                 {
-                    "value": "42465063",
                     "label": "Other"
                 },
                 {
-                    "value": "105163530",
                     "label": "Pipe/Tunnel"
                 },
                 {
-                    "value": "42465061",
                     "label": "Radial Gate"
                 },
                 {
-                    "value": "42465064",
                     "label": "Rubber Dam"
                 },
                 {
-                    "value": "42465062",
                     "label": "Stop Logs"
                 },
                 {
-                    "value": "42465065",
                     "label": "Syphon"
                 },
                 {
-                    "value": "42465060",
                     "label": "Vertical Gate"
                 }
             ],
-            "required": false,
-            "tabindex": 84
+            "required": false
         },
         "WSLICSpillwayDesignFlow": {
             "type": "string",
             "id": "WSLICSpillwayDesignFlow_100534729_185549741",
             "title": "Design Flow:",
-            "unit": "m³/s",
+            "unit": "m\u00b3/s",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 86
+            "required": false
         },
         "WSLICSpillwayFreeboard": {
             "type": "string",
@@ -482,8 +302,7 @@
             "title": "Freeboard:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 88
+            "required": false
         },
         "WSLICSpillwayWidth": {
             "type": "string",
@@ -491,157 +310,91 @@
             "title": "Width:",
             "unit": "m",
             "maxLength": 20,
-            "required": false,
-            "tabindex": 90
-        },
-        "LowerLevelOutletSection": {
-            "type": "section",
-            "id": "Text_1_100534586_185549741",
-            "title": "Lower Level Outlet (LLO/Sluiceway)",
-            "description": ""
-        },
-        "LLOInstructions": {
-            "type": "string",
-            "id": "Text_4_100534586_185549741",
-            "title": "LLO Instructions",
-            "description": "Please select the type of lower level outlet and gate type below.",
-            "readOnly": true
+            "required": false
         },
         "WSLICSluicewayLLOType": {
             "type": "select",
             "id": "WSLICSluicewayLLOType_100534586_185549741",
-            "title": "LLO Type:",
+            "title": "Lower Level Outlet (LLO/Sluiceway) type:",
             "options": [
                 {
-                    "value": "",
                     "label": "(None)"
                 },
                 {
-                    "value": "42465011",
-                    "label": "Concrete",
-                    "selected": true
+                    "label": "Concrete"
                 },
                 {
-                    "value": "105151691",
                     "label": "Concrete Encased"
                 },
                 {
-                    "value": "42465010",
                     "label": "Corrugated Metal Pipe"
                 },
                 {
-                    "value": "42465024",
                     "label": "Other"
                 },
                 {
-                    "value": "42465017",
                     "label": "Plastic"
                 },
                 {
-                    "value": "42465020",
                     "label": "Rock"
                 },
                 {
-                    "value": "42465022",
                     "label": "Steel"
                 }
             ],
-            "required": false,
-            "tabindex": 110
+            "required": false
         },
         "WSLICSluicewayGateType": {
             "type": "select",
             "id": "WSLICSluicewayGateType_100534586_185549741",
-            "title": "Gate Type:",
+            "title": "Lower Level Outlet (LLO/Sluiceway) gate type:",
             "options": [
                 {
-                    "value": "",
                     "label": "(None)"
                 },
                 {
-                    "value": "105151699",
-                    "label": "Flash Boards",
-                    "selected": true
+                    "label": "Flash Boards"
                 },
                 {
-                    "value": "106127605",
                     "label": "Incline Gate"
                 },
                 {
-                    "value": "42465059",
                     "label": "Other"
                 },
                 {
-                    "value": "105151700",
                     "label": "Radial Gate"
                 },
                 {
-                    "value": "105151701",
                     "label": "Rubber Dam"
                 },
                 {
-                    "value": "105151702",
                     "label": "Stop Logs"
                 },
                 {
-                    "value": "105151703",
                     "label": "Syphon"
                 },
                 {
-                    "value": "42465055",
                     "label": "Vertical Gate"
                 }
             ],
-            "required": false,
-            "tabindex": 111
-        },
-        "FishSection": {
-            "type": "section",
-            "id": "Text_8_100535349_185549741",
-            "title": "Fish",
-            "description": ""
-        },
-        "FishInstructions": {
-            "type": "string",
-            "id": "Text_3_100535349_185549741",
-            "title": "Fish Instructions",
-            "description": "If you intend to keep fish in the dugout/pond/reservoir you may be required to obtain a Rainbow Trout Pond Permit or an Aquaculture Licence.",
-            "readOnly": true
+            "required": false
         },
         "WSLICFishKeepFish": {
             "type": "radio",
             "id": "WSLICFishKeepFish_100535349_185549741",
-            "title": "Do you want to keep fish in the dugout/pond/reservoir?",
+            "title": "Do you want to keep fish in the dugout/pond/reservoir? you may be required to obtain a Rainbow Trout Pond Permit or an Aquaculture Licence.",
             "options": [
                 {
-                    "value": "Yes",
-                    "label": "Yes",
-                    "selected": true
+                    "label": "Yes"
                 },
                 {
-                    "value": "No",
                     "label": "No"
                 },
                 {
-                    "value": "Unknown",
                     "label": "Unknown"
                 }
             ],
-            "required": false,
-            "tabindex": 114
-        },
-        "InstructionsWSLICKeepFish": {
-            "type": "string",
-            "id": "InstructionsWSLICKeepFish_100535349_185549741",
-            "title": "Fish Permit Notice",
-            "description": "Please note that a Rainbow Trout Pond Permit or an Aquaculture Licence might be required.",
-            "readOnly": true
-        },
-        "NumberOfDamsSection": {
-            "type": "section",
-            "id": "Text_10_100535349_185549741",
-            "title": "Number of Dams/Reservoirs",
-            "description": ""
+            "required": false
         },
         "WSLICMoreThanOneDamReservoir": {
             "type": "radio",
@@ -649,17 +402,13 @@
             "title": "Is there more than one dam/reservoir?",
             "options": [
                 {
-                    "value": "Yes",
-                    "label": "Yes",
-                    "selected": true
+                    "label": "Yes"
                 },
                 {
-                    "value": "No",
                     "label": "No"
                 }
             ],
-            "required": true,
-            "tabindex": 117
+            "required": true
         },
         "WSLICNumberOfDamsReservoirs": {
             "type": "select",
@@ -667,56 +416,37 @@
             "title": "Number of dams/reservoirs:",
             "options": [
                 {
-                    "value": "",
-                    "label": "(None)",
-                    "selected": true
+                    "label": "(None)"
                 },
                 {
-                    "value": "2",
                     "label": "2"
                 },
                 {
-                    "value": "3",
                     "label": "3"
                 },
                 {
-                    "value": "4",
                     "label": "4"
                 },
                 {
-                    "value": "5",
                     "label": "5"
                 },
                 {
-                    "value": "6",
                     "label": "6"
                 },
                 {
-                    "value": "7",
                     "label": "7"
                 },
                 {
-                    "value": "8",
                     "label": "8"
                 },
                 {
-                    "value": "9",
                     "label": "9"
                 },
                 {
-                    "value": "10",
                     "label": "10"
                 }
             ],
-            "required": true,
-            "tabindex": 118
-        },
-        "InstrWSLICMoreThanOneDamRes": {
-            "type": "string",
-            "id": "InstrWSLICMoreThanOneDamRes_100535349_185549741",
-            "title": "Multiple Dams Notice",
-            "description": "Please provide more details about other dams/reservoirs in the development plan.",
-            "readOnly": true
+            "required": true
         }
     }
 }

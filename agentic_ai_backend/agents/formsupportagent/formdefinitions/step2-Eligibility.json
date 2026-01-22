@@ -1,66 +1,65 @@
 {
-  "formName": "Water Licence Application",
-  "formDescription": "Step 2 - Eligibility",
-  "properties": {
-    "AnswerOnJob_eligible": {
-      "type": "radio",
-      "id": "AnswerOnJob_eligible",
-      "title": "Are you eligible to apply for a water licence?",
-      "description": "If user is eligible to apply for a water licence, select 'Yes' option, else select 'No' option.",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "Yes",
-      "required": true
-    },
-    "AnswerOnJob_housing": {
-      "type": "radio",
-      "id": "AnswerOnJob_housing",
-      "title": "Is this application in relation to increasing the supply of housing units within British Columbia?",
-      "description": "The purpose of this application must be specifically for development of houses or living units AND the development must increase the number of housing units on the land/property.",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No",
-      "required": true
-    },
-    "AnswerOnJob_north-coast-line": {
-      "type": "radio",
-      "id": "AnswerOnJob_north-coast-line",
-      "title": "Is this application related to the North Coast Transmission Line?",
-      "description": "The purpose of this application must be related with North Coast Transmission Line or pipeline project",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No",
-      "required": true
-    },
-    "AnswerOnJob_bc-hydro-sustainability": {
-      "type": "radio",
-      "id": "AnswerOnJob_bc-hydro-sustainability",
-      "title": "Is this application related to a BC Hydro Sustainment Project required for the maintenance and upgrading of existing electricity infrastructure, such as replacing aging equipment, improving transmission systems, or reinforcing substations to support long-term energy needs?",
-      "description": "The purpose of this application must be related with BC Hydro Sustainment Project",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No",
-      "required": true
-    },
-    "AnswerOnJob_clean-energy": {
-      "type": "radio",
-      "id": "AnswerOnJob_clean-energy",
-      "title": "Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024-present?",
-      "description": "The purpose of this application must be related with clean energy project",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No",
-      "required": true
+    "formName": "Water Licence Application",
+    "formDescription": "Step 2 - Eligibility",
+    "properties": {
+        "AnswerOnJob_eligible": {
+            "type": "radio",
+            "id": "AnswerOnJob_eligible",
+            "title": "Are you eligible to apply for a water licence?",
+            "description": "If user is eligible to apply for a water licence, select 'Yes' option, else select 'No' option.",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "Yes",
+            "required": true
+        },
+        "AnswerOnJob_housing": {
+            "type": "radio",
+            "id": "AnswerOnJob_housing",
+            "title": "Is this application in relation to increasing the supply of housing units within British Columbia?",
+            "description": "The purpose of this application must be specifically for development of houses or living units AND the development must increase the number of housing units on the land/property.",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
+        },
+        "AnswerOnJob_north-coast-line": {
+            "type": "radio",
+            "id": "AnswerOnJob_north-coast-line",
+            "title": "Is this application related to the North Coast Transmission Line?",
+            "description": "The purpose of this application must be related with North Coast Transmission Line or pipeline project",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
+        },
+        "AnswerOnJob_bc-hydro-sustainability": {
+            "type": "radio",
+            "id": "AnswerOnJob_bc-hydro-sustainability",
+            "title": "Is this application related to a BC Hydro Sustainment Project required for the maintenance and upgrading of existing electricity infrastructure, such as replacing aging equipment, improving transmission systems, or reinforcing substations to support long-term energy needs?",
+            "description": "The purpose of this application must be related with BC Hydro Sustainment Project",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
+        },
+        "AnswerOnJob_clean-energy": {
+            "type": "radio",
+            "id": "AnswerOnJob_clean-energy",
+            "title": "Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024-present?",
+            "description": "The purpose of this application must be related with clean energy project",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
+        }
     }
-  }
-}

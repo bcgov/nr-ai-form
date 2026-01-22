@@ -1,9 +1,11 @@
 {
     "formName": "Water Licence Application",
-    "formDescription": "Add a Purpose - Industrial - Livestock and Animal",
+    "formDescription": "Step 3 - Add Purpose - Consolidated (Domestic, Industrial, Irrigation, Livestock)",
     "properties": {
-        "PurposeUseSector_100534931_N0": {
-            "type": "string",
+        "PurposeUseSector": {
+            "type": "select",
+            "id": "PurposeUseSector_100534931_N0",
+            "title": "What purpose do you want to use the water for?",
             "enum": [
                 "(select)",
                 "Conservation",
@@ -18,14 +20,15 @@
                 "Storage Purpose",
                 "Waterworks"
             ],
-            "id": "PurposeUseSector_100534931_N0",
-            "title": "What purpose do you want to use the water for?",
             "required": true
         },
-        "PurposeUse_100536054_N0": {
-            "type": "string",
+        "PurposeUse": {
+            "type": "select",
+            "id": "PurposeUse_100536054_N0",
+            "title": "Please select one of the following sub-purposes",
             "enum": [
                 "(select)",
+                "Domestic",
                 "Camps & Public Facilities",
                 "Commercial Enterprise",
                 "Cooling",
@@ -36,6 +39,8 @@
                 "Heat Exchangers - Industrial & Commercial",
                 "Heat Exchangers - Residential",
                 "Ice & Snow making",
+                "Irrigation",
+                "Irrigation - Water conveyed by local provider for Irrigation purposes",
                 "Lawn, Fairway and Garden",
                 "Livestock and Animal",
                 "Miscellaneous Industrial",
@@ -47,50 +52,32 @@
                 "Waste Management",
                 "Well Drilling and Transportation or Utility Corridor Management"
             ],
-            "id": "PurposeUse_100536054_N0",
-            "title": "Please select one of the following sub-purposes",
             "required": true
         },
-        "Explanation_100534646_N0": {
-            "type": "string",
-            "id": "Explanation_100534646_N0",
-            "title": "Explanation",
-            "description": "The diversion and use of water to provide drinking water and sanitation requirements in the operation or maintenance of a kennel, an animal shelter or boarding facility, a ranch or feedlot operation, or a game farm, dairy farm, pig farm or poultry farm, or similar enterprise for rearing livestock. Water Sustainability Regulation, Schedule A section 1. Game farm has the same meaning as in the Game Farm Regulation [Animal Health Act]. Use the BC Agriculture Water Calculator to help you determine your required quantity.",
-            "readOnly": true
-        },
-        "WSLICUseOfWaterSeasonal_100536333_N0": {
-            "type": "string",
+        "InADesignatedArea": {
+            "type": "radio",
+            "id": "InADesignatedAreaListedAbove_100535465_N0",
+            "title": "Are you applying for a water licence to withdraw groundwater in a designated area?",
             "enum": [
                 "Yes",
                 "No"
             ],
+            "required": true
+        },
+        "SeasonalUse": {
+            "type": "radio",
             "id": "WSLICUseOfWaterSeasonal_100536333_N0",
             "title": "Do you want to use the water only seasonally?",
+            "enum": [
+                "Yes",
+                "No"
+            ],
             "required": true
         },
-        "WSLICUseOfWaterFromMonth_100536333_N0": {
-            "type": "string",
-            "enum": [
-                "(None)",
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December"
-            ],
+        "UseOfWaterFromMonth": {
+            "type": "select",
             "id": "WSLICUseOfWaterFromMonth_100536333_N0",
             "title": "During which months do you want to use the water?",
-            "required": true
-        },
-        "WSLICUseOfWaterToMonth_100536333_N0": {
-            "type": "string",
             "enum": [
                 "(None)",
                 "January",
@@ -106,28 +93,49 @@
                 "November",
                 "December"
             ],
+            "required": true
+        },
+        "UseOfWaterToMonth": {
+            "type": "select",
             "id": "WSLICUseOfWaterToMonth_100536333_N0",
             "title": "to",
+            "enum": [
+                "(None)",
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+            ],
             "required": true
         },
-        "Quantity_100534688_N0": {
-            "type": "string",
+        "TotalAnnualQuantity": {
+            "type": "number",
             "id": "Quantity_100534688_N0",
-            "title": "Total Annual Quantity:",
-            "maxLength": 17,
-            "units": "m³/year",
-            "required": true
+            "title": "Total Annual Quantity",
+            "required": true,
+            "units": "m3/day",
+            "maxLength": 17
         },
-        "ConvTool_100534688_N0": {
-            "type": "button",
-            "id": "ConvTool_100534688_N0",
-            "title": "Unit Conversion Tool",
-            "action": "https://portal.nrs.gov.bc.ca/web/client/-/unit-converter",
-            "target": "_blank",
-            "tabindex": 42
+        "IrrigationArea": {
+            "type": "number",
+            "id": "Irrigation03AArea_100534394_N0",
+            "title": "Area to be irrigated:",
+            "units": "ha",
+            "maxLength": 16,
+            "required": false
         },
-        "TypeOfStock_100536098_N0": {
-            "type": "string",
+        "TypeOfStock": {
+            "type": "select",
+            "id": "TypeOfStock_100536098_N0",
+            "title": "Type of Stock:",
             "enum": [
                 "(None)",
                 "Beef",
@@ -141,32 +149,38 @@
                 "Elk, Donkey",
                 "Other/Mixture"
             ],
-            "id": "TypeOfStock_100536098_N0",
-            "title": "Type of Stock:",
-            "required": true
+            "required": false
         },
-        "NumberOfStock_100536098_N0": {
-            "type": "string",
+        "NumberOfStock": {
+            "type": "number",
             "id": "NumberOfStock_100536098_N0",
             "title": "Quantity of Stock:",
             "maxLength": 6,
-            "required": true
-        },
-        "MaximumRateOfDiversion_101016710_N0": {
-            "type": "string",
-            "id": "MaximumRateOfDiversion_101016710_N0",
-            "title": "Maximum Rate of Diversion:",
-            "description": "The maximum rate you will divert the water measured in m3/sec.",
-            "maxLength": 16,
-            "units": "m³/sec",
             "required": false
         },
-        "Comments_100848882_N0": {
-            "type": "string",
+        "NumberOfDwellings": {
+            "type": "number",
+            "id": "NumberOfDwellings_100536021_N0",
+            "title": "Number of dwellings:",
+            "required": false,
+            "maxLength": 6,
+            "min": 1,
+            "max": 999999
+        },
+        "MaximumRateOfDiversion": {
+            "type": "number",
+            "id": "MaximumRateOfDiversion_101016710_N0",
+            "title": "Maximum Rate of Diversion (m3/sec)",
+            "description": "The maximum rate you will divert the water measured in m3/sec.",
+            "required": false,
+            "maxLength": 16
+        },
+        "Comments": {
+            "type": "textarea",
             "id": "Comments_100848882_N0",
             "title": "Comments",
-            "maxLength": 4000,
-            "required": false
+            "required": false,
+            "maxLength": 4000
         }
     }
 }
