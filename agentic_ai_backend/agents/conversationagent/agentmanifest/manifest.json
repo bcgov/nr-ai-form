@@ -3,7 +3,7 @@
     "identity": {
         "name": "ConversationAgent",
         "author": "BC Government",
-        "description": "A conversation agent for BC Government's Water Permit Application that uses Azure AI Search tool.",
+        "description": "A conversation agent for BC Government's Permit Application that uses Azure AI Search tool.",
         "avatarUrl": "",
         "version": "1.0.0",
         "license": "MIT"
@@ -11,18 +11,19 @@
     "capabilities": [
         {
             "id": "conversation_skill",
-            "name": "BC Water Permit Conversation",
-            "description": "Answers questions about BC Government's Water Permit Application using Azure AI Search.",
+            "name": "BC Government Permit Conversation",
+            "description": "Answers questions about BC Government's Permit Application using Azure AI Search.",
             "tags": [
                 "conversation",
-                "water-permit",
+                "permit",
                 "search"
             ],
             "input": {
                 "type": "text",
                 "examples": [
                     "What is the process for applying for a BC water permit?",
-                    "Do I need to login to apply for a BC water permit?"
+                    "Do I need to login to apply for a BC water permit?",
+                    "How to get a fishing license?"
                 ]
             },
             "output": {
