@@ -28,7 +28,7 @@ load_dotenv()
 # Initialize FastAPI app
 app = FastAPI(
     title="Form Support Agent A2A Server",
-    description="Agent-to-Agent API Server for BC Government's Water Permit Application Form Support",
+    description="Agent-to-Agent API Server for BC Government's Permit Application Form Support Agent",
     version="1.0.0"
 )
 
@@ -158,7 +158,7 @@ async def health_check():
 async def root():
     """Root endpoint with API information"""
     return {
-        "name": "BC Water Permit Form Support Agent A2A Server",
+        "name": "BC Government Permit Form Support Agent A2A Server",
         "version": "1.0.0",
         "endpoints": {
             "manifest": "/.well-known/agent.json",

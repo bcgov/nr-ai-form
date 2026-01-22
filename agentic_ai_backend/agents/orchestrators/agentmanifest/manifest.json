@@ -3,7 +3,7 @@
     "identity": {
         "name": "OrchestratorAgent",
         "author": "BC Government",
-        "description": "Orchestrator Agent that manages interaction between Conversation Agent and Form Support Agent for the Water Permit Application.",
+        "description": "Orchestrator Agent that manages interaction between Conversation Agent and Form Support Agent for the Permit Applications.",
         "avatarUrl": "",
         "version": "1.0.0",
         "license": "MIT"
@@ -11,17 +11,17 @@
     "capabilities": [
         {
             "id": "orchestration_skill",
-            "name": "Water Permit Orchestration",
+            "name": "BC Permit Support Agent Orchestration",
             "description": "Orchestrates user queries by routing them to appropriate agents (Conversation or Form Support) and aggregating responses.",
             "tags": [
                 "orchestrator",
-                "water-permit",
+                "permit",
                 "workflow"
             ],
             "input": {
                 "type": "text",
                 "examples": [
-                    "What is the water permit application process?",
+                    "What is the permit application process?",
                     "I need help with step 2 of the form."
                 ]
             },
