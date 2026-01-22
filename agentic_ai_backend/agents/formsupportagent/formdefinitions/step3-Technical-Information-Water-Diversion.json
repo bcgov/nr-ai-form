@@ -70,9 +70,7 @@
             "actions": {
                 "edit": {
                     "type": "popup",
-                    "url": "editrelatedobject.aspx?PossePresentation=Default&PosseObjectId={objectId}&SourceOfDiversion=Both&PostIssue11307=Y",
-                    "width": 685,
-                    "height": 800
+                    "url": "editrelatedobject.aspx?PossePresentation=Default&PosseObjectId={objectId}&SourceOfDiversion=Both&PostIssue11307=Y"
                 },
                 "delete": {
                     "type": "confirm",

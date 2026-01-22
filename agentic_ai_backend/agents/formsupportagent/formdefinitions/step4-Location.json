@@ -59,13 +59,6 @@
                 }
             ]
         },
-        "LandDetailsSection": {
-            "type": "section",
-            "id": "Text_3_100374394_185549741",
-            "title": "Land Details Where Water Will Be Used",
-            "description": "List all parcels of land where the water will be used. Click \"Add Land Information\" button to add each parcel of land.",
-            "help": "Text_1_100374394_185549741"
-        },
         "LandAffectedGrid": {
             "type": "grid",
             "id": "LandAffected_100374394_185549741",
@@ -91,16 +84,10 @@
             "id": "AddLandInfo_100374394_185549741",
             "title": "Add Land Information"
         },
-        "OtherLandsAffectedSection": {
-            "type": "section",
-            "id": "Text_1_100826470_185549741",
-            "title": "Other Lands Physically Affected",
-            "description": "Do your works physically affect another private landowner's property, e.g. is a pipe running over your neighbour's land to divert the water to your land? If yes, you will need to obtain their permission. If the land is owned by a private landowner a prefilled form that can be signed by the other landowner will be provided at the Signature step later in the application process. If the affected property is Crown land, do not choose Yes on this step. The permission for Crown land option is captured in a previous step."
-        },
         "OtherLandownersAffected": {
             "type": "radio",
             "id": "OtherLandownersAffected_100826470_185549741",
-            "title": "Are there other lands that are physically affected by your works?",
+            "title": "Do your works physically affect another private landowner's property, e.g. is a pipe running over your neighbour's land to divert the water to your land? If yes, you will need to obtain their permission. If the land is owned by a private landowner a prefilled form that can be signed by the other landowner will be provided at the Signature step later in the application process. If the affected property is Crown land, do not choose Yes on this step. Are there other lands that are physically affected by your works?",
             "enum": [
                 "Yes",
                 "No"
