@@ -18,7 +18,7 @@ class ConversationAgent:
     def __init__(self,endpoint, api_key):        
         self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key).create_agent(
             instructions=f"""
-                You are an assistant for BC Government's Water Permit Application. Use the azure_ai_search tool to answer user queries.                
+                You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.                
                 Strict: Please do not return any other text other than the search results from the azure_ai_search tool.
             """,
             tools=azure_ai_search,
