@@ -105,7 +105,7 @@ async def orchestrate_a2a(query: str,
 
 if __name__ == "__main__":
     # Get query from command line or use default
-    query = sys.argv[-1] if len(sys.argv) > 1 else "What is the water permit application process?"
+    query = sys.argv[-1] if len(sys.argv) > 1 else "What is the BC government permit application process for Water License Application?"
     
     # Get A2A URLs from environment or use defaults
     conversation_url = os.getenv("CONVERSATION_AGENT_A2A_URL", "http://localhost:8000")
