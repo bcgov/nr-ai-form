@@ -2,28 +2,12 @@
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Dam/Reservoir - Add Organization - Add Mailing Address",
     "properties": {
-        "CanadaPostInformationText": {
-            "type": "string",
-            "id": "CanadaPostInformationText_101178588_N0",
-            "title": "Address Entry Tips",
-            "description": "Tips on entering an address: Click in ?Line 1? to change the Country using the drop-down menu. When you begin typing into a field, AddressComplete will auto-populate recommended addresses. You may select an address or continue to manually enter an address. For USA residents, when manually entering in your address, you must provide your 9-digit ZIP Code Found here: https://tools.usps.com/zip-code-lookup.htm. Manual entries must spell out the province/state; abbreviations are not accepted.",
-            "readOnly": true
-        },
-        "AsteriskLabel": {
-            "type": "string",
-            "id": "AsteriskLabel_101178588_N0",
-            "title": "Required Field Indicator",
-            "description": "An asterisk indicates a required field.",
-            "readOnly": true
-        },
         "Line1": {
             "type": "string",
             "id": "Line1",
             "title": "Line 1:",
             "maxLength": 4000,
-            "required": true,
-            "tabindex": 4,
-            "autocomplete": "off"
+            "required": true
         },
         "Line2": {
             "type": "string",
@@ -31,9 +15,7 @@
             "title": "Line 2:",
             "description": "additional address information",
             "maxLength": 60,
-            "required": false,
-            "tabindex": 5,
-            "autocomplete": "off"
+            "required": false
         },
         "CityorTown": {
             "type": "string",
@@ -41,18 +23,14 @@
             "title": "Municipality:",
             "description": "the city or town of the address",
             "maxLength": 100,
-            "required": true,
-            "tabindex": 7,
-            "autocomplete": "off"
+            "required": true
         },
         "Province": {
             "type": "string",
             "id": "Province",
             "title": "Province / State:",
             "maxLength": 4000,
-            "required": false,
-            "tabindex": 8,
-            "autocomplete": "off"
+            "required": false
         },
         "Country": {
             "type": "select",
@@ -60,18 +38,14 @@
             "title": "Country:",
             "options": [
                 {
-                    "value": "",
                     "label": "(None)"
                 },
                 {
-                    "value": "Canada",
                     "label": "Canada",
                     "selected": true
                 }
             ],
-            "required": true,
-            "tabindex": 10,
-            "note": "Full country list with 250+ countries available - abbreviated for brevity. See complete list in HTML source."
+            "required": true
         },
         "PostalCode": {
             "type": "string",
@@ -79,9 +53,7 @@
             "title": "Postal / Zip Code:",
             "description": "the postal or zip code of the address",
             "maxLength": 10,
-            "required": false,
-            "tabindex": 12,
-            "autocomplete": "off"
+            "required": false
         }
     }
 }

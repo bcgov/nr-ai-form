@@ -12,7 +12,6 @@
                 "Other"
             ],
             "required": true,
-            "tabindex": 1,
             "default": "Other"
         },
         "LandOwnerAffected": {
@@ -20,7 +19,6 @@
             "id": "LandOwnerAffected_100802011_N0",
             "title": "Name of owner of land that is affected by your works:",
             "required": true,
-            "tabindex": 7,
             "maxLength": 4000,
             "help": "Text_2_100802011_N0"
         },
@@ -29,7 +27,6 @@
             "id": "LocationDescription_100802149_N0",
             "title": "Location description of land (e.g. address, legal description, metes and bounds or other):",
             "required": true,
-            "tabindex": 10,
             "rows": 3,
             "maxLength": 4000,
             "help": "Text_2_100802149_N0"

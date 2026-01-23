@@ -8,22 +8,21 @@
             "title": "Name of source:",
             "description": "The name of the source of surface water",
             "maxLength": 4000,
-            "required": true,
-            "tabindex": 2
+            "required": true
         },
         "NameUnknown": {
             "type": "boolean",
             "id": "NameUnknown_100827062_N0",
             "title": "Name unknown",
-            "description": "Whether the name of the source of surface water is unknown",
-            "tabindex": 3
+            "description": "Whether the name of the source of surface water is unknown"
         },
-        "StreamNoticeInfo": {
+        "DescribeWaterSource": {
             "type": "string",
-            "id": "Text_3_100827062_N0",
-            "title": "Stream Reserves and Restrictions Notice",
-            "description": "Please note that there are notations and reserves on certain streams that can affect applications on those water sources. More information and lists of streams with reserves or restrictions can be found on the Water Stewardship website.",
-            "readOnly": true
+            "id": "DescribeWaterSource_100826661_N0",
+            "title": "Describe the characteristics of source (source of water, seasonal or year round, quantity or estimate of flow, etc.):",
+            "description": "The characteristics of the source of surface water",
+            "maxLength": 4000,
+            "required": false
         },
         "SourceFlowsInto": {
             "type": "string",
@@ -31,8 +30,7 @@
             "title": "Source flows into:",
             "description": "The body of water the source flows into",
             "maxLength": 4000,
-            "required": true,
-            "tabindex": 13
+            "required": true
         },
         "DescribeDiversionPointLocation": {
             "type": "string",
@@ -40,8 +38,7 @@
             "title": "Describe the location of the proposed point of diversion or storage on stream:",
             "description": "A description of the diversion point",
             "maxLength": 4000,
-            "required": false,
-            "tabindex": 15
+            "required": false
         },
         "LandmarkReferences": {
             "type": "string",
@@ -49,8 +46,7 @@
             "title": "Landmark references:",
             "description": "How this body of water is related to nearby landmarks",
             "maxLength": 4000,
-            "required": false,
-            "tabindex": 17
+            "required": false
         },
         "EstimatedWidthOfSourceAtDivers": {
             "type": "number",
@@ -59,8 +55,7 @@
             "description": "The estimated width of the source in metres at the diversion point",
             "unit": "metres",
             "maxLength": 16,
-            "required": false,
-            "tabindex": 19
+            "required": false
         },
         "EstimatedDepthOfSourceAtDivers": {
             "type": "number",
@@ -69,8 +64,7 @@
             "description": "The estimated depth of the source in metres at the diversion point",
             "unit": "metres",
             "maxLength": 16,
-            "required": false,
-            "tabindex": 21
+            "required": false
         }
     }
 }

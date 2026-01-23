@@ -10,7 +10,7 @@ Contact and Address fields:
 
 # Task Instructions
 1. **Identification**: Specific to whether the user is an **Individual** or an **Organization**.
-2. **Address Verification**: Map street, city, province, and postal code to the appropriate mailing address fields.
+2. **Address Verification**: Map street (Line 1), unit/suite/apartment (Line 2), city, province, and postal code to the appropriate mailing address fields.
 3. give me all possible properties
 
 # Output Format & Rules

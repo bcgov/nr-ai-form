@@ -70,9 +70,7 @@
             "actions": {
                 "edit": {
                     "type": "popup",
-                    "url": "editrelatedobject.aspx?PossePresentation=Default&PosseObjectId={objectId}&SourceOfDiversion=Both&PostIssue11307=Y",
-                    "width": 685,
-                    "height": 800
+                    "url": "editrelatedobject.aspx?PossePresentation=Default&PosseObjectId={objectId}&SourceOfDiversion=Both&PostIssue11307=Y"
                 },
                 "delete": {
                     "type": "confirm",
@@ -83,9 +81,7 @@
         "AddPurposeRT": {
             "type": "button",
             "id": "AddPurposeRT_100536005_185549741",
-            "title": "Add Purpose",
-            "action": "PossePopup('AddPurposeRT_100536005_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=WaterPurpose&PossePresentation=Default&PosseObjectDef=o_VF_WaterPurpose&SourceOfDiversion=Both&PostIssue11307=Y', 685, 800, 'AddPurposeRT_100536005_185549741')",
-            "tabindex": 15
+            "title": "Add Purpose"
         }
     }
 }

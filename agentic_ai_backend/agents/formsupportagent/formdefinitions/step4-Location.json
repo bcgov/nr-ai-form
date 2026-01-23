@@ -59,13 +59,6 @@
                 }
             ]
         },
-        "LandDetailsSection": {
-            "type": "section",
-            "id": "Text_3_100374394_185549741",
-            "title": "Land Details Where Water Will Be Used",
-            "description": "List all parcels of land where the water will be used. Click \"Add Land Information\" button to add each parcel of land.",
-            "help": "Text_1_100374394_185549741"
-        },
         "LandAffectedGrid": {
             "type": "grid",
             "id": "LandAffected_100374394_185549741",
@@ -89,26 +82,17 @@
         "AddLandInformation_Used": {
             "type": "button",
             "id": "AddLandInfo_100374394_185549741",
-            "title": "Add Land Information",
-            "tabindex": 5,
-            "action": "PossePopup('AddLandInfo_100374394_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=VFAppLandInfoFromApp&PossePresentation=Public&PosseObjectDef=o_VF_LandInformation&None', 750, 600)"
-        },
-        "OtherLandsAffectedSection": {
-            "type": "section",
-            "id": "Text_1_100826470_185549741",
-            "title": "Other Lands Physically Affected",
-            "description": "Do your works physically affect another private landowner's property, e.g. is a pipe running over your neighbour's land to divert the water to your land? If yes, you will need to obtain their permission. If the land is owned by a private landowner a prefilled form that can be signed by the other landowner will be provided at the Signature step later in the application process. If the affected property is Crown land, do not choose Yes on this step. The permission for Crown land option is captured in a previous step."
+            "title": "Add Land Information"
         },
         "OtherLandownersAffected": {
             "type": "radio",
             "id": "OtherLandownersAffected_100826470_185549741",
-            "title": "Are there other lands that are physically affected by your works?",
+            "title": "Do your works physically affect another private landowner's property, e.g. is a pipe running over your neighbour's land to divert the water to your land? If yes, you will need to obtain their permission. If the land is owned by a private landowner a prefilled form that can be signed by the other landowner will be provided at the Signature step later in the application process. If the affected property is Crown land, do not choose Yes on this step. Are there other lands that are physically affected by your works?",
             "enum": [
                 "Yes",
                 "No"
             ],
             "default": "Yes",
-            "tabindex": 69,
             "help": "Text_4_100826470_185549741"
         },
         "OtherLandsAffectedInstructions": {
@@ -141,9 +125,7 @@
         "AddLandInformation_Affected": {
             "type": "button",
             "id": "AddLandInfo_100827221_185549741",
-            "title": "Add Land Information",
-            "tabindex": 71,
-            "action": "PossePopup('AddLandInfo_100827221_185549741', 'editrelatedobject.aspx?PosseFromObjectId=185549741&PosseEndPoint=VFLandInfo&PossePresentation=Public&PosseObjectDef=o_VF_LandInformation&None', 750, 600)"
+            "title": "Add Land Information"
         },
         "DrawingsSection": {
             "type": "section",
@@ -163,8 +145,7 @@
             "type": "boolean",
             "id": "IsUsingGeomarkURLs_100459942_185549741",
             "title": "I have already built my map(s) using the GeoMark service",
-            "default": true,
-            "tabindex": 90
+            "default": true
         },
         "GeomarkSection": {
             "type": "section",
@@ -191,16 +172,13 @@
         "AddGeoMarkURL": {
             "type": "button",
             "id": "AddGeoMarkURL_100459718_185549741",
-            "title": "Add GeoMark URL",
-            "tabindex": 95,
-            "action": "PosseProcessRoundTripClicked('', 100459718, 'AddGeoMarkURL', 'None', '185549741', '', '_self')"
+            "title": "Add GeoMark URL"
         },
         "IsUsingMapFiles": {
             "type": "boolean",
             "id": "IsUsingMapFiles_100460016_185549741",
             "title": "I have map(s) saved to my computer and wish to provide these with my application",
-            "default": true,
-            "tabindex": 100
+            "default": true
         },
         "MapFilesSection": {
             "type": "section",
@@ -227,16 +205,13 @@
         "UploadMapFile": {
             "type": "button",
             "id": "UplMapFile_100459889_185549741",
-            "title": "Upload File",
-            "tabindex": 105,
-            "action": "PossePopup('UplMapFile_100459889_185549741', 'UploadMulti.aspx?PosseObjectId=185549741&UploadEndpoint=MapFileDoc&UploadObjectDef=d_WebDocument&PosseObjectDefId=2804&PosseCreatedBy=vFCBC%2C%20Web%20Guest&PosseAutoSave=None', 600, 500)"
+            "title": "Upload File"
         },
         "IsUsingSpatialFiles": {
             "type": "boolean",
             "id": "IsUsingSpatialFiles_100459534_185549741",
             "title": "I have created my map(s) using my own Geographic Information System (GIS)",
-            "default": true,
-            "tabindex": 109
+            "default": true
         },
         "SpatialFilesSection": {
             "type": "section",
@@ -263,9 +238,7 @@
         "UploadSpatialFile": {
             "type": "button",
             "id": "UplSpatialFile_100459312_185549741",
-            "title": "Upload File",
-            "tabindex": 114,
-            "action": "PossePopup('UplSpatialFile_100459312_185549741', 'SpatialFileUpload.aspx?PosseObjectId=185549741&UploadEndpoint=SpatialFileDoc&UploadObjectDef=d_SpatialFile&PosseObjectDefId=100378026&PosseCreatedBy=vFCBC%2C%20Web%20Guest&PosseAutoSave=Y', 600, 500)"
+            "title": "Upload File"
         }
     }
 }

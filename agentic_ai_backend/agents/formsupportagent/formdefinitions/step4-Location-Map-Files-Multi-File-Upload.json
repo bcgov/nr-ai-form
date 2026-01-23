@@ -39,13 +39,11 @@
             "buttons": {
                 "addFiles": {
                     "id": "uploader_browse",
-                    "title": "Add files",
-                    "tabindex": 1000000
+                    "title": "Add files"
                 },
                 "startUpload": {
                     "id": "uploader_start",
-                    "title": "Start upload",
-                    "tabindex": 1000001
+                    "title": "Start upload"
                 }
             }
         }

@@ -2,35 +2,26 @@
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Dam/Reservoir - Add Individual",
     "properties": {
-        "LegalNameSection": {
-            "type": "section",
-            "id": "Text_1_100376607_N0",
-            "title": "Legal Name",
-            "description": ""
-        },
         "LastName": {
             "type": "string",
             "id": "LastName_100376607_N0",
             "title": "Last Name:",
             "maxLength": 60,
-            "required": true,
-            "tabindex": 2
+            "required": true
         },
         "FirstName": {
             "type": "string",
             "id": "FirstName_100376607_N0",
             "title": "First Name:",
             "maxLength": 60,
-            "required": true,
-            "tabindex": 4
+            "required": true
         },
         "MiddleName": {
             "type": "string",
             "id": "MiddleName_100376607_N0",
             "title": "Middle Name:",
             "maxLength": 60,
-            "required": false,
-            "tabindex": 5
+            "required": false
         },
         "PhoneNumber": {
             "type": "phone",
@@ -41,22 +32,19 @@
                     "id": "PhoneNumber_100376607_N0_1",
                     "name": "area",
                     "maxLength": 3,
-                    "size": 3,
-                    "tabindex": 7
+                    "size": 3
                 },
                 {
                     "id": "PhoneNumber_100376607_N0_2",
                     "name": "first",
                     "maxLength": 3,
-                    "size": 3,
-                    "tabindex": 7
+                    "size": 3
                 },
                 {
                     "id": "PhoneNumber_100376607_N0_3",
                     "name": "last",
                     "maxLength": 4,
-                    "size": 4,
-                    "tabindex": 7
+                    "size": 4
                 }
             ],
             "format": "(###) ###-####",
@@ -71,22 +59,19 @@
                     "id": "DaytimePhoneNumber_100376607_N0_1",
                     "name": "area",
                     "maxLength": 3,
-                    "size": 3,
-                    "tabindex": 10
+                    "size": 3
                 },
                 {
                     "id": "DaytimePhoneNumber_100376607_N0_2",
                     "name": "first",
                     "maxLength": 3,
-                    "size": 3,
-                    "tabindex": 10
+                    "size": 3
                 },
                 {
                     "id": "DaytimePhoneNumber_100376607_N0_3",
                     "name": "last",
                     "maxLength": 4,
-                    "size": 4,
-                    "tabindex": 10
+                    "size": 4
                 }
             ],
             "format": "(###) ###-####",
@@ -98,8 +83,7 @@
             "title": "Ext:",
             "maxLength": 4,
             "size": 5,
-            "required": false,
-            "tabindex": 11
+            "required": false
         },
         "FaxNumber": {
             "type": "phone",
@@ -110,22 +94,19 @@
                     "id": "FaxNumber_100376607_N0_1",
                     "name": "area",
                     "maxLength": 3,
-                    "size": 3,
-                    "tabindex": 12
+                    "size": 3
                 },
                 {
                     "id": "FaxNumber_100376607_N0_2",
                     "name": "first",
                     "maxLength": 3,
-                    "size": 3,
-                    "tabindex": 12
+                    "size": 3
                 },
                 {
                     "id": "FaxNumber_100376607_N0_3",
                     "name": "last",
                     "maxLength": 4,
-                    "size": 4,
-                    "tabindex": 12
+                    "size": 4
                 }
             ],
             "format": "(###) ###-####",
@@ -136,46 +117,12 @@
             "id": "Email_100376607_N0",
             "title": "Email:",
             "maxLength": 60,
-            "required": false,
-            "tabindex": 14
+            "required": false
         },
-        "MailingAddressSection": {
-            "type": "section",
-            "id": "Text_10_100376607_N0",
-            "title": "Mailing Address",
-            "description": "",
-            "required": true
-        },
-        "AddressGrid": {
-            "type": "grid",
-            "id": "Address_100376607_N0",
-            "title": "Mailing Address",
-            "columns": [
-                {
-                    "name": "Address",
-                    "type": "string"
-                },
-                {
-                    "name": "Delete",
-                    "type": "action"
-                }
-            ],
-            "actions": [
-                {
-                    "type": "edit",
-                    "id": "Link_1_100374044_100377730",
-                    "title": "Edit Address",
-                    "action": "PossePopup",
-                    "tabindex": 15
-                },
-                {
-                    "type": "delete",
-                    "id": "Delete_1_100374044_100377730",
-                    "title": "Delete this line",
-                    "action": "PosseDelete",
-                    "tabindex": 15
-                }
-            ]
+        "AddAddress_RT": {
+            "type": "button",
+            "id": "AddAddress_RT_100375683_N0",
+            "title": "Add Address"
         }
     }
 }

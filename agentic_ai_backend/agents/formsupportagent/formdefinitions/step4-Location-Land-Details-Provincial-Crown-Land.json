@@ -12,7 +12,6 @@
                 "Other"
             ],
             "required": true,
-            "tabindex": 1,
             "default": "Provincial Crown Land"
         },
         "LegalDescription": {
@@ -20,7 +19,6 @@
             "id": "LegalDescription_100382209_N0",
             "title": "Legal Description:",
             "required": false,
-            "tabindex": 15,
             "maxLength": 4000,
             "rows": 3,
             "help": "Text_2_100382209_N0"
@@ -30,7 +28,6 @@
             "id": "MetesAndBounds_100375576_N0",
             "title": "Metes and Bounds (description of unsurveyed land):",
             "required": false,
-            "tabindex": 30,
             "rows": 3,
             "maxLength": 4000,
             "help": "Text_2_100375576_N0"
@@ -40,7 +37,6 @@
             "id": "MineralTenureNumber_100559844_N0",
             "title": "Mineral Tenure Number:",
             "required": false,
-            "tabindex": 33,
             "maxLength": 20,
             "help": "Text_2_100559844_N0"
         },
@@ -49,7 +45,6 @@
             "id": "LandTenureNumber_100559440_N0",
             "title": "Lands File Number:",
             "required": false,
-            "tabindex": 36,
             "maxLength": 20,
             "help": "Text_2_100559440_N0"
         },
@@ -58,7 +53,6 @@
             "id": "OtherPermits_100560087_N0",
             "title": "Other Permits (Provide Type & Number):",
             "required": false,
-            "tabindex": 39,
             "maxLength": 200,
             "help": "Text_2_100560087_N0"
         }
