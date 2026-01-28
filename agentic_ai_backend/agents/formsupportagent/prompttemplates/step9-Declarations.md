@@ -18,7 +18,10 @@ I understand that the submission of this water licence application does not prov
 The application may be subject to further requirements under the federal Fisheries Act. Please refer to Fisheries and Oceans Canada?s ?Projects Near Water? webpage (http://www.dfo-mpo.gc.ca/pnw-ppe/index-eng.html) for information on how to ensure your project complies with the Fisheries Act.
 Once you click 'Next' the application will be locked down and you will NOT be able to edit it any more.
 
-
+When the selects the checkbox agreeing to the declarations and the user clicks the Next button, the application will be locked down and they will NOT be able to edit it any more.
 
 # Output Format & Rules
-- There is no output here other than answering whatever question the user may have about the declarations.
+- If the user has not agreed to the declarations, you can recommend that they agree to the declarations and click the Next button. 
+- If the user has agreed to the declarations, you can recommend that they click the Next button. 
+- If the user has questions about the declarations, answer those questions.
+
