@@ -70,25 +70,25 @@
             "required": true,
             "enum": [
                 "",
-                "6579188",
-                "6579189",
-                "6579190",
-                "6579191",
-                "6579192",
-                "6579193",
-                "6579194",
-                "6579196"
+                "Cranbrook",
+                "Fort St. John",
+                "Kamloops",
+                "Nanaimo",
+                "Prince George",
+                "Smithers",
+                "Surrey",
+                "Williams Lake"
             ],
             "options": {
-                "": "(None)",
-                "6579188": "Cranbrook",
-                "6579189": "Fort St. John",
-                "6579190": "Kamloops",
-                "6579191": "Nanaimo",
-                "6579192": "Prince George",
-                "6579193": "Smithers",
-                "6579194": "Surrey",
-                "6579196": "Williams Lake"
+                "(None)": "",
+                "Cranbrook": "6579188",
+                "Fort St. John": "6579189",
+                "Kamloops": "6579190",
+                "Nanaimo": "6579191",
+                "Prince George": "6579192",
+                "Smithers": "6579193",
+                "Surrey": "6579194",
+                "Williams Lake": "6579196"
             }
         }
     }

@@ -20,7 +20,9 @@ c) Pay in person at a FrontCounter BC office
    - When they select pay at a FrontCounter BC office, they see the following message:
 Please download and print off the remittance form on the next page. Be sure to bring your remittance form with you to any FrontCounter BC locations when making your payment. Please note: you are also welcome to mail in your cheque or money order along with your remittance form to any FrontCounter BC location. Be sure to make your cheque or money order payable to the Minister of Finance.
 3. **Project Information**: Is this application for an activity or project which requires more than one natural resource authorization from the Province of BC?
-4. **Office**: Select the office that the user is submitting their application to.
+4. **Office**: Select the office that the user is submitting their application to. 
+  - If the user specifies an office they want to, use the option value that matches the office name.
+
 
 # Output Format & Rules
 - Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.
