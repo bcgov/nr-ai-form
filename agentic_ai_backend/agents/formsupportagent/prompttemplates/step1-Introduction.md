@@ -17,6 +17,14 @@ Available fields for this step:
 {form_context_str}
 
 # Output Format & Rules
-- Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.
-- `SuggestedValue` should be the button id as 'ApplyWithYourBCeID' or 'ApplyWithoutBCeID', as based on the user message sensitivity.
-
+- Return a JSON object with: `id`, `type`, `description`, and `suggestedvalue`.
+- For e.g. ```  
+            {
+            "id": "ApplyWithoutBCeID",
+            "type": "button",
+            "title": "Apply without BCeID",
+            "description": "Apply without BCeID",
+            "suggestedvalue": "ApplyWithoutBCeID"
+            }
+            ```
+- `suggestedvalue` should be the button id as 'ApplyWithYourBCeID' or 'ApplyWithoutBCeID', as based on the user message sensitivity.
