@@ -62,9 +62,13 @@ async def orchestrate_a2a(query: str,
     builder.add_fan_in_edges(executors, aggregator)
     workflow = builder.build()
 
+    agent = workflow.as_agent(
+        "Orchestrator Agent"
+    )
+
     # Run the workflow
     output_evt: WorkflowOutputEvent | None = None
-    async for event in workflow.run_stream(query):
+    async for event in agent.run_stream(query):
         if isinstance(event, WorkflowOutputEvent):
             output_evt = event
 
