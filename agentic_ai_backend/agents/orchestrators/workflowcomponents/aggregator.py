@@ -86,12 +86,15 @@ class Aggregator(Executor):
                 
                 final_text = completion.choices[0].message.content
                 
-
+                
                 aggregated_result = {
                     "source": "Aggregator",
                     "response": final_text,
                     "original_results": results 
                 }
+
+                print("Aggregated Result: ", aggregated_result)
+                
                 
                 await ctx.yield_output([aggregated_result])
                 return
@@ -99,5 +102,8 @@ class Aggregator(Executor):
             except Exception as e:
                 print(f"Error in Aggregator LLM call: {e}")
                 # Fallback to returning original results if LLM fails/errors
+        else:
+            print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, or DEPLOYMENT). Returning raw results.")
         
+        print("Aggregator: Yielding raw results.")
         await ctx.yield_output(results)
