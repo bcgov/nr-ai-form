@@ -74,44 +74,14 @@ async def orchestrate_a2a(query: str,
     )
 
     # Initialize Thread
-    thread = None
+    
     cosmos_service = None
     thread_id = session_id or str(uuid.uuid4())
 
-    try:
-        # Initialize Cosmos DB Service
-        connection_string = os.getenv("AZURE_COSMOS_CONNECTION_STRING")
-        database_name = os.getenv("AZURE_COSMOS_DB_DATABASE_NAME", "AgentMemoryDB")
-        container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME", "Conversations")
-        cosmos_endpoint = os.getenv("AZURE_COSMOS_DB_ENDPOINT")
-        cosmos_api_key = os.getenv("AZURE_COSMOS_DB_KEY")
-        environment = os.getenv("CSSAI_EXECUTION_ENV","localhost")
-        
-        if connection_string:
-            cosmos_service = CosmosDBService(connection_string=None, endpoint=cosmos_endpoint, cosmosapi_key=cosmos_api_key, database_name=database_name, environment=environment)
-            
-            # Try to load existing thread
-            if session_id:
-                print(f"Loading thread {session_id} from Cosmos DB...")
-                thread_state = await cosmos_service.load_item(container_name, session_id, session_id)
-                if thread_state:
-                    print("Thread state found. Resuming conversation.")
-                    thread = await agent.deserialize_thread(thread_state)
-                else:
-                    print("Thread state not found. Creating new thread.")
-        else:
-            print("Warning: AZURE_COSMOS_CONNECTION_STRING not set. Thread persistence disabled.")
-
-    except Exception as e:
-        print(f"Error initializing Cosmos DB or loading thread: {e}")
-
-    # Create new thread if not loaded
-    if thread is None:
-        print("Creating new thread.")
-        thread = agent.get_new_thread()
-
     # Run the workflow
     accumulated_text = ""
+    thread, cosmos_service = await get_thread_state(thread_id, agent)
+
     async for event in agent.run_stream(query, thread=thread):
         if hasattr(event, "text"):
             accumulated_text += event.text
@@ -135,6 +105,7 @@ async def orchestrate_a2a(query: str,
                 "id": thread_id,
                 "thread_state": state
             }
+            container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME", "Conversations")
             await cosmos_service.save_item(container_name, item)
             print("Thread state saved.")
         except Exception as e:
@@ -143,7 +114,7 @@ async def orchestrate_a2a(query: str,
     # Process and display results
     if final_data and isinstance(final_data, list):
         print("===== Final Aggregated Conversation (A2A) from Orchestrator Agent=====")
-        messages: list[Any] = final_data
+        messages: list[Any] = final_data      
         for i, item in enumerate(messages, start=1):
             source = "unknown"
             text = str(item)
@@ -171,11 +142,53 @@ async def orchestrate_a2a(query: str,
                 text = item.text
 
             print(f"{'-' * 60}\n\n{i:02d} [{source}]:\n{text}")
-    elif accumulated_text:
-        print("===== Final Response (Text only) =====")
-        print(accumulated_text)
-    
+    if final_data and isinstance(final_data, list):
+        final_data.append({"thread_id": thread_id})
+    elif final_data is None and accumulated_text:
+        # If parsing failed but we have text, return text + thread_id structure??
+        # Usually orchestrate_a2a returns WorkflowOutputEvent which was replaced by final_data (Any).
+        pass
+
     return final_data
+
+
+async def get_thread_state(thread_id: str, agent):
+    thread = None
+    cosmos_service = None
+    try:
+        # Initialize Cosmos DB Service
+        connection_string = os.getenv("AZURE_COSMOS_CONNECTION_STRING")
+        database_name = os.getenv("AZURE_COSMOS_DB_DATABASE_NAME", "AgentMemoryDB")
+        container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME", "Conversations")
+        cosmos_endpoint = os.getenv("AZURE_COSMOS_DB_ENDPOINT")
+        cosmos_api_key = os.getenv("AZURE_COSMOS_DB_KEY")
+        environment = os.getenv("CSSAI_EXECUTION_ENV","localhost")
+        
+        if connection_string:
+            cosmos_service = CosmosDBService(connection_string=None, endpoint=cosmos_endpoint, cosmosapi_key=cosmos_api_key, database_name=database_name, environment=environment)
+            
+            # Try to load existing thread
+            if thread_id:
+                print(f"Loading thread {thread_id} from Cosmos DB...")
+                thread_state = await cosmos_service.load_item(container_name, thread_id, thread_id)
+                if thread_state:
+                    print("Thread state found. Resuming conversation.")
+                    thread = await agent.deserialize_thread(thread_state)
+                else:
+                    print("Thread state not found. Creating new thread.")
+        else:
+            print("Warning: AZURE_COSMOS_CONNECTION_STRING not set. Thread persistence disabled.")
+
+    except Exception as e:
+        print(f"Error initializing Cosmos DB or loading thread: {e}")
+
+    # Create new thread if not loaded
+    if thread is None:
+        print("Creating new thread.")
+        thread = agent.get_new_thread()
+
+    return thread, cosmos_service    
+
 
 
 if __name__ == "__main__":
