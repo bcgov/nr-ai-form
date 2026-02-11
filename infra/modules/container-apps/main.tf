@@ -5,8 +5,8 @@ resource "azurerm_container_app_environment" "main" {
   resource_group_name                = var.resource_group_name
   log_analytics_workspace_id         = var.log_analytics_workspace_id
   infrastructure_subnet_id           = var.container_apps_subnet_id
-  infrastructure_resource_group_name = "ME-${var.resource_group_name}"      # Changing this will force delete and recreate
-  internal_load_balancer_enabled     = true                                 # MUST be true to comply with Azure Policy
+  infrastructure_resource_group_name = "ME-${var.resource_group_name}" # Changing this will force delete and recreate
+  internal_load_balancer_enabled     = true                            # MUST be true to comply with Azure Policy
 
   workload_profile {
     name                  = "Consumption"

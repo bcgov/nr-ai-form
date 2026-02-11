@@ -5,8 +5,8 @@
 variable "deployment_type" {
   description = "Type of deployment: 'app_service' or 'container_apps'"
   type        = string
-  default     = "app_service"  # Default to App Service for backwards compatibility
-  
+  default     = "app_service" # Default to App Service for backwards compatibility
+
   validation {
     condition     = contains(["app_service", "container_apps"], var.deployment_type)
     error_message = "deployment_type must be either 'app_service' or 'container_apps'"
@@ -19,7 +19,7 @@ variable "conversation_agent_image" {
 }
 
 variable "formsupport_agent_image" {
-  description = "The image for the form support agent container"  
+  description = "The image for the form support agent container"
   type        = string
 }
 
@@ -115,7 +115,7 @@ variable "log_analytics_sku" {
 variable "repo_name" {
   description = "Name of the repository, used for resource naming"
   type        = string
-  nullable = false
+  nullable    = false
 }
 
 variable "resource_group_name" {

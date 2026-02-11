@@ -21,36 +21,36 @@ resource "azurerm_linux_web_app" "chisel" {
 
   # Docker configuration
   app_settings = {
-    DOCKER_REGISTRY_SERVER_URL      = "https://${var.registry_server}"
-    DOCKER_REGISTRY_SERVER_USERNAME = var.registry_username
-    DOCKER_REGISTRY_SERVER_PASSWORD = var.registry_password
+    DOCKER_REGISTRY_SERVER_URL          = "https://${var.registry_server}"
+    DOCKER_REGISTRY_SERVER_USERNAME     = var.registry_username
+    DOCKER_REGISTRY_SERVER_PASSWORD     = var.registry_password
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
-    WEBSITES_PORT                   = var.chisel_port
+    WEBSITES_PORT                       = var.chisel_port
 
     # Chisel configuration
-    CHISEL_AUTH       = "tunnel:${var.chisel_password}"
-    CHISEL_PORT       = var.chisel_port
-    CHISEL_HOST       = var.chisel_host
+    CHISEL_AUTH          = "tunnel:${var.chisel_password}"
+    CHISEL_PORT          = var.chisel_port
+    CHISEL_HOST          = var.chisel_host
     CHISEL_ENABLE_SOCKS5 = var.enable_socks5 ? "true" : "false"
-    PORT              = var.chisel_port
-    MAX_RETRIES       = var.max_retries
-    DELAY_SECONDS     = var.delay_seconds
+    PORT                 = var.chisel_port
+    MAX_RETRIES          = var.max_retries
+    DELAY_SECONDS        = var.delay_seconds
   }
 
   site_config {
-    always_on                 = true
-    minimum_tls_version       = "1.2"
-    http2_enabled             = true
-    remote_debugging_enabled  = false
-    remote_debugging_version  = "VS2019"
-    
+    always_on                = true
+    minimum_tls_version      = "1.2"
+    http2_enabled            = true
+    remote_debugging_enabled = false
+    remote_debugging_version = "VS2019"
+
     # Docker configuration
-    docker_image_name      = "${var.registry_server}/${var.docker_image_name}"
+    docker_image_name          = "${var.registry_server}/${var.docker_image_name}"
     docker_registry_server_url = "https://${var.registry_server}"
 
     # Health check configuration
-    health_check_path       = var.health_check_path
-    
+    health_check_path = var.health_check_path
+
     # Startup command (optional - set if needed)
     # app_command_line = ""
 

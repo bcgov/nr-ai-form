@@ -24,7 +24,7 @@ variable "sku_name" {
   description = "App Service Plan SKU (e.g., B1, B2, P1V2, etc.)"
   type        = string
   default     = "B2"
-  
+
   validation {
     condition     = can(regex("^(B|P|S|D|F)[0-9]V?[0-9]?$", var.sku_name))
     error_message = "SKU must be a valid Azure App Service SKU (e.g., B1, B2, P1V2, etc.)"

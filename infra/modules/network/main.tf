@@ -212,7 +212,7 @@ resource "azapi_resource" "container_apps_subnet" {
   name      = var.container_apps_subnet_name
   parent_id = data.azurerm_virtual_network.main.id
   locks     = [data.azurerm_virtual_network.main.id]
-  
+
   body = {
     properties = {
       addressPrefix = local.container_apps_subnet_cidr
@@ -227,8 +227,8 @@ resource "azapi_resource" "container_apps_subnet" {
       }]
     }
   }
-  
+
   response_export_values = ["*"]
-  depends_on = [azapi_resource.app_service_subnet]
+  depends_on             = [azapi_resource.app_service_subnet]
 }
 
