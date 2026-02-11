@@ -1,0 +1,273 @@
+name: Deploy Chisel Proxy to Azure App Service
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'infra/**'
+      - '.github/workflows/deploy-chisel.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'infra/**'
+  workflow_dispatch:
+    inputs:
+      terraform_action:
+        description: 'Terraform action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  TERRAFORM_VERSION: 1.5.0
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+jobs:
+  validate:
+    name: Validate Terraform
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform format check
+        run: |
+          cd infra
+          terraform fmt -check -recursive -no-color || {
+            echo "❌ Terraform files not formatted. Run: terraform fmt -recursive"
+            exit 1
+          }
+
+      - name: Terraform validate
+        run: |
+          cd infra
+          terraform validate -no-color
+
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        run: |
+          cd infra
+          terraform init \
+            -backend-config="subscription_id=${{ env.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ env.AZURE_TENANT_ID }}" \
+            -backend-config="resource_group_name=${{ secrets.TERRAFORM_BACKEND_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TERRAFORM_BACKEND_SA }}" \
+            -backend-config="container_name=${{ secrets.TERRAFORM_BACKEND_CONTAINER }}" \
+            -backend-config="key=chisel-appservice.tfstate" \
+            -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          cd infra
+          terraform plan \
+            -var-file="terraform.tfvars" \
+            -out=tfplan \
+            -no-color > plan_output.txt 2>&1 || true
+          cat plan_output.txt
+
+      - name: Post Plan to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync('infra/plan_output.txt', 'utf8');
+            const comment = `## 🔧 Terraform Plan - Chisel App Service\n\n\`\`\`terraform\n${planOutput}\n\`\`\`\n\n**Action:** Review the plan above carefully before approving.\n\n---\n*This is an automated plan from GitHub Actions*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: validate
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.terraform_action == 'apply')
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        run: |
+          cd infra
+          terraform init \
+            -backend-config="subscription_id=${{ env.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ env.AZURE_TENANT_ID }}" \
+            -backend-config="resource_group_name=${{ secrets.TERRAFORM_BACKEND_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TERRAFORM_BACKEND_SA }}" \
+            -backend-config="container_name=${{ secrets.TERRAFORM_BACKEND_CONTAINER }}" \
+            -backend-config="key=chisel-appservice.tfstate" \
+            -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          cd infra
+          terraform plan \
+            -var-file="terraform.tfvars" \
+            -out=tfplan \
+            -no-color
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          cd infra
+          terraform apply -no-color tfplan
+
+      - name: Get Outputs
+        id: outputs
+        run: |
+          cd infra
+          echo "chisel_url=$(terraform output -raw chisel_proxy_url)" >> $GITHUB_OUTPUT
+          echo "chisel_fqdn=$(terraform output -raw chisel_proxy_fqdn)" >> $GITHUB_OUTPUT
+
+      - name: Create Deployment Summary
+        run: |
+          cat > deployment_summary.txt << 'EOF'
+          ## ✅ Chisel Proxy Deployed to App Service Successfully
+          
+          **Deployment Details:**
+          - URL: ${{ steps.outputs.outputs.chisel_url }}
+          - FQDN: ${{ steps.outputs.outputs.chisel_fqdn }}
+          - Region: ${{ secrets.AZURE_REGION }}
+          - Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          
+          **Next Steps:**
+          1. Test connectivity: curl -v ${{ steps.outputs.outputs.chisel_url }}/
+          2. View logs: az webapp log tail --name chisel-proxy --resource-group <rg-name>
+          3. Connect clients: docker run jpillora/chisel:latest client --auth "tunnel:PASSWORD" https://${{ steps.outputs.outputs.chisel_fqdn }} DATABASE_HOST:5432
+          
+          **Monitoring:**
+          - Real-time logs: az webapp log tail --name chisel-proxy --resource-group <rg-name> -f
+          - Metrics: az monitor metrics list --resource <app-id> --metric CpuPercentage,MemoryPercentage
+          EOF
+          cat deployment_summary.txt
+
+      - name: Notify Slack (Optional)
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "Chisel Proxy Deployment ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Chisel Proxy Deployment* - ${{ job.status }}\n*URL:* ${{ steps.outputs.outputs.chisel_url }}\n*Branch:* master"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.terraform_action == 'destroy'
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        run: |
+          cd infra
+          terraform init \
+            -backend-config="subscription_id=${{ env.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ env.AZURE_TENANT_ID }}" \
+            -backend-config="resource_group_name=${{ secrets.TERRAFORM_BACKEND_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TERRAFORM_BACKEND_SA }}" \
+            -backend-config="container_name=${{ secrets.TERRAFORM_BACKEND_CONTAINER }}" \
+            -backend-config="key=chisel-appservice.tfstate" \
+            -no-color
+
+      - name: Terraform Destroy
+        run: |
+          cd infra
+          terraform destroy \
+            -var-file="terraform.tfvars" \
+            -auto-approve \
+            -no-color
+
+      - name: Notify Destruction
+        run: |
+          echo "⚠️  Chisel Proxy infrastructure has been destroyed"
+          echo "All Container Apps resources have been removed from Azure"

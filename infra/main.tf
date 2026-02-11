@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "main" {
 # -------------
 module "network" {
   source = "./modules/network"
-  
+
   app_env                  = var.app_env
   deployment_type          = var.deployment_type
   common_tags              = var.common_tags
@@ -61,9 +61,9 @@ module "cosmos" {
   common_tags                = var.common_tags
   location                   = var.location
   resource_group_name        = azurerm_resource_group.main.name
-  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id  : module.network.private_endpoint_subnet_id
+  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
   log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
-  
+
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
@@ -72,15 +72,15 @@ module "api" {
   count  = var.deployment_type == "app_service" ? 1 : 0
   source = "./modules/api"
 
-  app_name                     = var.app_name
-  app_env                      = var.app_env
-  repo_name                    = var.repo_name
-  conversation_agent_image     = var.conversation_agent_image
-  formsupport_agent_image      = var.formsupport_agent_image
-  orchestrator_agent_image     = var.orchestrator_agent_image
-  resource_group_name = azurerm_resource_group.main.name
-  location            = var.location
-  common_tags         = var.common_tags
+  app_name                 = var.app_name
+  app_env                  = var.app_env
+  repo_name                = var.repo_name
+  conversation_agent_image = var.conversation_agent_image
+  formsupport_agent_image  = var.formsupport_agent_image
+  orchestrator_agent_image = var.orchestrator_agent_image
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = var.location
+  common_tags              = var.common_tags
 
   # Networking
   private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.private_endpoint_subnet_id
@@ -126,10 +126,10 @@ module "api" {
   azure_storage_container_name = var.azure_storage_container_name
 
   # Sidecar Configuration
-  orchestrator_agent_port  = var.orchestrator_agent_port
-  conversation_agent_port  = var.conversation_agent_port
-  formsupport_agent_port   = var.formsupport_agent_port
-  container_registry_url   = var.container_registry_url
+  orchestrator_agent_port = var.orchestrator_agent_port
+  conversation_agent_port = var.conversation_agent_port
+  formsupport_agent_port  = var.formsupport_agent_port
+  container_registry_url  = var.container_registry_url
 
   depends_on = [module.frontdoor]
 }
@@ -138,16 +138,16 @@ module "container_apps" {
   count  = var.deployment_type == "container_apps" ? 1 : 0
   source = "./modules/container-apps"
 
-  app_name            = var.app_name
-  app_env             = var.app_env
-  repo_name           = var.repo_name
-  
+  app_name  = var.app_name
+  app_env   = var.app_env
+  repo_name = var.repo_name
+
   # Agent Images
-  orchestrator_agent_image   = var.orchestrator_agent_image
-  conversation_agent_image   = var.conversation_agent_image
-  formsupport_agent_image    = var.formsupport_agent_image
-  backend_image              = var.conversation_agent_image  # Fallback for compatibility
-  
+  orchestrator_agent_image = var.orchestrator_agent_image
+  conversation_agent_image = var.conversation_agent_image
+  formsupport_agent_image  = var.formsupport_agent_image
+  backend_image            = var.conversation_agent_image # Fallback for compatibility
+
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   common_tags         = var.common_tags
