@@ -256,7 +256,7 @@ jobs:
             -backend-config="resource_group_name=${{ secrets.TERRAFORM_BACKEND_RG }}" \
             -backend-config="storage_account_name=${{ secrets.TERRAFORM_BACKEND_SA }}" \
             -backend-config="container_name=${{ secrets.TERRAFORM_BACKEND_CONTAINER }}" \
-            -backend-config="key=chisel-proxy.tfstate" \
+            -backend-config="key=chisel-appservice.tfstate" \
             -no-color
 
       - name: Terraform Destroy
