@@ -1,6 +1,7 @@
 
 import os
-from azure.cosmos import CosmosClient, PartitionKey
+from azure.cosmos.aio import CosmosClient
+from azure.cosmos import PartitionKey
 from azure.cosmos.exceptions import CosmosResourceNotFoundError
 from typing import Any, Dict, Optional, List
 
@@ -19,7 +20,7 @@ class CosmosDBService:
             if self.connection_string is not None:
                 self.client = CosmosClient.from_connection_string(connection_string)
             else:
-                    if "localhost" in endpoint or "127.0.0.1" in endpoint:
+                    if "localhost" in endpoint or "127.0.0.1" in endpoint or "10.0.0.197" in endpoint:
                         print("Detected local Cosmos DB Emulator. Disabling SSL verification and Endpoint Discovery.")
                         self.client = CosmosClient(
                             endpoint, 
@@ -35,14 +36,26 @@ class CosmosDBService:
         except Exception as e:
             raise RuntimeError(f"Failed to initialize CosmosClient: {e}")
 
+    async def _ensure_async(self, result):
+        import inspect
+        if inspect.iscoroutine(result):
+            return await result
+        return result
+
     async def get_container(self, container_name: str, database_name: str):
         try:
-            db = await self.client.create_database_if_not_exists(id=database_name)
-            container = await db.create_container_if_not_exists(
+            # Attempt to create database if not exists
+            # Call synchronous or async method, then ensure we await if needed
+            db_call_result = self.client.create_database_if_not_exists(id=database_name)
+            db_proxy = await self._ensure_async(db_call_result)
+            
+            # Create container
+            container_call_result = db_proxy.create_container_if_not_exists(
                 id=container_name,
                 partition_key=PartitionKey(path="/id"),
                 offer_throughput=400
             )
+            container = await self._ensure_async(container_call_result)
 
             return container
         except Exception as e:
@@ -51,8 +64,13 @@ class CosmosDBService:
     async def load_item(self, container_name: str, item_id: str, partition_key: str) -> Optional[Dict[str, Any]]:
         try:
             container = await self.get_container(container_name, self.database_name)
-            item = await container.read_item(item=item_id, partition_key=partition_key)
-            return  item.get("thread_state")
+            
+            # Helper to handle read_item
+            if hasattr(container, 'read_item'):
+                 item_result = container.read_item(item=item_id, partition_key=partition_key)
+                 item = await self._ensure_async(item_result)
+                 return item.get("thread_state")
+            return None
         except CosmosResourceNotFoundError:
             return None
         except Exception as e:
@@ -62,6 +80,9 @@ class CosmosDBService:
     async def save_item(self, container_name: str, item: Dict[str, Any]):
         try:
             container = await self.get_container(container_name, self.database_name)
-            await container.upsert_item(body=item)
+            
+            if hasattr(container, 'upsert_item'):
+                 upsert_result = await container.upsert_item(body=item)
+                 await self._ensure_async(upsert_result)
         except Exception as e:
             raise RuntimeError(f"Failed to save item to {container_name}: {e}")
