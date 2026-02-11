@@ -6,7 +6,7 @@ from azure.cosmos.exceptions import CosmosResourceNotFoundError
 from typing import Any, Dict, Optional, List
 
 class CosmosDBService:
-    def __init__(self, connection_string: str, database_name: str,cosmosapi_key: str=None, endpoint: str=None):
+    def __init__(self, connection_string: str, database_name: str,cosmosapi_key: str=None, endpoint: str=None, environment: str=None):
 
         if not database_name:
             raise ValueError("database_name must be provided.")
@@ -20,8 +20,8 @@ class CosmosDBService:
             if self.connection_string is not None:
                 self.client = CosmosClient.from_connection_string(connection_string)
             else:
-                    if "localhost" in endpoint or "127.0.0.1" in endpoint or "10.0.0.197" in endpoint:
-                        print("Detected local Cosmos DB Emulator. Disabling SSL verification and Endpoint Discovery.")
+                    #THis is for local Azure Cosmos DB Emulator execution. ABIN
+                    if "localhost" in endpoint or "127.0.0.1" in endpoint or (environment.lower() == "localhost" and environment is not None):                        
                         self.client = CosmosClient(
                             endpoint, 
                             credential=cosmosapi_key, 

@@ -85,9 +85,10 @@ async def orchestrate_a2a(query: str,
         container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME", "Conversations")
         cosmos_endpoint = os.getenv("AZURE_COSMOS_DB_ENDPOINT")
         cosmos_api_key = os.getenv("AZURE_COSMOS_DB_KEY")
+        environment = os.getenv("CSSAI_EXECUTION_ENV","localhost")
         
         if connection_string:
-            cosmos_service = CosmosDBService(connection_string=None, endpoint=cosmos_endpoint, cosmosapi_key=cosmos_api_key, database_name=database_name)
+            cosmos_service = CosmosDBService(connection_string=None, endpoint=cosmos_endpoint, cosmosapi_key=cosmos_api_key, database_name=database_name, environment=environment)
             
             # Try to load existing thread
             if session_id:
