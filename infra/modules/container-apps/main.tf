@@ -138,15 +138,15 @@ resource "azurerm_container_app" "backend" {
         value = var.log_level
       }
 
-      # A2A URLs - use internal Container Apps DNS for service discovery
+      # A2A URLs - use localhost since all containers are in the same pod
       env {
         name  = "CONVERSATION_AGENT_A2A_URL"
-        value = "http://conversation-agent:${var.conversation_agent_port}"
+        value = "http://localhost:${var.conversation_agent_port}"
       }
 
       env {
         name  = "FORM_SUPPORT_AGENT_A2A_URL"
-        value = "http://formsupport-agent:${var.formsupport_agent_port}"
+        value = "http://localhost:${var.formsupport_agent_port}"
       }
 
       # Front Door validation
