@@ -36,7 +36,7 @@ services:
       - redis
 
   redis:
-    image: redis:7.4
+    image: redis:7.4 #use this same version on Azure Redis instance as well. PR review comment.
     container_name: redis_cache
     ports:
       - "6379:6379"
