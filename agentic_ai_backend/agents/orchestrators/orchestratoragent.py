@@ -49,13 +49,14 @@ async def orchestrate_a2a(query: str,
     
     executors = [conversation_executor, form_support_executor]
 
-    # Create workflow components
+    #Dispatcher is NOT attached with an LLM will append memory and PII detection in futre  . 
     dispatcher = Dispatcher(
         id="Dispatcher", 
         name="Dispatcher", 
         instructions="You are a user query dispatcher that forwards the input to the appropriate executor(s). In this case the conversation agent and the form support agent."
     )
     
+    #Aggregator is attached with an LLM at the moment, for message curation, and upadte for Multi-turn conversatin . 
     aggregator = Aggregator(
         id="Aggregator", 
         name="Aggregator", 
@@ -69,12 +70,13 @@ async def orchestrate_a2a(query: str,
     builder.add_fan_in_edges(executors, aggregator)
     workflow = builder.build()
 
+    #ABIN : as part of SHOWCASE-4181 workflow is transformed as an agent to accomodate multi-turn conversation
     agent = workflow.as_agent(
         "Orchestrator Agent"
     )
 
     
-    thread_id = session_id or str(uuid.uuid4())
+    thread_id = session_id or str(uuid.uuid4()) #TODO: This UUID is generated for with GUID temp, once we crack the logic from FE, ths will have mapper.
     
     
     final_data = None
