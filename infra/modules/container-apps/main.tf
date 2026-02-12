@@ -523,8 +523,8 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = false # MUST be false - internal only to comply with Azure Policy
-    target_port                = 8000 # Backend app runs on port 8000
+    external_enabled           = true # Must be true for Front Door to reach the backend
+    target_port                = 8002 # Backend app runs on port 8002
     transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
