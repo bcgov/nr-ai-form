@@ -606,6 +606,15 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
   priority                       = 1
   weight                         = 1000
   certificate_name_check_enabled = true
+
+  # Ignore changes to host_name and origin_host_header due to Azure provider
+  # inconsistency when Container App has internal ingress enabled.
+  # The provider reports different FQDN values during plan vs apply.
+  lifecycle {
+    ignore_changes = [host_name, origin_host_header]
+  }
+
+  depends_on = [azurerm_container_app.backend]
 }
 
 resource "azurerm_cdn_frontdoor_route" "api_route" {
