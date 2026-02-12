@@ -17,23 +17,22 @@ class cosmosdbutils(IThreadManager):
 
     async def get_thread_state(self, thread_id: str, agent):
         thread = None
-        try:
-            if connection_string:                
+        try:                          
                 # Try to load existing thread
                 if thread_id:
                     print(f"Loading thread {thread_id} from Cosmos DB...")
-                    thread_state = await self.cosmos_service.load_item(self.container_name, thread_id, thread_id)
-                    await self.close()
+                    thread_state = await self.cosmos_service.load_item(self.container_name, thread_id, thread_id)                    
                     if thread_state:
                         print("Thread state found. Resuming conversation.")
                         thread = await agent.deserialize_thread(thread_state)
                     else:
                         print("Thread state not found. Creating new thread.")
-            else:
-                print("Warning: AZURE_COSMOS_CONNECTION_STRING not set. Thread persistence disabled.")
 
         except Exception as e:
             print(f"Error initializing Cosmos DB or loading thread: {e}")
+        finally:
+            await self.close()
+        #ABIN: Add a check here to see if the thread is expired, if so, create a new thread.
 
         # Create new thread if not loaded
         if thread is None:
@@ -50,9 +49,10 @@ class cosmosdbutils(IThreadManager):
                 "thread_state": state
             }
             await self.cosmos_service.save_item(self.container_name, item)
-            await self.close()
         except Exception as e:
             print(f"Error saving thread state: {e}")
+        finally:
+            await self.close()
 
     async def close(self):
         if self.cosmos_service and self.cosmos_service.client:

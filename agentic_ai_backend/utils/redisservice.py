@@ -5,11 +5,12 @@ import redis.asyncio as redis
 from typing import Any, Dict, Optional
 
 class RedisService:
-    def __init__(self, host: str, port: int, password: str = None, ssl: bool = False):
+    def __init__(self, host: str, port: int, password: str = None, ssl: bool = False, ttl:int = 3600):
         self.host = host
         self.port = port
         self.password = password
         self.ssl = ssl
+        self.ttl = ttl
         self.client = None
 
     async def connect(self):
@@ -41,14 +42,14 @@ class RedisService:
             print(f"Failed to load thread {thread_id} from Redis: {e}")
             return None
 
-    async def save_thread(self, thread_id: str, thread_state: Dict[str, Any], ttl: int = 3600):
+    async def save_thread(self, thread_id: str, thread_state: Dict[str, Any]):
         """Saves a thread state to Redis with optional TTL (default 1 hour)."""
         try:
             if not self.client:
                 await self.connect()
             
             data = json.dumps(thread_state)
-            await self.client.set(thread_id, data, ex=ttl)
+            await self.client.set(thread_id, data, ex=self.ttl)
             print(f"Thread {thread_id} saved to Redis.")
         except Exception as e:
             raise RuntimeError(f"Failed to save thread to Redis: {e}")

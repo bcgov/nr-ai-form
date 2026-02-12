@@ -11,8 +11,7 @@ from typing import Any, Union, Optional
 from dotenv import load_dotenv
 import uuid
 
-# Import CosmosDBService
-from threadmanagement.cosmosdbutils import cosmosdbutils
+
 from threadmanagement.redisdbutils import redisdbutils
 
 # Import A2A executors

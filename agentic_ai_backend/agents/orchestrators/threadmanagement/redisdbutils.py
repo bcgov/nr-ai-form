@@ -11,7 +11,8 @@ class redisdbutils(IThreadManager):
         port = int(os.getenv("REDIS_PORT", "6379"))
         password = os.getenv("REDIS_PASSWORD")
         ssl = os.getenv("REDIS_SSL", "False").lower() == "true"
-        self.redis_service = RedisService(host=host, port=port, password=password, ssl=ssl)
+        ttl_days = int(os.getenv("REDIS_TTL_DAYS", "14"))
+        self.redis_service = RedisService(host=host, port=port, password=password, ssl=ssl, ttl=ttl_days*24*60*60)
 
     async def get_thread_state(self, thread_id: str, agent):
         thread = None
@@ -39,7 +40,7 @@ class redisdbutils(IThreadManager):
     async def save_thread_state(self, thread_id: str, thread):
         try:
             state = await thread.serialize()            
-            await self.redis_service.save_thread(thread_id, state)
+            await self.redis_service.save_thread(thread_id, state) #setting TTL at Service level
         except Exception as e:
             print(f"Error saving thread state to Redis: {e}")
 
