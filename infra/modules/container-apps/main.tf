@@ -525,7 +525,7 @@ resource "azurerm_container_app" "backend" {
   ingress {
     external_enabled           = false # MUST be false - internal only to comply with Azure Policy
     target_port                = var.orchestrator_agent_port
-    transport                  = "http"
+    transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
     traffic_weight {
@@ -591,6 +591,13 @@ resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
   load_balancing {
     sample_size                 = 4
     successful_samples_required = 3
+  }
+
+  health_probe {
+    interval_in_seconds = 100
+    path                = "/health"
+    protocol            = "Https"
+    request_type        = "HEAD"
   }
 }
 
