@@ -601,15 +601,20 @@ resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
   }
 }
 
+# Normalize the FQDN by removing the .internal prefix that Azure adds during apply
+locals {
+  backend_fqdn = replace(azurerm_container_app.backend.ingress[0].fqdn, ".internal.", ".")
+}
+
 resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
   name                          = "${var.repo_name}-${var.app_env}-api-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group.id
 
   enabled                        = true
-  host_name                      = azurerm_container_app.backend.ingress[0].fqdn
+  host_name                      = local.backend_fqdn
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = azurerm_container_app.backend.ingress[0].fqdn
+  origin_host_header             = local.backend_fqdn
   priority                       = 1
   weight                         = 1000
   certificate_name_check_enabled = true
