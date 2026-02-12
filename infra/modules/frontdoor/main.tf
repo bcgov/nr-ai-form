@@ -33,17 +33,12 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "frontend_firewall_policy" {
     for_each = var.frontdoor_sku_name == "Premium_AzureFrontDoor" ? [
       {
         type    = "DefaultRuleSet"
-        version = "1.0"
+        version = "2.1"
         action  = "Log"
       },
       {
         type    = "Microsoft_BotManagerRuleSet"
         version = "1.1"
-        action  = "Block"
-      },
-      {
-        type    = "BotProtection"
-        version = "preview-0.1"
         action  = "Block"
       }
     ] : []
