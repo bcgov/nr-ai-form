@@ -22,6 +22,15 @@ from workflowcomponents.aggregator import Aggregator
 
 load_dotenv()
 
+# Global Redis Utils instance
+_redis_utils_instance = None
+
+def get_redis_utils():
+    global _redis_utils_instance
+    if _redis_utils_instance is None:
+        _redis_utils_instance = redisdbutils()
+    return _redis_utils_instance
+
 
 async def orchestrate_a2a(query: str, 
                           conversation_agent_url: str = "http://localhost:8000",
@@ -80,10 +89,13 @@ async def orchestrate_a2a(query: str,
     
     final_data = None
     accumulated_text = ""
+    
+    # Get singleton Redis Utils
+    db_utils = get_redis_utils()
 
     try:
         # Run the workflow
-        thread = await redisdbutils().get_thread_state(thread_id, agent)
+        thread = await db_utils.get_thread_state(thread_id, agent)
 
         async for event in agent.run_stream(query, thread=thread):
             if hasattr(event, "text"):
@@ -102,7 +114,7 @@ async def orchestrate_a2a(query: str,
         if thread:
             try:
                 print(f"Saving thread {thread_id} to Redis...")          
-                await redisdbutils().save_thread_state(thread_id, thread)
+                await db_utils.save_thread_state(thread_id, thread)
                 print("Thread state saved.")
             except Exception as e:
                 print(f"Error saving thread state: {e}")
@@ -138,16 +150,15 @@ async def orchestrate_a2a(query: str,
                     text = item.text
 
                 print(f"{'-' * 60}\n\n{i:02d} [{source}]:\n{text}")
-
         # Add thread_id to response
         if final_data and isinstance(final_data, list):
             final_data.append({"thread_id": thread_id})
         elif final_data is None and accumulated_text:       
             pass
 
-    finally:
-        # Close Cosmos DB connection
-        await redisdbutils().close()
+    except Exception as e:
+        print(f"Error in orchestrate_a2a: {e}")
+        # Consider handling appropriately
 
     return final_data
 
@@ -172,4 +183,11 @@ if __name__ == "__main__":
     print(f"Form Support Agent: {form_support_url}")
     print(f"Form Step: {step_number}")
     print(f"Query: {query}\n")    
-    asyncio.run(orchestrate_a2a(query, conversation_url, form_support_url, step_number))
+    
+    try:
+        asyncio.run(orchestrate_a2a(query, conversation_url, form_support_url, step_number))
+    finally:
+        # Cleanup singleton on exit (only for script run)
+        _utils = get_redis_utils()
+        if _utils:
+            asyncio.run(_utils.close())
