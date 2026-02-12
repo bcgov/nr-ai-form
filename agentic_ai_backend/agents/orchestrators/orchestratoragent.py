@@ -13,6 +13,7 @@ import uuid
 
 # Import CosmosDBService
 from threadmanagement.cosmosdbutils import cosmosdbutils
+from threadmanagement.redisdbutils import redisdbutils
 
 # Import A2A executors
 from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExecutor
@@ -81,7 +82,7 @@ async def orchestrate_a2a(query: str,
 
     try:
         # Run the workflow
-        thread = await cosmosdbutils().get_thread_state(thread_id, agent)
+        thread = await redisdbutils().get_thread_state(thread_id, agent)
 
         async for event in agent.run_stream(query, thread=thread):
             if hasattr(event, "text"):
@@ -99,8 +100,8 @@ async def orchestrate_a2a(query: str,
         # Save Thread State
         if thread:
             try:
-                print(f"Saving thread {thread_id} to Cosmos DB...")          
-                await cosmosdbutils().save_thread_state(thread_id, thread)
+                print(f"Saving thread {thread_id} to Redis...")          
+                await redisdbutils().save_thread_state(thread_id, thread)
                 print("Thread state saved.")
             except Exception as e:
                 print(f"Error saving thread state: {e}")
@@ -145,7 +146,7 @@ async def orchestrate_a2a(query: str,
 
     finally:
         # Close Cosmos DB connection
-        await cosmosdbutils().close()
+        await redisdbutils().close()
 
     return final_data
 
