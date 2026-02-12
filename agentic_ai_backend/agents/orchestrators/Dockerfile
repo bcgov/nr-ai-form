@@ -5,6 +5,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
+COPY utils/ ./utils/
 COPY agents/orchestrators/ ./agents/orchestrators/
 
 WORKDIR /app/agents/orchestrators

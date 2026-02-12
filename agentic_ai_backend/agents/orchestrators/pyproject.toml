@@ -12,4 +12,10 @@ dependencies = [
  "python-dotenv>=1.0.0",
  "fastapi>=0.127.0",
  "uvicorn>=0.38.0",
+ "utils",
+ "azure-cosmos>=4.9.0",
+ "debugpy>=1.8.20",
 ]
+
+[tool.uv.sources]
+utils = { path = "../../utils" }

@@ -57,14 +57,15 @@ async def invoke_agent(request: InvokeRequest):
             query=request.query, 
             conversation_agent_url=conversation_url, 
             form_support_agent_url=form_support_url,
-            step_number=step_number
+            step_number=step_number,
+            session_id=request.session_id
         )
         
         if output_event:
              # The result from orchestrate_a2a is a WorkflowOutputEvent object
              # We want to return something serializable. data is typically a list of messages.
              return InvokeResponse(
-                 response=output_event.data,
+                 response=output_event,
                  session_id=request.session_id
              )
         else:

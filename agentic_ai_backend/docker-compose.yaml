@@ -33,3 +33,31 @@ services:
     depends_on:
       - conversation-agent
       - formsupport-agent
+      - redis
+
+  redis:
+    image: redis:7.4
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  azure-cosmos-emulator:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+    platform: linux/amd64
+    container_name: azure-cosmos-emulator
+    ports:
+      - "8081:8081"
+      - "10250-10255:10250-10255"
+    environment:
+      - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=3
+      - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
+      - AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1
+    volumes:
+      - cosmosdb-data:/data/cosmosdb
+
+volumes:
+  redis-data:
+  cosmosdb-data:

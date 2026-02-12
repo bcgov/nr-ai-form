@@ -5,7 +5,9 @@ description = "Shared utility functions"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "azure-storage-blob>=12.27.1"
+    "azure-storage-blob>=12.27.1",
+    "azure-cosmos>=4.9.0",
+    "redis>=5.0.0"
 ]
 
 [build-system]

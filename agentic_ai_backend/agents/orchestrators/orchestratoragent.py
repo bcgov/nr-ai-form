@@ -7,8 +7,12 @@ import sys
 import asyncio
 from agent_framework import Executor, WorkflowBuilder, WorkflowContext, WorkflowOutputEvent, handler
 from typing_extensions import Never
-from typing import Any, Union
+from typing import Any, Union, Optional
 from dotenv import load_dotenv
+import uuid
+
+
+from threadmanagement.redisdbutils import redisdbutils
 
 # Import A2A executors
 from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExecutor
@@ -18,11 +22,21 @@ from workflowcomponents.aggregator import Aggregator
 
 load_dotenv()
 
+# Global Redis Utils instance
+_redis_utils_instance = None
+
+def get_redis_utils():
+    global _redis_utils_instance
+    if _redis_utils_instance is None:
+        _redis_utils_instance = redisdbutils()
+    return _redis_utils_instance
+
 
 async def orchestrate_a2a(query: str, 
                           conversation_agent_url: str = "http://localhost:8000",
                           form_support_agent_url: str = "http://localhost:8001",
-                          step_number: Union[int, str] = "step2-Eligibility"):
+                          step_number: Union[int, str] = "step2-Eligibility",
+                          session_id: Optional[str] = None):
     """
     Orchestrate using A2A protocol to communicate with remote agents.
     
@@ -31,6 +45,7 @@ async def orchestrate_a2a(query: str,
         conversation_agent_url: Base URL of the Conversation Agent A2A server
         form_support_agent_url: Base URL of the Form Support Agent A2A server
         step_number: Form step number for the Form Support Agent (default: 2)
+        session_id: Optional session ID for thread persistence
     """
     
     # Create A2A executors
@@ -42,13 +57,14 @@ async def orchestrate_a2a(query: str,
     
     executors = [conversation_executor, form_support_executor]
 
-    # Create workflow components
+    #Dispatcher is NOT attached with an LLM will append memory and PII detection in futre  . 
     dispatcher = Dispatcher(
         id="Dispatcher", 
         name="Dispatcher", 
         instructions="You are a user query dispatcher that forwards the input to the appropriate executor(s). In this case the conversation agent and the form support agent."
     )
     
+    #Aggregator is attached with an LLM at the moment, for message curation, and upadte for Multi-turn conversatin . 
     aggregator = Aggregator(
         id="Aggregator", 
         name="Aggregator", 
@@ -62,45 +78,93 @@ async def orchestrate_a2a(query: str,
     builder.add_fan_in_edges(executors, aggregator)
     workflow = builder.build()
 
-    # Run the workflow
-    output_evt: WorkflowOutputEvent | None = None
-    async for event in workflow.run_stream(query):
-        if isinstance(event, WorkflowOutputEvent):
-            output_evt = event
+    #ABIN : as part of SHOWCASE-4181 workflow is transformed as an agent to accomodate multi-turn conversation
+    agent = workflow.as_agent(
+        "Orchestrator Agent"
+    )
 
-    # Process and display results
-    if output_evt:
-        print("===== Final Aggregated Conversation (A2A) from Orchestrator Agent=====")
-        messages: list[Any] = output_evt.data
-        for i, item in enumerate(messages, start=1):
-            source = "unknown"
-            text = str(item)
-            
-            # Handle dict responses from A2A executors (most common case)
-            if isinstance(item, dict):
-                source = item.get('source', 'unknown')
-                text = item.get('response', str(item))
-            
-            # Handle AgentExecutorResponse
-            elif hasattr(item, 'executor_id'):
-                source = item.executor_id
-                
-                # Try to get text from agent_run_response
-                if hasattr(item, 'agent_run_response') and hasattr(item.agent_run_response, 'text'):
-                    text = item.agent_run_response.text
-                elif hasattr(item, 'full_conversation') and item.full_conversation:
-                    last_msg = item.full_conversation[-1]
-                    if hasattr(last_msg, 'text'):
-                        text = last_msg.text
-            
-            # Handle ChatMessage directly (fallback)
-            elif hasattr(item, 'author_name'):
-                source = item.author_name if item.author_name else "user"
-                text = item.text
-
-            print(f"{'-' * 60}\n\n{i:02d} [{source}]:\n{text}")
     
-    return output_evt
+    thread_id = session_id or str(uuid.uuid4()) #TODO: This UUID is generated for with GUID temp, once we crack the logic from FE, ths will have mapper.
+    
+    
+    final_data = None
+    accumulated_text = ""
+    
+    # Get singleton Redis Utils
+    db_utils = get_redis_utils()
+
+    try:
+        # Run the workflow
+        thread = await db_utils.get_thread_state(thread_id, agent)
+
+        async for event in agent.run_stream(query, thread=thread):
+            if hasattr(event, "text"):
+                accumulated_text += event.text
+
+        # Parse results
+        if accumulated_text:
+            try:
+                import ast
+                final_data = ast.literal_eval(accumulated_text)
+            except Exception as e:
+                print(f"Could not parse accumulated text as data: {e}")
+                final_data = None
+
+        # Save Thread State
+        if thread:
+            try:
+                print(f"Saving thread {thread_id} to Redis...")          
+                await db_utils.save_thread_state(thread_id, thread)
+                print("Thread state saved.")
+            except Exception as e:
+                print(f"Error saving thread state: {e}")
+
+        # Process and display results
+        if final_data and isinstance(final_data, list):
+            print("===== Final Aggregated Conversation (A2A) from Orchestrator Agent=====")
+            messages: list[Any] = final_data      
+            for i, item in enumerate(messages, start=1):
+                source = "unknown"
+                text = str(item)
+                
+                # Handle dict responses from A2A executors (most common case)
+                if isinstance(item, dict):
+                    source = item.get('source', 'unknown')
+                    text = item.get('response', str(item))
+                
+                # Handle AgentExecutorResponse
+                elif hasattr(item, 'executor_id'):
+                    source = item.executor_id
+                    
+                    # Try to get text from agent_run_response
+                    if hasattr(item, 'agent_run_response') and hasattr(item.agent_run_response, 'text'):
+                        text = item.agent_run_response.text
+                    elif hasattr(item, 'full_conversation') and item.full_conversation:
+                        last_msg = item.full_conversation[-1]
+                        if hasattr(last_msg, 'text'):
+                            text = last_msg.text
+                
+                # Handle ChatMessage directly (fallback)
+                elif hasattr(item, 'author_name'):
+                    source = item.author_name if item.author_name else "user"
+                    text = item.text
+
+                print(f"{'-' * 60}\n\n{i:02d} [{source}]:\n{text}")
+        # Add thread_id to response
+        if final_data and isinstance(final_data, list):
+            final_data.append({"thread_id": thread_id})
+        elif final_data is None and accumulated_text:       
+            pass
+
+    except Exception as e:
+        print(f"Error in orchestrate_a2a: {e}")
+        # Consider handling appropriately
+
+    return final_data
+
+
+ 
+
 
 
 if __name__ == "__main__":
@@ -118,6 +182,12 @@ if __name__ == "__main__":
     print(f"Conversation Agent: {conversation_url}")
     print(f"Form Support Agent: {form_support_url}")
     print(f"Form Step: {step_number}")
-    print(f"Query: {query}\n")
+    print(f"Query: {query}\n")    
     
-    asyncio.run(orchestrate_a2a(query, conversation_url, form_support_url, step_number))
+    try:
+        asyncio.run(orchestrate_a2a(query, conversation_url, form_support_url, step_number))
+    finally:
+        # Cleanup singleton on exit (only for script run)
+        _utils = get_redis_utils()
+        if _utils:
+            asyncio.run(_utils.close())
