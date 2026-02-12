@@ -523,9 +523,9 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = false # MUST be false - internal only to comply with Azure Policy
-    target_port                = var.orchestrator_agent_port
-    transport                  = "http"
+    external_enabled           = true # Must be true for Front Door to reach the backend
+    target_port                = 8002 # Backend app runs on port 8002
+    transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
     traffic_weight {
@@ -592,6 +592,18 @@ resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
     sample_size                 = 4
     successful_samples_required = 3
   }
+
+  health_probe {
+    interval_in_seconds = 100
+    path                = "/health"
+    protocol            = "Https"
+    request_type        = "GET"
+  }
+}
+
+# Normalize the FQDN by removing the .internal prefix that Azure adds during apply
+locals {
+  backend_fqdn = replace(azurerm_container_app.backend.ingress[0].fqdn, ".internal.", ".")
 }
 
 resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
@@ -599,13 +611,22 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group.id
 
   enabled                        = true
-  host_name                      = azurerm_container_app.backend.ingress[0].fqdn
+  host_name                      = local.backend_fqdn
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = azurerm_container_app.backend.ingress[0].fqdn
+  origin_host_header             = local.backend_fqdn
   priority                       = 1
   weight                         = 1000
   certificate_name_check_enabled = true
+
+  # Ignore changes to host_name and origin_host_header due to Azure provider
+  # inconsistency when Container App has internal ingress enabled.
+  # The provider reports different FQDN values during plan vs apply.
+  lifecycle {
+    ignore_changes = [host_name, origin_host_header]
+  }
+
+  depends_on = [azurerm_container_app.backend]
 }
 
 resource "azurerm_cdn_frontdoor_route" "api_route" {

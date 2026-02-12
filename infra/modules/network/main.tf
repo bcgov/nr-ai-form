@@ -173,6 +173,18 @@ resource "azurerm_network_security_group" "container_apps" {
   }
 
   security_rule {
+    name                       = "AllowFrontDoorToContainerApps"
+    priority                   = 102
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"]
+    source_address_prefix      = "AzureFrontDoor.Backend"
+    destination_address_prefix = local.container_apps_subnet_cidr
+  }
+
+  security_rule {
     name                       = "AllowContainerAppsToPrivateEndpoint"
     priority                   = 101
     direction                  = "Outbound"
