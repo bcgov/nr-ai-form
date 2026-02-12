@@ -1,7 +1,7 @@
 resource "azurerm_cdn_frontdoor_profile" "frontend_frontdoor" {
   name                = "${var.app_name}-frontend-frontdoor"
   resource_group_name = var.resource_group_name
-  sku_name            = "Standard_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   tags = var.common_tags
   lifecycle {

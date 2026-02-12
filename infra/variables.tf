@@ -91,7 +91,7 @@ variable "common_tags" {
 variable "frontdoor_sku_name" {
   description = "SKU name for the Front Door"
   type        = string
-  default     = "Standard_AzureFrontDoor"
+  default     = "Premium_AzureFrontDoor"
 }
 
 variable "location" {
