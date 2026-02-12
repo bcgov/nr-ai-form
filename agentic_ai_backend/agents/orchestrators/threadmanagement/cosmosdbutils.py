@@ -1,35 +1,28 @@
 from dotenv import load_dotenv
 from utils.cosmosdbservice import CosmosDBService
 import os
+from .thread_manager_interface import IThreadManager
 
 load_dotenv()
 
-class cosmosdbutils:
+class cosmosdbutils(IThreadManager):
     def __init__(self):
-        connection_string = os.getenv("AZURE_COSMOS_CONNECTION_STRING")
-        database_name = os.getenv("AZURE_COSMOS_DB_DATABASE_NAME", "AgentMemoryDB")
-        container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME", "Conversations")
-        cosmos_endpoint = os.getenv("AZURE_COSMOS_DB_ENDPOINT")
-        cosmos_api_key = os.getenv("AZURE_COSMOS_DB_KEY")
-        environment = os.getenv("CSSAI_EXECUTION_ENV","localhost")
-        self.cosmos_service = CosmosDBService(connection_string=None, endpoint=cosmos_endpoint, cosmosapi_key=cosmos_api_key, database_name=database_name, environment=environment)
+        self.connection_string = os.getenv("AZURE_COSMOS_CONNECTION_STRING")
+        self.database_name = os.getenv("AZURE_COSMOS_DB_DATABASE_NAME", "AgentMemoryDB")
+        self.container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME", "Conversations")
+        self.cosmos_endpoint = os.getenv("AZURE_COSMOS_DB_ENDPOINT")
+        self.cosmos_api_key = os.getenv("AZURE_COSMOS_DB_KEY")
+        self.environment = os.getenv("CSSAI_EXECUTION_ENV","localhost")
+        self.cosmos_service = CosmosDBService(connection_string=None, endpoint=self.cosmos_endpoint, cosmosapi_key=self.cosmos_api_key, database_name=self.database_name, environment=self.environment)
 
     async def get_thread_state(self, thread_id: str, agent):
         thread = None
         try:
-            # Initialize Cosmos DB Service
-            connection_string = os.getenv("AZURE_COSMOS_CONNECTION_STRING")
-            database_name = os.getenv("AZURE_COSMOS_DB_DATABASE_NAME", "AgentMemoryDB")
-            container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME", "Conversations")
-            cosmos_endpoint = os.getenv("AZURE_COSMOS_DB_ENDPOINT")
-            cosmos_api_key = os.getenv("AZURE_COSMOS_DB_KEY")
-            environment = os.getenv("CSSAI_EXECUTION_ENV","localhost")
-            
             if connection_string:                
                 # Try to load existing thread
                 if thread_id:
                     print(f"Loading thread {thread_id} from Cosmos DB...")
-                    thread_state = await self.cosmos_service.load_item(container_name, thread_id, thread_id)
+                    thread_state = await self.cosmos_service.load_item(self.container_name, thread_id, thread_id)
                     await self.close()
                     if thread_state:
                         print("Thread state found. Resuming conversation.")
@@ -52,12 +45,11 @@ class cosmosdbutils:
     async def save_thread_state(self, thread_id: str,thread):
         try:
             state = await thread.serialize()
-            container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME", "Conversations")
             item = {
                 "id": thread_id,
                 "thread_state": state
             }
-            await self.cosmos_service.save_item(container_name, item)
+            await self.cosmos_service.save_item(self.container_name, item)
             await self.close()
         except Exception as e:
             print(f"Error saving thread state: {e}")
