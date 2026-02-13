@@ -1,10 +1,13 @@
-from agent_framework import ai_function
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 import os
 
+# Define a no-op decorator for ai_function since it's not available in agent_framework
+def ai_function(name=None, description=None):
+    def decorator(func):
+        return func
+    return decorator
 
-    
 @ai_function(name="azure_ai_search", description="Retrieves information related with Permit Applications using Azure AI Search")
 def azure_ai_search(query: str) -> str:
     """
