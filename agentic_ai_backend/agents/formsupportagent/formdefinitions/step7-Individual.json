@@ -2,6 +2,42 @@
     "formName": "Water Licence Application",
     "formDescription": "Step 7 - Individual",
     "properties": {
+        "APPL_LastName_100605843_185638100": {
+            "type": "string",
+            "id": "APPL_LastName_100605843_185638100",
+            "title": "Last Name",
+            "required": false
+        },
+        "APPL_FirstName_100605843_185638100": {
+            "type": "string",
+            "id": "APPL_FirstName_100605843_185638100",
+            "title": "First Name",
+            "required": false
+        },
+        "APPL_MiddleName_100605843_185638100": {
+            "type": "string",
+            "id": "APPL_MiddleName_100605843_185638100",
+            "title": "Middle Name",
+            "required": false
+        },
+        "APPL_PhoneNumber_100605843_185638100_1": {
+            "type": "string",
+            "id": "APPL_PhoneNumber_100605843_185638100_1",
+            "title": "Phone number (area code)",
+            "required": true
+        },
+        "APPL_PhoneNumber_100605843_185638100_2": {
+            "type": "string",
+            "id": "APPL_PhoneNumber_100605843_185638100_2",
+            "title": "Phone number (prefix)",
+            "required": true
+        },
+        "APPL_PhoneNumber_100605843_185638100_3": {
+            "type": "string",
+            "id": "APPL_PhoneNumber_100605843_185638100_3",
+            "title": "Phone number (line number)",
+            "required": true
+        },
         "APPL_DaytimePhoneNumber_100605843_185549445_1": {
             "type": "string",
             "id": "APPL_DaytimePhoneNumber_100605843_185549445_1",
@@ -44,34 +80,10 @@
             "title": "Fax number (line number)",
             "required": false
         },
-        "APPL_FaxNumber_100604891_185549445_1": {
+        "APPL_Email_100605843_185638100": {
             "type": "string",
-            "id": "APPL_FaxNumber_100604891_185549445_1",
-            "title": "Fax number (area code)",
-            "required": false
-        },
-        "APPL_FaxNumber_100604891_185549445_2": {
-            "type": "string",
-            "id": "APPL_FaxNumber_100604891_185549445_2",
-            "title": "Fax number (prefix)",
-            "required": false
-        },
-        "APPL_FaxNumber_100604891_185549445_3": {
-            "type": "string",
-            "id": "APPL_FaxNumber_100604891_185549445_3",
-            "title": "Fax number (line number)",
-            "required": false
-        },
-        "APPL_PhoneNumber_100604891_185549445_3": {
-            "type": "string",
-            "id": "APPL_PhoneNumber_100604891_185549445_3",
-            "title": "Phone number (line number)",
-            "required": false
-        },
-        "APPL_PhoneExtension_100604891_185549445": {
-            "type": "string",
-            "id": "APPL_PhoneExtension_100604891_185549445",
-            "title": "Phone extension",
+            "id": "APPL_Email_100605843_185638100",
+            "title": "Email",
             "required": false
         }
     }

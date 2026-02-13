@@ -173,6 +173,18 @@ resource "azurerm_network_security_group" "container_apps" {
   }
 
   security_rule {
+    name                       = "AllowFrontDoorToContainerApps"
+    priority                   = 102
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"]
+    source_address_prefix      = "AzureFrontDoor.Backend"
+    destination_address_prefix = local.container_apps_subnet_cidr
+  }
+
+  security_rule {
     name                       = "AllowContainerAppsToPrivateEndpoint"
     priority                   = 101
     direction                  = "Outbound"
@@ -212,7 +224,7 @@ resource "azapi_resource" "container_apps_subnet" {
   name      = var.container_apps_subnet_name
   parent_id = data.azurerm_virtual_network.main.id
   locks     = [data.azurerm_virtual_network.main.id]
-  
+
   body = {
     properties = {
       addressPrefix = local.container_apps_subnet_cidr
@@ -227,8 +239,8 @@ resource "azapi_resource" "container_apps_subnet" {
       }]
     }
   }
-  
+
   response_export_values = ["*"]
-  depends_on = [azapi_resource.app_service_subnet]
+  depends_on             = [azapi_resource.app_service_subnet]
 }
 

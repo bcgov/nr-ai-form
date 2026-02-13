@@ -1,7 +1,7 @@
 resource "azurerm_cdn_frontdoor_profile" "frontend_frontdoor" {
   name                = "${var.app_name}-frontend-frontdoor"
   resource_group_name = var.resource_group_name
-  sku_name            = "Standard_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   tags = var.common_tags
   lifecycle {
@@ -39,11 +39,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "frontend_firewall_policy" {
       {
         type    = "Microsoft_BotManagerRuleSet"
         version = "1.1"
-        action  = "Block"
-      },
-      {
-        type    = "BotProtection"
-        version = "preview-0.1"
         action  = "Block"
       }
     ] : []
