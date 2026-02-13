@@ -1,10 +1,10 @@
-from agent_framework import ai_function
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 import os
 
+from agent_framework import ai_function
 
-    
+
 @ai_function(name="azure_ai_search", description="Retrieves information related with Permit Applications using Azure AI Search")
 def azure_ai_search(query: str) -> str:
     """
