@@ -55,6 +55,7 @@ variable "azure_openai_api_key" {
 variable "azure_openai_api_version" {
   description = "Azure OpenAI API version"
   type        = string
+  default     = "2024-02-01"
   nullable    = false
 }
 
