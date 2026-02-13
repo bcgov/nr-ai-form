@@ -5,7 +5,7 @@ This version uses A2A to communicate with remote agents instead of direct import
 import os
 import sys
 import asyncio
-from agent_framework import Executor, WorkflowBuilder, WorkflowContext, WorkflowOutputEvent, handler
+from agent_framework import Executor, WorkflowBuilder, handler
 from typing_extensions import Never
 from typing import Any, Union, Optional
 from dotenv import load_dotenv
