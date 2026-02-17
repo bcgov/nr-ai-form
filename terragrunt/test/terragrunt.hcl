@@ -7,5 +7,5 @@ inputs = {
   # This will be overridden by the workflow's deployment_type environment variable if provided
   # deploy-to-test -> app_service
   # deploy-aca-test -> container_apps
-  deployment_type = "app_service"
+  deployment_type = "container_apps"
 }
