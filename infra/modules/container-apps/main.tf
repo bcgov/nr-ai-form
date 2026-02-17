@@ -6,7 +6,7 @@ resource "azurerm_container_app_environment" "main" {
   log_analytics_workspace_id         = var.log_analytics_workspace_id
   infrastructure_subnet_id           = var.container_apps_subnet_id
   infrastructure_resource_group_name = "ME-${var.resource_group_name}" # Changing this will force delete and recreate
-  internal_load_balancer_enabled     = false                           # Must be false for Front Door to reach the Container App via public HTTPS
+  internal_load_balancer_enabled     = var.internal_load_balancer_enabled
 
   workload_profile {
     name                  = "Consumption"
@@ -27,6 +27,7 @@ resource "azurerm_container_app_environment" "main" {
 }
 
 resource "azurerm_private_endpoint" "containerapps" {
+  count               = var.internal_load_balancer_enabled ? 1 : 0  # Only create if using internal load balancer
   name                = "${var.app_name}-containerapps-pe"
   location            = var.location
   resource_group_name = var.resource_group_name
