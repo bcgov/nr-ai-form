@@ -36,6 +36,8 @@ def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_t
     """
     print(f"Resolving assets for step: {step_identifier}")
     step_key = str(step_identifier)
+    form_definition = None
+    prompt_template = None
     
     # 1. Cloud/Service Path
     if form_definition_service and prompt_template_service:
@@ -44,7 +46,27 @@ def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_t
         
         form_definition = form_definition_service.fetch_form_definition(json_filename)
         prompt_template = prompt_template_service.fetch_prompt_template(md_filename)
+    
+    # 2. Use local files if Cloud didn't return anything
+    if not form_definition or not prompt_template:
+        # Try local path
+        local_def_path = os.path.join("formdefinitions", f"{step_key}.json")
+        local_prompt_path = os.path.join("prompttemplates", f"{step_key}.md")
         
+        if os.path.exists(local_def_path):
+            try:
+                with open(local_def_path, "r", encoding="utf-8") as f:
+                    form_definition = json.load(f)
+            except Exception as e:
+                print(f"Error reading local form definition: {e}")
+
+        if os.path.exists(local_prompt_path):
+            try:
+                with open(local_prompt_path, "r", encoding="utf-8") as f:
+                    prompt_template = f.read()
+            except Exception as e:
+                print(f"Error reading local prompt template: {e}")
+
         return form_definition, prompt_template, step_key
     
 

@@ -5,7 +5,7 @@ This is a standalone wrapper that imports and exposes the FormSupportAgent via H
 import asyncio
 import os
 import sys
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
 
 # Add parent directories to path to allow importing modules
@@ -140,10 +140,70 @@ async def invoke_agent(request: InvokeRequest):
             response=result,
             session_id=request.session_id
         )
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+
+
+
+@app.websocket("/invoke-web")
+async def invoke_agent_websocket(websocket: WebSocket):
+    """
+    WebSocket endpoint to invoke the form support agent.
+    Maintains a persistent connection for multiple queries.
+    Expects JSON messages with the same structure as InvokeRequest.
+    """
+    await websocket.accept()
+    try:
+        while True:
+            # Receive JSON data
+            data = await websocket.receive_json()
+            
+            # Parse into InvokeRequest-like structure
+            # We construct InvokeRequest to validate and reuse logic if possible, 
+            # or just extract fields manually.
+            try:
+                # Validation
+                if "query" not in data:
+                    await websocket.send_json({"error": "Missing 'query' field"})
+                    continue
+                
+                query_str = data["query"]
+                session_id = data.get("session_id")
+                step_provided = data.get("step_number")
+                
+                # Try to extract step from query string (e.g. "step3: my query")
+                extracted_step, cleaned_query = extract_step_from_query(query_str)
+                
+                # Use the most specific identifier available
+                step_identifier = extracted_step or step_provided
+                query = cleaned_query
+                
+                # Verify step_identifier is present
+                if not step_identifier:
+                    await websocket.send_json({"error": "step_number is required either in the request body or as a prefix in the query"})
+                    continue
+                    
+                # Get agent instance for this step
+                agent = get_agent(step_identifier)
+                
+                # Run the agent
+                # Note: agent.run is async
+                result = await agent.run(query)
+                
+                # Send back response
+                response = InvokeResponse(
+                    response=result,
+                    session_id=session_id
+                )
+                await websocket.send_json(response.dict())
+                
+            except FileNotFoundError as e:
+                await websocket.send_json({"error": str(e)})
+            except Exception as e:
+                await websocket.send_json({"error": f"Error processing request: {str(e)}"})
+                
+    except WebSocketDisconnect:
+        print("Client disconnected from /invoke-web")
 
 @app.get("/health")
 async def health_check():
