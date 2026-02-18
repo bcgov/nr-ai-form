@@ -24,3 +24,5 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_SSL=False
+
+CORS_ALLOW_ORIGINS="http://localhost,https://domainname.gov.bc.ca"
