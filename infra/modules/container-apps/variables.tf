@@ -279,3 +279,10 @@ variable "resource_group_name" {
   type        = string
   nullable    = false
 }
+
+variable "internal_load_balancer_enabled" {
+  description = "Whether to use an internal load balancer for the Container App Environment"
+  type        = bool
+  default     = false
+  nullable    = false
+}
