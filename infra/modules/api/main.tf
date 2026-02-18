@@ -254,6 +254,12 @@ resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
     successful_samples_required = 3
   }
 
+  health_probe {
+    interval_in_seconds = 100
+    path                = "/health"
+    protocol            = "Http"
+    request_type        = "GET"
+  }
 }
 
 resource "azurerm_cdn_frontdoor_origin" "api_app_service_origin" {

@@ -525,7 +525,7 @@ resource "azurerm_container_app" "backend" {
 
   ingress {
     external_enabled           = true # Must be true for Front Door to reach the backend
-    target_port                = 8002 # Backend app runs on port 8002
+    target_port                = 8002 # Backend app runs on port 8002 (controlled by orchestrator_agent_port)
     transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
@@ -597,7 +597,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
   health_probe {
     interval_in_seconds = 100
     path                = "/health"
-    protocol            = "Https"
+    protocol            = "Http"
     request_type        = "GET"
   }
 }
@@ -613,7 +613,7 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
 
   enabled                        = true
   host_name                      = local.backend_fqdn
-  http_port                      = 80
+  http_port                      = 8002
   https_port                     = 443
   origin_host_header             = local.backend_fqdn
   priority                       = 1
