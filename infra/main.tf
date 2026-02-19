@@ -125,6 +125,10 @@ module "api" {
   azure_storage_account_key    = var.azure_storage_account_key
   azure_storage_container_name = var.azure_storage_container_name
 
+  # Azure Blob Storage
+  azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
+  azure_blobstorage_container         = var.azure_blobstorage_container
+
   # Sidecar Configuration
   orchestrator_agent_port = var.orchestrator_agent_port
   conversation_agent_port = var.conversation_agent_port
@@ -205,6 +209,10 @@ module "container_apps" {
   azure_storage_account_name   = var.azure_storage_account_name
   azure_storage_account_key    = var.azure_storage_account_key
   azure_storage_container_name = var.azure_storage_container_name
+
+  # Azure Blob Storage
+  azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
+  azure_blobstorage_container         = var.azure_blobstorage_container
 
   depends_on = [module.frontdoor, module.network, module.cosmos, module.monitoring]
 }

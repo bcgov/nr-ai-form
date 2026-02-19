@@ -103,6 +103,9 @@ jobs:
           AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          # Azure Blob Storage Configuration
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
       run: |
         # Initialize Terragrunt to access state
         echo "Initializing Terragrunt..."
@@ -203,6 +206,9 @@ jobs:
           AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          # Azure Blob Storage Configuration
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
       run: |
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false

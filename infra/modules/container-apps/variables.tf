@@ -109,6 +109,19 @@ variable "azure_storage_container_name" {
   nullable    = false
 }
 
+variable "azure_blobstorage_connectionstring" {
+  description = "Azure Blob Storage connection string"
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_blobstorage_container" {
+  description = "Azure Blob Storage container name"
+  type        = string
+  nullable    = false
+}
+
 variable "backend_image" {
   description = "Container image for the backend API (deprecated - use orchestrator_agent_image)"
   type        = string
