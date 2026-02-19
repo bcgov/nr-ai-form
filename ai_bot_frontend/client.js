@@ -75,6 +75,119 @@ const FormSteps = {
 };
 //-------------------------- Steppers Ends ---------------------------//
 
+const THREAD_ID_STORAGE_KEY = 'nrAiForm_threadId';
+const CHAT_HISTORY_STORAGE_PREFIX = 'nrAiForm_chatHistory';
+
+function createFallbackThreadId() {
+    return `session-${Math.random().toString(36).substring(2, 15)}`;
+}
+
+function getStoredThreadId() {
+    try {
+        return localStorage.getItem(THREAD_ID_STORAGE_KEY) || createFallbackThreadId();
+    } catch {
+        return createFallbackThreadId();
+    }
+}
+
+function saveThreadId(threadId) {
+    if (!threadId) return;
+    try {
+        localStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
+    } catch {
+        // Ignore storage errors and keep in-memory thread only.
+    }
+}
+
+function getHistoryStorageKey(threadId) {
+    return `${CHAT_HISTORY_STORAGE_PREFIX}:${threadId}`;
+}
+
+function loadChatHistory(threadId) {
+    try {
+        const raw = localStorage.getItem(getHistoryStorageKey(threadId));
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
+function appendChatHistory(threadId, role, text) {
+    try {
+        const history = loadChatHistory(threadId);
+        history.push({ role, text });
+        localStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
+    } catch {
+        // Ignore storage errors and keep UI state only.
+    }
+}
+
+function migrateChatHistory(oldThreadId, newThreadId) {
+    if (!oldThreadId || !newThreadId || oldThreadId === newThreadId) return;
+    try {
+        const oldKey = getHistoryStorageKey(oldThreadId);
+        const newKey = getHistoryStorageKey(newThreadId);
+        if (!localStorage.getItem(newKey)) {
+            const oldData = localStorage.getItem(oldKey);
+            if (oldData) {
+                localStorage.setItem(newKey, oldData);
+            }
+        }
+    } catch {
+        // Ignore storage errors.
+    }
+}
+
+function extractThreadIdFromResponse(response) {
+    if (!response) return null;
+    if (typeof response.thread_id === 'string') return response.thread_id;
+
+    const body = response.response;
+    if (!body) return null;
+
+    if (Array.isArray(body)) {
+        const threadObj = body.find((item) => item && typeof item.thread_id === 'string');
+        return threadObj ? threadObj.thread_id : null;
+    }
+    if (typeof body.thread_id === 'string') return body.thread_id;
+    return null;
+}
+
+function normalizeStepLabelToStepValue(label) {
+    const cleaned = String(label || '').replace(/\u00a0/g, ' ').trim();
+    if (!cleaned) return null;
+
+    if (/^complete$/i.test(cleaned)) {
+        return FormSteps.STEP10_COMPLETE;
+    }
+
+    const numberedStep = cleaned.match(/^(\d+)\s*-\s*(.+)$/);
+    if (numberedStep) {
+        const stepNumber = numberedStep[1];
+        const stepName = numberedStep[2].trim().replace(/\s+/g, '-');
+        return `step${stepNumber}-${stepName}`;
+    }
+
+    return null;
+}
+
+function getCurrentFormStepFromDom() {
+    const progressBar = document.getElementById('progressbar');
+    if (!progressBar) return null;
+
+    const activeLi =
+        progressBar.querySelector('li.crumbs_on') ||
+        progressBar.querySelector('li.active') ||
+        progressBar.querySelector('li[aria-current="step"]');
+
+    if (!activeLi) return null;
+
+    const labelFromText = (activeLi.textContent || '').trim();
+    const labelFromTitle = (activeLi.getAttribute('title') || '').trim();
+    return normalizeStepLabelToStepValue(labelFromText) || normalizeStepLabelToStepValue(labelFromTitle);
+}
+
 
 function injectStyles() {
     if (document.getElementById('wp-chat-styles')) return;
@@ -383,7 +496,18 @@ function initBot() {
     const chatMessages = document.getElementById('wp-chat-messages');
     const typingIndicator = document.getElementById('wp-chat-typing');
 
-    let sessionId = "session-" + Math.random().toString(36).substring(2, 15);
+    let sessionId = getStoredThreadId();
+    saveThreadId(sessionId);
+    const existingHistory = loadChatHistory(sessionId);
+    if (existingHistory.length > 0) {
+        const welcome = chatMessages.querySelector('.wp-chat-welcome');
+        if (welcome) welcome.remove();
+        existingHistory.forEach((entry) => {
+            if (entry && typeof entry.role === 'string') {
+                appendMessage(entry.role, entry.text ?? '', false);
+            }
+        });
+    }
 
     function toggleChat() {
         const isOpen = chatModal.classList.contains('open');
@@ -410,8 +534,15 @@ function initBot() {
         showTyping(true);
 
         try {
-            const step1 = FormSteps.STEP1_INTRODUCTION;
-            const response = await invokeOrchestrator(text, step1, sessionId);
+            const currentStep = getCurrentFormStepFromDom() || FormSteps.STEP1_INTRODUCTION;
+            console.log(`Invoking orchestrator with sessionId=${sessionId}, step=${currentStep}, query=${text}`);
+            const response = await invokeOrchestrator(text, currentStep, sessionId);
+            const serverThreadId = extractThreadIdFromResponse(response);
+            if (serverThreadId && serverThreadId !== sessionId) {
+                migrateChatHistory(sessionId, serverThreadId);
+                sessionId = serverThreadId;
+            }
+            saveThreadId(sessionId);
             showTyping(false);
             const messages = extractAssistantMessages(response);
             messages.forEach((msg) => appendMessage('assistant', msg));
@@ -444,7 +575,7 @@ function initBot() {
         return [JSON.stringify(response)];
     }
 
-    function appendMessage(role, text) {
+    function appendMessage(role, text, persist = true) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `wp-chat-message wp-chat-message-${role}`;
         const bubble = document.createElement('div');
@@ -452,6 +583,9 @@ function initBot() {
         bubble.innerHTML = formatMessage(String(text));
         msgDiv.appendChild(bubble);
         chatMessages.appendChild(msgDiv);
+        if (persist) {
+            appendChatHistory(sessionId, role, String(text));
+        }
         scrollToBottom();
     }
 
