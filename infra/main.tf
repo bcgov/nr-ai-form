@@ -163,6 +163,7 @@ module "container_apps" {
   container_memory = var.container_memory
   min_replicas     = var.min_replicas
   max_replicas     = var.max_replicas
+  internal_load_balancer_enabled = false  # Must be false for Front Door to reach the Container App via public HTTPS
 
   # Agent Ports
   orchestrator_agent_port = var.orchestrator_agent_port
