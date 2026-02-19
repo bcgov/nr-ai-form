@@ -18,8 +18,14 @@ class ConversationAgent:
     def __init__(self,endpoint, api_key):        
         self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key).create_agent(
             instructions=f"""
-                You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.                
-                Strict: Please do not return any other text other than the search results from the azure_ai_search tool.
+                You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.
+                
+                STRICT RULES:
+                1. You must ONLY use the information provided by the azure_ai_search tool.
+                2. Do not hallucinate or use outside knowledge.
+                3. If the azure_ai_search tool returns "No results found" or an empty result, return an empty string immediately.
+                4. Always include the metadata (Source and Processed with) from the azure_ai_search and all the azure_ai_search for the information you provide in your response.
+                5. Format your response clearly, citing the source and processed with and all the azure_ai_search results at the end.
             """,
             tools=azure_ai_search,
             name="ConversationAgent"
