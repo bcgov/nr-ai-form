@@ -239,6 +239,19 @@ variable "azure_storage_container_name" {
   nullable    = false
 }
 
+variable "azure_blobstorage_connectionstring" {
+  description = "Azure Blob Storage connection string"
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_blobstorage_container" {
+  description = "Azure Blob Storage container name"
+  type        = string
+  nullable    = false
+}
+
 # Sidecar deployment configuration variables
 variable "orchestrator_agent_port" {
   description = "The port on which the Orchestrator Agent (main container) listens."
