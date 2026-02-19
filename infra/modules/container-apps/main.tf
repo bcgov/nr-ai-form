@@ -79,7 +79,7 @@ resource "azurerm_container_app" "backend" {
 
   secret {
     name  = "azure-search-key"
-    value = var.azure_search_key
+    value = var.AZURE_SEARCH_API_KEY
   }
 
   secret {
@@ -200,8 +200,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -211,7 +211,7 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
+        name        = "AZURE_SEARCH_API_KEY"
         secret_name = "azure-search-key"
       }
 
@@ -334,8 +334,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -345,7 +345,7 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
+        name        = "AZURE_SEARCH_API_KEY"
         secret_name = "azure-search-key"
       }
 
@@ -468,8 +468,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -479,7 +479,7 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
+        name        = "AZURE_SEARCH_API_KEY"
         secret_name = "azure-search-key"
       }
 

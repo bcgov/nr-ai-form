@@ -24,11 +24,11 @@ locals {
   azure_openai_api_key         = get_env("AZURE_OPENAI_API_KEY")
   azure_openai_endpoint        = get_env("AZURE_OPENAI_ENDPOINT")
   azure_openai_api_version     = get_env("AZURE_OPENAI_API_VERSION", "2024-10-21")
-  azure_openai_deployment_name = get_env("AZURE_OPENAI_DEPLOYMENT_NAME")
+  AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = get_env("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
   
   # Azure Search Configuration
   azure_search_endpoint   = get_env("AZURE_SEARCH_ENDPOINT")
-  azure_search_key        = get_env("AZURE_SEARCH_KEY")
+  AZURE_SEARCH_API_KEY        = get_env("AZURE_SEARCH_API_KEY")
   azure_search_index_name = get_env("AZURE_SEARCH_INDEX_NAME")
   
   # Azure Document Intelligence Configuration
@@ -96,11 +96,11 @@ repo_name                 = "${get_env("repo_name")}"
 azure_openai_api_key         = "${local.azure_openai_api_key}"
 azure_openai_endpoint        = "${local.azure_openai_endpoint}"
 azure_openai_api_version     = "${local.azure_openai_api_version}"
-azure_openai_deployment_name = "${local.azure_openai_deployment_name}"
+AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = "${local.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME}"
 
 # Azure Search Configuration
 azure_search_endpoint   = "${local.azure_search_endpoint}"
-azure_search_key        = "${local.azure_search_key}"
+AZURE_SEARCH_API_KEY        = "${local.AZURE_SEARCH_API_KEY}"
 azure_search_index_name = "${local.azure_search_index_name}"
 
 # Azure Document Intelligence Configuration
