@@ -182,7 +182,7 @@ variable "azure_openai_api_version" {
   nullable    = false
 }
 
-variable "azure_openai_deployment_name" {
+variable "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME" {
   description = "The deployment name for Azure OpenAI model."
   type        = string
   nullable    = false
@@ -194,7 +194,7 @@ variable "azure_search_endpoint" {
   nullable    = false
 }
 
-variable "azure_search_key" {
+variable "AZURE_SEARCH_API_KEY" {
   description = "The API key for Azure AI Search service."
   type        = string
   sensitive   = true
