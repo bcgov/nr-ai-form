@@ -6,6 +6,8 @@ import os
 import sys
 import asyncio
 from agent_framework import Executor, WorkflowBuilder, handler
+from agent_framework import ChatMessage, Role
+from agent_framework._workflows._message_utils import normalize_messages_input
 from typing_extensions import Never
 from typing import Any, Union, Optional
 from dotenv import load_dotenv
@@ -86,29 +88,41 @@ async def orchestrate_a2a(query: str,
     
     thread_id = session_id or str(uuid.uuid4()) #TODO: This UUID is generated for with GUID temp, once we crack the logic from FE, ths will have mapper.
     
-    
+
     final_data = None
-    accumulated_text = ""
     
     # Get singleton Redis Utils
     db_utils = get_redis_utils()
 
     try:
-        # Run the workflow
+        # Load thread state
         thread = await db_utils.get_thread_state(thread_id, agent)
+       
+        input_messages = normalize_messages_input(query)
 
-        async for event in agent.run_stream(query, thread=thread):
-            if hasattr(event, "text"):
-                accumulated_text += event.text
+        workflow_result = await agent.workflow.run(input_messages)
+        outputs = workflow_result.get_outputs()
+        if outputs:
+            # The Aggregator calls ctx.yield_output([aggregated_result])
+            # so outputs[0] is the list directly; unwrap if needed.
+            first_output = outputs[0]
+            if isinstance(first_output, list):
+                final_data = first_output
+            else:
+                final_data = outputs
 
-        # Parse results
-        if accumulated_text:
-            try:
-                import ast
-                final_data = ast.literal_eval(accumulated_text)
-            except Exception as e:
-                print(f"Could not parse accumulated text as data: {e}")
-                final_data = None
+        if thread and final_data:
+            from agent_framework import ChatMessage, Role
+            # Build a response ChatMessage from the aggregated result text
+            aggregated_text = ""
+            if isinstance(final_data, list) and final_data:
+                agg = final_data[0]
+                if isinstance(agg, dict):
+                    aggregated_text = agg.get("response", str(agg))
+                else:
+                    aggregated_text = str(agg)
+            response_messages = [ChatMessage(role=Role.ASSISTANT, text=aggregated_text)] if aggregated_text else []
+            await agent._notify_thread_of_new_messages(thread, input_messages, response_messages)
 
         # Save Thread State
         if thread:
@@ -118,7 +132,7 @@ async def orchestrate_a2a(query: str,
                 print("Thread state saved.")
             except Exception as e:
                 print(f"Error saving thread state: {e}")
-
+       
         # Process and display results
         if final_data and isinstance(final_data, list):
             print("===== Final Aggregated Conversation (A2A) from Orchestrator Agent=====")
@@ -153,8 +167,6 @@ async def orchestrate_a2a(query: str,
         # Add thread_id to response
         if final_data and isinstance(final_data, list):
             final_data.append({"thread_id": thread_id})
-        elif final_data is None and accumulated_text:       
-            pass
 
     except Exception as e:
         print(f"Error in orchestrate_a2a: {e}")
@@ -184,10 +196,10 @@ if __name__ == "__main__":
     print(f"Form Step: {step_number}")
     print(f"Query: {query}\n")    
     
-    try:
-        asyncio.run(orchestrate_a2a(query, conversation_url, form_support_url, step_number))
-    finally:
+    #try:
+    asyncio.run(orchestrate_a2a(query, conversation_url, form_support_url, step_number))
+    #finally:
         # Cleanup singleton on exit (only for script run)
-        _utils = get_redis_utils()
-        if _utils:
-            asyncio.run(_utils.close())
+        #_utils = get_redis_utils()
+        #if _utils:
+            #asyncio.run(_utils.close())
