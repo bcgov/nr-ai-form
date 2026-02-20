@@ -37,9 +37,9 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
 
 //-------------------------- Steppers Starts ---------------------------//
 const FormSteps = {
-    STEP1_INTRODUCTION: "step1-Introduction",
+    step1introduction: "step1-Introduction",
     STEP10_COMPLETE: "step10-Complete",
-    STEP2_ELIGIBILITY: "step2-Eligibility",
+    step2eligibility: "step2-Eligibility",
     STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
     STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
     STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS: "step3-Dam-Reservoir-Add-Individual-Mailing-Address",
@@ -155,21 +155,20 @@ function extractThreadIdFromResponse(response) {
 }
 
 function normalizeStepLabelToStepValue(label) {
-    const cleaned = String(label || '').replace(/\u00a0/g, ' ').trim();
-    if (!cleaned) return null;
+    const raw = String(label || '').replace(/\u00a0/g, ' ').trim().toLowerCase();
+    if (!raw) return null;
 
-    if (/^complete$/i.test(cleaned)) {
-        return FormSteps.STEP10_COMPLETE;
+    const normalized = raw.replace(/[^a-z0-9]/g, '');
+    if (!normalized) return null;
+
+    let stepKey = normalized;
+    if (stepKey === 'complete') {
+        stepKey = 'step10complete';
+    } else if (/^\d+/.test(stepKey)) {
+        stepKey = `step${stepKey}`;
     }
 
-    const numberedStep = cleaned.match(/^(\d+)\s*-\s*(.+)$/);
-    if (numberedStep) {
-        const stepNumber = numberedStep[1];
-        const stepName = numberedStep[2].trim().replace(/\s+/g, '-');
-        return `step${stepNumber}-${stepName}`;
-    }
-
-    return null;
+    return FormSteps[stepKey] || stepKey;
 }
 
 function getCurrentFormStepFromDom() {
@@ -534,7 +533,7 @@ function initBot() {
         showTyping(true);
 
         try {
-            const currentStep = getCurrentFormStepFromDom() || FormSteps.STEP1_INTRODUCTION;
+            const currentStep = getCurrentFormStepFromDom() || FormSteps.step1introduction || 'step1introduction';
             console.log(`Invoking orchestrator with sessionId=${sessionId}, step=${currentStep}, query=${text}`);
             const response = await invokeOrchestrator(text, currentStep, sessionId);
             const serverThreadId = extractThreadIdFromResponse(response);
