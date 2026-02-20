@@ -39,6 +39,10 @@ locals {
   azure_storage_account_name   = get_env("AZURE_STORAGE_ACCOUNT_NAME")
   azure_storage_account_key    = get_env("AZURE_STORAGE_ACCOUNT_KEY")
   azure_storage_container_name = get_env("AZURE_STORAGE_CONTAINER_NAME")
+
+  # Azure Blob Storage Configuration
+  azure_blobstorage_connectionstring = get_env("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
+  azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER")
   
   # Container Registry Configuration
   container_registry_url      = get_env("CONTAINER_REGISTRY_URL", "https://ghcr.io")
@@ -111,6 +115,10 @@ azure_document_intelligence_key      = "${local.azure_document_intelligence_key}
 azure_storage_account_name   = "${local.azure_storage_account_name}"
 azure_storage_account_key    = "${local.azure_storage_account_key}"
 azure_storage_container_name = "${local.azure_storage_container_name}"
+
+# Azure Blob Storage Configuration
+azure_blobstorage_connectionstring = "${local.azure_blobstorage_connectionstring}"
+azure_blobstorage_container         = "${local.azure_blobstorage_container}"
 
 # Container Registry Configuration
 container_registry_url      = "${local.container_registry_url}"
