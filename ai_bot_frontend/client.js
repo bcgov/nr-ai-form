@@ -187,6 +187,133 @@ function getCurrentFormStepFromDom() {
     return normalizeStepLabelToStepValue(labelFromText) || normalizeStepLabelToStepValue(labelFromTitle);
 }
 
+function normalizeComparableValue(value) {
+    return String(value ?? '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+}
+
+function tryParseJson(value) {
+    if (typeof value !== 'string') return value;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return null;
+    }
+}
+
+function parseFormSupportSuggestions(response) {
+    const suggestions = [];
+    const responseArr = response && Array.isArray(response.response) ? response.response : [];
+
+    responseArr.forEach((item) => {
+        const originalResults = Array.isArray(item && item.original_results) ? item.original_results : [];
+        originalResults.forEach((result) => {
+            if (!result || result.source !== 'FormSupportAgentA2A') return;
+            const parsed = tryParseJson(result.response);
+            if (parsed && parsed.id) {
+                suggestions.push({
+                    id: parsed.id,
+                    type: String(parsed.type || '').toLowerCase(),
+                    suggestedvalue: parsed.suggestedvalue
+                });
+            }
+        });
+    });
+
+    return suggestions;
+}
+
+function getAssociatedLabelText(element) {
+    if (!element) return '';
+    if (element.id) {
+        const byFor = document.querySelector(`label[for="${CSS.escape(element.id)}"]`);
+        if (byFor && byFor.textContent) return byFor.textContent;
+    }
+    const parentLabel = element.closest('label');
+    return parentLabel && parentLabel.textContent ? parentLabel.textContent : '';
+}
+
+function setFieldValueAndNotify(element, value) {
+    element.value = value;
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function findFieldElementsByIdentifier(identifier) {
+    const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(identifier) : identifier;
+    const byId = document.getElementById(identifier);
+    if (byId) return [byId];
+
+    const byDataId = Array.from(document.querySelectorAll(`[data-id="${escaped}"]`));
+    if (byDataId.length > 0) return byDataId;
+
+    const byName = Array.from(document.getElementsByName(identifier));
+    if (byName.length > 0) return byName;
+
+    return [];
+}
+
+function applySuggestionToElements(suggestion, elements) {
+    if (!elements || elements.length === 0) return false;
+
+    const expected = normalizeComparableValue(suggestion.suggestedvalue);
+    const type = String(suggestion.type || '').toLowerCase();
+    const first = elements[0];
+
+    const radioOrCheckboxElements = elements.filter((el) => el.type === 'radio' || el.type === 'checkbox');
+    if (type === 'radio' || type === 'checkbox' || radioOrCheckboxElements.length > 0) {
+        const target = (radioOrCheckboxElements.length > 0 ? radioOrCheckboxElements : elements).find((el) => {
+            const byValue = normalizeComparableValue(el.value);
+            const byLabel = normalizeComparableValue(getAssociatedLabelText(el));
+            return byValue === expected || byLabel === expected;
+        });
+
+        if (target) {
+            target.checked = true;
+            target.dispatchEvent(new Event('click', { bubbles: true }));
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+        }
+        return false;
+    }
+
+    if (first.tagName && first.tagName.toLowerCase() === 'select') {
+        const selectEl = first;
+        const matchedOption = Array.from(selectEl.options || []).find((opt) => {
+            const byText = normalizeComparableValue(opt.textContent);
+            const byValue = normalizeComparableValue(opt.value);
+            return byText === expected || byValue === expected;
+        });
+        if (matchedOption) {
+            setFieldValueAndNotify(selectEl, matchedOption.value);
+            return true;
+        }
+        return false;
+    }
+
+    if (first.tagName && (first.tagName.toLowerCase() === 'input' || first.tagName.toLowerCase() === 'textarea')) {
+        setFieldValueAndNotify(first, suggestion.suggestedvalue ?? '');
+        return true;
+    }
+
+    return false;
+}
+
+function applyFormSupportSuggestionsFromResponse(response) {
+    const suggestions = parseFormSupportSuggestions(response);
+    if (suggestions.length === 0) return;
+
+    suggestions.forEach((suggestion) => {
+        const elements = findFieldElementsByIdentifier(suggestion.id);
+        const applied = applySuggestionToElements(suggestion, elements);
+        if (!applied) {
+            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+        }
+    });
+}
+
 
 function injectStyles() {
     if (document.getElementById('wp-chat-styles')) return;
@@ -536,6 +663,7 @@ function initBot() {
             const currentStep = getCurrentFormStepFromDom() || FormSteps.step1introduction || 'step1introduction';
             console.log(`Invoking orchestrator with sessionId=${sessionId}, step=${currentStep}, query=${text}`);
             const response = await invokeOrchestrator(text, currentStep, sessionId);
+            applyFormSupportSuggestionsFromResponse(response);
             const serverThreadId = extractThreadIdFromResponse(response);
             if (serverThreadId && serverThreadId !== sessionId) {
                 migrateChatHistory(sessionId, serverThreadId);
