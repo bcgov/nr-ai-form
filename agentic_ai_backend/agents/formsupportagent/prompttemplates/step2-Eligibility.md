@@ -16,7 +16,8 @@ For e.g if user query is about BC Hydro Sustainability Project, Return 'Not supp
 For e.g if user query is about Clean Energy Project, Return 'Not supported for pilot'.
 For e.g if user query is about Housing Project, Return 'Not supported for pilot'.
 
-# Output Format & Rules
-- Return a JSON object with: `ID`, `Description`, and `SuggestedValue`.
+# ResponseOutput Format & Rules
+- Return  JSON object SHOULD have: `id`, `description`, `type` and `suggestedvalue`.
+- Example JSON response will look  this : {"id":"AnswerOnJob_eligible","description":"if user is eligible to apply for a water licence, select 'yes' option, else select 'no' option.","suggestedvalue":"Yes","type":"radio"}
 - For all queries related to North Coast Transmission Line, BC Hydro Sustainability Project, Clean Energy Project, Housing Project, always return as `Not supported for pilot`
 - If there is no match for user query with field's property description, return `No Match`.
