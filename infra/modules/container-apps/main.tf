@@ -78,11 +78,6 @@ resource "azurerm_container_app" "backend" {
   }
 
   secret {
-    name  = "azure-search-key"
-    value = var.azure_search_key
-  }
-
-  secret {
     name  = "azure-document-intelligence-key"
     value = var.azure_document_intelligence_key
   }
@@ -90,6 +85,11 @@ resource "azurerm_container_app" "backend" {
   secret {
     name  = "azure-storage-account-key"
     value = var.azure_storage_account_key
+  }
+
+  secret {
+    name  = "azure-blobstorage-connectionstring"
+    value = var.azure_blobstorage_connectionstring
   }
 
   template {
@@ -200,8 +200,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -211,8 +211,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
-        secret_name = "azure-search-key"
+        name  = "AZURE_SEARCH_API_KEY"
+        value = var.AZURE_SEARCH_API_KEY
       }
 
       env {
@@ -245,6 +245,17 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_STORAGE_CONTAINER_NAME"
         value = var.azure_storage_container_name
+      }
+
+      # Azure Blob Storage Configuration
+      env {
+        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+        secret_name = "azure-blobstorage-connectionstring"
+      }
+
+      env {
+        name  = "AZURE_BLOBSTORAGE_CONTAINER"
+        value = var.azure_blobstorage_container
       }
     }
 
@@ -334,8 +345,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -345,8 +356,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
-        secret_name = "azure-search-key"
+        name  = "AZURE_SEARCH_API_KEY"
+        value = var.AZURE_SEARCH_API_KEY
       }
 
       env {
@@ -468,8 +479,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -479,8 +490,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
-        secret_name = "azure-search-key"
+        name  = "AZURE_SEARCH_API_KEY"
+        value = var.AZURE_SEARCH_API_KEY
       }
 
       env {
@@ -513,6 +524,17 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_STORAGE_CONTAINER_NAME"
         value = var.azure_storage_container_name
+      }
+
+      # Azure Blob Storage Configuration
+      env {
+        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+        secret_name = "azure-blobstorage-connectionstring"
+      }
+
+      env {
+        name  = "AZURE_BLOBSTORAGE_CONTAINER"
+        value = var.azure_blobstorage_container
       }
     }
 

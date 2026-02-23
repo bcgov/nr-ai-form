@@ -109,11 +109,11 @@ module "api" {
   azure_openai_api_key         = var.azure_openai_api_key
   azure_openai_endpoint        = var.azure_openai_endpoint
   azure_openai_api_version     = var.azure_openai_api_version
-  azure_openai_deployment_name = var.azure_openai_deployment_name
+  AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
 
   # Azure Search
   azure_search_endpoint   = var.azure_search_endpoint
-  azure_search_key        = var.azure_search_key
+  AZURE_SEARCH_API_KEY        = var.AZURE_SEARCH_API_KEY
   azure_search_index_name = var.azure_search_index_name
 
   # Azure Document Intelligence
@@ -124,6 +124,10 @@ module "api" {
   azure_storage_account_name   = var.azure_storage_account_name
   azure_storage_account_key    = var.azure_storage_account_key
   azure_storage_container_name = var.azure_storage_container_name
+
+  # Azure Blob Storage
+  azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
+  azure_blobstorage_container         = var.azure_blobstorage_container
 
   # Sidecar Configuration
   orchestrator_agent_port = var.orchestrator_agent_port
@@ -190,11 +194,11 @@ module "container_apps" {
   azure_openai_api_key         = var.azure_openai_api_key
   azure_openai_endpoint        = var.azure_openai_endpoint
   azure_openai_api_version     = var.azure_openai_api_version
-  azure_openai_deployment_name = var.azure_openai_deployment_name
+  AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
 
   # Azure Search
   azure_search_endpoint   = var.azure_search_endpoint
-  azure_search_key        = var.azure_search_key
+  AZURE_SEARCH_API_KEY        = var.AZURE_SEARCH_API_KEY
   azure_search_index_name = var.azure_search_index_name
 
   # Azure Document Intelligence
@@ -205,6 +209,10 @@ module "container_apps" {
   azure_storage_account_name   = var.azure_storage_account_name
   azure_storage_account_key    = var.azure_storage_account_key
   azure_storage_container_name = var.azure_storage_container_name
+
+  # Azure Blob Storage
+  azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
+  azure_blobstorage_container         = var.azure_blobstorage_container
 
   depends_on = [module.frontdoor, module.network, module.cosmos, module.monitoring]
 }

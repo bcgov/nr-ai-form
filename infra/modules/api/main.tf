@@ -135,11 +135,11 @@ resource "azurerm_linux_web_app" "api" {
     AZURE_OPENAI_API_KEY         = var.azure_openai_api_key
     AZURE_OPENAI_ENDPOINT        = var.azure_openai_endpoint
     AZURE_OPENAI_API_VERSION     = var.azure_openai_api_version
-    AZURE_OPENAI_DEPLOYMENT_NAME = var.azure_openai_deployment_name
+    AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
 
     # Azure Search Configuration
     AZURE_SEARCH_ENDPOINT   = var.azure_search_endpoint
-    AZURE_SEARCH_KEY        = var.azure_search_key
+    AZURE_SEARCH_API_KEY    = var.AZURE_SEARCH_API_KEY
     AZURE_SEARCH_INDEX_NAME = var.azure_search_index_name
 
     # Azure Document Intelligence Configuration
@@ -150,6 +150,10 @@ resource "azurerm_linux_web_app" "api" {
     AZURE_STORAGE_ACCOUNT_NAME   = var.azure_storage_account_name
     AZURE_STORAGE_ACCOUNT_KEY    = var.azure_storage_account_key
     AZURE_STORAGE_CONTAINER_NAME = var.azure_storage_container_name
+
+    # Azure Blob Storage Configuration
+    AZURE_BLOBSTORAGE_CONNECTIONSTRING = var.azure_blobstorage_connectionstring
+    AZURE_BLOBSTORAGE_CONTAINER         = var.azure_blobstorage_container
   }
   logs {
     detailed_error_messages = true
