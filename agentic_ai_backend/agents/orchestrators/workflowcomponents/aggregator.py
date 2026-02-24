@@ -69,11 +69,13 @@ class Aggregator(Executor):
                 Your task:
                 - Synthesize a single, natural, and helpful response for the user.
                 - Synthesized response content of Conversation Agent will come first, then the response content of Form Support Agent.
+                - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.
                 - If the Form Support Agent suggests a specific action, YOU MUST PRIORITIZE this action in your response. Guide the user to take that action.
-                - For e.g. if the `type` is "button" and `title` is "Apply without BCeID", then you must guide the user "If you'd like to proceed without a BCeID, please click the "Apply without BCeID" button on the form to start your application"
-                - If the Form Support Agent says "no match" or implies no specific form action is needed right now, rely primarily on the Conversation Agent's information.
+                - For e.g. if the `type` is "button" and `title` is "Apply without BCeID", then you must guide the user "If you'd like to proceed without a BCeID, please click the "Apply without BCeID" button on the form to start your application".
+                - *Strict*: if the suggestion from Form Support Agent has `type` is "radio" and then response should indicate like "AI Assistant has selected the option for you."                
+                - If the Form Support Agent says "no match" or implies no specific form action is needed right now, rely primarily on the Conversation Agent's information if there are any response from Conversation Agent.
                 - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").
-                - Keep the response concise but informative.
+                - if the conversation agent's response is NOT FOUND, and there is suggestion from Form Suport agent, then response should indicate the action taken by suggestion.
                 """
                 
                 completion = await client.chat.completions.create(
