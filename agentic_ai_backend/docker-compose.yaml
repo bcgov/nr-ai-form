@@ -18,6 +18,20 @@ services:
     env_file:
       - ./agents/formsupportagent/.env
     restart: unless-stopped
+  
+  api-backend:
+    build:
+      context: .
+      dockerfile: api_backend/Dockerfile
+    ports:
+      - "8003:8003"
+    env_file:
+      - ./api_backend/.env
+    environment:
+      - ORCHESTRATOR_AGENT_A2A_URL=http://orchestrator-agent:8002
+    restart: unless-stopped
+    depends_on:
+      - orchestrator-agent
 
   orchestrator-agent:
     build:

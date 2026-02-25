@@ -16,6 +16,7 @@ dependencies = [
  "utils",
  "azure-cosmos==4.9.0",
  "debugpy==1.8.20",
+ "opentelemetry-semantic-conventions-ai==0.4.13",
 ]
 
 [tool.uv.sources]

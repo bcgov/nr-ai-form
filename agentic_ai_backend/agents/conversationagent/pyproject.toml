@@ -11,5 +11,6 @@ dependencies = [
     "fastapi==0.127.0",
     "python-dotenv==1.2.1",
     "uvicorn==0.38.0",
+    "opentelemetry-semantic-conventions-ai==0.4.13",
 ]
 

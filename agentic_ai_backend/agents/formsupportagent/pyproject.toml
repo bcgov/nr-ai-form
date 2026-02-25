@@ -11,7 +11,7 @@ dependencies = [
     "fastapi==0.127.0",
     "uvicorn==0.38.0",
     "utils",
-    "websockets>=14.2",
+    "websockets>=16.0",
     "requests>=2.32.3",
 ]
 

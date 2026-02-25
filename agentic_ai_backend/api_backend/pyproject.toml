@@ -1,0 +1,16 @@
+[project]
+name = "api_backend"
+version = "0.1.0"
+description = "NR Sector CSS AI API Backend"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi==0.127.0",
+    "uvicorn==0.38.0",
+    "utils",
+    "websockets>=14.2",
+    "requests>=2.32.3",
+]
+
+[tool.uv.sources]
+utils = { path = "../utils" }

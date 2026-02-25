@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent WebSocket Tester</title>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            background-color: #334155;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge.connected {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-badge.disconnected {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--error-color);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s, ring 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background-color: #475569;
+            cursor: not-allowed;
+        }
+
+        .response-area {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #0f172a;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .response-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        #response-output {
+            white-space: pre-wrap;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.875rem;
+            color: #e2e8f0;
+        }
+
+        .empty-state {
+            color: #475569;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Agent Gateway</h1>
+        <p class="subtitle">WebSocket Interaction Tester</p>
+
+        <div id="status" class="status-badge disconnected">Disconnected</div>
+
+        <div class="input-group">
+            <label for="session-id">Session ID</label>
+            <input type="text" id="session-id" value="test-session-123" placeholder="Enter session ID">
+        </div>
+
+        <div class="input-group">
+            <label for="query">Query</label>
+            <textarea id="query" rows="3" placeholder="Type your message to the agent..."></textarea>
+        </div>
+
+        <button id="send-btn" disabled>Connect & Send</button>
+
+        <div class="response-area">
+            <div class="response-header">Response</div>
+            <div id="response-output"><span class="empty-state">No messages yet. Connect to start chatting.</span></div>
+        </div>
+    </div>
+
+    <script>
+        const sessionIdInput = document.getElementById('session-id');
+        const queryInput = document.getElementById('query');
+        const sendBtn = document.getElementById('send-btn');
+        const statusBadge = document.getElementById('status');
+        const output = document.getElementById('response-output');
+
+        let socket = null;
+
+        function updateStatus(connected) {
+            if (connected) {
+                statusBadge.textContent = 'Connected';
+                statusBadge.className = 'status-badge connected';
+                sendBtn.textContent = 'Send Message';
+                sendBtn.disabled = false;
+            } else {
+                statusBadge.textContent = 'Disconnected';
+                statusBadge.className = 'status-badge disconnected';
+                sendBtn.textContent = 'Connect & Send';
+                sendBtn.disabled = false;
+            }
+        }
+
+        function appendToOutput(text, isError = false) {
+            if (output.querySelector('.empty-state')) {
+                output.innerHTML = '';
+            }
+            const div = document.createElement('div');
+            div.style.marginBottom = '0.5rem';
+            if (isError) div.style.color = 'var(--error-color)';
+            
+            const time = new Date().toLocaleTimeString();
+            div.innerHTML = `<span style="color: var(--text-muted)">[${time}]</span> ${text}`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function connect() {
+            const sessionId = sessionIdInput.value.trim();
+            if (!sessionId) {
+                alert('Please enter a Session ID');
+                return;
+            }
+
+            appendToOutput('Connecting to ws://localhost:8002/invoke-websocket...');
+            socket = new WebSocket('ws://localhost:8002/invoke-websocket');
+
+            socket.onopen = () => {
+                updateStatus(true);
+                appendToOutput('Connected successfully!');
+                sendMessage();
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    appendToOutput(`<strong>Agent:</strong> ${data.response || JSON.stringify(data)}`);
+                } catch (e) {
+                    appendToOutput(`<strong>Raw:</strong> ${event.data}`);
+                }
+            };
+
+            socket.onclose = (event) => {
+                updateStatus(false);
+                appendToOutput(`Disconnected: ${event.reason || 'Connection lost'}`, true);
+                socket = null;
+            };
+
+            socket.onerror = (error) => {
+                appendToOutput('WebSocket error occurred', true);
+                console.error(error);
+            };
+        }
+
+        function sendMessage() {
+            const query = queryInput.value.trim();
+            const sessionId = sessionIdInput.value.trim();
+            
+            if (!query) {
+                appendToOutput('Please enter a query.', true);
+                return;
+            }
+
+            const payload = {
+                query: query,
+                session_id: sessionId
+            };
+
+            appendToOutput(`<strong>You:</strong> ${query}`);
+            socket.send(JSON.stringify(payload));
+            queryInput.value = '';
+        }
+
+        sendBtn.addEventListener('click', () => {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                connect();
+            } else {
+                sendMessage();
+            }
+        });
+
+        // Initialize state
+        sendBtn.disabled = false;
+
+        // Allow Enter to send (Shift+Enter for newline)
+        queryInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
