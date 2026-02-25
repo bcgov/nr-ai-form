@@ -195,7 +195,7 @@ variable "azure_openai_api_version" {
   nullable    = false
 }
 
-variable "azure_openai_deployment_name" {
+variable "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME" {
   description = "The deployment name for the Azure OpenAI model."
   type        = string
   nullable    = false
@@ -208,7 +208,7 @@ variable "azure_search_endpoint" {
   nullable    = false
 }
 
-variable "azure_search_key" {
+variable "AZURE_SEARCH_API_KEY" {
   description = "The API key for Azure AI Search service."
   type        = string
   sensitive   = true
@@ -251,6 +251,19 @@ variable "azure_storage_account_key" {
 
 variable "azure_storage_container_name" {
   description = "The container name in Azure Storage for document storage."
+  type        = string
+  nullable    = false
+}
+
+variable "azure_blobstorage_connectionstring" {
+  description = "Azure Blob Storage connection string"
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_blobstorage_container" {
+  description = "Azure Blob Storage container name"
   type        = string
   nullable    = false
 }

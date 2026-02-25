@@ -59,7 +59,7 @@ variable "azure_openai_api_version" {
   nullable    = false
 }
 
-variable "azure_openai_deployment_name" {
+variable "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME" {
   description = "Azure OpenAI deployment name"
   type        = string
   nullable    = false
@@ -83,7 +83,7 @@ variable "azure_search_index_name" {
   nullable    = false
 }
 
-variable "azure_search_key" {
+variable "AZURE_SEARCH_API_KEY" {
   description = "Azure Search API key"
   type        = string
   sensitive   = true
@@ -105,6 +105,19 @@ variable "azure_storage_account_name" {
 
 variable "azure_storage_container_name" {
   description = "Azure Storage container name"
+  type        = string
+  nullable    = false
+}
+
+variable "azure_blobstorage_connectionstring" {
+  description = "Azure Blob Storage connection string"
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_blobstorage_container" {
+  description = "Azure Blob Storage container name"
   type        = string
   nullable    = false
 }
@@ -277,5 +290,12 @@ variable "private_endpoint_subnet_id" {
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
+  nullable    = false
+}
+
+variable "internal_load_balancer_enabled" {
+  description = "Whether to use an internal load balancer for the Container App Environment"
+  type        = bool
+  default     = false
   nullable    = false
 }

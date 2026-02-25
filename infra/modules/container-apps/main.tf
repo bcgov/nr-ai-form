@@ -6,7 +6,7 @@ resource "azurerm_container_app_environment" "main" {
   log_analytics_workspace_id         = var.log_analytics_workspace_id
   infrastructure_subnet_id           = var.container_apps_subnet_id
   infrastructure_resource_group_name = "ME-${var.resource_group_name}" # Changing this will force delete and recreate
-  internal_load_balancer_enabled     = true                            # MUST be true to comply with Azure Policy
+  internal_load_balancer_enabled     = var.internal_load_balancer_enabled
 
   workload_profile {
     name                  = "Consumption"
@@ -27,6 +27,7 @@ resource "azurerm_container_app_environment" "main" {
 }
 
 resource "azurerm_private_endpoint" "containerapps" {
+  count               = var.internal_load_balancer_enabled ? 1 : 0  # Only create if using internal load balancer
   name                = "${var.app_name}-containerapps-pe"
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -77,11 +78,6 @@ resource "azurerm_container_app" "backend" {
   }
 
   secret {
-    name  = "azure-search-key"
-    value = var.azure_search_key
-  }
-
-  secret {
     name  = "azure-document-intelligence-key"
     value = var.azure_document_intelligence_key
   }
@@ -89,6 +85,11 @@ resource "azurerm_container_app" "backend" {
   secret {
     name  = "azure-storage-account-key"
     value = var.azure_storage_account_key
+  }
+
+  secret {
+    name  = "azure-blobstorage-connectionstring"
+    value = var.azure_blobstorage_connectionstring
   }
 
   template {
@@ -199,8 +200,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -210,8 +211,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
-        secret_name = "azure-search-key"
+        name  = "AZURE_SEARCH_API_KEY"
+        value = var.AZURE_SEARCH_API_KEY
       }
 
       env {
@@ -244,6 +245,17 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_STORAGE_CONTAINER_NAME"
         value = var.azure_storage_container_name
+      }
+
+      # Azure Blob Storage Configuration
+      env {
+        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+        secret_name = "azure-blobstorage-connectionstring"
+      }
+
+      env {
+        name  = "AZURE_BLOBSTORAGE_CONTAINER"
+        value = var.azure_blobstorage_container
       }
     }
 
@@ -333,8 +345,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -344,8 +356,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
-        secret_name = "azure-search-key"
+        name  = "AZURE_SEARCH_API_KEY"
+        value = var.AZURE_SEARCH_API_KEY
       }
 
       env {
@@ -467,8 +479,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_OPENAI_DEPLOYMENT_NAME"
-        value = var.azure_openai_deployment_name
+        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -478,8 +490,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name        = "AZURE_SEARCH_KEY"
-        secret_name = "azure-search-key"
+        name  = "AZURE_SEARCH_API_KEY"
+        value = var.AZURE_SEARCH_API_KEY
       }
 
       env {
@@ -513,6 +525,17 @@ resource "azurerm_container_app" "backend" {
         name  = "AZURE_STORAGE_CONTAINER_NAME"
         value = var.azure_storage_container_name
       }
+
+      # Azure Blob Storage Configuration
+      env {
+        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+        secret_name = "azure-blobstorage-connectionstring"
+      }
+
+      env {
+        name  = "AZURE_BLOBSTORAGE_CONTAINER"
+        value = var.azure_blobstorage_container
+      }
     }
 
     # HTTP scaling rule - scale based on concurrent requests
@@ -524,7 +547,7 @@ resource "azurerm_container_app" "backend" {
 
   ingress {
     external_enabled           = true # Must be true for Front Door to reach the backend
-    target_port                = 8002 # Backend app runs on port 8002
+    target_port                = 8002 # Backend app runs on port 8002 (controlled by orchestrator_agent_port)
     transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
@@ -596,7 +619,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
   health_probe {
     interval_in_seconds = 100
     path                = "/health"
-    protocol            = "Https"
+    protocol            = "Http"
     request_type        = "GET"
   }
 }
@@ -612,7 +635,7 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
 
   enabled                        = true
   host_name                      = local.backend_fqdn
-  http_port                      = 80
+  http_port                      = 8002
   https_port                     = 443
   origin_host_header             = local.backend_fqdn
   priority                       = 1

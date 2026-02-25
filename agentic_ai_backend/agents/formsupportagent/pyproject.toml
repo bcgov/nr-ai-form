@@ -5,11 +5,11 @@ description = "NR Sector CSS AI Form Support Agent"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "agent-framework-core>=1.0.0b251211",
-    "azure-storage-blob>=12.27.1",
-    "python-dotenv>=1.2.1",
-    "fastapi>=0.127.0",
-    "uvicorn>=0.38.0",
+    "agent-framework-core==1.0.0b251211", # use this fixed version for MAF, since higher versions need code refactoring.
+    "azure-storage-blob==12.27.1",
+    "python-dotenv==1.2.1",
+    "fastapi==0.127.0",
+    "uvicorn==0.38.0",
     "utils",
     "websockets>=14.2",
     "requests>=2.32.3",
