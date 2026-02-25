@@ -1,0 +1,18 @@
+{
+    "formName": "Water Licence Application",
+    "formDescription": "Human verification step. To verify if the applicant is a human, application will be asked to click the button or complete captcha.",
+    "properties": {
+        "humanconfirmationisrequired:": {
+            "type": "bot",
+            "id": "humanconfirmationisrequired",
+            "title": "Verify you are a human",
+            "description": "Need to click the button or complete captcha to verify you are a human, then click next"
+        } ,
+        "nextbutton:": {
+            "type": "button",
+            "id": "cphBottomFunctionBand_ctl10_Next",
+            "title": "Next",
+            "description": "Click next to proceed"
+        }        
+    }
+}

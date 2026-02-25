@@ -38,6 +38,7 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
 //-------------------------- Steppers Starts ---------------------------//
 const FormSteps = {
     step1introduction: "step1-Introduction",
+    step0bot:"step0-Bot",
     STEP10_COMPLETE: "step10-Complete",
     step2eligibility: "step2-Eligibility",
     STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
@@ -173,14 +174,36 @@ function normalizeStepLabelToStepValue(label) {
 
 function getCurrentFormStepFromDom() {
     const progressBar = document.getElementById('progressbar');
-    if (!progressBar) return null;
+    if (!progressBar) {
+        const hasAltchaValidation = Boolean(
+            document.querySelector('span[id^="AltchaControl_"] script[src*="altcha.min.js"]')
+        );
+        const hasCaptchaIframeValidation = Boolean(
+            document.querySelector('span[id^="Captcha_"] iframe#lanbotiframe')
+        );
+        if (hasAltchaValidation || hasCaptchaIframeValidation) {
+            return FormSteps.STEP9_DECLARATIONS || 'step9-Declarations';
+        }
+        return null;
+    }
 
     const activeLi =
         progressBar.querySelector('li.crumbs_on') ||
         progressBar.querySelector('li.active') ||
         progressBar.querySelector('li[aria-current="step"]');
 
-    if (!activeLi) return null;
+    if (!activeLi) {
+        const hasAltchaValidation = Boolean(
+            document.querySelector('span[id^="AltchaControl_"] script[src*="altcha.min.js"]')
+        );
+        const hasCaptchaIframeValidation = Boolean(
+            document.querySelector('span[id^="Captcha_"] iframe#lanbotiframe')
+        );
+        if (hasAltchaValidation || hasCaptchaIframeValidation) {
+            return FormSteps.step0bot || 'step0bot';
+        }
+        return null;
+    }
 
     const labelFromText = (activeLi.textContent || '').trim();
     const labelFromTitle = (activeLi.getAttribute('title') || '').trim();
