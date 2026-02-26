@@ -1,10 +1,3 @@
-variable "apps_service_subnet_name" {
-  description = "Name of the subnet for App Services"
-  type        = string
-  default     = "app-service-subnet"
-  nullable    = false
-}
-
 variable "container_apps_subnet_name" {
   description = "Name of the subnet for Container Apps"
   type        = string
@@ -69,7 +62,7 @@ variable "vnet_resource_group_name" {
 }
 
 variable "deployment_type" {
-  description = "Type of deployment: 'app_service' or 'container_apps'"
+  description = "Type of deployment: 'container_apps' (App Service deployment is no longer supported)"
   type        = string
-  default     = "app_service"
+  default     = "container_apps"
 }

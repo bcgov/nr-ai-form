@@ -11,7 +11,7 @@ locals {
   vnet_name                = get_env("vnet_name")                # Name of the existing VNet.
   target_env               = get_env("target_env")
   app_env                  = get_env("app_env") # Application environment (dev, test, prod).
-  deployment_type          = get_env("deployment_type", "app_service") # Deployment type (app_service or container_apps)
+  deployment_type          = get_env("deployment_type", "container_apps") # Deployment type (container_apps only)
   azure_subscription_id    = get_env("azure_subscription_id")
   azure_tenant_id          = get_env("azure_tenant_id")
   azure_client_id          = get_env("azure_client_id")      # Azure service principal client ID.

@@ -3,13 +3,13 @@
 # -------------
 
 variable "deployment_type" {
-  description = "Type of deployment: 'app_service' or 'container_apps'"
+  description = "Type of deployment: 'container_apps'"
   type        = string
-  default     = "app_service" # Default to App Service for backwards compatibility
+  default     = "container_apps"
 
   validation {
-    condition     = contains(["app_service", "container_apps"], var.deployment_type)
-    error_message = "deployment_type must be either 'app_service' or 'container_apps'"
+    condition     = var.deployment_type == "container_apps"
+    error_message = "deployment_type must be 'container_apps'. App Service deployment is no longer supported."
   }
 }
 
@@ -44,12 +44,6 @@ variable "app_env" {
 variable "app_name" {
   description = "Name of the application"
   type        = string
-}
-
-variable "app_service_sku_name_api" {
-  description = "SKU name for the API App Service Plan. Must be Standard or higher for sidecar support (e.g., S1, S2, P1)"
-  type        = string
-  default     = "S1" # Standard tier - required for sidecar containers
 }
 
 variable "container_cpu" {
@@ -158,12 +152,6 @@ variable "vnet_resource_group_name" {
 
 variable "dev_private_endpoint_subnet_id" {
   description = "The subnet ID for private endpoints in dev environment"
-  type        = string
-  default     = ""
-}
-
-variable "dev_app_service_subnet_id" {
-  description = "The subnet ID for app service in dev environment"
   type        = string
   default     = ""
 }
