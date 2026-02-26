@@ -67,79 +67,8 @@ module "cosmos" {
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
-# Conditional deployment: App Service OR Container Apps (never both)
-module "api" {
-  count  = var.deployment_type == "app_service" ? 1 : 0
-  source = "./modules/api"
-
-  app_name                 = var.app_name
-  app_env                  = var.app_env
-  repo_name                = var.repo_name
-  conversation_agent_image = var.conversation_agent_image
-  formsupport_agent_image  = var.formsupport_agent_image
-  orchestrator_agent_image = var.orchestrator_agent_image
-  resource_group_name      = azurerm_resource_group.main.name
-  location                 = var.location
-  common_tags              = var.common_tags
-
-  # Networking
-  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.private_endpoint_subnet_id
-  app_service_subnet_id      = var.app_env == "dev" ? var.dev_app_service_subnet_id : module.network.app_service_subnet_id
-
-  # App Service
-  app_service_sku_name_api = var.app_service_sku_name_api
-
-  # CosmosDB
-  cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
-  cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
-  cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
-
-
-  # Monitoring
-  log_analytics_workspace_id      = module.monitoring.log_analytics_workspace_id
-  appinsights_instrumentation_key = module.monitoring.appinsights_instrumentation_key
-  appinsights_connection_string   = module.monitoring.appinsights_connection_string
-
-  # Frontdoor
-  api_frontdoor_id                 = module.frontdoor.frontdoor_id
-  api_frontdoor_resource_guid      = module.frontdoor.frontdoor_resource_guid
-  api_frontdoor_firewall_policy_id = module.frontdoor.firewall_policy_id
-
-  # Azure OpenAI
-  azure_openai_api_key         = var.azure_openai_api_key
-  azure_openai_endpoint        = var.azure_openai_endpoint
-  azure_openai_api_version     = var.azure_openai_api_version
-  AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
-
-  # Azure Search
-  azure_search_endpoint   = var.azure_search_endpoint
-  AZURE_SEARCH_API_KEY        = var.AZURE_SEARCH_API_KEY
-  azure_search_index_name = var.azure_search_index_name
-
-  # Azure Document Intelligence
-  azure_document_intelligence_endpoint = var.azure_document_intelligence_endpoint
-  azure_document_intelligence_key      = var.azure_document_intelligence_key
-
-  # Azure Storage
-  azure_storage_account_name   = var.azure_storage_account_name
-  azure_storage_account_key    = var.azure_storage_account_key
-  azure_storage_container_name = var.azure_storage_container_name
-
-  # Azure Blob Storage
-  azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
-  azure_blobstorage_container         = var.azure_blobstorage_container
-
-  # Sidecar Configuration
-  orchestrator_agent_port = var.orchestrator_agent_port
-  conversation_agent_port = var.conversation_agent_port
-  formsupport_agent_port  = var.formsupport_agent_port
-  container_registry_url  = var.container_registry_url
-
-  depends_on = [module.frontdoor]
-}
-
+# Container Apps Deployment (only deployment type supported)
 module "container_apps" {
-  count  = var.deployment_type == "container_apps" ? 1 : 0
   source = "./modules/container-apps"
 
   app_name  = var.app_name
@@ -220,24 +149,11 @@ module "container_apps" {
 
 
 
-# due to circular dependency issues this resource is created at root level
-// Assign the App Service's managed identity to the Cosmos DB SQL Database with Data Contributor role
-
-resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_app_service_data_contributor" {
-  count               = var.deployment_type == "app_service" ? 1 : 0
-  resource_group_name = var.resource_group_name
-  account_name        = module.cosmos.account_name
-  role_definition_id  = "${module.cosmos.account_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  principal_id        = module.api[0].api_managed_identity_principal_id
-  scope               = module.cosmos.account_id
-}
-
 # Assign the Container App's managed identity to the Cosmos DB SQL Database with Data Contributor role
 resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_container_app_data_contributor" {
-  count               = var.deployment_type == "container_apps" ? 1 : 0
   resource_group_name = var.resource_group_name
   account_name        = module.cosmos.account_name
   role_definition_id  = "${module.cosmos.account_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  principal_id        = module.container_apps[0].backend_managed_identity_principal_id
+  principal_id        = module.container_apps.backend_managed_identity_principal_id
   scope               = module.cosmos.account_id
 }
