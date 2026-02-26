@@ -5,6 +5,7 @@
 //-------------------------- Services Starts ---------------------------//
 const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 
+
 async function invokeOrchestrator(query, step_number, session_id = null) {
   const payload = {
     query: query,
@@ -172,6 +173,21 @@ function normalizeStepLabelToStepValue(label) {
     return FormSteps[stepKey] || stepKey;
 }
 
+function getStep3SubstepFromPaneHeader() {
+    const paneHeader = document.querySelector('span.paneheader');
+    if (!paneHeader) return null;
+
+    const paneHeaderText = normalizeComparableValue(paneHeader.textContent || '');
+    if (!paneHeaderText) return null;
+
+    const step3PaneHeaderMap = {
+        governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION
+    };
+
+    return step3PaneHeaderMap[paneHeaderText] || null;
+}
+
 function getCurrentFormStepFromDom() {
     const progressBar = document.getElementById('progressbar');
     if (!progressBar) {
@@ -182,7 +198,7 @@ function getCurrentFormStepFromDom() {
             document.querySelector('span[id^="Captcha_"] iframe#lanbotiframe')
         );
         if (hasAltchaValidation || hasCaptchaIframeValidation) {
-            return FormSteps.STEP9_DECLARATIONS || 'step9-Declarations';
+            return FormSteps.step0bot || 'step0-Bot';
         }
         return null;
     }
@@ -200,14 +216,22 @@ function getCurrentFormStepFromDom() {
             document.querySelector('span[id^="Captcha_"] iframe#lanbotiframe')
         );
         if (hasAltchaValidation || hasCaptchaIframeValidation) {
-            return FormSteps.step0bot || 'step0bot';
+            return FormSteps.step0bot || 'step0-Bot';
         }
         return null;
     }
 
     const labelFromText = (activeLi.textContent || '').trim();
     const labelFromTitle = (activeLi.getAttribute('title') || '').trim();
-    return normalizeStepLabelToStepValue(labelFromText) || normalizeStepLabelToStepValue(labelFromTitle);
+    const currentStep = normalizeStepLabelToStepValue(labelFromText) || normalizeStepLabelToStepValue(labelFromTitle);
+    if (!currentStep) return null;
+
+    // Keep existing step detection, then refine STEP3 pages by pane header when known.
+    if (normalizeComparableValue(currentStep).startsWith('step3')) {
+        return getStep3SubstepFromPaneHeader() || currentStep;
+    }
+
+    return currentStep;
 }
 
 function normalizeComparableValue(value) {
