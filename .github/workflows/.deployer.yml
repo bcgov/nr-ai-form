@@ -30,8 +30,8 @@ on:
       deployment_type:
         required: false
         type: string
-        default: 'app_service'
-        description: 'The deployment type: app_service or container_apps'
+        default: 'container_apps'
+        description: 'The deployment type: container_apps'
       
 env:
     TG_VERSION: 0.63.6
