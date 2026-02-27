@@ -96,8 +96,8 @@ function saveThreadId(threadId) {
     if (!threadId) return;
     try {
         localStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
-    } catch {
-        // Ignore storage errors and keep in-memory thread only.
+    } catch (error) {
+        console.error("Unable to save thread ID to localStorage:", error);
     }
 }
 
@@ -120,8 +120,8 @@ function appendChatHistory(threadId, role, text) {
         const history = loadChatHistory(threadId);
         history.push({ role, text });
         localStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
-    } catch {
-        // Ignore storage errors and keep UI state only.
+    } catch (error) {
+        console.error("Error appending chat history:", error);
     }
 }
 
@@ -136,8 +136,8 @@ function migrateChatHistory(oldThreadId, newThreadId) {
                 localStorage.setItem(newKey, oldData);
             }
         }
-    } catch {
-        // Ignore storage errors.
+    } catch (error) {
+        console.error("Error migrating chat history to new thread ID:", error);
     }
 }
 
@@ -710,7 +710,7 @@ function initBot() {
             const currentStep = getCurrentFormStepFromDom() || FormSteps.step1introduction || 'step1introduction';
             console.log(`Invoking orchestrator with sessionId=${sessionId}, step=${currentStep}, query=${text}`);
 
-            if(currentStep == FormSteps.step0bot)
+            if(currentStep === FormSteps.step0bot)
             {
                 text = `Human verification form query : ${text}`;
             }
