@@ -259,13 +259,15 @@ function parseFormSupportSuggestions(response) {
         originalResults.forEach((result) => {
             if (!result || result.source !== 'FormSupportAgentA2A') return;
             const parsed = tryParseJson(result.response);
-            if (parsed && parsed.id) {
+            const parsedItems = Array.isArray(parsed) ? parsed : [parsed];
+            parsedItems.forEach((parsedItem) => {
+                if (!parsedItem || !parsedItem.id) return;
                 suggestions.push({
-                    id: parsed.id,
-                    type: String(parsed.type || '').toLowerCase(),
-                    suggestedvalue: parsed.suggestedvalue
+                    id: parsedItem.id,
+                    type: String(parsedItem.type || '').toLowerCase(),
+                    suggestedvalue: parsedItem.suggestedvalue
                 });
-            }
+            });
         });
     });
 
