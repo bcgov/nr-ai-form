@@ -28,16 +28,16 @@ class RedisService:
         except Exception as e:
             raise RuntimeError(f"Failed to connect to Redis: {e}")
 
-    async def load_thread(self, thread_id: str) -> Optional[Dict[str, Any]]:
+    async def load_thread(self, thread_id: str, convert_to_dict: bool = True) -> Optional[Dict[str, Any]]:
         """Loads a thread state from Redis."""
         try:
             if not self.client:
                 await self.connect()
             
             data = await self.client.get(thread_id)
-            if data:
+            if data and convert_to_dict:
                 return json.loads(data)
-            return None
+            return data
         except Exception as e:
             print(f"Failed to load thread {thread_id} from Redis: {e}")
             return None
@@ -57,5 +57,5 @@ class RedisService:
     async def close(self):
         """Closes the Redis connection."""
         if self.client:
-            await self.client.aclose()
+            await self.client.close()
             print("Redis connection closed.")

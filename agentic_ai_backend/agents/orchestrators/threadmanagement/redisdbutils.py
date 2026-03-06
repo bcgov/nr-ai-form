@@ -9,7 +9,7 @@ class redisdbutils(IThreadManager):
     def __init__(self):
         host = os.getenv("REDIS_HOST", "localhost")
         port = int(os.getenv("REDIS_PORT", "6379"))
-        password = os.getenv("REDIS_PASSWORD")
+        password = os.getenv("REDIS_PASSWORD", "1234")
         ssl = os.getenv("REDIS_SSL", "False").lower() == "true"
         ttl_days = int(os.getenv("REDIS_TTL_DAYS", "14"))
         self.redis_service = RedisService(host=host, port=port, password=password, ssl=ssl, ttl=ttl_days*24*60*60)
@@ -36,6 +36,30 @@ class redisdbutils(IThreadManager):
             thread = agent.get_new_thread()
         
         return thread
+
+    async def get_thread_state_json(self, thread_id: str):
+        thread = None
+        try:
+            # Try to load existing thread
+            if thread_id:
+                print(f"Loading thread {thread_id} from Redis...")
+                thread_state = await self.redis_service.load_thread(thread_id, False)
+                if thread_state:
+                    print("Thread state found in Redis.")
+                    return thread_state
+                else:
+                    print("Thread state not found in Redis. Creating new thread.")
+        
+        except Exception as e:
+            print(f"Error initializing Redis or loading thread: {e}")
+
+        # Create new thread if not loaded
+        if thread is None:
+            print("Creating new thread.")
+            thread = agent.get_new_thread()
+        
+        return thread
+
 
     async def save_thread_state(self, thread_id: str, thread):
         try:

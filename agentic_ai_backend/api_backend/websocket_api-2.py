@@ -5,6 +5,12 @@ from contextlib import asynccontextmanager
 from typing import Dict, Optional
 import uvicorn
 import asyncio
+import sys
+from utils.redisservice import RedisService
+
+# Ensure backend root is in PYTHONPATH to allow importing from utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.redisservice import RedisService
 
 # This is to connect to the agent server; not to be confused with FastAPI's WebSocket
 import websockets
@@ -22,6 +28,15 @@ logger = logging.getLogger(__name__)
 # The URL of the agent server's WebSocket endpoint
 AGENT_SERVER_WS_URL = os.getenv("AGENT_SERVER_WS_URL", "ws://localhost:8002/ws")
 PORT = int(os.getenv("ORCHESTRATOR_PORT", "8002"))
+
+# Global Redis Utils instance
+_redis_utils_instance = None
+
+def get_redis_utils():
+    global _redis_utils_instance
+    if _redis_utils_instance is None:
+        _redis_utils_instance = redisdbutils()
+    return _redis_utils_instance
 
 # --- Models ---
 class InvokeRequest(BaseModel):
@@ -144,6 +159,30 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
         logger.info(f"WebSocket connection closed for session {session_id}")
         if session_id in frontend_websockets:
             del frontend_websockets[session_id]
+
+@app.get("/history/{session_id}")
+async def get_history(session_id: str):
+    """
+    Load up the conversation history from Redis by threadId (which is the same as session_id).
+    """
+    host = os.getenv("REDIS_HOST", "localhost")
+    port = int(os.getenv("REDIS_PORT", "6379"))
+    password = os.getenv("REDIS_PASSWORD", "1234")
+    ssl_str = os.getenv("REDIS_SSL", "False").lower()
+    ssl = ssl_str in ("true", "1", "yes")
+
+    redis_service = RedisService(host=host, port=port, password=password, ssl=ssl)
+    try:
+        data = await redis_service.load_thread(session_id)
+        if data is None:
+            return {"session_id": session_id, "history": None, "message": "No history found for this session."}
+        return {"session_id": session_id, "history": data}
+    except Exception as e:
+        logger.error(f"Error fetching history for {session_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to load history: {str(e)}")
+    finally:
+        await redis_service.close()
+
 
 @app.get("/health")
 async def health_check():

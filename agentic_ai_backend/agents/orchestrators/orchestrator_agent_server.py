@@ -5,7 +5,7 @@ FastAPI A2A Wrapper for Orchestrator Agent
 import os
 import uvicorn
 import json
-from fastapi import WebSocket,FastAPI, HTTPException
+from fastapi import WebSocket,FastAPI, HTTPException, WebSocketDisconnect
 from dotenv import load_dotenv
 from typing import Any, List, Optional
 from orchestratoragent import orchestrate_a2a
@@ -108,13 +108,13 @@ async def invoke_agent_ws(websocket: WebSocket):
                     response=output_event,
                     session_id=request['session_id']
                 )
-                await websocket.send_text(json.dumps(response.dict()))
+                await websocket.send_text(json.dumps(response.model_dump()))
             else:
                 response = InvokeResponse(
                     response="No response from orchestrator.",
                     session_id=request['session_id']
                 )
-                await websocket.send_text(json.dumps(response.dict()))
+                await websocket.send_text(json.dumps(response.model_dump()))
 
     except WebSocketDisconnect:
         print("API Gateway disconnected from Orchestrator Websocket")
