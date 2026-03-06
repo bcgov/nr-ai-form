@@ -31,7 +31,7 @@ on:
         required: false
         type: string
         default: 'container_apps'
-        description: 'The deployment type: container_apps or app_service'
+        description: 'The deployment type: container_apps (App Service deployment is no longer supported)'
       
       
 env:

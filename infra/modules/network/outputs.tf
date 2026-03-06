@@ -1,11 +1,4 @@
 
-output "app_service_subnet_id" {
-  description = "The subnet ID for the App Service."
-  value       = var.deploy_network && var.app_env != "dev" ? azapi_resource.app_service_subnet[0].id : null
-  #value       = azapi_resource.app_service_subnet.id
-
-}
-
 output "container_apps_subnet_id" {
   description = "The subnet ID for Container Apps Environment."
   value       = var.deploy_network && var.app_env != "dev" && var.deployment_type == "container_apps" ? azapi_resource.container_apps_subnet[0].id : null

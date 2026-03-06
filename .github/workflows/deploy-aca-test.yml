@@ -17,7 +17,7 @@ jobs:
     with:
       tags: |
         latest
-        test-aca
+        test-aca-${{ github.run_number }}
   
   lint:
     name: Lint
@@ -58,7 +58,7 @@ jobs:
     uses: ./.github/workflows/.deploy_aca_stack.yml
     with:
       command: apply
-      tag: test-aca
+      tag: test-aca-${{ github.run_number }}
       app_env: test
       environment_name: test
       deployment_type: container_apps

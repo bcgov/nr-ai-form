@@ -35,5 +35,7 @@ jobs:
           package: ${{ matrix.package.name }}
           build_context: ${{ matrix.package.context }}
           build_file: ${{ matrix.package.dockerfile }}
-          tags: ${{ inputs.tags }}
+          tags: |
+            ${{ inputs.tags }}
+            run-${{ github.run_number }}
           tag_fallback: latest

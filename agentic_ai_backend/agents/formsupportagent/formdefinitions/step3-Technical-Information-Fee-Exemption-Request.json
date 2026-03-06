@@ -3,7 +3,7 @@
     "formDescription": "Step 3 - Technical Information - Government and First Nation Fee Exemption Request",
     "properties": {
         "V1IsEligibleForFeeExemption": {
-            "type": "string",
+            "type": "radio",
             "enum": [
                 "Yes",
                 "No"
@@ -14,7 +14,7 @@
             "required": true
         },
         "V1IsExistingExemptClient": {
-            "type": "string",
+            "type": "radio",
             "enum": [
                 "Yes",
                 "No"

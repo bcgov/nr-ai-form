@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "agent-framework-core==1.0.0b251211", # use this fixed version for MAF, since higher versions need code refactoring.
+    "opentelemetry-semantic-conventions-ai==0.4.13", #this is temporarily added for MAF, remove once MAF goes to GA
     "azure-search-documents==11.6.0",
     "azure-storage-blob==12.27.1",
     "fastapi==0.127.0",

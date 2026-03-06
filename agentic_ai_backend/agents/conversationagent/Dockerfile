@@ -4,7 +4,7 @@ WORKDIR /app
 COPY tools/ ./tools/
 COPY conversationagent/ ./conversationagent/
 WORKDIR /app/conversationagent
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+RUN pip install --no-cache-dir uv
 RUN uv sync
 ENV PATH="/app/conversationagent/.venv/bin:$PATH"
 EXPOSE 8000
