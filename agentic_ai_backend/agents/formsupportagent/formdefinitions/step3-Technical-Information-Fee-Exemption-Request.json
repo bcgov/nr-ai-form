@@ -10,7 +10,7 @@
             ],
             "id": "V1IsEligibleForFeeExemption",
             "title": "Do you belong to, are you applying on behalf of, or are you an eligible government or First Nation entity for fee exemption?",
-            "description": "Do you belong to, are you applying on behalf of, or are you:\n\u2022 A provincial government ministry\n\u2022 The Government of Canada\n\u2022 A First Nation for water use on reserve land\n\u2022 A person applying to use water on Treaty Lands\n\u2022 A Nisga'a citizen\n\u2022 An entity applying to use water from the Nisga'a Water Reservation?",
+            "description": "if applying on behalf of  OR part of a provincial government ministry OR applying for the Government of Canada OR A First Nation for water use on reserve land OR A person applying to use water on Treaty Lands OR A Nisga'a citizen OR An entity applying to use water from the Nisga'a Water Reservation ",
             "required": true
         },
         "V1IsExistingExemptClient": {
@@ -31,7 +31,7 @@
             "required": true
         },
         "V1FeeExemptionCategory": {
-            "type": "string",
+            "type": "select",
             "enum": [
                 "(None)",
                 "British Columbia Government Ministry",
@@ -42,6 +42,7 @@
             ],
             "id": "V1FeeExemptionCategory",
             "title": "Fee Exemption Category:",
+            "description":"Fee exempt category as per the applicant's situation -  First nation or BC Government ministry or Federal Government or Indian band",
             "required": true
         },
         "V1FeeExemptionSupportingInfo": {
