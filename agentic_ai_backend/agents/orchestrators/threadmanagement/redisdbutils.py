@@ -12,23 +12,23 @@ class redisdbutils(IThreadManager):
         password = os.getenv("REDIS_PASSWORD")
         ssl = os.getenv("REDIS_SSL", "False").lower() == "true"
         ttl_days = int(os.getenv("REDIS_TTL_DAYS", "14"))
-        # self.redis_service = RedisService(host=host, port=port, password=password, ssl=ssl, ttl=ttl_days*24*60*60)
+        self.redis_service = RedisService(host=host, port=port, password=password, ssl=ssl, ttl=ttl_days*24*60*60)
 
     async def get_thread_state(self, thread_id: str, agent):
         thread = None
-        # try:
-        #     # Try to load existing thread
-        #     if thread_id:
-        #         print(f"Loading thread {thread_id} from Redis...")
-        #         thread_state = await self.redis_service.load_thread(thread_id)
-        #         if thread_state:
-        #             print("Thread state found in Redis. Resuming conversation.")
-        #             thread = await agent.deserialize_thread(thread_state)
-        #         else:
-        #             print("Thread state not found in Redis. Creating new thread.")
+        try:
+            # Try to load existing thread
+            if thread_id:
+                print(f"Loading thread {thread_id} from Redis...")
+                thread_state = await self.redis_service.load_thread(thread_id)
+                if thread_state:
+                    print("Thread state found in Redis. Resuming conversation.")
+                    thread = await agent.deserialize_thread(thread_state)
+                else:
+                    print("Thread state not found in Redis. Creating new thread.")
         
-        # except Exception as e:
-        #     print(f"Error initializing Redis or loading thread: {e}")
+        except Exception as e:
+            print(f"Error initializing Redis or loading thread: {e}")
 
         # Create new thread if not loaded
         if thread is None:

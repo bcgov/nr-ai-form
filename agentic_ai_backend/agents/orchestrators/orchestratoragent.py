@@ -124,14 +124,14 @@ async def orchestrate_a2a(query: str,
             response_messages = [ChatMessage(role=Role.ASSISTANT, text=aggregated_text)] if aggregated_text else []
             await agent._notify_thread_of_new_messages(thread, input_messages, response_messages)
 
-        # Save Thread State
-        # if thread:
-        #     try:
-        #         print(f"Saving thread {thread_id} to Redis...")          
-        #         await db_utils.save_thread_state(thread_id, thread)
-        #         print("Thread state saved.")
-        #     except Exception as e:
-        #         print(f"Error saving thread state: {e}")
+        #Save Thread State
+        if thread:
+            try:
+                print(f"Saving thread {thread_id} to Redis...")          
+                await db_utils.save_thread_state(thread_id, thread)
+                print("Thread state saved.")
+            except Exception as e:
+                print(f"Error saving thread state: {e}")
        
         # Process and display results
         if final_data and isinstance(final_data, list):
