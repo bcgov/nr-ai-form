@@ -32,9 +32,11 @@ class RedisService:
         """Loads a thread state from Redis."""
         try:
             if not self.client:
+                print("Connecting to Redis... KK")
                 await self.connect()
             
             data = await self.client.get(thread_id)
+            print(f"Data from Redis: {data}")
             if data and convert_to_dict:
                 return json.loads(data)
             return data

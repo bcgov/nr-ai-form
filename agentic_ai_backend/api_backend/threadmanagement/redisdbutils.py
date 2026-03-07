@@ -38,7 +38,6 @@ class redisdbutils(IThreadManager):
         return thread
 
     async def get_thread_state_json(self, thread_id: str):
-        thread = None
         try:
             # Try to load existing thread
             if thread_id:
@@ -48,17 +47,12 @@ class redisdbutils(IThreadManager):
                     print("Thread state found in Redis.")
                     return thread_state
                 else:
-                    print("Thread state not found in Redis. Creating new thread.")
+                    print("Thread state not found in Redis.")
         
         except Exception as e:
             print(f"Error initializing Redis or loading thread: {e}")
-
-        # Create new thread if not loaded
-        if thread is None:
-            print("Creating new thread.")
-            thread = agent.get_new_thread()
         
-        return thread
+        return None
 
 
     async def save_thread_state(self, thread_id: str, thread):

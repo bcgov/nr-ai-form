@@ -167,7 +167,7 @@ async def get_history(session_id: str):
     """
     host = os.getenv("REDIS_HOST", "localhost")
     port = int(os.getenv("REDIS_PORT", "6379"))
-    password = os.getenv("REDIS_PASSWORD", "1234")
+    password = os.getenv("REDIS_PASSWORD", None)
     ssl_str = os.getenv("REDIS_SSL", "False").lower()
     ssl = ssl_str in ("true", "1", "yes")
 

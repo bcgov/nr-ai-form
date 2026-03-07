@@ -12,6 +12,7 @@ from typing_extensions import Never
 from typing import Any, Union, Optional
 from dotenv import load_dotenv
 import uuid
+import logging
 
 
 from threadmanagement.redisdbutils import redisdbutils
@@ -26,6 +27,9 @@ load_dotenv()
 
 # Global Redis Utils instance
 _redis_utils_instance = None
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def get_redis_utils():
     global _redis_utils_instance
@@ -97,6 +101,8 @@ async def orchestrate_a2a(query: str,
     try:
         # Load thread state
         thread = await db_utils.get_thread_state(thread_id, agent)
+
+        logger.info(f"Thread state loaded: {thread}")
        
         input_messages = normalize_messages_input(query)
 
@@ -127,15 +133,15 @@ async def orchestrate_a2a(query: str,
         # Save Thread State
         if thread:
             try:
-                print(f"Saving thread {thread_id} to Redis...")          
+                logger.info(f"Saving thread {thread_id} to Redis...")          
                 await db_utils.save_thread_state(thread_id, thread)
-                print("Thread state saved.")
+                logger.info("Thread state saved.")
             except Exception as e:
-                print(f"Error saving thread state: {e}")
+                logger.error(f"Error saving thread state: {e}")
        
         # Process and display results
         if final_data and isinstance(final_data, list):
-            print("===== Final Aggregated Conversation (A2A) from Orchestrator Agent=====")
+            logger.info("===== Final Aggregated Conversation (A2A) from Orchestrator Agent=====")
             messages: list[Any] = final_data      
             for i, item in enumerate(messages, start=1):
                 source = "unknown"
@@ -163,13 +169,13 @@ async def orchestrate_a2a(query: str,
                     source = item.author_name if item.author_name else "user"
                     text = item.text
 
-                print(f"{'-' * 60}\n\n{i:02d} [{source}]:\n{text}")
+                logger.info(f"{'*' * 60}\n\n{i:02d} [{source}]:\n{text}")
         # Add thread_id to response
         if final_data and isinstance(final_data, list):
             final_data.append({"thread_id": thread_id})
 
     except Exception as e:
-        print(f"Error in orchestrate_a2a: {e}")
+        logger.error(f"Error in orchestrate_a2a: {e}")
         # Consider handling appropriately
 
     return final_data

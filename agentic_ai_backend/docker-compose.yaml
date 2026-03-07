@@ -30,9 +30,11 @@ services:
     environment:
       - ORCHESTRATOR_AGENT_A2A_URL=http://orchestrator-agent:8002
       - ORCHESTRATOR_AGENT_WS_URL=ws://orchestrator-agent:8002/ws
+      - REDIS_HOST=redis
     restart: unless-stopped
     depends_on:
       - orchestrator-agent
+      - redis
 
   orchestrator-agent:
     build:

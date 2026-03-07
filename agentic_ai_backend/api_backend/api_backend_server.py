@@ -5,6 +5,11 @@ from contextlib import asynccontextmanager
 from typing import Dict, Optional
 import uvicorn
 import asyncio
+from dotenv import load_dotenv
+load_dotenv()
+
+from threadmanagement.redisdbutils import redisdbutils
+
 
 # This is to connect to the agent server; not to be confused with FastAPI's WebSocket
 import websockets
@@ -16,6 +21,8 @@ from pydantic import BaseModel
 
 import sys
 from utils.redisservice import RedisService
+
+
 
 # Ensure backend root is in PYTHONPATH to allow importing from utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -46,6 +53,15 @@ frontend_websockets: Dict[str, WebSocket] = {}
 
 # Store active WebSocket connections: session_id -> ClientWebSocket (Agent)
 agent_websocket: websockets.WebSocketClientProtocol = None
+
+# Global Redis Utils instance
+_redis_utils_instance = None
+
+def get_redis_utils():
+    global _redis_utils_instance
+    if _redis_utils_instance is None:
+        _redis_utils_instance = redisdbutils()
+    return _redis_utils_instance
 
 # --- Lifecycle ---
 @asynccontextmanager
@@ -152,15 +168,9 @@ async def get_history(session_id: str):
     """
     Load up the conversation history from Redis by threadId (which is the same as session_id).
     """
-    host = os.getenv("REDIS_HOST", "localhost")
-    port = int(os.getenv("REDIS_PORT", "6379"))
-    password = os.getenv("REDIS_PASSWORD", "1234")
-    ssl_str = os.getenv("REDIS_SSL", "False").lower()
-    ssl = ssl_str in ("true", "1", "yes")
-
-    redis_service = RedisService(host=host, port=port, password=password, ssl=ssl)
+    db_utils = get_redis_utils()
     try:
-        data = await redis_service.load_thread(session_id)
+        data = await db_utils.get_thread_state_json(session_id)
         logger.info(f"data from redis: {data}")
         if data is None:
             logger.info(f"No data from redis: {data}")
@@ -169,8 +179,6 @@ async def get_history(session_id: str):
     except Exception as e:
         logger.error(f"Error fetching history for {session_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load history: {str(e)}")
-    finally:
-        await redis_service.close()
 
 
 
