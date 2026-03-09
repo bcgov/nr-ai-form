@@ -6,6 +6,7 @@ from typing import Dict, Optional
 import uvicorn
 import asyncio
 from dotenv import load_dotenv
+import uuid
 load_dotenv()
 
 from threadmanagement.redisdbutils import redisdbutils
@@ -110,15 +111,25 @@ async def connect_to_agent() -> websockets.WebSocketClientProtocol:
         logger.error(f"Failed to connect to orchestrator agent server: {e}")
         raise HTTPException(status_code=503, detail=f"Failed to connect to agent server: {str(e)}")
 
-@app.websocket("/ws/{session_id}")
-async def websocket_endpoint(websocket: WebSocket, session_id: str):
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket, session_id: Optional[str] = None):
     """
     WebSocket endpoint that proxies messages between the client and the agent server.
     Ensures a persistent connection to the agent server is maintained per session.
     """
     await websocket.accept()
-    frontend_websockets[session_id] = websocket
-    logger.info(f"Client connected to /ws for session {session_id}")
+
+    # If no session_id is provided, generate a new one
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        logger.info(f"Generated new session ID: {session_id}")
+        await websocket.send_text(json.dumps({"event": "session_init", "session_id": session_id}))
+    
+    thread_id = session_id
+    if session_id not in frontend_websockets:
+        frontend_websockets[thread_id] = websocket
+    
+    logger.info(f"Client connected to /ws for session {thread_id}")
     
     try:
         while True:
@@ -130,9 +141,9 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 await websocket.send_text(json.dumps({"error": "Invalid JSON"}))
                 continue
 
-            logger.info(f"Received message from client for session {session_id}: {message}")
+            logger.info(f"Received message from client for session {thread_id}: {message}")
             # We can use the session_id from the URL path
-            message["session_id"] = session_id
+            message["session_id"] = thread_id
 
             try:
                 # Get or create connection to the agent server for this session
@@ -152,16 +163,16 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
             except Exception as e:
                 logger.error(f"Error communicating with agent server: {e}")
                 # Try to clean up the cached connection if it failed
-                if session_id in agent_websocket:
-                    del agent_websocket[session_id]
+                if thread_id in agent_websocket:
+                    del agent_websocket[thread_id]
                 await websocket.send_text(json.dumps({"error": f"Agent server error: {str(e)}"}))
 
     except Exception as e:
         logger.info(f"WebSocket client disconnected or session error: {e}")
     finally:
-        logger.info(f"WebSocket connection closed for session {session_id}")
-        if session_id in frontend_websockets:
-            del frontend_websockets[session_id]
+        logger.info(f"WebSocket connection closed for session {thread_id}")
+        if thread_id in frontend_websockets:
+            del frontend_websockets[thread_id]
 
 @app.get("/history/{session_id}")
 async def get_history(session_id: str):
@@ -174,8 +185,37 @@ async def get_history(session_id: str):
         logger.info(f"data from redis: {data}")
         if data is None:
             logger.info(f"No data from redis: {data}")
-            return {"session_id": session_id, "history": None, "message": "No history found for this session."}
-        return {"session_id": session_id, "history": data}
+            return []
+
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                logger.error("Failed to parse Redis data as JSON")
+                return []
+
+        history_data = data
+        if isinstance(data, dict) and "history" in data:
+            history_val = data["history"]
+            if isinstance(history_val, str):
+                try:
+                    history_data = json.loads(history_val)
+                except json.JSONDecodeError:
+                    logger.error("Failed to parse history string as JSON")
+                    return []
+            else:
+                history_data = history_val
+
+        flattened_history = []
+        messages = history_data.get("chat_message_store_state", {}).get("messages", [])
+        for msg in messages:
+            role = msg.get("role", {}).get("value", "unknown")
+            contents = msg.get("contents", [])
+            text_chunks = [c.get("text", "") for c in contents if c.get("type") == "text"]
+            text = "".join(text_chunks)
+            flattened_history.append({"role": role, "text": text})
+
+        return flattened_history
     except Exception as e:
         logger.error(f"Error fetching history for {session_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load history: {str(e)}")

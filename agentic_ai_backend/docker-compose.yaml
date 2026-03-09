@@ -47,6 +47,7 @@ services:
     environment:
       - CONVERSATION_AGENT_A2A_URL=http://conversation-agent:8000
       - FORM_SUPPORT_AGENT_A2A_URL=http://formsupport-agent:8001
+      - REDIS_HOST=redis
     depends_on:
       - conversation-agent
       - formsupport-agent
