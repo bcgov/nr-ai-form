@@ -3,7 +3,8 @@
 
 
 //-------------------------- Services Starts ---------------------------//
-const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
+
 
 
 async function invokeOrchestrator(query, step_number, session_id = null) {
@@ -244,7 +245,8 @@ function normalizeComparableValue(value) {
 function tryParseJson(value) {
     if (typeof value !== 'string') return value;
     try {
-        return JSON.parse(value);
+        cleaned = value.replace(/```json|```/g, '').trim();
+        return JSON.parse(cleaned);
     } catch {
         return null;
     }
