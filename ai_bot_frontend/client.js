@@ -513,6 +513,10 @@ function injectStyles() {
         .wp-chat-welcome p {
             margin: 0;
         }
+            
+        .wp-chat-welcome p {
+            margin: 0 0 12px 0;
+        }
 
         .wp-chat-message {
             display: flex;
@@ -685,7 +689,19 @@ function initBot() {
 
             <div class="wp-chat-messages" id="wp-chat-messages">
                 <div class="wp-chat-welcome">
-                    <p>Hello! I can help you complete your form. Ask me anything to get started.</p>
+                    <div class="wp-chat-welcome">
+                        <p><strong>How I can help</strong></p>
+                        <p>I'm an AI assistant here to support you with your water licence application. 
+                        I can explain terms, clarify what information is needed, and suggest relevant resources based on what you share.
+                        </p>
+                        <p><strong>Disclaimer</strong></p>
+                        <p>I don't provide legal advice and I'm not a substitute for guidance from FrontCounter 
+                        BC staff or qualified professionals. You're responsible for ensuring your submission 
+                        is accurate and complete. Please don't share personal information. 
+                        Your questions may be stored to help improve this service.
+                        By using this assistant, you acknowledge and accept these terms.
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -697,7 +713,9 @@ function initBot() {
 
             <div class="wp-chat-input-container">
                 <input type="text" class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." />
-                <button class="wp-chat-send" id="wp-chat-send-btn" type="button">Send</button>
+                <button class="wp-chat-send" id="wp-chat-send-btn" type="button">
+                <span>➤</span>
+                </button>
             </div>
         </div>
     `;
