@@ -80,6 +80,7 @@ const FormSteps = {
 
 const THREAD_ID_STORAGE_KEY = 'nrAiForm_threadId';
 const CHAT_HISTORY_STORAGE_PREFIX = 'nrAiForm_chatHistory';
+const CHAT_SCROLL_STORAGE_PREFIX = 'nrAiForm_chatScroll';
 
 function createFallbackThreadId() {
     return `session-${Math.random().toString(36).substring(2, 15)}`;
@@ -106,6 +107,10 @@ function getHistoryStorageKey(threadId) {
     return `${CHAT_HISTORY_STORAGE_PREFIX}:${threadId}`;
 }
 
+function getScrollStorageKey(threadId) {
+    return `${CHAT_SCROLL_STORAGE_PREFIX}:${threadId}`;
+}
+
 function loadChatHistory(threadId) {
     try {
         const raw = localStorage.getItem(getHistoryStorageKey(threadId));
@@ -126,6 +131,25 @@ function appendChatHistory(threadId, role, text) {
     }
 }
 
+function loadChatScrollPosition(threadId) {
+    try {
+        const raw = localStorage.getItem(getScrollStorageKey(threadId));
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    } catch {
+        return 0;
+    }
+}
+
+function saveChatScrollPosition(threadId, scrollTop) {
+    if (!threadId) return;
+    try {
+        localStorage.setItem(getScrollStorageKey(threadId), String(Math.max(0, scrollTop || 0)));
+    } catch (error) {
+        console.error("Error saving chat scroll position:", error);
+    }
+}
+
 function migrateChatHistory(oldThreadId, newThreadId) {
     if (!oldThreadId || !newThreadId || oldThreadId === newThreadId) return;
     try {
@@ -139,6 +163,22 @@ function migrateChatHistory(oldThreadId, newThreadId) {
         }
     } catch (error) {
         console.error("Error migrating chat history to new thread ID:", error);
+    }
+}
+
+function migrateChatScrollPosition(oldThreadId, newThreadId) {
+    if (!oldThreadId || !newThreadId || oldThreadId === newThreadId) return;
+    try {
+        const oldKey = getScrollStorageKey(oldThreadId);
+        const newKey = getScrollStorageKey(newThreadId);
+        if (!localStorage.getItem(newKey)) {
+            const oldData = localStorage.getItem(oldKey);
+            if (oldData !== null) {
+                localStorage.setItem(newKey, oldData);
+            }
+        }
+    } catch (error) {
+        console.error("Error migrating chat scroll position to new thread ID:", error);
     }
 }
 
@@ -674,6 +714,7 @@ function initBot() {
     const typingIndicator = document.getElementById('wp-chat-typing');
 
     let sessionId = getStoredThreadId();
+    let restoredScrollTop = loadChatScrollPosition(sessionId);
     saveThreadId(sessionId);
     const existingHistory = loadChatHistory(sessionId);
     if (existingHistory.length > 0) {
@@ -681,16 +722,23 @@ function initBot() {
         if (welcome) welcome.remove();
         existingHistory.forEach((entry) => {
             if (entry && typeof entry.role === 'string') {
-                appendMessage(entry.role, entry.text ?? '', false);
+                appendMessage(entry.role, entry.text ?? '', false, false);
             }
         });
     }
+
+    function restoreChatScrollPosition() {
+        chatMessages.scrollTop = restoredScrollTop;
+    }
+
+    requestAnimationFrame(restoreChatScrollPosition);
 
     function toggleChat() {
         const isOpen = chatModal.classList.contains('open');
         if (!isOpen) {
             chatModal.classList.add('open');
             chatButton.style.display = 'none';
+            requestAnimationFrame(restoreChatScrollPosition);
             chatInput.focus();
         } else {
             chatModal.classList.remove('open');
@@ -724,7 +772,9 @@ function initBot() {
             const serverThreadId = extractThreadIdFromResponse(response);
             if (serverThreadId && serverThreadId !== sessionId) {
                 migrateChatHistory(sessionId, serverThreadId);
+                migrateChatScrollPosition(sessionId, serverThreadId);
                 sessionId = serverThreadId;
+                restoredScrollTop = loadChatScrollPosition(sessionId);
             }
             saveThreadId(sessionId);
             showTyping(false);
@@ -759,7 +809,7 @@ function initBot() {
         return [JSON.stringify(response)];
     }
 
-    function appendMessage(role, text, persist = true) {
+    function appendMessage(role, text, persist = true, scroll = true) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `wp-chat-message wp-chat-message-${role}`;
         const bubble = document.createElement('div');
@@ -770,7 +820,9 @@ function initBot() {
         if (persist) {
             appendChatHistory(sessionId, role, String(text));
         }
-        scrollToBottom();
+        if (scroll) {
+            scrollToBottom();
+        }
     }
 
     function formatMessage(text) {
@@ -798,7 +850,14 @@ function initBot() {
 
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        restoredScrollTop = chatMessages.scrollTop;
+        saveChatScrollPosition(sessionId, restoredScrollTop);
     }
+
+    chatMessages.addEventListener('scroll', () => {
+        restoredScrollTop = chatMessages.scrollTop;
+        saveChatScrollPosition(sessionId, restoredScrollTop);
+    });
 
     sendBtn.addEventListener('click', sendMessage);
     chatInput.addEventListener('input', () => {
