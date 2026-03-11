@@ -741,7 +741,7 @@ function initBot() {
             </div>
 
             <div class="wp-chat-input-container">
-                <input type="text" class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." />
+                <textarea class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." rows="1"></textarea>
                 <button class="wp-chat-send" id="wp-chat-send-btn" type="button">
                 <span>➤</span>
                 </button>
@@ -802,6 +802,7 @@ function initBot() {
 
         appendMessage('user', text);
         chatInput.value = '';
+        autoResizeChatInput();
         sendBtn.classList.remove('wp-chat-send-ready');
         showTyping(true);
 
@@ -895,6 +896,11 @@ function initBot() {
         sendBtn.disabled = show;
     }
 
+    function autoResizeChatInput() {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = `${Math.min(chatInput.scrollHeight, 140)}px`;
+    }
+
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
         restoredScrollTop = chatMessages.scrollTop;
@@ -908,6 +914,7 @@ function initBot() {
 
     sendBtn.addEventListener('click', sendMessage);
     chatInput.addEventListener('input', () => {
+        autoResizeChatInput();
         if (chatInput.value.trim()) {
             sendBtn.classList.add('wp-chat-send-ready');
         } else {
@@ -920,6 +927,8 @@ function initBot() {
             sendMessage();
         }
     });
+
+    autoResizeChatInput();
 }
 
 if (document.readyState === 'loading') {
