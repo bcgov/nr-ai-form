@@ -1,1226 +1,938 @@
-/**
- * Allow testing of alternative javascript 
- * if the browser's local storage has an item 'clientInstance': 'ms'
- * javascript in remote file (see `url`) will be loaded instead  
- */
-let clientInstance = localStorage.getItem('clientInstance');
-if (clientInstance === 'ms') {
-    var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
-    var script = document.createElement("script");
-    script.src = url;
-    document.head.appendChild(script);
+// import { FormSteps } from './stepmappers.js';
+// import { invokeOrchestrator } from './services.js';
+
+
+//-------------------------- Services Starts ---------------------------//
+const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
+
+
+
+async function invokeOrchestrator(query, step_number, session_id = null) {
+  const payload = {
+    query: query,
+    step_number: step_number,
+    session_id: session_id
+  };
+
+  try {
+    const response = await fetch(ORCHESTRATOR_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error invoking Orchestrator Agent:", error);
+    throw error;
+  }
 }
-else if (clientInstance === 'aot') {
-    var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-    var script = document.createElement("script");
-    script.src = url;
-    document.head.appendChild(script);
+//-------------------------- Services Ends ---------------------------//
+
+//-------------------------- Steppers Starts ---------------------------//
+const FormSteps = {
+    step1introduction: "step1-Introduction",
+    step0bot:"step0-Bot",
+    STEP10_COMPLETE: "step10-Complete",
+    step2eligibility: "step2-Eligibility",
+    STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
+    STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
+    STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS: "step3-Dam-Reservoir-Add-Individual-Mailing-Address",
+    STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL: "step3-Dam-Reservoir-Add-Individual",
+    STEP3_DAM_RESERVOIR_ADD_ORGANIZATION_MAILING_ADDRESS: "step3-Dam-Reservoir-Add-Organization-Mailing-Address",
+    STEP3_DAM_RESERVOIR_ADD_ORGANIZATION: "step3-Dam-Reservoir-Add-Organization",
+    STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR: "step3-Technical-Information-Dam-Reservoir",
+    STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST: "step3-Technical-Information-Fee-Exemption-Request",
+    STEP3_TECHNICAL_INFORMATION_JOINT_WORKS: "step3-Technical-Information-Joint-Works",
+    STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS: "step3-Technical-Information-Other-Authorizations",
+    STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION: "step3-Technical-Information-Source-of-Water-for-Application",
+    STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION: "step3-Technical-Information-Water-Diversion",
+    STEP3_TECHNICAL_INFORMATION_WORKS: "step3-Technical-Information-Works",
+    STEP4_LOCATION_LAND_DETAILS_OTHER: "step4-Location-Land-Details-Other",
+    STEP4_LOCATION_LAND_DETAILS_PRIVATE_LAND: "step4-Location-Land-Details-Private-Land",
+    STEP4_LOCATION_LAND_DETAILS_PROVINCIAL_CROWN_LAND: "step4-Location-Land-Details-Provincial-Crown-Land",
+    STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD: "step4-Location-Map-Files-Multi-File-Upload",
+    STEP4_LOCATION_OTHER_AFFECTED_LANDS_OTHER: "step4-Location-Other-Affected-Lands-Other",
+    STEP4_LOCATION_OTHER_AFFECTED_LANDS_PRIVATE_LAND: "step4-Location-Other-Affected-Lands-Private-Land",
+    STEP4_LOCATION_OTHER_AFFECTED_LANDS_PROVINCIAL_CROWN_LAND: "step4-Location-Other-Affected-Lands-Provincial-Crown-Land",
+    STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD: "step4-Location-Spatial-Files-Multi-File-Upload",
+    STEP4_LOCATION: "step4-Location",
+    STEP4_LOCATION_CONSOLIDATED: "step4-Location_consolidated",
+    STEP5_FILE_UPLOAD: "step5-File-Upload",
+    STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
+    STEP7_BUSINESS_COAPPLICANT: "step7-Business-Coapplicant",
+    STEP7_COMPANY: "step7-Company",
+    STEP7_INDIVIDUAL_ADDRESS: "step7-Individual-Address",
+    STEP7_INDIVIDUAL_COAPPLICANT: "step7-Individual-Coapplicant",
+    STEP7_INDIVIDUAL: "step7-Individual",
+    STEP7_REFERRAL: "step7-Referral",
+    STEP9_DECLARATIONS: "step9-Declarations"
+};
+//-------------------------- Steppers Ends ---------------------------//
+
+const THREAD_ID_STORAGE_KEY = 'nrAiForm_threadId';
+const CHAT_HISTORY_STORAGE_PREFIX = 'nrAiForm_chatHistory';
+const CHAT_SCROLL_STORAGE_PREFIX = 'nrAiForm_chatScroll';
+
+function createFallbackThreadId() {
+    return `session-${Math.random().toString(36).substring(2, 15)}`;
 }
-else if (clientInstance === 'aot-ks') {
-    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
-    var script = document.createElement("script");
-    script.src = url;
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'aot-aj') {
-    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
-    var script = document.createElement("script");
-    script.src = url;
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'css') {
-    var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-    var script = document.createElement("script");
-    script.src = url;
-    document.head.appendChild(script);
+
+function getStoredThreadId() {
+    try {
+        return localStorage.getItem(THREAD_ID_STORAGE_KEY) || createFallbackThreadId();
+    } catch {
+        return createFallbackThreadId();
+    }
 }
 
-else {
+function saveThreadId(threadId) {
+    if (!threadId) return;
+    try {
+        localStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
+    } catch (error) {
+        console.error("Unable to save thread ID to localStorage:", error);
+    }
+}
 
-    (function () {
+function getHistoryStorageKey(threadId) {
+    return `${CHAT_HISTORY_STORAGE_PREFIX}:${threadId}`;
+}
 
-        // Configuration
-        const env = 'dev'; // (use `dev` for Posse)
-        const apiUrl = 'https://nr-ai-form-dev-api-fd-atambqdccsagafbt.a01.azurefd.net/api/chat'
-        // const apiUrl = "http://127.0.0.1:8000/api/chat"
-        const cacheExpire = 3600000;  // 1 hour in milliseconds
-        const mapping = window.formSchemaMappings.find(s => s.name === 'waterFormSchema').schema;
+function getScrollStorageKey(threadId) {
+    return `${CHAT_SCROLL_STORAGE_PREFIX}:${threadId}`;
+}
 
-        // let sessionId = null;
-        let chatModal = null;
-        let messagesContainer = null;
-        // Initialize chatbot only when the page is one we assist and DOM is ready
-        (function () {
-            function onReady() {
-                try {
-                    if (pageToAssist()) {
+function loadChatHistory(threadId) {
+    try {
+        const raw = localStorage.getItem(getHistoryStorageKey(threadId));
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
 
-                        captureForm(); // capture current state of form and save to local storage
+function appendChatHistory(threadId, role, text) {
+    try {
+        const history = loadChatHistory(threadId);
+        history.push({ role, text });
+        localStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
+    } catch (error) {
+        console.error("Error appending chat history:", error);
+    }
+}
 
-                        // if not a popup
-                        if (!window.opener) {
-                            initChatbot(); // initialize chatbot UI
-                            removeExpiredStorage(); // remove stale cache in browser local storage if older than `cacheExpire`
+function loadChatScrollPosition(threadId) {
+    try {
+        const raw = localStorage.getItem(getScrollStorageKey(threadId));
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    } catch {
+        return 0;
+    }
+}
 
-                            // IMPORTANT: fix this
-                            //linkPopups(); // re-open pop-ups if they were open before page refresh
+function saveChatScrollPosition(threadId, scrollTop) {
+    if (!threadId) return;
+    try {
+        localStorage.setItem(getScrollStorageKey(threadId), String(Math.max(0, scrollTop || 0)));
+    } catch (error) {
+        console.error("Error saving chat scroll position:", error);
+    }
+}
 
-                            // if mid-way through populating the form (after a page refresh,)
-                            populateForm();
-                        }
-
-                        // else a popup
-                        else {
-                            // listen for messages posted to the window from parent (for pop-ups)
-                            window.addEventListener('message', async (event) => {
-                                const receivedData = event.data;
-                                console.log('received field:', receivedData.field);
-                                if (receivedData.action === 'populateFormField') {
-                                    // populating field may trigger a refresh
-                                    const populated = populateFormField(receivedData.field);
-                                    // if page didnt refresh, remove field from storage first 
-                                    if (populated) await removeFromFilledFieldInStorage(populated);
-                                }
-                            });
-                        }
-                    }
-                } catch (err) {
-                    console.error('Error checking pageToAssist/initChatbot:', err);
-                }
-            }
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', onReady);
-            } else {
-                onReady();
-            }
-        })();
-
-        /**
-         * Initialize the chatbot UI on the page.
-         * Sets up the chat button, modal, and injects CSS styles.
-         */
-        function initChatbot() {
-            // sessionId = getOrCreateSessionId();
-            // Create UI elements
-            createChatButton();
-            createChatModal();
-            injectStyles();
-        }
-
-        /**
-         * Initialize form capture logic.
-         * Creates a FormCapture instance and configures which fields to monitor.
-         * Relies on a global `FormCapture` object.
-         */
-        function captureForm() {
-            // Initialize an instance of FormCapture with custom configuration
-            const clientFormCapture = Object.create(FormCapture);
-            clientFormCapture.init({
-                captureOnLoad: true,
-                captureOnChange: true,
-                ignoreFormIds: ['elementstodisable', 'possedocumentchangeform'],
-                // IMPORTANT: use mapping (see below) to define form schema
-                // only include fields with these data-id attribute values
-                onlyIncludeFields: (mapping && Object.keys(mapping).length > 0) ? Object.keys(mapping) : [],
-                // requiredFieldIds: all keys in mapping where field.is_required === true
-                requiredFieldIds: (mapping && Object.keys(mapping).length > 0) ? Object.keys(mapping).filter(key => mapping[key]?.is_required === true) : [],
-            });
-        }
-
-        /**
-         * Handle sending a user message to the AI API and updating the UI.
-         *
-         * @param {string} userMessage - The user's message text.
-         * @returns {Promise<void>} Resolves when the message handling completes.
-         */
-        async function sendMessage(userMessage) {
-            document.getElementById('wp-chat-input').value = '';
-            document.getElementById('wp-chat-send-btn').classList.remove('wp-chat-send-ready');
-            displayMessage('user', userMessage);
-            showTypingIndicator();
-
-            try {
-                let apiResponse, data;
-                // get form_fields and other state from local storage
-                const fieldsArr = getFieldsArrFromStorage();
-                const conversation_history = JSON.parse(localStorage.getItem('nrAiForm_conversationHistory')) || [];
-                const aiResponseInStorage = JSON.parse(localStorage.getItem('nrAiForm_apiResponse'));
-                // if continuing an AI chat
-                if (aiResponseInStorage) {
-                    // update missing_fields by removing any fields that were populated since last ai response was captured
-                    const missingFields = fieldsArr.filter(ff => aiResponseInStorage.missing_fields.some(mf => mf.data_id === ff.data_id) && !ff.fieldValue);
-                    data = {
-                        // thread_id: aiResponseInStorage.thread_id,
-                        current_field: aiResponseInStorage.current_field,
-                        missing_fields: missingFields,
-                        form_fields: fieldsArr, // current form data
-                        conversation_history: conversation_history
-                    };
-                }
-                // else just send current form data and conversation history
-                else {
-                    data = {
-                        form_fields: fieldsArr,
-                        conversation_history: conversation_history
-                    };
-                }
-                // send API request
-                apiResponse = await sendData(userMessage, data);
-
-                // show response message 
-                displayMessage('assistant', apiResponse.response_message)
-                hideTypingIndicator();
-                // populate the form if input values were found
-                populateForm(apiResponse);
-
-            } catch (error) {
-                hideTypingIndicator();
-                displayMessage('assistant', '❌ Sorry, I\'m having trouble connecting. Please try again.');
-            }
-
-        }
-
-        function hasMockResponse(userMessage) {
-            mocks = {
-                "Whats a BCEID and Why should I use it": "A BCeID (British Columbia electronic ID) is a free, secure online authentication service that provides individuals, businesses, and organizations with a single user ID and password to securely access numerous online services offered by the BC government. It simplifies the login process and enhances security for users accessing government services online like Water Permit Applications.",
-                "I dont have a BCeID account, Can I still apply for Water Permit?": "Yes, you can still apply for a Water Permit without a BCeID account. Click on Apply without BCeID. However, having a BCeID account provides a more secure and streamlined experience when accessing government services online. It is recommended to create a BCeID account to take advantage of these benefits.",
-                "What is North Coast Transmission Line?": "For the purposes of this POC we would answer No to all questions. But, The North Coast Transmission Line (NCTL) is a major electrical transmission project in British Columbia, Canada. It involves the construction of a high-voltage transmission line that spans approximately 335 kilometers, connecting the Northwest Transmission Line near Terrace to the existing transmission system near Prince Rupert. The NCTL is designed to enhance the reliability and capacity of the electrical grid in the region, supporting economic development and providing a stable power supply to communities along the north coast.",
-            };
-            return mocks[userMessage];
-        }
-
-        /**
-         * Send a payload to the NR Form API and return the parsed response.
-         * For local/demo mode this currently resolves to a sample response instead
-         * of performing a network request.
-         *
-         * @param {string} message - The user message to send.
-         * @param {Object} fieldData - Additional contextual data (form fields, conversation history, etc.).
-         * @returns {Promise<Object|undefined>} The parsed API response object or undefined on error.
-         */
-        async function sendData(message, fieldData) {
-            // Create JSON body for API request
-            const body = {
-                user_message: message,
-                ...fieldData,
-            };
-
-            // make api call
-            try {
-                let data;
-                let response;
-                // if mocking response
-                if (hasMockResponse(message)) {
-                    console.log('mocking api response');
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    response = await Promise.resolve({
-                        ok: true,
-                        status: 200,
-                        json: async () => {
-                            return {
-                                filled_fields: [],
-                                current_field: [],
-                                missing_fields: [],
-                                ...fieldData,
-                                response_message: hasMockResponse(message)
-                            }
-                        }
-                    });
-                }
-                // else call API (don't mock)
-                else {
-                    console.log('api request:', body);
-                    response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(body)
-                    });
-
-                }
-
-                if (!response.ok) {
-                    displayMessage('assistant', 'No response received from AI service. Please try again later.');
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                data = await response.json();
-                console.log('api response: ', data);
-                // cache aiResponse for later 
-                localStorage.setItem('nrAiForm_apiResponse', JSON.stringify({ timestamp: new Date().toISOString(), ...data }));
-                return data;
-            } catch (error) {
-                console.error('Error sending data:', error);
+function migrateChatHistory(oldThreadId, newThreadId) {
+    if (!oldThreadId || !newThreadId || oldThreadId === newThreadId) return;
+    try {
+        const oldKey = getHistoryStorageKey(oldThreadId);
+        const newKey = getHistoryStorageKey(newThreadId);
+        if (!localStorage.getItem(newKey)) {
+            const oldData = localStorage.getItem(oldKey);
+            if (oldData) {
+                localStorage.setItem(newKey, oldData);
             }
         }
+    } catch (error) {
+        console.error("Error migrating chat history to new thread ID:", error);
+    }
+}
 
-        /**
-         * Attempt to populate the next field(s) from the filled_fields array in cached API response.
-         * If a field isn't in the main window DOM and a popup is open, the
-         * populate instruction is posted to the popup instead.
-         *
-         * @returns {Promise<void>} Resolves after attempting to populate one field.
-         */
-        async function populateForm() {
-            // if api response in local storage filled_fields still contains items,
-            const apiResponse = JSON.parse(localStorage.getItem('nrAiForm_apiResponse')) || [];
-            if (apiResponse &&
-                Array.isArray(apiResponse.filled_fields) && apiResponse.filled_fields.length > 0) {
-
-
-                /**
-                 * attempt to populate multiple fields in a loop
-                 */
-                // populate each field, may cause a page refresh, populateForm will be re-run on DOM load
-                for (const filledField of apiResponse.filled_fields.slice()) {
-                    try {
-                        // ensure field was not already filled (before a page refresh)
-                        // do this by checking if current value is not same as filled_field[n].fieldValue
-                        const formsData = getFieldsArrFromStorage();
-                        const currentValue = formsData.find(f => f.data_id === filledField.data_id)?.fieldValue;
-
-
-                        if (!areEqual(currentValue, filledField.fieldValue)) {
-                            console.log('populateForm is updating field:', filledField.data_id);
-
-                            // if found on page, populate
-                            const populated = await populateFormField(filledField);
-                            // try to remove from storage in case window did not re-load
-                            if (populated) {
-                                await removeFromFilledFieldInStorage(populated);
-                                continue;
-                            }
-
-                            // if not found in parent window and popup is open, try sending it there 
-                            // see: message listener (which will trigger in the popup window) in initialization above
-                            const popUpOpen = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen')) || [];
-                            if (popUpOpen.length > 0 && !window.opener) {
-                                sendToPopup({ action: 'populateFormField', field: filledField });
-                                continue;
-                            }
-
-                        }
-                        else {
-                            // field was already populated, so remove from storage
-                            console.log(`Field ${filledField.data_id} already populated`);
-                            await removeFromFilledFieldInStorage(filledField.data_id);
-                        }
-                    }
-                    catch (err) {
-                        console.error('Error processing filled field:', err);
-                    }
-                }
+function migrateChatScrollPosition(oldThreadId, newThreadId) {
+    if (!oldThreadId || !newThreadId || oldThreadId === newThreadId) return;
+    try {
+        const oldKey = getScrollStorageKey(oldThreadId);
+        const newKey = getScrollStorageKey(newThreadId);
+        if (!localStorage.getItem(newKey)) {
+            const oldData = localStorage.getItem(oldKey);
+            if (oldData !== null) {
+                localStorage.setItem(newKey, oldData);
             }
         }
+    } catch (error) {
+        console.error("Error migrating chat scroll position to new thread ID:", error);
+    }
+}
 
-        /**
-         * Populate a single form field in the DOM using the information from `field`.
-         * Supports radio/checkbox groups, select (single/multiple) and text inputs.
-         *
-         * @param {Object} field - Field descriptor from API (must include data_id and fieldValue).
-         * @returns {string|undefined} Returns the data_id property of populated field, 
-         * or undefined if field was either:
-         * - not found in DOM, or
-         * - populating field, triggered a page refresh (in case of Posse)
-         */
-        async function populateFormField(field) {
-            const fieldId = field['data_id'];
-            const fieldValue = field['fieldValue'];
+function extractThreadIdFromResponse(response) {
+    if (!response) return null;
+    if (typeof response.thread_id === 'string') return response.thread_id;
 
-            // find the form field(s) in the DOM (as array or NodeList)
-            let formFields = [];
-            // Try data-id first, then name (radio groups often use name), then id
-            const byDataId = document.querySelectorAll(`[data-id="${fieldId}"]`);
-            if (byDataId && byDataId.length > 0) {
-                formFields = byDataId;
-            } else {
-                const byName = document.getElementsByName(fieldId);
-                if (byName && byName.length > 0) {
-                    formFields = byName;
-                } else {
-                    const byId = document.getElementById(fieldId);
-                    if (byId) formFields = [byId];
-                }
-            }
-            console.log('populating field:', fieldId);
+    const body = response.response;
+    if (!body) return null;
 
-            // update value
-            let found;
-            if (formFields.length > 0) {
+    if (Array.isArray(body)) {
+        const threadObj = body.find((item) => item && typeof item.thread_id === 'string');
+        return threadObj ? threadObj.thread_id : null;
+    }
+    if (typeof body.thread_id === 'string') return body.thread_id;
+    return null;
+}
 
-                // if updating a radio or checkbox
-                if (formFields.length > 1) {
-                    Array.from(formFields).forEach(f => {
-                        if (f.type === 'radio' || f.type === 'checkbox') {
-                            if (f.value.toUpperCase() === fieldValue.toUpperCase()) {
-                                f.checked = true;
-                                // for Posse we need to use the `click` event to update and force page reload page
-                                f.dispatchEvent(new Event('click'));
-                                // window.setTimeout(f.dispatchEvent(new Event('click')), 500);
-                                found = field['data_id'];
-                            }
-                        }
-                    });
-                    return field['data_id'];
-                }
+function normalizeStepLabelToStepValue(label) {
+    const raw = String(label || '').replace(/\u00a0/g, ' ').trim().toLowerCase();
+    if (!raw) return null;
 
-                // for select fields
-                else if (formFields[0].tagName.toLowerCase() === 'select') {
-                    if (formFields[0].multiple && Array.isArray(fieldValue)) {
-                        Array.from(formFields[0].options).forEach(option => {
-                            option.selected = fieldValue.includes(option.value);
-                        });
-                    } else if (Array.isArray(fieldValue)) {
-                        formFields[0].value = fieldValue[0];
-                    } else if (typeof fieldValue === "string") {
-                        formFields[0].value = fieldValue;
-                    }
-                    // trigger onChange event.. to reload page in posse
-                    formFields[0].dispatchEvent(new Event('change'));
-                    return field['data_id'];
-                }
+    const normalized = raw.replace(/[^a-z0-9]/g, '');
+    if (!normalized) return null;
 
-                // for text fields
-                else if (formFields[0].tagName.toLowerCase() === 'input' || formFields[0].tagName.toLowerCase() === 'textarea') {
-                    formFields[0].value = fieldValue;
-                    return field['data_id'];
-                }
-            }
-            else {
-                console.log(`Form field(s) with data-id/id/name "${fieldId}" not found in this page.`);
-            }
-        }
+    let stepKey = normalized;
+    if (stepKey === 'complete') {
+        stepKey = 'step10complete';
+    } else if (/^\d+/.test(stepKey)) {
+        stepKey = `step${stepKey}`;
+    }
 
-        /**
-         * Remove a single filled field entry from the cached API response in localStorage.
-         *
-         * @param {string} field - The data_id of the field to remove.
-         * @param {Promise} resolves if fields was removed from cache
-         * 
-         */
-        async function removeFromFilledFieldInStorage(field) {
-            try {
-                const stored = JSON.parse(localStorage.getItem('nrAiForm_apiResponse')) || [];
-                if (stored && Array.isArray(stored.filled_fields) && stored.filled_fields.length > 0) {
-                    const idx = stored.filled_fields.findIndex(item => item.data_id === field);
-                    if (idx !== -1) {
-                        // console.log('removeFromFilledFieldInStorage removing:', stored.filled_fields[idx]);
-                        stored.filled_fields.splice(idx, 1);
-                        // persist updated object back to localStorage
-                        localStorage.setItem('nrAiForm_apiResponse', JSON.stringify(stored));
-                        return Promise.resolve(field);
-                    }
-                }
-            } catch (err) {
-                console.error('Error removing field from storage:', err);
-            }
-        }
+    return FormSteps[stepKey] || stepKey;
+}
 
-        /**
-         * Build an array of form field descriptors from localStorage.
-         * Uses `mapping` to normalize fields and supports partial matching of field ids.
-         * TODO: consider tracking page/step of form
-         *
-         * @returns {Array<Object>} Array of merged field objects.
-         */
-        function getFieldsArrFromStorage() {
-            const formsDataFromStorage = JSON.parse(localStorage.getItem('nrAiForm_formsData'));
-            let fieldsArr = [];
-            formsDataFromStorage.forEach(form => {
-                // only get fields from forms with specific formAction's 
-                if ((form.formAction.includes('PosseObjectId') || form.formAction.includes('PosseFromObjectId')) || env === 'local') {
-                    form.fields.forEach(field => {
-                        // because field name/id can change, do partial match (until we only use data-id attribute)
-                        const f = mapping[field.data_id] || getPartialMatchFromMapping(mapping, field.data_id) || {};
-                        const merged = { ...field, ...f };
-                        const idx = fieldsArr.findIndex(item => item.data_id === merged.data_id);
-                        if (idx !== -1) {
-                            fieldsArr[idx] = merged;
-                        } else {
-                            fieldsArr.push(merged);
-                        }
-                    });
-                }
-            });
-            // TODO: pass form_fields in storage.nrAiForm_formsData for current step/popup.. not the last lot
-            return fieldsArr;
-        }
+function getStep3SubstepFromPaneHeader() {
+    const paneHeader = document.querySelector('span.paneheader');
+    if (!paneHeader) return null;
 
-        /**
-         * Append a message to the conversation history stored in localStorage.
-         *
-         * @param {'user'|'assistant'} role - Who authored the message.
-         * @param {string} messageInput - Message content to store.
-         */
-        function updateConversationHistoryInStorage(role, messageInput) {
-            let conversationHistoryArray = JSON.parse(localStorage.getItem('nrAiForm_conversationHistory')) || [];
-            conversationHistoryArray.push({
-                timestamp: new Date().toISOString(),
-                role: role,
-                content: messageInput
-            });
-            localStorage.setItem('nrAiForm_conversationHistory', JSON.stringify(conversationHistoryArray));
-        }
+    const paneHeaderText = normalizeComparableValue(paneHeader.textContent || '');
+    if (!paneHeaderText) return null;
 
-        /**
-         * Restore chat messages from localStorage into the chat UI.
-         * Filters duplicates by timestamp and replays messages in chronological order.
-         */
-        function populateChatHistoryFromStorage() {
-            let conversationHistoryArray = JSON.parse(localStorage.getItem('nrAiForm_conversationHistory')) || [];
-            const messages = conversationHistoryArray
-                // filter for unique based on timestamp (in case things got messed up)
-                .filter(obj => {
-                    const keyValue = obj['timestamp'];
-                    const seen = new Set();
-                    if (seen.has(keyValue)) return false; // Duplicate found, filter it out
-                    else {
-                        seen.add(keyValue);
-                        return true; // Unique, keep it
-                    }
-                })
-                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const step3PaneHeaderMap = {
+        governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION
+    };
 
-            // clear existing messages
-            const messagesToRemove = document.querySelectorAll(`div.wp-chat-message`);
-            messagesToRemove.forEach(div => { div.remove(); });
-            localStorage.setItem('nrAiForm_conversationHistory', JSON.stringify([]));
+    return step3PaneHeaderMap[paneHeaderText] || null;
+}
 
-            messages.forEach(c => {
-                if (c.role === 'user') {
-                    displayMessage('user', c.content,);
-                } else {
-                    displayMessage('assistant', c.content);
-                }
-            });
-        }
-
-        /**
-         * Determine whether the current page is a page the assistant should appear on.
-         * Uses different DOM selectors depending on `env`.
-         *
-         * @returns {boolean} True when the page looks like a Water Licence Application.
-         */
-        function pageToAssist() {
-            let titleSpan, validTitleText;
-            if (env === 'dev') {
-                titleSpan = document.querySelector('td.title div#cphTitleBand_pnlTitleBand span.title');
-                validTitleText = 'Water Licence Application';
-            } else return true
-            return titleSpan && titleSpan.textContent.includes(validTitleText);
-        }
-
-        /**
-         * Refresh and prune localStorage items used by the assistant.
-         * Clears cached AI responses when they have expired, otherwise restores
-         * conversation history into the chat UI.
-         */
-        function removeExpiredStorage() {
-            // if last AI responses has expired, clear all items in local storage
-            const aiResponseInStorage = JSON.parse(localStorage.getItem('nrAiForm_apiResponse'));
-            const evalCacheExpire = (env === 'dev') ? cacheExpire : 10000000000000;
-            if (aiResponseInStorage && (new Date() - new Date(aiResponseInStorage?.timestamp) > evalCacheExpire)) {
-                localStorage.removeItem('nrAiForm_formsData');
-                localStorage.removeItem('nrAiForm_apiResponse');
-                localStorage.removeItem('nrAiForm_conversationHistory');
-                localStorage.removeItem('nrAiForm_popupsOpen');
-            }
-            // else keep conversation history in chat UI
-            else populateChatHistoryFromStorage();
-        }
-
-        /**
-         * Retrieve an existing session id from sessionStorage or create a new one.
-         *
-         * @returns {string} A session identifier.
-         */
-        // function getOrCreateSessionId() {
-        //     let sid = sessionStorage.getItem('wp-chat-session-id');
-        //     if (!sid) {
-        //         sid = 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        //         sessionStorage.setItem('wp-chat-session-id', sid);
-        //     }
-        //     return sid;
-        // }
-
-        /**
-         * ------------------------------ chat UI
-         */
-
-        /**
-         * Create and append the floating chat button to the document body.
-         */
-        function createChatButton() {
-            const button = document.createElement('button');
-            button.id = 'wp-chatbot-btn';
-            button.innerHTML = '💬 AI Agent';
-            button.className = 'wp-chat-button';
-            button.title = 'How can AI agent help?';
-
-            button.addEventListener('click', function () {
-                openChatModal();
-            });
-            document.body.appendChild(button);
-        }
-
-        /**
-         * Build and insert the chat modal HTML into the document and wire up
-         * its event listeners.
-         */
-        function createChatModal() {
-            // Create modal container
-            chatModal = document.createElement('div');
-            chatModal.id = 'wp-chat-modal';
-            chatModal.className = 'wp-chat-modal';
-            chatModal.style.display = 'none';
-
-            // Build modal HTML
-            chatModal.innerHTML = `
-        <div class="wp-chat-header">
-            <div class="wp-chat-title">
-                <span class="wp-chat-icon">💬</span>
-                <span>How can AI agent help?</span>
-            </div>
-            <button class="wp-chat-close" id="wp-chat-close-btn" title="Close">&times;</button>
-        </div>
-        
-        <div class="wp-chat-messages" id="wp-chat-messages">
-            <div class="wp-chat-welcome">
-                <p><strong>How I can help</strong></p>
-                <p>I'm an AI assistant here to support you with your water licence application. 
-                I can explain terms, clarify what information is needed, and suggest relevant resources based on what you share.
-                </p>
-                <p><strong>Disclaimer</strong></p>
-                <p>I don't provide legal advice and I'm not a substitute for guidance from FrontCounter 
-                BC staff or qualified professionals. You're responsible for ensuring your submission 
-                is accurate and complete. Please don't share personal information. 
-                Your questions may be stored to help improve this service.
-                By using this assistant, you acknowledge and accept these terms.
-                </p>
-            </div>
-        </div>
-        
-        <div class="wp-chat-typing" id="wp-chat-typing" style="display: none;">
-            <span class="wp-typing-dot"></span>
-            <span class="wp-typing-dot"></span>
-            <span class="wp-typing-dot"></span>
-        </div>
-        
-        <div class="wp-chat-input-container">
-            <input 
-                type="text" 
-                id="wp-chat-input" 
-                class="wp-chat-input" 
-                placeholder="Type your message..."
-                autocomplete="off"
-            />
-            <button id="wp-chat-send-btn" class="wp-chat-send" title="Send">
-                <span>➤</span>
-            </button>
-        </div>
-        `;
-            document.body.appendChild(chatModal);
-
-            // Get messages container reference
-            messagesContainer = document.getElementById('wp-chat-messages');
-
-            // Set up event listeners
-            const closeBtn = document.getElementById('wp-chat-close-btn')
-            closeBtn.addEventListener('click', closeChatModal);
-
-            const sendBtn = document.getElementById('wp-chat-send-btn');
-            const inputField = document.getElementById('wp-chat-input');
-            // send with enter press
-            inputField.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage(inputField.value.trim());
-                }
-            });
-            // send with click
-            sendBtn.addEventListener('click', function (event) {
-                if (inputField.value && inputField.value !== '') sendMessage(inputField.value);
-            });
-            // style send button
-            inputField.addEventListener('input', function (e) {
-                sendBtn.classList.add('wp-chat-send-ready');
-                if (inputField.value.trim() === '') sendBtn.classList.remove('wp-chat-send-ready');
-            });
-        }
-
-        /**
-         * Open the chat modal and hide the floating chat button.
-         */
-        function openChatModal() {
-            chatModal.style.display = 'flex';
-            document.getElementById('wp-chatbot-btn').style.display = 'none';
-            document.getElementById('wp-chat-input').focus();
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        /**
-         * Close the chat modal and reveal the floating chat button.
-         */
-        function closeChatModal() {
-            chatModal.style.display = 'none';
-            document.getElementById('wp-chatbot-btn').style.display = 'flex';
-        }
-
-        /**
-         * Append a rendered message bubble to the chat messages container and
-         * record the message in conversation history.
-         *
-         * @param {'user'|'assistant'} role - Author of the message.
-         * @param {string} message - Message text (may contain simple markdown).
-         */
-        function displayMessage(role, message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `wp-chat-message wp-chat-message-${role}`;
-            const bubble = document.createElement('div');
-            bubble.className = 'wp-chat-bubble';
-            bubble.innerHTML = formatMessage(message);
-            messageDiv.appendChild(bubble);
-            document.getElementById('wp-chat-messages').appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            // add to conversation_history in local storage
-            updateConversationHistoryInStorage(role, message);
-        }
-
-        /**
-         * Show the typing indicator in the chat UI.
-         */
-        function showTypingIndicator() {
-            document.getElementById('wp-chat-typing').style.display = 'flex';
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        /**
-         * Hide the typing indicator in the chat UI.
-         */
-        function hideTypingIndicator() {
-            document.getElementById('wp-chat-typing').style.display = 'none';
-        }
-
-        /**
-         * Format a plain text message into safe HTML supporting a small subset
-         * of markdown-like features: bold and simple lists and newlines.
-         *
-         * @param {string} text - Raw message text.
-         * @returns {string} HTML-safe formatted string.
-         */
-        function formatMessage(text) {
-            // Escape HTML first
-            const escaped = text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-
-            // Convert **bold**
-            let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-            // Convert newlines to <br>
-            formatted = formatted.replace(/\n/g, '<br>');
-
-            // Convert bullet lists (lines starting with • or -)
-            formatted = formatted.replace(/^[•\-]\s+(.+)/gm, '<li>$1</li>');
-
-            // Wrap lists
-            if (formatted.includes('<li>')) {
-                formatted = '<ul>' + formatted + '</ul>';
-            }
-
-            return formatted;
-        }
-
-
-        /**
-         * ------------------------------ popup stuff
-         */
-
-        // sync pop-up state with local storage
-        function linkPopups() {
-            const popupsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen')) || [];;
-            // when a pop-up is closed, remove reference to it from cache
-            const checkChildWindow = setInterval(() => {
-                const popUpRef = (env === 'dev') ? 'PossePwRef' : 'myPopup'
-                const popUpObj = window[popUpRef];
-                if (popUpObj && typeof popUpObj.closed === 'boolean' && popUpObj.closed) {
-                    const newArr = popupsDataInStorage.filter(p => p.ref !== popUpRef);
-                    newArr.length > 0 ?
-                        localStorage.setItem('nrAiForm_popupsOpen', JSON.stringify(newArr)) :
-                        localStorage.removeItem('nrAiForm_popupsOpen');
-                    clearInterval(checkChildWindow);
-                }
-            }, 500);
-
-            // if popup in cache, re-open it (using Posse `PossePopup` function passing params in cache)
-            if (env === 'dev') {
-                if (!window.opener // page is not a pop-up 
-                    && !window.PossePwRef // and popup is not open 
-                    && popupsDataInStorage?.length > 0 // and popup found in cache
-                ) {
-                    console.log('popup found in storage, reopenning PossePwRef');
-                    PossePopup(
-                        popupsDataInStorage[0].aAnchor,
-                        popupsDataInStorage[0].aURL,
-                        popupsDataInStorage[0].aWidth,
-                        popupsDataInStorage[0].aHeight,
-                        popupsDataInStorage[0].aTarget
-                    )
-                }
-            }
-            else {
-                if (!window.opener // current page is not a pop-up 
-                    && !window.myPopup // and popup is not open 
-                    && popupsDataInStorage?.length > 0 // and popup found in cache
-                ) {
-                    console.log('popup found in storage, reopenning myPopup');
-                    window.openLocalPopup(popupsDataInStorage[0].aTarget);
-                }
-            }
-        }
-
-        // post field data from parent to popup
-        function sendToPopup(data) {
-            if (env === 'dev') {
-                // in Posse system pop-up can found at `window.PossePwRef`: (see: posseglobal.js)
-                if (window.PossePwRef) {
-                    window.PossePwRef.postMessage(data);
-                }
-            }
-            // this is for a local demo.
-            else {
-                if (window.myPopup) {
-                    window.myPopup.postMessage(data);
-                }
-            }
-        }
-
-        // for testing locally with another sample form (invoked from onclcik event of link in sample webpage)
-        window.openLocalPopup = function (aTarget) {
-            console.log('pop up', aTarget);
-            window.myPopup = window.open(aTarget, 'myPopupWindow', 'width=600,height=400,resizable=yes');
-            const popupsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen')) || [];
-            localStorage.setItem('nrAiForm_popupsOpen', JSON.stringify(
-                addOrUpdateArray(popupsDataInStorage, [{ ref: 'myPopup', aAnchor: '', aURL: '', aWidth: '', aHeight: '', aTarget }], ['aTarget'])
-            ));
-        }
-
-        // function sendMessageToParent(msg) {
-        //     const message = msg;
-        //     const targetOrigin = window.location.href; 
-        //     window.parent.postMessage(message, targetOrigin);
-        // }
-
-
-        /**
-         * ------------------------------ helper functions
-         */
-
-        function addOrUpdateArray(array, newArray, propertiesToMatch) {
-            newArray.forEach(newObj => {
-                const index = array.findIndex(obj =>
-                    propertiesToMatch.every(prop =>
-                        (obj[prop] === newObj[prop]) || (obj[prop] == null && newObj[prop] == null)
-                    )
-                );
-                if (index !== -1) {
-                    array[index] = newObj;
-                } else {
-                    array.push(newObj);
-                }
-            });
-            return array;
-        }
-
-        // look for one (or more) string in data_id property of object, matching on prefix 
-        function getPartialMatchFromMapping(mapping, needle) {
-            const beforeLastUnderscore = function (str) {
-                return str && str.includes('_')
-                    ? str.substring(0, str.lastIndexOf('_'))
-                    : str;
-            }
-            const needlePrefix = beforeLastUnderscore(String(needle));
-            const matchKey = Object.keys(mapping).find(k => beforeLastUnderscore(k) === needlePrefix);
-            return matchKey ? mapping[matchKey] : undefined;
-        }
-
-        /**
-         * returns true if paramas are the same
-         * @param {*} v1 array or string
-         * @param {*} v2 array or string
-         * @returns 
-         */
-        function areEqual(v1, v2) {
-            if (Array.isArray(v1) || Array.isArray(v2)) {
-                if (v1.length !== v2.length) {
-                    return false;
-                }
-                return v1.every((element, index) => element === v2[index]);
-            }
-            if (v1 === v2) return true
-            else return false;
-        }
-
-
-        /**
-         * ------------------------------ Inject CSS styles
-         */
-        function injectStyles() {
-            const style = document.createElement('style');
-            style.textContent = `
-                /* Chat Button */
-                .wp-chat-button {
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    z-index: 99998;
-                    padding: 14px 24px;
-                    background: #003366;
-                    color: white;
-                    border: none;
-                    border-radius: 25px;
-                    cursor: pointer;
-                    font-size: 16px;
-                    font-weight: 600;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    transition: all 0.3s ease;
-                }
-                
-                .wp-chat-button:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-                }
-                
-                /* Chat Modal */
-                .wp-chat-modal {
-                    display: none;
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    width: 420px;
-                    height: 650px;
-                    max-width: calc(100vw - 40px);
-                    max-height: calc(100vh - 40px);
-                    z-index: 99999;
-                    background: white;
-                    border-radius: 12px;
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                    flex-direction: column;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                }
-                
-                /* Chat Header */
-                .wp-chat-header {
-                    padding: 16px 20px;
-                    background: #003366;
-                    color: white;
-                    border-radius: 12px 12px 0 0;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                
-                .wp-chat-title {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    font-size: 18px;
-                    font-weight: 600;
-                }
-                
-                .wp-chat-icon {
-                    font-size: 24px;
-                }
-                
-                .wp-chat-close {
-                    background: none;
-                    border: none;
-                    color: white;
-                    font-size: 32px;
-                    cursor: pointer;
-                    padding: 0;
-                    width: 32px;
-                    height: 32px;
-                    line-height: 1;
-                    transition: transform 0.2s;
-                }
-                
-                .wp-chat-close:hover {
-                    transform: rotate(90deg);
-                }
-                
-                /* Messages Container */
-                .wp-chat-messages {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 20px;
-                    background: #f8f9fa;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-                
-                .wp-chat-welcome {
-                    background: white;
-                    padding: 16px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                }
-                
-                .wp-chat-welcome p {
-                    margin: 0 0 12px 0;
-                }
-                
-                .wp-chat-welcome ul {
-                    margin: 8px 0;
-                    padding-left: 24px;
-                }
-                
-                .wp-chat-welcome li {
-                    margin: 4px 0;
-                }
-                
-                /* Messages */
-                .wp-chat-message {
-                    display: flex;
-                    margin-bottom: 8px;
-                }
-                
-                .wp-chat-message-user {
-                    justify-content: flex-end;
-                }
-                
-                .wp-chat-message-assistant {
-                    justify-content: flex-start;
-                }
-                
-                .wp-chat-bubble {
-                    max-width: 75%;
-                    padding: 12px 16px;
-                    border-radius: 12px;
-                    word-wrap: break-word;
-                    line-height: 1.5;
-                }
-                
-                .wp-chat-message-user .wp-chat-bubble {
-                    background: #003366;
-                    color: white;
-                    border-bottom-right-radius: 4px;
-                }
-                
-                .wp-chat-message-assistant .wp-chat-bubble {
-                    background: white;
-                    color: #333;
-                    border-bottom-left-radius: 4px;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                }
-                
-                .wp-chat-bubble ul {
-                    margin: 8px 0;
-                    padding-left: 20px;
-                }
-                
-                .wp-chat-bubble li {
-                    margin: 4px 0;
-                }
-                
-                .wp-chat-error {
-                    border-left: 4px solid #f44336;
-                }
-                
-                /* Typing Indicator */
-                .wp-chat-typing {
-                    display: none;
-                    padding: 12px 20px;
-                    gap: 4px;
-                }
-                
-                .wp-typing-dot {
-                    width: 8px;
-                    height: 8px;
-                    background: #999;
-                    border-radius: 50%;
-                    animation: wp-typing 1.4s infinite;
-                }
-                
-                .wp-typing-dot:nth-child(2) {
-                    animation-delay: 0.2s;
-                }
-                
-                .wp-typing-dot:nth-child(3) {
-                    animation-delay: 0.4s;
-                }
-                
-                @keyframes wp-typing {
-                    0%, 60%, 100% {
-                        transform: translateY(0);
-                    }
-                    30% {
-                        transform: translateY(-8px);
-                    }
-                }
-                
-                /* Input Container */
-                .wp-chat-input-container {
-                    padding: 16px;
-                    border-top: 1px solid #e0e0e0;
-                    display: flex;
-                    gap: 12px;
-                    background: white;
-                    border-radius: 0 0 12px 12px;
-                }
-                
-                .wp-chat-input {
-                    flex: 1;
-                    padding: 12px 16px;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    outline: none;
-                    transition: border-color 0.2s;
-                }
-                
-                .wp-chat-input:focus {
-                    border-color: #003366;
-                }
-                
-                .wp-chat-send {
-                    padding: 12px 20px;
-                    background: #9c9c9cff;
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-size: 18px;
-                    transition: all 0.2s;
-                }
-                
-                .wp-chat-send-ready, .wp-chat-send:hover {
-                    background: #004080;
-                    transform: translateX(2px);
-                }
-                
-                /* Mobile Responsiveness */
-                @media (max-width: 768px) {
-                    .wp-chat-modal {
-                        bottom: 0;
-                        right: 0;
-                        width: 100%;
-                        height: 100%;
-                        max-width: 100%;
-                        max-height: 100%;
-                        border-radius: 0;
-                    }
-                    
-                    .wp-chat-header {
-                        border-radius: 0;
-                    }
-                    
-                    .wp-chat-button {
-                        bottom: 16px;
-                        right: 16px;
-                    }
-                }`;
-            document.head.appendChild(style);
-        }
-
-    })();
-
-
-
-    /**
-     * ------------------------------ overrides posseglobal.js
-     */
-
-    // add popup to local storage
-    function PossePopup(aAnchor, aURL, aWidth, aHeight, aTarget) {
-        var lu = new PossePw();
-        lu.xoffset = 0 - (aWidth / 3);
-        lu.yoffset = -20;
-        lu.width = aWidth;
-        lu.height = aHeight;
-        if (aURL) lu.href = aURL;
-        lu.openPopup(aAnchor, aTarget);
-
-        // override start
-        // add popup ref to local storage
-        // TODO: use the original copy of this method above
-        function addOrUpdateArray2(array, newArray, propertiesToMatch) {
-            newArray.forEach(newObj => {
-                const index = array.findIndex(obj =>
-                    propertiesToMatch.every(prop =>
-                        (obj[prop] === newObj[prop]) || (obj[prop] == null && newObj[prop] == null)
-                    )
-                );
-                if (index !== -1) {
-                    array[index] = newObj;
-                } else {
-                    array.push(newObj);
-                }
-            });
-            return array;
-        }
-
-        console.log('nrAiForm override to function PossePopup(): add item nrAiForm_popupsOpen to local storage',);
-        const popupsDataInStorage = JSON.parse(localStorage.getItem('nrAiForm_popupsOpen')) || [];
-
-        const newPopupsData = addOrUpdateArray2(
-            popupsDataInStorage,
-            [{ ref: 'PossePw', aAnchor, aURL, aWidth, aHeight, aTarget }],
-            ['aTarget']
+function getCurrentFormStepFromDom() {
+    const progressBar = document.getElementById('progressbar');
+    if (!progressBar) {
+        const hasAltchaValidation = Boolean(
+            document.querySelector('span[id^="AltchaControl_"] script[src*="altcha.min.js"]')
         );
-        localStorage.setItem('nrAiForm_popupsOpen', JSON.stringify(newPopupsData));
-
+        const hasCaptchaIframeValidation = Boolean(
+            document.querySelector('span[id^="Captcha_"] iframe#lanbotiframe')
+        );
+        if (hasAltchaValidation || hasCaptchaIframeValidation) {
+            return FormSteps.step0bot || 'step0-Bot';
+        }
+        return null;
     }
 
-    // allow user to use chat assistant in parent window while the pop-up is open
-    function PossePw() {
-        if (!posseDoesPopup) {
-            alert("This browser does not support popup windows.");
-            return;
+    const activeLi =
+        progressBar.querySelector('li.crumbs_on') ||
+        progressBar.querySelector('li.active') ||
+        progressBar.querySelector('li[aria-current="step"]');
+
+    if (!activeLi) {
+        const hasAltchaValidation = Boolean(
+            document.querySelector('span[id^="AltchaControl_"] script[src*="altcha.min.js"]')
+        );
+        const hasCaptchaIframeValidation = Boolean(
+            document.querySelector('span[id^="Captcha_"] iframe#lanbotiframe')
+        );
+        if (hasAltchaValidation || hasCaptchaIframeValidation) {
+            return FormSteps.step0bot || 'step0-Bot';
         }
-        if (!window.listenerAttached) {
-            window.listenerAttached = true;
-            if (document.layers) {
-                document.captureEvents(Event.MOUSEUP);
-            }
-            window.PossePwXon = document.onmouseup;
-            if (window.PossePwXon != null) {
-                document.onmouseup = new Function(
-                    "window.PossePwXon();window.PossePwFocus();");
-            } else {
-                // override start
-                console.log('nrAiForm override to function PossePw(): removed window.PossePwFocus',);
-                // commented out this line
-                // document.onmouseup = window.PossePwFocus;
-                // overide end
-            }
-        }
-        this.xoffset = 0;
-        this.yoffset = 0;
-        this.width = 100;
-        this.height = 100;
-        this.content = null;
-        this.dirty = false;
-        if (posseBlankPage) {
-            this.href = posseBlankPage;
-        } else {
-            this.href = "posseblankpage.html";
-        }
-        this.scrollbars = "yes";
-        this.resizable = "yes";
-        this.status = "no";
-        this.features = "toolbar=no, location=no, menubar=no, titlebar=no";
-        this.getPosition = PossePwPosition;
-        this.openPopup = PossePwOpen;
+        return null;
     }
 
+    const labelFromText = (activeLi.textContent || '').trim();
+    const labelFromTitle = (activeLi.getAttribute('title') || '').trim();
+    const currentStep = normalizeStepLabelToStepValue(labelFromText) || normalizeStepLabelToStepValue(labelFromTitle);
+    if (!currentStep) return null;
 
+    // Keep existing step detection, then refine STEP3 pages by pane header when known.
+    if (normalizeComparableValue(currentStep).startsWith('step3')) {
+        return getStep3SubstepFromPaneHeader() || currentStep;
+    }
+
+    return currentStep;
 }
 
+function normalizeComparableValue(value) {
+    return String(value ?? '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+}
+
+function tryParseJson(value) {
+    if (typeof value !== 'string') return value;
+    try {
+        cleaned = value.replace(/```json|```/g, '').trim();
+        return JSON.parse(cleaned);
+    } catch {
+        return null;
+    }
+}
+
+function parseFormSupportSuggestions(response) {
+    const suggestions = [];
+    const responseArr = response && Array.isArray(response.response) ? response.response : [];
+
+    responseArr.forEach((item) => {
+        const originalResults = Array.isArray(item && item.original_results) ? item.original_results : [];
+        originalResults.forEach((result) => {
+            if (!result || result.source !== 'FormSupportAgentA2A') return;
+            const parsed = tryParseJson(result.response);
+            const parsedItems = Array.isArray(parsed) ? parsed : [parsed];
+            parsedItems.forEach((parsedItem) => {
+                if (!parsedItem || !parsedItem.id) return;
+                suggestions.push({
+                    id: parsedItem.id,
+                    type: String(parsedItem.type || '').toLowerCase(),
+                    suggestedvalue: parsedItem.suggestedvalue
+                });
+            });
+        });
+    });
+
+    return suggestions;
+}
+
+function getAssociatedLabelText(element) {
+    if (!element) return '';
+    if (element.id) {
+        const byFor = document.querySelector(`label[for="${CSS.escape(element.id)}"]`);
+        if (byFor && byFor.textContent) return byFor.textContent;
+    }
+    const parentLabel = element.closest('label');
+    return parentLabel && parentLabel.textContent ? parentLabel.textContent : '';
+}
+
+function setFieldValueAndNotify(element, value) {
+    element.value = value;
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function findFieldElementsByIdentifier(identifier) {
+    const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(identifier) : identifier;
+    const byId = document.getElementById(identifier);
+    if (byId) return [byId];
+
+    const byDataId = Array.from(document.querySelectorAll(`[data-id="${escaped}"]`));
+    if (byDataId.length > 0) return byDataId;
+
+    const byName = Array.from(document.getElementsByName(identifier));
+    if (byName.length > 0) return byName;
+
+    return [];
+}
+
+function applySuggestionToElements(suggestion, elements) {
+    if (!elements || elements.length === 0) return false;
+
+    const expected = normalizeComparableValue(suggestion.suggestedvalue);
+    const type = String(suggestion.type || '').toLowerCase();
+    const first = elements[0];
+
+    const radioOrCheckboxElements = elements.filter((el) => el.type === 'radio' || el.type === 'checkbox');
+    if (type === 'radio' || type === 'checkbox' || radioOrCheckboxElements.length > 0) {
+        const target = (radioOrCheckboxElements.length > 0 ? radioOrCheckboxElements : elements).find((el) => {
+            const byValue = normalizeComparableValue(el.value);
+            const byLabel = normalizeComparableValue(getAssociatedLabelText(el));
+            return byValue === expected || byLabel === expected;
+        });
+
+        if (target) {
+            target.checked = true;
+            target.dispatchEvent(new Event('click', { bubbles: true }));
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+        }
+        return false;
+    }
+
+    if (first.tagName && first.tagName.toLowerCase() === 'select') {
+        const selectEl = first;
+        const matchedOption = Array.from(selectEl.options || []).find((opt) => {
+            const byText = normalizeComparableValue(opt.textContent);
+            const byValue = normalizeComparableValue(opt.value);
+            return byText === expected || byValue === expected;
+        });
+        if (matchedOption) {
+            setFieldValueAndNotify(selectEl, matchedOption.value);
+            return true;
+        }
+        return false;
+    }
+
+    if (first.tagName && (first.tagName.toLowerCase() === 'input' || first.tagName.toLowerCase() === 'textarea')) {
+        setFieldValueAndNotify(first, suggestion.suggestedvalue ?? '');
+        return true;
+    }
+
+    return false;
+}
+
+function applyFormSupportSuggestionsFromResponse(response) {
+    const suggestions = parseFormSupportSuggestions(response);
+    if (suggestions.length === 0) return;
+
+    suggestions.forEach((suggestion) => {
+        const elements = findFieldElementsByIdentifier(suggestion.id);
+        const applied = applySuggestionToElements(suggestion, elements);
+        if (!applied) {
+            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+        }
+    });
+}
+
+
+function injectStyles() {
+    if (document.getElementById('wp-chat-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'wp-chat-styles';
+    style.textContent = `
+        .wp-chat-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99998;
+            padding: 14px 24px;
+            background: #003366;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .wp-chat-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .wp-chat-modal {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 420px;
+            height: 650px;
+            max-width: calc(100vw - 40px);
+            max-height: calc(100vh - 40px);
+            z-index: 99999;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            flex-direction: column;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .wp-chat-modal.open {
+            display: flex;
+        }
+
+        .wp-chat-header {
+            padding: 16px 20px;
+            background: #003366;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .wp-chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .wp-chat-title span {
+            padding-top: 12px
+        }
+
+        .wp-chat-title-image {
+            display: block;
+            height: 32px;
+            width: auto;
+            max-width: 140px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .wp-chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            line-height: 1;
+        }
+
+        .wp-chat-close:hover {
+            transform: rotate(90deg);
+        }
+
+        .wp-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .wp-chat-welcome {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .wp-chat-welcome p {
+            margin: 0;
+        }
+            
+        .wp-chat-welcome p {
+            margin: 0 0 12px 0;
+        }
+
+        .wp-chat-message {
+            display: flex;
+        }
+
+        .wp-chat-message-user {
+            justify-content: flex-end;
+        }
+
+        .wp-chat-message-assistant {
+            justify-content: flex-start;
+        }
+
+        .wp-chat-message-system {
+            justify-content: center;
+        }
+
+        .wp-chat-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .wp-chat-message-user .wp-chat-bubble {
+            background: #003366;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .wp-chat-message-assistant .wp-chat-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .wp-chat-message-system .wp-chat-bubble {
+            background: transparent;
+            color: #666;
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        .wp-chat-bubble ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .wp-chat-bubble li {
+            margin: 4px 0;
+        }
+
+        .wp-chat-typing {
+            display: none;
+            padding: 0 20px 12px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .wp-typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: wp-typing 1.4s infinite;
+        }
+
+        .wp-typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .wp-typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wp-typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .wp-chat-input-container {
+            padding: 16px;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .wp-chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            min-height: 48px;
+            max-height: 140px;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: inherit;
+        }
+
+        .wp-chat-input:focus {
+            border-color: #003366;
+        }
+
+        .wp-chat-send {
+            padding: 12px 20px;
+            background: #9c9c9c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .wp-chat-send-ready, .wp-chat-send:hover {
+            background: #004080;
+            transform: translateX(2px);
+        }
+
+        .wp-chat-send:disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .wp-chat-modal {
+                bottom: 0;
+                right: 0;
+                width: 100%;
+                height: 100%;
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 0;
+            }
+
+            .wp-chat-header {
+                border-radius: 0;
+            }
+
+            .wp-chat-button {
+                bottom: 16px;
+                right: 16px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function initBot() {
+    if (document.getElementById('wp-chat-button') || document.getElementById('wp-chat-modal')) {
+        return;
+    }
+
+    const container = document.createElement('div');
+    container.innerHTML = `
+        <button class="wp-chat-button" id="wp-chat-button">Assistant</button>
+        <div class="wp-chat-modal" id="wp-chat-modal">
+            <div class="wp-chat-header">
+                <div class="wp-chat-title">
+                    <img
+                        class="wp-chat-title-image"
+                        src="https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Images/banners/vfcbc_banner.png?v=5797"
+                        alt="AI Assistant"
+                    />
+                    <span>AI Assistant</span>
+                </div>
+                <button class="wp-chat-close" id="wp-chat-close" type="button">
+                    &times;
+                </button>
+            </div>
+
+            <div class="wp-chat-messages" id="wp-chat-messages">
+                <div class="wp-chat-welcome">
+                    <div class="wp-chat-welcome">
+                        <p><strong>How I can help</strong></p>
+                        <p>I'm an AI assistant here to support you with your water licence application. 
+                        I can explain terms, clarify what information is needed, and suggest relevant resources based on what you share.
+                        </p>
+                        <p><strong>Disclaimer</strong></p>
+                        <p>I don't provide legal advice and I'm not a substitute for guidance from FrontCounter 
+                        BC staff or qualified professionals. You're responsible for ensuring your submission 
+                        is accurate and complete. Please don't share personal information. 
+                        Your questions may be stored to help improve this service.
+                        By using this assistant, you acknowledge and accept these terms.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wp-chat-typing" id="wp-chat-typing">
+                <span class="wp-typing-dot"></span>
+                <span class="wp-typing-dot"></span>
+                <span class="wp-typing-dot"></span>
+            </div>
+
+            <div class="wp-chat-input-container">
+                <textarea class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." rows="1"></textarea>
+                <button class="wp-chat-send" id="wp-chat-send-btn" type="button">
+                <span>➤</span>
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(container);
+
+    injectStyles();
+
+    const chatButton = document.getElementById('wp-chat-button');
+    const chatModal = document.getElementById('wp-chat-modal');
+    const closeBtn = document.getElementById('wp-chat-close');
+    const chatInput = document.getElementById('wp-chat-input');
+    const sendBtn = document.getElementById('wp-chat-send-btn');
+    const chatMessages = document.getElementById('wp-chat-messages');
+    const typingIndicator = document.getElementById('wp-chat-typing');
+
+    let sessionId = getStoredThreadId();
+    let restoredScrollTop = loadChatScrollPosition(sessionId);
+    saveThreadId(sessionId);
+    const existingHistory = loadChatHistory(sessionId);
+    if (existingHistory.length > 0) {
+        const welcome = chatMessages.querySelector('.wp-chat-welcome');
+        if (welcome) welcome.remove();
+        existingHistory.forEach((entry) => {
+            if (entry && typeof entry.role === 'string') {
+                appendMessage(entry.role, entry.text ?? '', false, false);
+            }
+        });
+    }
+
+    function restoreChatScrollPosition() {
+        chatMessages.scrollTop = restoredScrollTop;
+    }
+
+    requestAnimationFrame(restoreChatScrollPosition);
+
+    function toggleChat() {
+        const isOpen = chatModal.classList.contains('open');
+        if (!isOpen) {
+            chatModal.classList.add('open');
+            chatButton.style.display = 'none';
+            requestAnimationFrame(restoreChatScrollPosition);
+            chatInput.focus();
+        } else {
+            chatModal.classList.remove('open');
+            chatButton.style.display = 'flex';
+        }
+    }
+
+    chatButton.addEventListener('click', toggleChat);
+    closeBtn.addEventListener('click', toggleChat);
+
+    async function sendMessage() {
+        let text = chatInput.value.trim();
+        if (!text) return;
+
+        appendMessage('user', text);
+        chatInput.value = '';
+        autoResizeChatInput();
+        sendBtn.classList.remove('wp-chat-send-ready');
+        showTyping(true);
+
+        try {
+            const currentStep = getCurrentFormStepFromDom() || FormSteps.step1introduction || 'step1introduction';
+            console.log(`Invoking orchestrator with sessionId=${sessionId}, step=${currentStep}, query=${text}`);
+
+            if(currentStep === FormSteps.step0bot)
+            {
+                text = `Human verification form query : ${text}`;
+            }
+
+            const response = await invokeOrchestrator(text, currentStep, sessionId);
+            applyFormSupportSuggestionsFromResponse(response);
+            const serverThreadId = extractThreadIdFromResponse(response);
+            if (serverThreadId && serverThreadId !== sessionId) {
+                migrateChatHistory(sessionId, serverThreadId);
+                migrateChatScrollPosition(sessionId, serverThreadId);
+                sessionId = serverThreadId;
+                restoredScrollTop = loadChatScrollPosition(sessionId);
+            }
+            saveThreadId(sessionId);
+            showTyping(false);
+            const messages = extractAssistantMessages(response);
+            messages.forEach((msg) => appendMessage('assistant', msg));
+
+        } catch (error) {
+            showTyping(false);
+            appendMessage('system', "Sorry, I encountered an error connecting to the server.");
+            console.error(error);
+        }
+    }
+
+    function extractAssistantMessages(response) {
+        if (response && response.response) {
+            if (Array.isArray(response.response)) {
+                const aggregatorItem = response.response.find((item) => item.source === 'Aggregator');
+                if (aggregatorItem && aggregatorItem.response) {
+                    return [String(aggregatorItem.response)];
+                }
+            } else if (response.response.agent_messages) {
+                const messages = response.response.agent_messages;
+                return Array.isArray(messages) ? messages.map(String) : [String(messages)];
+            } else if (typeof response.response === 'string') {
+                return [response.response];
+            }
+        }
+
+        if (typeof response === 'string') {
+            return [response];
+        }
+        return [JSON.stringify(response)];
+    }
+
+    function appendMessage(role, text, persist = true, scroll = true) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `wp-chat-message wp-chat-message-${role}`;
+        const bubble = document.createElement('div');
+        bubble.className = 'wp-chat-bubble';
+        bubble.innerHTML = formatMessage(String(text));
+        msgDiv.appendChild(bubble);
+        chatMessages.appendChild(msgDiv);
+        if (persist) {
+            appendChatHistory(sessionId, role, String(text));
+        }
+        if (scroll) {
+            scrollToBottom();
+        }
+    }
+
+    function formatMessage(text) {
+        const escaped = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/\n/g, '<br>');
+        formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
+
+        if (formatted.includes('<li>')) {
+            formatted = `<ul>${formatted}</ul>`;
+        }
+        return formatted;
+    }
+
+    function showTyping(show) {
+        typingIndicator.style.display = show ? 'flex' : 'none';
+        scrollToBottom();
+        chatInput.disabled = show;
+        sendBtn.disabled = show;
+    }
+
+    function autoResizeChatInput() {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = `${Math.min(chatInput.scrollHeight, 140)}px`;
+    }
+
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        restoredScrollTop = chatMessages.scrollTop;
+        saveChatScrollPosition(sessionId, restoredScrollTop);
+    }
+
+    chatMessages.addEventListener('scroll', () => {
+        restoredScrollTop = chatMessages.scrollTop;
+        saveChatScrollPosition(sessionId, restoredScrollTop);
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('input', () => {
+        autoResizeChatInput();
+        if (chatInput.value.trim()) {
+            sendBtn.classList.add('wp-chat-send-ready');
+        } else {
+            sendBtn.classList.remove('wp-chat-send-ready');
+        }
+    });
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    autoResizeChatInput();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBot);
+} else {
+    initBot();
+}
