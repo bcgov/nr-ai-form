@@ -294,7 +294,7 @@ function tryParseJson(value) {
     }
 
     try {
-        return JSON.parse(value);
+        return JSON.parse(cleanedValue);
     } catch {
         return null;
     }
