@@ -50,7 +50,7 @@ else {
 
 
             //-------------------------- Services Starts ---------------------------//
-            const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
+            const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
 
 
 
@@ -987,5 +987,6 @@ else {
     })();
 
     
+
 
 }
