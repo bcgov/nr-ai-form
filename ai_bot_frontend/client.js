@@ -477,6 +477,19 @@ function injectStyles() {
             font-weight: 600;
         }
 
+        .wp-chat-title span {
+            padding-top: 12px
+        }
+
+        .wp-chat-title-image {
+            display: block;
+            height: 32px;
+            width: auto;
+            max-width: 140px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
         .wp-chat-close {
             background: none;
             border: none;
@@ -609,6 +622,7 @@ function injectStyles() {
             background: white;
             border-radius: 0 0 12px 12px;
             display: flex;
+            align-items: flex-end;
             gap: 12px;
         }
 
@@ -620,6 +634,14 @@ function injectStyles() {
             font-size: 14px;
             outline: none;
             transition: border-color 0.2s;
+            min-height: 48px;
+            max-height: 140px;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: inherit;
         }
 
         .wp-chat-input:focus {
@@ -681,7 +703,14 @@ function initBot() {
         <button class="wp-chat-button" id="wp-chat-button">Assistant</button>
         <div class="wp-chat-modal" id="wp-chat-modal">
             <div class="wp-chat-header">
-                <div class="wp-chat-title">AI Assistant</div>
+                <div class="wp-chat-title">
+                    <img
+                        class="wp-chat-title-image"
+                        src="https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Images/banners/vfcbc_banner.png?v=5797"
+                        alt="AI Assistant"
+                    />
+                    <span>AI Assistant</span>
+                </div>
                 <button class="wp-chat-close" id="wp-chat-close" type="button">
                     &times;
                 </button>
