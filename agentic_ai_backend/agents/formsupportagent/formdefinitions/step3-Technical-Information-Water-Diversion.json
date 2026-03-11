@@ -3,24 +3,26 @@
     "formDescription": "Step 3 - Technical Information - Water Diversion",
     "properties": {
         "WSLICDoYouHoldAnotherLicense": {
-            "type": "string",
+            "type": "radio",
             "enum": [
                 "Yes",
                 "No"
             ],
             "id": "WSLICDoYouHoldAnotherLicense",
             "title": "Do you currently hold another valid Water Licence?",
+            "description": "Radio button to check whether applicant has existing water license",
             "required": true
         },
         "WSLICClientNumber": {
             "type": "string",
             "id": "WSLICClientNumber",
             "title": "Please enter your client number:",
+            "description": "Existing water license number",
             "maxLength": 100,
             "required": false
         },
         "SourceOfDiversion": {
-            "type": "string",
+            "type": "radio",
             "enum": [
                 "Surface water",
                 "Groundwater",
@@ -28,6 +30,7 @@
             ],
             "id": "SourceOfDiversion",
             "title": "Select the source of the new water diversion being applied for:",
+            "description": "Sources of water diversions - Surface Water, Ground Water or Both",
             "required": true
         },
         "InstructionsWSLICPurposes": {

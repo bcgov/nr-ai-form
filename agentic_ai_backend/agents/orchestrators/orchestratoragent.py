@@ -124,7 +124,7 @@ async def orchestrate_a2a(query: str,
             response_messages = [ChatMessage(role=Role.ASSISTANT, text=aggregated_text)] if aggregated_text else []
             await agent._notify_thread_of_new_messages(thread, input_messages, response_messages)
 
-        # Save Thread State
+        #Save Thread State
         if thread:
             try:
                 print(f"Saving thread {thread_id} to Redis...")          
