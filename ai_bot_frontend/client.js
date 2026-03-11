@@ -8,39 +8,39 @@ const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.can
 
 
 async function invokeOrchestrator(query, step_number, session_id = null) {
-  const payload = {
-    query: query,
-    step_number: step_number,
-    session_id: session_id
-  };
+    const payload = {
+        query: query,
+        step_number: step_number,
+        session_id: session_id
+    };
 
-  try {
-    const response = await fetch(ORCHESTRATOR_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    try {
+        const response = await fetch(ORCHESTRATOR_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error invoking Orchestrator Agent:", error);
+        throw error;
     }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error invoking Orchestrator Agent:", error);
-    throw error;
-  }
 }
 //-------------------------- Services Ends ---------------------------//
 
 //-------------------------- Steppers Starts ---------------------------//
 const FormSteps = {
     step1introduction: "step1-Introduction",
-    step0bot:"step0-Bot",
+    step0bot: "step0-Bot",
     STEP10_COMPLETE: "step10-Complete",
     step2eligibility: "step2-Eligibility",
     STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
@@ -284,9 +284,17 @@ function normalizeComparableValue(value) {
 
 function tryParseJson(value) {
     if (typeof value !== 'string') return value;
+
+    let cleanedValue = value.trim();
+
+    // Extract JSON if it is wrapped in markdown code blocks
+    const match = cleanedValue.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (match) {
+        cleanedValue = match[1].trim();
+    }
+
     try {
-        cleaned = value.replace(/```json|```/g, '').trim();
-        return JSON.parse(cleaned);
+        return JSON.parse(cleanedValue);
     } catch {
         return null;
     }
@@ -810,8 +818,7 @@ function initBot() {
             const currentStep = getCurrentFormStepFromDom() || FormSteps.step1introduction || 'step1introduction';
             console.log(`Invoking orchestrator with sessionId=${sessionId}, step=${currentStep}, query=${text}`);
 
-            if(currentStep === FormSteps.step0bot)
-            {
+            if (currentStep === FormSteps.step0bot) {
                 text = `Human verification form query : ${text}`;
             }
 
