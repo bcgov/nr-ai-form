@@ -64,6 +64,14 @@ class FormSupportAgent():
             # If it's a completely custom prompt without the placeholder, 
             # we should probably still append the context so the AI knows the fields
             final_instructions = f"{final_instructions}\n\nHere is the form context:\n{form_context_str}"
+            
+        # Append strict JSON formatting rule
+        json_enforcement_rule = (
+            "\n\nCRITICAL INSTRUCTION: Your response MUST be valid JSON only. "
+            "NEVER wrap your response in markdown code blocks like ```json ... ```. "
+            "Output raw JSON that can be parsed directly by JSON.parse()."
+        )
+        final_instructions += json_enforcement_rule
 
         self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key, deployment_name=deployment_name).create_agent(
                 instructions=final_instructions,                
