@@ -9,7 +9,7 @@ class redisdbutils(IThreadManager):
     def __init__(self):
         host = os.getenv("REDIS_HOST", "localhost")
         port = int(os.getenv("REDIS_PORT", "6379"))
-        password = os.getenv("REDIS_PASSWORD", None)
+        password = os.getenv("REDIS_PASSWORD")
         ssl = os.getenv("REDIS_SSL", "False").lower() == "true"
         ttl_days = int(os.getenv("REDIS_TTL_DAYS", "14"))
         self.redis_service = RedisService(host=host, port=port, password=password, ssl=ssl, ttl=ttl_days*24*60*60)
