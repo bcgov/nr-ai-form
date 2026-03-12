@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import uuid
 load_dotenv()
 
-from threadmanagement.redisdbutils import redisdbutils
+from utils.threadmanagement.redisdbutils import redisdbutils
 
 
 # This is to connect to the agent server; not to be confused with FastAPI's WebSocket
