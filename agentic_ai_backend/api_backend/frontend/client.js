@@ -30,53 +30,7 @@ async function getConversationHistory() {
     }
 }
 
-function initWebSocket(sessionId) {
-    const wsUrlBase = 'ws://localhost:8003/ws';
-    const wsUrl = `${wsUrlBase}/${sessionId}`;
-    socket = new WebSocket(wsUrl);
-
-    socket.onopen = function (e) {
-        console.log("[WebSocket] Connection established for session:", sessionId);
-    };
-
-    socket.onmessage = function (event) {
-        console.log(`[WebSocket] Data received:`, event.data);
-        try {
-            const data = JSON.parse(event.data);
-            console.log('ws response: ', data);
-
-            if (data.event === "session_init") {
-                console.log("[WebSocket] Backend assigned new session ID:", data.session_id);
-                sessionId = data.session_id; // Update the local variable
-                localStorage.setItem("chat_session_id", sessionId); // Persist to browser
-                return; // Exit early so we don't treat this system message as a chat message
-            } else {
-                applyFormSupportSuggestionsFromResponse(data);
-                const serverThreadId = extractThreadIdFromResponse(data);
-                if (serverThreadId && serverThreadId !== sessionId) {
-                    migrateChatHistory(sessionId, serverThreadId);
-                    sessionId = serverThreadId;
-                }
-                saveThreadId(sessionId);
-                showTyping(false);
-                const messages = extractAssistantMessages(response);
-                messages.forEach((msg) => appendMessage('assistant', msg));
-            }
-        } catch (err) {
-            console.error("Error parsing WebSocket message:", err);
-        }
-    };
-
-    socket.onclose = function (event) {
-        console.log("[WebSocket] Connection closed");
-    };
-
-    socket.onerror = function (error) {
-        console.error("[WebSocket] Error occurred");
-    };
-}
-
-async function invokeAPIWithWS(query, step_number, session_id = null) {
+function invokeAPIWithWS(query, step_number, session_id = null) {
     // Create JSON body for API request
     const body = {
         query,
@@ -86,7 +40,8 @@ async function invokeAPIWithWS(query, step_number, session_id = null) {
 
     // make api call over WebSocket if connected
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-        initWebSocket(session_id);
+        console.error("WebSocket not connected, cannot connect with AI services");
+        return;
     }
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(body));
@@ -194,19 +149,18 @@ function getHistoryStorageKey(threadId) {
     return `${CHAT_HISTORY_STORAGE_PREFIX}:${threadId}`;
 }
 
-function loadChatHistory() {
+async function loadChatHistory() {
     try {
-        const raw = getConversationHistory();
-        const parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed : [];
+        const data = await getConversationHistory();
+        return Array.isArray(data) ? data : [];
     } catch {
         return [];
     }
 }
 
-function appendChatHistory(threadId, role, text) {
+async function appendChatHistory(threadId, role, text) {
     try {
-        const history = loadChatHistory(threadId);
+        const history = await loadChatHistory(threadId);
         history.push({ role, text });
         localStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
     } catch (error) {
@@ -714,7 +668,7 @@ function injectStyles() {
     document.head.appendChild(style);
 }
 
-function initBot() {
+async function initBot() {
     if (document.getElementById('wp-chat-button') || document.getElementById('wp-chat-modal')) {
         return;
     }
@@ -762,8 +716,8 @@ function initBot() {
 
     let sessionId = getStoredThreadId();
     saveThreadId(sessionId);
-    const existingHistory = loadChatHistory(sessionId);
-    if (existingHistory.length > 0) {
+    const existingHistory = await loadChatHistory(sessionId);
+    if (existingHistory && existingHistory.length > 0) {
         const welcome = chatMessages.querySelector('.wp-chat-welcome');
         if (welcome) welcome.remove();
         existingHistory.forEach((entry) => {
@@ -771,7 +725,53 @@ function initBot() {
                 appendMessage(entry.role, entry.text ?? '', false);
             }
         });
-        initWebSocket(sessionId);
+    }
+    initWebSocket(sessionId);
+
+    function initWebSocket(sessionId) {
+        console.log("[WebSocket] Connecting to ws://localhost:8003/ws with session ID:", sessionId);
+        const wsUrl = sessionId ? `ws://localhost:8003/ws?session_id=${encodeURIComponent(sessionId)}` : 'ws://localhost:8003/ws';
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function (e) {
+            console.log("[WebSocket] Connection established for session:", sessionId);
+        };
+
+        socket.onmessage = function (event) {
+            console.log(`[WebSocket] Data received:`, event.data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log('ws response: ', data);
+
+                if (data.event === "session_init") {
+                    console.log("[WebSocket] Backend assigned new session ID:", data.session_id);
+                    sessionId = data.session_id; // Update the local variable
+                    localStorage.setItem("nrAiForm_threadId", sessionId); // Persist to browser
+                    return; // Exit early so we don't treat this system message as a chat message
+                } else {
+                    applyFormSupportSuggestionsFromResponse(data);
+                    const serverThreadId = extractThreadIdFromResponse(data);
+                    if (serverThreadId && serverThreadId !== sessionId) {
+                        migrateChatHistory(sessionId, serverThreadId);
+                        sessionId = serverThreadId;
+                    }
+                    saveThreadId(sessionId);
+                    showTyping(false);
+                    const messages = extractAssistantMessages(data);
+                    messages.forEach((msg) => appendMessage('assistant', msg));
+                }
+            } catch (err) {
+                console.error("Error parsing WebSocket message:", err);
+            }
+        };
+
+        socket.onclose = function (event) {
+            console.log("[WebSocket] Connection closed");
+        };
+
+        socket.onerror = function (error) {
+            console.error("[WebSocket] Error occurred");
+        };
     }
 
     function toggleChat() {
@@ -806,18 +806,7 @@ function initBot() {
                 text = `Human verification form query : ${text}`;
             }
 
-            const response = await invokeOrchestrator(text, currentStep, sessionId);
-            applyFormSupportSuggestionsFromResponse(response);
-            const serverThreadId = extractThreadIdFromResponse(response);
-            if (serverThreadId && serverThreadId !== sessionId) {
-                migrateChatHistory(sessionId, serverThreadId);
-                sessionId = serverThreadId;
-            }
-            saveThreadId(sessionId);
-            showTyping(false);
-            const messages = extractAssistantMessages(response);
-            messages.forEach((msg) => appendMessage('assistant', msg));
-
+            invokeAPIWithWS(text, currentStep, sessionId);
         } catch (error) {
             showTyping(false);
             appendMessage('system', "Sorry, I encountered an error connecting to the server.");
@@ -825,25 +814,25 @@ function initBot() {
         }
     }
 
-    function extractAssistantMessages(response) {
-        if (response && response.response) {
-            if (Array.isArray(response.response)) {
-                const aggregatorItem = response.response.find((item) => item.source === 'Aggregator');
+    function extractAssistantMessages(data) {
+        if (data && data.response) {
+            if (Array.isArray(data.response)) {
+                const aggregatorItem = data.response.find((item) => item.source === 'Aggregator');
                 if (aggregatorItem && aggregatorItem.response) {
                     return [String(aggregatorItem.response)];
                 }
-            } else if (response.response.agent_messages) {
-                const messages = response.response.agent_messages;
+            } else if (data.response.agent_messages) {
+                const messages = data.response.agent_messages;
                 return Array.isArray(messages) ? messages.map(String) : [String(messages)];
-            } else if (typeof response.response === 'string') {
-                return [response.response];
+            } else if (typeof data.response === 'string') {
+                return [data.response];
             }
         }
 
-        if (typeof response === 'string') {
-            return [response];
+        if (typeof data === 'string') {
+            return [data];
         }
-        return [JSON.stringify(response)];
+        return [JSON.stringify(data)];
     }
 
     function appendMessage(role, text, persist = true) {

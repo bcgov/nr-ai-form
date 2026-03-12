@@ -18,6 +18,7 @@ import websockets
 # This WebSocket is to receive frontend connections; not to be confused with the other websockets
 # that initiate connections to the agent server.
 from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 import sys
@@ -92,6 +93,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 async def connect_to_agent() -> websockets.WebSocketClientProtocol:
     """
     Get an existing WebSocket connection for the session, or establish a new one.
@@ -118,6 +127,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: Optional[str] = N
     Ensures a persistent connection to the agent server is maintained per session.
     """
     await websocket.accept()
+    logger.info(f"Client connected to /ws for session {session_id}")
 
     # If no session_id is provided, generate a new one
     if not session_id:
@@ -174,6 +184,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: Optional[str] = N
         if thread_id in frontend_websockets:
             del frontend_websockets[thread_id]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.get("/history/{session_id}")
 async def get_history(session_id: str):
     """
