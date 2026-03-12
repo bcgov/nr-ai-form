@@ -3,7 +3,7 @@
 
 
 //-------------------------- Services Starts ---------------------------//
-const ORCHESTRATOR_API_URL = "http://localhost:8000/invoke";
+const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 
 
 
@@ -953,4 +953,5 @@ if (document.readyState === 'loading') {
 } else {
     initBot();
 }
+
 
