@@ -4,7 +4,6 @@ import os
 from contextlib import asynccontextmanager
 from typing import Dict, Optional
 import uvicorn
-import asyncio
 from dotenv import load_dotenv
 import uuid
 load_dotenv()
@@ -19,16 +18,6 @@ import websockets
 # that initiate connections to the agent server.
 from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
-import sys
-from utils.redisservice import RedisService
-
-
-
-# Ensure backend root is in PYTHONPATH to allow importing from utils
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.redisservice import RedisService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,16 +27,6 @@ logger = logging.getLogger(__name__)
 # The URL of the agent server's WebSocket endpoint
 ORCHESTRATOR_AGENT_WS_URL = os.getenv("ORCHESTRATOR_AGENT_WS_URL", "ws://localhost:8002/ws")
 PORT = int(os.getenv("ORCHESTRATOR_PORT", "8002"))
-
-# --- Models ---
-class InvokeRequest(BaseModel):
-    query: str
-    session_id: str
-    step_number: Optional[str] = None
-
-class InvokeResponse(BaseModel):
-    response: str
-    session_id: Optional[str] = None
 
 # --- Global State ---
 # Store active WebSocket connections: session_id -> WebSocket (Frontend)
@@ -95,7 +74,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://train.j200.gov.bc.ca",
+        "https://train.j200.gov.bc.ca/",
+        "https://test.j200.gov.bc.ca",
+        "https://test.j200.gov.bc.ca/"
+    ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -172,9 +156,13 @@ async def websocket_endpoint(websocket: WebSocket, session_id: Optional[str] = N
 
             except Exception as e:
                 logger.error(f"Error communicating with agent server: {e}")
-                # Try to clean up the cached connection if it failed
-                if thread_id in agent_websocket:
-                    del agent_websocket[thread_id]
+                global agent_websocket
+                if agent_websocket:
+                    try:
+                        await agent_websocket.close()
+                    except Exception:
+                        pass
+                    agent_websocket = None
                 await websocket.send_text(json.dumps({"error": f"Agent server error: {str(e)}"}))
 
     except Exception as e:
@@ -184,13 +172,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: Optional[str] = N
         if thread_id in frontend_websockets:
             del frontend_websockets[thread_id]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 @app.get("/history/{session_id}")
 async def get_history(session_id: str):
     """
