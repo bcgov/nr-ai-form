@@ -3,8 +3,8 @@
 
 
 //-------------------------- Services Starts ---------------------------//
+// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
 const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
-
 
 
 async function invokeOrchestrator(query, step_number, session_id = null) {
@@ -302,17 +302,7 @@ function tryParseJson(value) {
 
 function parseFormSupportSuggestions(response) {
     const suggestions = [];
-
-    let responseArr = [];
-    if (response) {
-        if (Array.isArray(response.response)) {
-            responseArr = response.response;
-        } else if (Array.isArray(response.original_results)) {
-            responseArr = [response];
-        } else if (response.response && Array.isArray(response.response.original_results)) {
-            responseArr = [response.response];
-        }
-    }
+    const responseArr = response && Array.isArray(response.response) ? response.response : [];
 
     responseArr.forEach((item) => {
         const originalResults = Array.isArray(item && item.original_results) ? item.original_results : [];
@@ -953,5 +943,3 @@ if (document.readyState === 'loading') {
 } else {
     initBot();
 }
-
-
