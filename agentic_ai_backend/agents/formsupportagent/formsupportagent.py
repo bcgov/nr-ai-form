@@ -9,6 +9,9 @@ from utils.formutils import get_form_context
 
 load_dotenv()
 
+# Add parent directory to path to allow importing 'tools'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 def extract_step_from_query(query):
     """
     Extracts the step identifier and actual query from a string like 'step3: query'.
@@ -28,6 +31,9 @@ def extract_step_from_query(query):
 from services.formdefinitionservice import FormDefinitionService
 from services.prompttemplateservice import PromptTemplateService
 from utils.blobservice import BlobService
+from local_mcp.livestock.inprocess_client import (
+    LIVESTOCK_WATER_CONSUMPTION_TOOLS,
+)
 
 def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_template_service=None):
     """
@@ -72,9 +78,15 @@ class FormSupportAgent():
             "Output raw JSON that can be parsed directly by JSON.parse()."
         )
         final_instructions += json_enforcement_rule
+        final_instructions += (
+            "\n\nIf the user provides livestock type, livestock count, and a time period "
+            "(days, weeks, months, or years), use the livestock water consumption tools "
+            "to calculate water demand in cubic meters (m3)."
+        )
 
         self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key, deployment_name=deployment_name).create_agent(
                 instructions=final_instructions,                
+                tools=LIVESTOCK_WATER_CONSUMPTION_TOOLS,
                 name="FormSupportAgent",                
             ) 
 
