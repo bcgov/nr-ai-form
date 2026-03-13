@@ -82,6 +82,12 @@ variable "common_tags" {
 
 
 
+variable "enable_front_door" {
+  description = "Whether to deploy and connect Front Door. Set to false for environments that do not use Front Door (e.g. dev)."
+  type        = bool
+  default     = true
+}
+
 variable "frontdoor_sku_name" {
   description = "SKU name for the Front Door"
   type        = string

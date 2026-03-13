@@ -3,8 +3,9 @@ include {
 }
 
 inputs = {
-  deploy_network = false
-  
+  deploy_network    = false
+  enable_front_door = false
+
   # Deployment type: "app_service" (default) or "container_apps"
   # This will be overridden by the workflow's deployment_type environment variable if provided
   # deploy-to-dev -> app_service

@@ -150,10 +150,10 @@ resource "azurerm_container_app" "backend" {
         value = "http://localhost:${var.formsupport_agent_port}"
       }
 
-      # Front Door validation
+      # Front Door validation (empty when Front Door is disabled)
       env {
         name  = "AZURE_FRONTDOOR_ID"
-        value = var.api_frontdoor_resource_guid
+        value = var.enable_front_door ? var.api_frontdoor_resource_guid : ""
       }
 
       # Application Insights
@@ -616,12 +616,20 @@ resource "azurerm_monitor_diagnostic_setting" "backend_container_app_diagnostics
 
 
 
+# Normalize the FQDN by removing the .internal prefix that Azure adds during apply
+locals {
+  backend_fqdn = replace(azurerm_container_app.backend.ingress[0].fqdn, ".internal.", ".")
+}
+
+# All Front Door / CDN resources below are only created when enable_front_door = true
 resource "azurerm_cdn_frontdoor_endpoint" "api_fd_endpoint" {
+  count                    = var.enable_front_door ? 1 : 0
   name                     = "${var.repo_name}-${var.app_env}-api-fd"
   cdn_frontdoor_profile_id = var.api_frontdoor_id
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
+  count                    = var.enable_front_door ? 1 : 0
   name                     = "${var.repo_name}-${var.app_env}-api-origin-group"
   cdn_frontdoor_profile_id = var.api_frontdoor_id
   session_affinity_enabled = true
@@ -639,14 +647,10 @@ resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
   }
 }
 
-# Normalize the FQDN by removing the .internal prefix that Azure adds during apply
-locals {
-  backend_fqdn = replace(azurerm_container_app.backend.ingress[0].fqdn, ".internal.", ".")
-}
-
 resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
+  count                         = var.enable_front_door ? 1 : 0
   name                          = "${var.repo_name}-${var.app_env}-api-origin"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group[0].id
 
   enabled                        = true
   host_name                      = local.backend_fqdn
@@ -668,10 +672,11 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
 }
 
 resource "azurerm_cdn_frontdoor_route" "api_route" {
+  count                         = var.enable_front_door ? 1 : 0
   name                          = "${var.repo_name}-${var.app_env}-api-fd"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.api_container_app_origin.id]
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0].id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group[0].id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.api_container_app_origin[0].id]
 
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
@@ -681,6 +686,7 @@ resource "azurerm_cdn_frontdoor_route" "api_route" {
 }
 
 resource "azurerm_cdn_frontdoor_security_policy" "frontend_fd_security_policy" {
+  count                    = var.enable_front_door ? 1 : 0
   name                     = "${var.app_name}-api-fd-waf-security-policy"
   cdn_frontdoor_profile_id = var.api_frontdoor_id
 
@@ -690,7 +696,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "frontend_fd_security_policy" {
 
       association {
         domain {
-          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint.id
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0].id
         }
         patterns_to_match = ["/*"]
       }
