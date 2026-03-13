@@ -2,6 +2,12 @@ name: Deploy ACA to Dev
 
 on:
   workflow_dispatch:
+    inputs:
+      container_app_name:
+        description: 'Container App name override (leave blank to auto-derive from repo name)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   id-token: write
@@ -11,55 +17,98 @@ permissions:
 jobs:
   builds:
     concurrency:
-      group: builds-aca-${{ github.event.number || 'latest' }}
+      group: builds-aca-dev-${{ github.run_id }}
       cancel-in-progress: true
     uses: ./.github/workflows/.builds.yml
     with:
       tags: |
         latest
         dev-aca
-  
-  lint:
-    name: Lint
+
+  deploy-aca-dev:
+    name: Update Container Images in Dev ACA
+    needs: [builds]
+    environment: dev
     runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - uses: actions/cache@v4
-        name: Cache plugin dir
-        with:
-          path: ~/.tflint.d/plugins
-          key: ubuntu-tflint-${{ hashFiles('.tflint.hcl') }}
-      
-      - uses: terraform-linters/setup-tflint@v4
-        name: Setup TFLint
-        with:
-          tflint_version: v0.52.0
-      
-      - name: Show version
-        run: tflint --version
-
-      - name: Init TFLint
-        run: tflint --init
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Run TFLint
-        run: tflint -f compact
-
-  deploy-aca-dev: 
-    name: Deploy Azure Container Apps to Dev
-    needs: builds
-    if: github.event_name == 'workflow_dispatch'    
     concurrency:
-      group: deploy-aca-dev-${{ github.event.number || 'latest' }}
+      group: deploy-aca-dev-${{ github.run_id }}
       cancel-in-progress: false
-    uses: ./.github/workflows/.deploy_aca_stack.yml
-    with:
-      command: apply
-      tag: dev-aca
-      app_env: dev
-      environment_name: dev
-      deployment_type: container_apps
-    secrets: inherit
+    steps:
+      - name: Azure CLI Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve Container App Name
+        id: names
+        shell: bash
+        run: |
+          OVERRIDE="${{ inputs.container_app_name }}"
+          if [ -n "$OVERRIDE" ]; then
+            echo "container_app=$OVERRIDE" >> $GITHUB_OUTPUT
+            echo "Using provided Container App name: $OVERRIDE"
+          else
+            # Derive name from repo name using the same logic as .stack-prefix.yml
+            REPO_NAME="${{ github.event.repository.name }}"
+            cleaned=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]' | \
+                      sed 's/[^a-z0-9-]/-/g' | sed 's/-\{2,\}/-/g' | \
+                      sed 's/^-//;s/-$//')
+            continuous=$(echo "$cleaned" | sed 's/-//g')
+            prefix="${continuous:0:5}"
+            hash=$(echo -n "$REPO_NAME" | md5sum | head -c 4)
+            CONTAINER_APP="${prefix}-${hash}-dev-api"
+            echo "container_app=$CONTAINER_APP" >> $GITHUB_OUTPUT
+            echo "Derived Container App name: $CONTAINER_APP"
+          fi
+
+      - name: Update Container App Images
+        env:
+          RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP_NAME }}
+          CONTAINER_APP: ${{ steps.names.outputs.container_app }}
+          ORCHESTRATOR_IMAGE: "ghcr.io/${{ github.repository }}/orchestrator_agent:dev-aca"
+          CONVERSATION_IMAGE: "ghcr.io/${{ github.repository }}/conversation_agent:dev-aca"
+          FORMSUPPORT_IMAGE: "ghcr.io/${{ github.repository }}/formsupport_agent:dev-aca"
+        run: |
+          echo "Updating Container App: $CONTAINER_APP in resource group: $RESOURCE_GROUP"
+
+          # Verify the container app exists before attempting any updates
+          if ! az containerapp show \
+               --name "$CONTAINER_APP" \
+               --resource-group "$RESOURCE_GROUP" \
+               --output none 2>/dev/null; then
+            echo "::error::Container App '$CONTAINER_APP' not found in '$RESOURCE_GROUP'."
+            echo "Ensure the ACA resources exist in dev before running this workflow."
+            echo "You can also pass a custom name via the 'container_app_name' input."
+            exit 1
+          fi
+
+          # Update each container image sequentially.
+          # Each call only changes the image for that container — no infrastructure
+          # is created, modified, or destroyed. Front Door is not involved.
+          echo "--- Updating orchestrator-agent ---"
+          az containerapp update \
+            --name "$CONTAINER_APP" \
+            --resource-group "$RESOURCE_GROUP" \
+            --container-name "orchestrator-agent" \
+            --image "$ORCHESTRATOR_IMAGE" \
+            --output none
+
+          echo "--- Updating conversation-agent ---"
+          az containerapp update \
+            --name "$CONTAINER_APP" \
+            --resource-group "$RESOURCE_GROUP" \
+            --container-name "conversation-agent" \
+            --image "$CONVERSATION_IMAGE" \
+            --output none
+
+          echo "--- Updating formsupport-agent ---"
+          az containerapp update \
+            --name "$CONTAINER_APP" \
+            --resource-group "$RESOURCE_GROUP" \
+            --container-name "formsupport-agent" \
+            --image "$FORMSUPPORT_IMAGE" \
+            --output none
+
+          echo "All container images updated successfully in $CONTAINER_APP"
