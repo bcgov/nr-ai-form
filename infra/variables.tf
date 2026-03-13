@@ -209,6 +209,24 @@ variable "azure_search_index_name" {
   nullable    = false
 }
 
+variable "azure_search_top" {
+  description = "Number of top search results to return (passed to conversation agent)."
+  type        = number
+  default     = 10
+}
+
+variable "azure_search_trim_length" {
+  description = "Maximum character length to trim search result content (passed to conversation agent)."
+  type        = number
+  default     = 1000
+}
+
+variable "azure_search_enable_trimming" {
+  description = "Whether to enable trimming of search result content (passed to conversation agent)."
+  type        = bool
+  default     = false
+}
+
 # Azure Document Intelligence Configuration
 variable "azure_document_intelligence_endpoint" {
   description = "The endpoint URL for Azure Document Intelligence service."
