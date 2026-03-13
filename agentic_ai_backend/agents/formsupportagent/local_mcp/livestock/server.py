@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from agentic_ai_backend.agents.tools.mcp.waterconsumption.livestock.calculator import (
+from local_mcp.livestock.calculator import (
+    calculate_multiple_water_consumption,
     calculate_water_consumption,
     get_supported_livestock,
 )
@@ -103,6 +104,20 @@ def calculate_livestock_water_consumption_years(
 )
 def list_supported_livestock_types() -> list[str]:
     return get_supported_livestock()
+
+
+@mcp.tool(
+    name="calculate_multiple_livestock_water_consumption",
+    description=(
+        "Calculate combined livestock water consumption in cubic meters (m3) for "
+        "multiple livestock entries. Each item must include livestock_type, "
+        "livestock_count, period_type, and period_count."
+    ),
+)
+def calculate_multiple_livestock_water_consumption(
+    livestock_entries: list[dict],
+) -> dict:
+    return calculate_multiple_water_consumption(livestock_entries)
 
 
 def main() -> None:
