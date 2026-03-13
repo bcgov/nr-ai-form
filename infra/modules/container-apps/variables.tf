@@ -270,21 +270,31 @@ variable "log_level" {
 }
 
 # Front Door Integration
+variable "enable_front_door" {
+  description = "Whether Front Door is enabled for this environment. When false, all CDN/Front Door resources are skipped."
+  type        = bool
+  default     = true
+  nullable    = false
+}
+
 variable "api_frontdoor_id" {
   description = "Front Door Profile ID for API integration"
   type        = string
+  default     = ""
   nullable    = false
 }
 
 variable "api_frontdoor_resource_guid" {
   description = "Front Door Resource GUID for header validation"
   type        = string
+  default     = ""
   nullable    = false
 }
 
 variable "api_frontdoor_firewall_policy_id" {
   description = "Front Door Firewall Policy ID for API protection"
   type        = string
+  default     = ""
   nullable    = false
 }
 
