@@ -126,9 +126,12 @@ module "container_apps" {
   AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
 
   # Azure Search
-  azure_search_endpoint   = var.azure_search_endpoint
-  AZURE_SEARCH_API_KEY        = var.AZURE_SEARCH_API_KEY
-  azure_search_index_name = var.azure_search_index_name
+  azure_search_endpoint        = var.azure_search_endpoint
+  AZURE_SEARCH_API_KEY         = var.AZURE_SEARCH_API_KEY
+  azure_search_index_name      = var.azure_search_index_name
+  azure_search_top             = var.azure_search_top
+  azure_search_trim_length     = var.azure_search_trim_length
+  azure_search_enable_trimming = var.azure_search_enable_trimming
 
   # Azure Document Intelligence
   azure_document_intelligence_endpoint = var.azure_document_intelligence_endpoint

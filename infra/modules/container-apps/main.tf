@@ -365,6 +365,21 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_search_index_name
       }
 
+      env {
+        name  = "AZURE_SEARCH_TOP"
+        value = tostring(var.azure_search_top)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_TRIM_LENGTH"
+        value = tostring(var.azure_search_trim_length)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
+        value = tostring(var.azure_search_enable_trimming)
+      }
+
       # Azure Document Intelligence Configuration
       env {
         name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"

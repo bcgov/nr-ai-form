@@ -90,6 +90,27 @@ variable "AZURE_SEARCH_API_KEY" {
   nullable    = false
 }
 
+variable "azure_search_top" {
+  description = "Number of top search results to return"
+  type        = number
+  default     = 10
+  nullable    = false
+}
+
+variable "azure_search_trim_length" {
+  description = "Maximum character length to trim search result content"
+  type        = number
+  default     = 1000
+  nullable    = false
+}
+
+variable "azure_search_enable_trimming" {
+  description = "Whether to enable trimming of search result content"
+  type        = bool
+  default     = false
+  nullable    = false
+}
+
 variable "azure_storage_account_key" {
   description = "Azure Storage account key"
   type        = string
