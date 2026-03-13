@@ -79,7 +79,7 @@ class FormSupportAgent():
         )
         final_instructions += json_enforcement_rule
         final_instructions += (
-            "\n\nIf the user provides livestock type, livestock count, and a time period "
+            "\n\n CRITICAL INSTRUCTION: If the user provides livestock type, livestock count, and a time period "
             "(days, weeks, months, or years), use the livestock water consumption tools "
             "to calculate water demand in cubic meters (m3)."
         )
