@@ -75,4 +75,5 @@ jobs:
       environment_name: dev
       deployment_type: container_apps
       prevent_destroy: true
+      target_modules: '-target=module.container_apps'
     secrets: inherit

@@ -33,6 +33,11 @@ on:
         type: boolean
         default: false
         description: 'When true, aborts apply if any resources would be destroyed or replaced'
+      target_modules:
+        required: false
+        type: string
+        default: ''
+        description: 'Space-separated -target flags to scope the Terraform operation (e.g. "-target=module.container_apps")'
 
 env:
     AZURE_REGION: Canada Central
@@ -55,4 +60,5 @@ jobs:
       tag: ${{ inputs.tag }}
       deployment_type: ${{ inputs.deployment_type }}
       prevent_destroy: ${{ inputs.prevent_destroy }}
+      target_modules: ${{ inputs.target_modules }}
     secrets: inherit
