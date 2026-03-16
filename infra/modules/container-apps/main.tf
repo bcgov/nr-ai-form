@@ -4,9 +4,11 @@ resource "azurerm_container_app_environment" "main" {
   location                           = var.location
   resource_group_name                = var.resource_group_name
   log_analytics_workspace_id         = var.log_analytics_workspace_id
+  # infrastructure_subnet_id and its companions must all be set together or all omitted.
+  # When no subnet is provided (e.g. dev without a pre-created subnet), omit all three.
   infrastructure_subnet_id           = var.container_apps_subnet_id != "" ? var.container_apps_subnet_id : null
-  infrastructure_resource_group_name = "ME-${var.resource_group_name}" # Changing this will force delete and recreate
-  internal_load_balancer_enabled     = var.internal_load_balancer_enabled
+  infrastructure_resource_group_name = var.container_apps_subnet_id != "" ? "ME-${var.resource_group_name}" : null
+  internal_load_balancer_enabled     = var.container_apps_subnet_id != "" ? var.internal_load_balancer_enabled : null
 
   workload_profile {
     name                  = "Consumption"
