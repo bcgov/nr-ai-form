@@ -1,0 +1,85 @@
+{
+  "livestock_water_consumption": {
+    "description": "Average daily water consumption per animal type used in livestock and agricultural operations. Values are measured in cubic meters per day (m3/day).",
+    "data": [
+      {
+        "name": "beef",
+        "description": "Beef cattle used for milk, meat production",
+        "water_consumption_m3_per_day": 0.05,
+        "application_fees": "250"
+      },
+      {
+        "name": "bison",
+        "description": "Bison raised for meat production",
+        "water_consumption_m3_per_day": 0.05,
+        "application_fees": "250"
+      },
+      {
+        "name": "dairy_calf",
+        "description": "Young dairy calves",
+        "water_consumption_m3_per_day": 0.025,
+        "application_fees": "250"
+      },
+      {
+        "name": "dairy_dry",
+        "description": "Cows in the field or open natural environment",
+        "water_consumption_m3_per_day": 0.05,
+        "application_fees": "250"
+      },
+      {
+        "name": "dairy_including_wash_water",
+        "description": "Dairy cows including wash water used in dairy operations, under closed facility",
+        "water_consumption_m3_per_day": 0.13,
+        "application_fees": "250"
+      },
+      {
+        "name": "goats",
+        "description": "Goats used for milk or meat",
+        "water_consumption_m3_per_day": 0.008,
+        "application_fees": "250"
+      },
+      {
+        "name": "horse",
+        "description": "Horses used for industrial or business purpose",
+        "water_consumption_m3_per_day": 0.05,
+        "application_fees": "250"
+      },
+      {
+        "name": "llama_alpaca",
+        "description": "Llamas or alpacas used for fiber or livestock",
+        "water_consumption_m3_per_day": 0.016,
+        "application_fees": "250"
+      },
+      {
+        "name": "poultry_broiler",
+        "description": "Broiler chickens raised for meat",
+        "water_consumption_m3_per_day": 0.00017,
+        "application_fees": "250"
+      },
+      {
+        "name": "poultry_laying",
+        "description": "Laying hens used for egg production",
+        "water_consumption_m3_per_day": 0.00009,
+        "application_fees": "250"
+      },
+      {
+        "name": "sheep",
+        "description": "Sheep used for wool, milk, or meat",
+        "water_consumption_m3_per_day": 0.008,
+        "application_fees": "250"
+      },
+      {
+        "name": "swine",
+        "description": "Pigs raised for pork production",
+        "water_consumption_m3_per_day": 0.013,
+        "application_fees": "250"
+      },
+      {
+        "name": "turkey",
+        "description": "Turkeys raised for meat production",
+        "water_consumption_m3_per_day": 0.00036,
+        "application_fees": "250"
+      }
+    ]
+  }
+}
