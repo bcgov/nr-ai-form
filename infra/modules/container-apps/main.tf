@@ -4,7 +4,7 @@ resource "azurerm_container_app_environment" "main" {
   location                           = var.location
   resource_group_name                = var.resource_group_name
   log_analytics_workspace_id         = var.log_analytics_workspace_id
-  infrastructure_subnet_id           = var.container_apps_subnet_id
+  infrastructure_subnet_id           = var.container_apps_subnet_id != "" ? var.container_apps_subnet_id : null
   infrastructure_resource_group_name = "ME-${var.resource_group_name}" # Changing this will force delete and recreate
   internal_load_balancer_enabled     = var.internal_load_balancer_enabled
 
@@ -20,7 +20,12 @@ resource "azurerm_container_app_environment" "main" {
   })
 
   lifecycle {
-    ignore_changes = [tags]
+    ignore_changes = [
+      tags,
+      # Changing these forces delete-and-recreate; ignore so existing envs are never accidentally replaced
+      infrastructure_subnet_id,
+      infrastructure_resource_group_name,
+    ]
   }
 
   logs_destination = "log-analytics"

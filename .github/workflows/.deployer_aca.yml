@@ -32,8 +32,12 @@ on:
         type: string
         default: 'container_apps'
         description: 'The deployment type: container_apps (App Service deployment is no longer supported)'
-      
-      
+      prevent_destroy:
+        required: false
+        type: boolean
+        default: false
+        description: 'When true, runs a plan before apply and aborts if any resources would be destroyed or replaced'
+
 env:
     TG_VERSION: 0.63.6
     TF_VERSION: 1.12.2
@@ -171,13 +175,58 @@ jobs:
         echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
     
+    - name: Safety Plan Check
+      if: inputs.prevent_destroy == true && inputs.command == 'apply'
+      working-directory: terragrunt/${{ inputs.environment_name }}
+      env:
+          target_env: ${{ inputs.environment_name }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
+          vnet_name: ${{ vars.VNET_NAME }}
+          api_image: ${{ steps.image-tags.outputs.api-image }}
+          orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
+          conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
+          formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
+          stack_prefix: ${{ inputs.stack_prefix }}
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          repo_name: ${{ github.event.repository.name }}
+          app_env: ${{ inputs.app_env }}
+          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
+          deployment_type: ${{ inputs.deployment_type }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
+          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
+          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
+          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+          AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+      run: |
+          echo "Running plan to check for resource destructions..."
+          terragrunt run-all plan --terragrunt-non-interactive -lock=false 2>&1 | tee /tmp/tfplan_output.txt
+
+          if grep -E "(will be destroyed|must be replaced)" /tmp/tfplan_output.txt; then
+            echo "::error::Plan contains resource destructions or replacements. Aborting to protect the ${{ inputs.environment_name }} environment."
+            echo "Review the plan output above. If the destruction is intentional, use a destroy workflow instead."
+            exit 1
+          fi
+          echo "Safety check passed: no resource destructions detected."
+
     - name: Terragrunt ${{inputs.command}}
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
+          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: ${{ steps.image-tags.outputs.api-image }}
           orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
