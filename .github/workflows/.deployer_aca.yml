@@ -77,7 +77,6 @@ jobs:
         terragrunt-version: ${{ env.TG_VERSION }}
     
     - name: Pre-Migration State Cleanup
-      if: inputs.command == 'apply'
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
