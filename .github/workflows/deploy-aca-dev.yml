@@ -2,6 +2,15 @@ name: Deploy ACA to Dev
 
 on:
   workflow_dispatch:
+    inputs:
+      command:
+        description: 'Run "plan" to preview changes safely, then re-run with "apply" to deploy'
+        required: false
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
 
 permissions:
   id-token: write
@@ -9,7 +18,9 @@ permissions:
   packages: write
 
 jobs:
+  # Builds only run on apply — plan does not need new images
   builds:
+    if: inputs.command == 'apply'
     concurrency:
       group: builds-aca-dev-${{ github.run_id }}
       cancel-in-progress: true
@@ -49,17 +60,19 @@ jobs:
         run: tflint -f compact
 
   deploy-aca-dev:
-    name: Deploy Azure Container Apps to Dev
+    name: ${{ inputs.command == 'plan' && 'Plan' || 'Deploy' }} Azure Container Apps to Dev
     needs: builds
-    if: github.event_name == 'workflow_dispatch'
+    # Run even when builds was skipped (plan path) but not when builds failed
+    if: always() && (needs.builds.result == 'success' || needs.builds.result == 'skipped')
     concurrency:
       group: deploy-aca-dev-${{ github.run_id }}
       cancel-in-progress: false
     uses: ./.github/workflows/.deploy_aca_stack.yml
     with:
-      command: apply
+      command: ${{ inputs.command }}
       tag: dev-aca
       app_env: dev
       environment_name: dev
       deployment_type: container_apps
+      prevent_destroy: true
     secrets: inherit

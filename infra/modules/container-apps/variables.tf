@@ -206,8 +206,9 @@ variable "common_tags" {
 }
 
 variable "container_apps_subnet_id" {
-  description = "Subnet ID for Container Apps Environment"
+  description = "Subnet ID for Container Apps Environment. Empty string or null means no dedicated subnet (dev without a pre-created subnet)."
   type        = string
+  default     = ""
   nullable    = false
 }
 
