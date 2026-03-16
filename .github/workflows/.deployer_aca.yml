@@ -140,6 +140,32 @@ jobs:
           echo "NSG association not found in state"
         fi
         
+        # Remove stale module.frontdoor[0] resources from state (dev has enable_front_door=false so these would be destroyed)
+        echo "Checking for stale module.frontdoor resources in state..."
+        FRONTDOOR_RESOURCES=$(terragrunt state list 2>/dev/null | grep 'module\.frontdoor\[0\]\.' || true)
+        if [ -n "$FRONTDOOR_RESOURCES" ]; then
+          echo "Found module.frontdoor[0] resources - removing from state to prevent destruction..."
+          while IFS= read -r resource; do
+            terragrunt state rm -lock=false "$resource" || true
+          done <<< "$FRONTDOOR_RESOURCES"
+          echo "Removed all module.frontdoor[0] resources from state"
+        else
+          echo "No module.frontdoor[0] resources in state"
+        fi
+
+        # Remove stale module.api[0] resources from state (switching to container_apps deployment type)
+        echo "Checking for stale module.api[0] resources in state..."
+        API_RESOURCES=$(terragrunt state list 2>/dev/null | grep 'module\.api\[0\]\.' || true)
+        if [ -n "$API_RESOURCES" ]; then
+          echo "Found module.api[0] resources - removing from state to prevent destruction..."
+          while IFS= read -r resource; do
+            terragrunt state rm -lock=false "$resource" || true
+          done <<< "$API_RESOURCES"
+          echo "Removed all module.api[0] resources from state"
+        else
+          echo "No module.api[0] resources in state"
+        fi
+
         # Import container-apps-subnet if it exists in Azure but not in state
         echo "Checking if container-apps-subnet needs to be imported..."
         CONTAINER_APPS_SUBNET_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/virtualNetworks/${vnet_name}/subnets/container-apps-subnet"
