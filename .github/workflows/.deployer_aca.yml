@@ -139,30 +139,32 @@ jobs:
           echo "NSG association not found in state"
         fi
         
-        # Remove stale module.frontdoor[0] resources from state (dev has enable_front_door=false so these would be destroyed)
+        # Remove stale module.frontdoor resources from state (dev has enable_front_door=false so these would be destroyed)
+        # Matches both module.frontdoor. (created before count was added) and module.frontdoor[0]. (with count)
         echo "Checking for stale module.frontdoor resources in state..."
-        FRONTDOOR_RESOURCES=$(terragrunt state list 2>/dev/null | grep 'module\.frontdoor\[0\]\.' || true)
+        FRONTDOOR_RESOURCES=$(terragrunt state list 2>/dev/null | grep -E 'module\.frontdoor(\[|\.)'  || true)
         if [ -n "$FRONTDOOR_RESOURCES" ]; then
-          echo "Found module.frontdoor[0] resources - removing from state to prevent destruction..."
+          echo "Found module.frontdoor resources - removing from state to prevent destruction..."
           while IFS= read -r resource; do
             terragrunt state rm -lock=false "$resource" || true
           done <<< "$FRONTDOOR_RESOURCES"
-          echo "Removed all module.frontdoor[0] resources from state"
+          echo "Removed all module.frontdoor resources from state"
         else
-          echo "No module.frontdoor[0] resources in state"
+          echo "No module.frontdoor resources in state"
         fi
 
-        # Remove stale module.api[0] resources from state (switching to container_apps deployment type)
-        echo "Checking for stale module.api[0] resources in state..."
-        API_RESOURCES=$(terragrunt state list 2>/dev/null | grep 'module\.api\[0\]\.' || true)
+        # Remove stale module.api resources from state (switching to container_apps deployment type)
+        # Matches both module.api. (created before count was added) and module.api[0]. (with count)
+        echo "Checking for stale module.api resources in state..."
+        API_RESOURCES=$(terragrunt state list 2>/dev/null | grep -E 'module\.api(\[|\.)' || true)
         if [ -n "$API_RESOURCES" ]; then
-          echo "Found module.api[0] resources - removing from state to prevent destruction..."
+          echo "Found module.api resources - removing from state to prevent destruction..."
           while IFS= read -r resource; do
             terragrunt state rm -lock=false "$resource" || true
           done <<< "$API_RESOURCES"
-          echo "Removed all module.api[0] resources from state"
+          echo "Removed all module.api resources from state"
         else
-          echo "No module.api[0] resources in state"
+          echo "No module.api resources in state"
         fi
 
         # Import container-apps-subnet if it exists in Azure but not in state
