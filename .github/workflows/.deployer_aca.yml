@@ -37,6 +37,11 @@ on:
         type: boolean
         default: false
         description: 'When true, runs a plan before apply and aborts if any resources would be destroyed or replaced'
+      target_modules:
+        required: false
+        type: string
+        default: ''
+        description: 'Space-separated list of -target=<module> flags to scope the Terraform operation (e.g. "-target=module.container_apps")'
 
 env:
     TG_VERSION: 0.63.6
@@ -211,7 +216,7 @@ jobs:
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
       run: |
           echo "Running plan to check for resource destructions..."
-          terragrunt run-all plan --terragrunt-non-interactive -lock=false 2>&1 | tee /tmp/tfplan_output.txt
+          terragrunt run-all plan --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }} 2>&1 | tee /tmp/tfplan_output.txt
 
           if grep -E "(will be destroyed|must be replaced)" /tmp/tfplan_output.txt; then
             echo "::error::Plan contains resource destructions or replacements. Aborting to protect the ${{ inputs.environment_name }} environment."
@@ -260,5 +265,5 @@ jobs:
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
       run: |
           # Run terraform with lock=false to avoid state lock issues
-          terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false
+          terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
     
