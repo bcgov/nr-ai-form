@@ -81,7 +81,7 @@ class FormSupportAgent():
         final_instructions += (
             "\n\n CRITICAL INSTRUCTION: If the user provides livestock type, livestock count, and a time period "
             "(days, weeks, months, or years), use the livestock water consumption tools "
-            "to calculate water demand in cubic meters (m3)."
+            "to calculate water demand in cubic meters (m3) and application fees."
         )
 
         self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key, deployment_name=deployment_name).create_agent(

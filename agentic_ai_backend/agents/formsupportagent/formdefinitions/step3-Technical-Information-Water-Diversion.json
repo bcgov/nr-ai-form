@@ -42,7 +42,7 @@
         },
         "PurposeGrid": {
             "type": "grid",
-            "id": "PurposeGrid_100536005_185549741",
+            "id": "Purpose_Table",
             "title": "Purposes of Water Use",
             "columns": [
                 {

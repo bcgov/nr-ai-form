@@ -29,6 +29,11 @@ def get_supported_livestock() -> list[str]:
     return sorted(load_livestock_rates())
 
 
+def _get_application_fee(livestock: dict[str, Any]) -> int:
+    """Return the flat application fee as an integer."""
+    return int(livestock.get("application_fees", 0))
+
+
 def _validate_livestock_type(livestock_type: str) -> str:
     normalized_livestock_type = livestock_type.strip().lower()
     if normalized_livestock_type not in load_livestock_rates():
@@ -67,6 +72,7 @@ def calculate_water_consumption(
 
     livestock = load_livestock_rates()[normalized_livestock_type]
     daily_rate = livestock["water_consumption_m3_per_day"]
+    application_fee = _get_application_fee(livestock)
     total_period_days = PERIOD_MULTIPLIERS[period_type] * period_count
     total_water_consumption = round(daily_rate * livestock_count * total_period_days, 6)
 
@@ -79,6 +85,7 @@ def calculate_water_consumption(
         "daily_water_consumption_m3_per_animal": daily_rate,
         "total_period_days": total_period_days,
         "total_water_consumption_m3": total_water_consumption,
+        "application_fee": application_fee,
         "assumptions": {
             "month_days": PERIOD_MULTIPLIERS["months"],
             "year_days": PERIOD_MULTIPLIERS["years"],
@@ -122,6 +129,7 @@ def calculate_multiple_water_consumption(
         "entry_count": len(calculations),
         "calculations": calculations,
         "combined_total_water_consumption_m3": round(combined_total_m3, 6),
+        "application_fee": calculations[0]["application_fee"],
         "assumptions": {
             "month_days": PERIOD_MULTIPLIERS["months"],
             "year_days": PERIOD_MULTIPLIERS["years"],
