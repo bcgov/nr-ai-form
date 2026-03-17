@@ -3,7 +3,18 @@
 
 
 //-------------------------- Services Starts ---------------------------//
-const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
+const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+
+ let livestockPurposehtml = `<tr class="possegrid">
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
+                                        'editrelatedobject.aspx?PossePresentation=Default&amp;PosseObjectId=185527876&amp;SourceOfDiversion%3DGroundwater%26PostIssue11307%3DY',
+                                            685, 800, 'PurposeEdit_100536361_100379172_173010900')">Edit</a></span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeUse_100536361_100379172_185527876_sp" name="PurposeUse_100536361_100379172_185527876_sp" class="possegrid" style="text-align: left">Livestock and Animal</span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="Units_100536361_100379172_185527876_sp" name="Units_100536361_100379172_185527876_sp" class="possegrid" style="text-align: left">{water_usage} m<sup>3</sup>/year </span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="ApplicationUnits_100536361_100379172_185527876_sp" name="ApplicationUnits_100536361_100379172_185527876_sp" class="possegrid" style="text-align: left"> </span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: right" nowrap=""><span id="ApplicationFee_100536361_100379172_185527876_sp" name="ApplicationFee_100536361_100379172_185527876_sp" class="possegrid" style="text-align: right">$250.00</span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: right" nowrap=""><span id="Delete_1_100536361_100379172_173010900_sp" name="Delete_1_100536361_100379172_173010900_sp" class="possegrid" style="text-align: right"><img src="images/btndel.gif?v=5797" width="23" height="20" id="Delete_1_100536361_100379172_173010900" name="Delete_1_100536361_100379172_173010900" class="possegrid" onclick="if (confirm('Are you sure you want to delete this?')) {PosseDelete('https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Default.aspx?PossePresentation=Public&amp;PosseObjectId=173010563','173010900'); PosseSubmit();}" tabindex="3" title="Delete this line" alt="Delete" onmouseover="this.style.cursor='pointer'" onkeypress="if(event.keyCode=='13'){this.click();}"></span></td>
+                            </tr>`
 
 
 
@@ -354,6 +365,29 @@ function findFieldElementsByIdentifier(identifier) {
     return [];
 }
 
+function applyPurposeTableSuggestion(suggestion) {
+    if (String(suggestion.type || '').toLowerCase() !== 'grid' || suggestion.id !== 'Purpose_Table') {
+        return false;
+    }
+
+    const purposeTable = document.querySelector('[data-id="Purpose_Table"]');
+    if (!purposeTable) {
+        console.warn('Purpose_Table element was not found in the DOM.');
+        return false;
+    }
+
+    const waterUsage = String(suggestion.suggestedvalue ?? '').trim();
+    const renderedHtml = livestockPurposehtml.replace('{water_usage}', waterUsage);
+
+    const insertTarget =
+        purposeTable.tagName?.toLowerCase() === 'table'
+            ? purposeTable.tBodies[0] || purposeTable
+            : purposeTable;
+
+    insertTarget.insertAdjacentHTML('beforeend', renderedHtml);
+    return true;
+}
+
 function applySuggestionToElements(suggestion, elements) {
     if (!elements || elements.length === 0) return false;
 
@@ -405,6 +439,10 @@ function applyFormSupportSuggestionsFromResponse(response) {
     if (suggestions.length === 0) return;
 
     suggestions.forEach((suggestion) => {
+        if (applyPurposeTableSuggestion(suggestion)) {
+            return;
+        }
+
         const elements = findFieldElementsByIdentifier(suggestion.id);
         const applied = applySuggestionToElements(suggestion, elements);
         if (!applied) {
