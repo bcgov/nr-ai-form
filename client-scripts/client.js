@@ -7,6 +7,7 @@
 const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 
 
+
 async function invokeOrchestrator(query, step_number, session_id = null) {
     const payload = {
         query: query,
@@ -887,6 +888,7 @@ function initBot() {
             .replace(/>/g, '&gt;');
 
         let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         formatted = formatted.replace(/\n/g, '<br>');
         formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
 
