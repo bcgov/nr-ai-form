@@ -88,6 +88,7 @@ jobs:
           orchestrator_agent_image: "ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
           conversation_agent_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
           formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
+          api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
