@@ -43,13 +43,12 @@ else if (clientInstance === 'css') {
 
 else {
 
-    (function () {
-        // import { FormSteps } from './stepmappers.js';
+    (function () {// import { FormSteps } from './stepmappers.js';
         // import { invokeOrchestrator } from './services.js';
 
 
         //-------------------------- Services Starts ---------------------------//
-        const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
+        const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api--0000017.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
 
 
 
@@ -989,7 +988,6 @@ else {
         } else {
             initBot();
         }
-
 
     })();
 
