@@ -1,6 +1,6 @@
 output "cdn_frontdoor_endpoint_url" {
-  description = "The URL of the CDN Front Door endpoint"
-  value       = "https://${module.frontdoor.frontdoor_endpoint_hostname}"
+  description = "The URL of the CDN Front Door endpoint (empty when enable_front_door = false)"
+  value       = var.enable_front_door ? "https://${module.frontdoor[0].frontdoor_endpoint_hostname}" : ""
 }
 
 # Container Apps outputs (only available when deployment_type = "container_apps")

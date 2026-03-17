@@ -44,6 +44,7 @@ module "monitoring" {
 }
 
 module "frontdoor" {
+  count  = var.enable_front_door ? 1 : 0
   source = "./modules/frontdoor"
 
   app_name            = var.app_name
@@ -115,9 +116,10 @@ module "container_apps" {
   appinsights_connection_string   = module.monitoring.appinsights_connection_string
 
   # Front Door
-  api_frontdoor_id                 = module.frontdoor.frontdoor_id
-  api_frontdoor_resource_guid      = module.frontdoor.frontdoor_resource_guid
-  api_frontdoor_firewall_policy_id = module.frontdoor.firewall_policy_id
+  enable_front_door                = var.enable_front_door
+  api_frontdoor_id                 = var.enable_front_door ? module.frontdoor[0].frontdoor_id : ""
+  api_frontdoor_resource_guid      = var.enable_front_door ? module.frontdoor[0].frontdoor_resource_guid : ""
+  api_frontdoor_firewall_policy_id = var.enable_front_door ? module.frontdoor[0].firewall_policy_id : ""
 
   # Azure OpenAI
   azure_openai_api_key         = var.azure_openai_api_key
@@ -126,9 +128,12 @@ module "container_apps" {
   AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
 
   # Azure Search
-  azure_search_endpoint   = var.azure_search_endpoint
-  AZURE_SEARCH_API_KEY        = var.AZURE_SEARCH_API_KEY
-  azure_search_index_name = var.azure_search_index_name
+  azure_search_endpoint        = var.azure_search_endpoint
+  AZURE_SEARCH_API_KEY         = var.AZURE_SEARCH_API_KEY
+  azure_search_index_name      = var.azure_search_index_name
+  azure_search_top             = var.azure_search_top
+  azure_search_trim_length     = var.azure_search_trim_length
+  azure_search_enable_trimming = var.azure_search_enable_trimming
 
   # Azure Document Intelligence
   azure_document_intelligence_endpoint = var.azure_document_intelligence_endpoint
@@ -143,7 +148,7 @@ module "container_apps" {
   azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
   azure_blobstorage_container         = var.azure_blobstorage_container
 
-  depends_on = [module.frontdoor, module.network, module.cosmos, module.monitoring]
+  depends_on = [module.network, module.cosmos, module.monitoring]
 }
 
 

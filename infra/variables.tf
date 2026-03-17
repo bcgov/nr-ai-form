@@ -82,6 +82,12 @@ variable "common_tags" {
 
 
 
+variable "enable_front_door" {
+  description = "Whether to deploy and connect Front Door. Set to false for environments that do not use Front Door (e.g. dev)."
+  type        = bool
+  default     = true
+}
+
 variable "frontdoor_sku_name" {
   description = "SKU name for the Front Door"
   type        = string
@@ -207,6 +213,24 @@ variable "azure_search_index_name" {
   description = "The index name for Azure AI Search service."
   type        = string
   nullable    = false
+}
+
+variable "azure_search_top" {
+  description = "Number of top search results to return (passed to conversation agent)."
+  type        = number
+  default     = 10
+}
+
+variable "azure_search_trim_length" {
+  description = "Maximum character length to trim search result content (passed to conversation agent)."
+  type        = number
+  default     = 1000
+}
+
+variable "azure_search_enable_trimming" {
+  description = "Whether to enable trimming of search result content (passed to conversation agent)."
+  type        = bool
+  default     = false
 }
 
 # Azure Document Intelligence Configuration
