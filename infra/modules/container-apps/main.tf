@@ -560,6 +560,62 @@ resource "azurerm_container_app" "backend" {
       }
     }
 
+    # API Backend Container - Public-facing WebSocket gateway to orchestrator
+    container {
+      name   = "api-backend"
+      image  = var.api_backend_image
+      cpu    = var.container_cpu
+      memory = var.container_memory
+
+      startup_probe {
+        transport = "HTTP"
+        path      = "/health"
+        port      = var.api_backend_port
+        timeout   = 5
+      }
+
+      readiness_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = var.api_backend_port
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      liveness_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = var.api_backend_port
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      env {
+        name  = "PORT"
+        value = tostring(var.api_backend_port)
+      }
+
+      env {
+        name  = "ORCHESTRATOR_AGENT_WS_URL"
+        value = "ws://localhost:${var.orchestrator_agent_port}/ws"
+      }
+
+      env {
+        name  = "LOG_LEVEL"
+        value = var.log_level
+      }
+
+      env {
+        name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        secret_name = "appinsights-connection-string"
+      }
+
+      env {
+        name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
+        secret_name = "appinsights-instrumentation-key"
+      }
+    }
+
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {
       name                = "http-scaling"
@@ -568,8 +624,8 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true # Must be true for Front Door to reach the backend
-    target_port                = 8002 # Backend app runs on port 8002 (controlled by orchestrator_agent_port)
+    external_enabled           = true # Must be true for Front Door to reach the api_backend
+    target_port                = var.api_backend_port # api_backend is the public-facing gateway
     transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 

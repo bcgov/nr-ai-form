@@ -192,6 +192,20 @@ variable "formsupport_agent_port" {
   nullable    = false
 }
 
+variable "api_backend_image" {
+  description = "Container image for the API Backend (WebSocket gateway between frontend and orchestrator)"
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "api_backend_port" {
+  description = "Port for the API Backend"
+  type        = number
+  default     = 8003
+  nullable    = false
+}
+
 variable "container_registry_url" {
   description = "Container registry URL for image pulls"
   type        = string
