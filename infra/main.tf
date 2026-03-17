@@ -80,6 +80,7 @@ module "container_apps" {
   orchestrator_agent_image = var.orchestrator_agent_image
   conversation_agent_image = var.conversation_agent_image
   formsupport_agent_image  = var.formsupport_agent_image
+  api_backend_image        = var.api_backend_image
   backend_image            = var.conversation_agent_image # Fallback for compatibility
 
   resource_group_name = azurerm_resource_group.main.name

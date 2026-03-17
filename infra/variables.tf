@@ -28,6 +28,12 @@ variable "orchestrator_agent_image" {
   type        = string
 }
 
+variable "api_backend_image" {
+  description = "The image for the API Backend container (WebSocket gateway)"
+  type        = string
+  default     = ""
+}
+
 # Legacy variable for Container Apps compatibility - will use conversation_agent_image
 variable "api_image" {
   description = "The image for the API container (used by Container Apps - defaults to conversation_agent_image)"
