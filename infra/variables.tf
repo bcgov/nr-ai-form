@@ -290,7 +290,7 @@ variable "azure_blobstorage_container" {
 variable "redis_host" {
   description = "Redis cache hostname"
   type        = string
-  nullable    = false
+  default     = ""
 }
 
 variable "redis_port" {
@@ -303,7 +303,7 @@ variable "redis_password" {
   description = "Redis cache access key"
   type        = string
   sensitive   = true
-  nullable    = false
+  default     = ""
 }
 
 variable "redis_ssl" {
