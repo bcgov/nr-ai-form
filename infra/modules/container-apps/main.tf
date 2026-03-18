@@ -99,6 +99,11 @@ resource "azurerm_container_app" "backend" {
     value = var.azure_blobstorage_connectionstring
   }
 
+  secret {
+    name  = "redis-password"
+    value = var.redis_password
+  }
+
   template {
     max_replicas                     = var.max_replicas
     min_replicas                     = var.min_replicas
@@ -613,8 +618,33 @@ resource "azurerm_container_app" "backend" {
         name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
         secret_name = "appinsights-instrumentation-key"
       }
+
+      env {
+        name  = "REDIS_HOST"
+        value = var.redis_host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(var.redis_port)
+      }
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+
+      env {
+        name  = "REDIS_SSL"
+        value = tostring(var.redis_ssl)
+      }
+
+      env {
+        name  = "REDIS_TTL_DAYS"
+        value = tostring(var.redis_ttl_days)
+      }
     }
-    
+
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {
       name                = "http-scaling"

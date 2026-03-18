@@ -143,6 +143,41 @@ variable "azure_blobstorage_container" {
   nullable    = false
 }
 
+# Redis Configuration
+variable "redis_host" {
+  description = "Redis cache hostname"
+  type        = string
+  nullable    = false
+}
+
+variable "redis_port" {
+  description = "Redis cache port"
+  type        = number
+  default     = 10000
+  nullable    = false
+}
+
+variable "redis_password" {
+  description = "Redis cache access key"
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "redis_ssl" {
+  description = "Whether to use SSL for Redis connections"
+  type        = bool
+  default     = true
+  nullable    = false
+}
+
+variable "redis_ttl_days" {
+  description = "TTL in days for Redis cache entries"
+  type        = number
+  default     = 14
+  nullable    = false
+}
+
 variable "backend_image" {
   description = "Container image for the backend API (deprecated - use orchestrator_agent_image)"
   type        = string

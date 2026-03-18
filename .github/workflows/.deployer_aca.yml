@@ -245,6 +245,12 @@ jobs:
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
           AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          # Redis Configuration
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_SSL: ${{ vars.REDIS_SSL }}
+          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
       run: |
           echo "Running plan to check for resource destructions..."
           terragrunt run-all plan --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }} 2>&1 | tee /tmp/tfplan_output.txt
@@ -295,6 +301,12 @@ jobs:
           # Azure Blob Storage Configuration
           AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          # Redis Configuration
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_SSL: ${{ vars.REDIS_SSL }}
+          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
       run: |
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
