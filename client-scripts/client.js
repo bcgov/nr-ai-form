@@ -405,13 +405,21 @@ function applyFormSupportSuggestionsFromResponse(response) {
     const suggestions = parseFormSupportSuggestions(response);
     if (suggestions.length === 0) return;
 
-    suggestions.forEach((suggestion) => {
+    // Apply suggestions sequentially with a delay between each one.
+    // This prevents ASP.NET postbacks triggered by radio/select changes from
+    // resetting the form before subsequent suggestions are applied.
+    function applyNext(index) {
+        if (index >= suggestions.length) return;
+        const suggestion = suggestions[index];
         const elements = findFieldElementsByIdentifier(suggestion.id);
         const applied = applySuggestionToElements(suggestion, elements);
         if (!applied) {
             console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
         }
-    });
+        setTimeout(() => applyNext(index + 1), 300);
+    }
+
+    applyNext(0);
 }
 
 
