@@ -416,7 +416,7 @@ function applyFormSupportSuggestionsFromResponse(response) {
         if (!applied) {
             console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
         }
-        setTimeout(() => applyNext(index + 1), 300);
+        setTimeout(() => applyNext(index + 1), 600);
     }
 
     applyNext(0);
