@@ -7,7 +7,6 @@
 const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 
 
-
 async function invokeOrchestrator(query, step_number, session_id = null) {
     const payload = {
         query: query,
