@@ -46,9 +46,9 @@ locals {
   azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER")
 
   # Redis Configuration
-  redis_host     = get_env("REDIS_HOST")
+  redis_host     = get_env("REDIS_HOST", "")
   redis_port     = get_env("REDIS_PORT", "10000")
-  redis_password = get_env("REDIS_PASSWORD")
+  redis_password = get_env("REDIS_PASSWORD", "")
   redis_ssl      = get_env("REDIS_SSL", "true")
   redis_ttl_days = get_env("REDIS_TTL_DAYS", "14")
   
