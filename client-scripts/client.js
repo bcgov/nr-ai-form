@@ -401,25 +401,68 @@ function applySuggestionToElements(suggestion, elements) {
     return false;
 }
 
+const PENDING_SUGGESTIONS_KEY = 'wp_pending_suggestions';
+
+function savePendingSuggestions(suggestions) {
+    try {
+        sessionStorage.setItem(PENDING_SUGGESTIONS_KEY, JSON.stringify(suggestions));
+    } catch (e) {
+        console.warn('Could not save pending suggestions to sessionStorage', e);
+    }
+}
+
+function loadPendingSuggestions() {
+    try {
+        const raw = sessionStorage.getItem(PENDING_SUGGESTIONS_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function clearPendingSuggestions() {
+    sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
+}
+
 function applyFormSupportSuggestionsFromResponse(response) {
     const suggestions = parseFormSupportSuggestions(response);
     if (suggestions.length === 0) return;
 
-    // Apply suggestions sequentially with a delay between each one.
-    // This prevents ASP.NET postbacks triggered by radio/select changes from
-    // resetting the form before subsequent suggestions are applied.
-    function applyNext(index) {
-        if (index >= suggestions.length) return;
-        const suggestion = suggestions[index];
-        const elements = findFieldElementsByIdentifier(suggestion.id);
-        const applied = applySuggestionToElements(suggestion, elements);
-        if (!applied) {
-            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
-        }
-        setTimeout(() => applyNext(index + 1), 600);
+    // Persist all suggestions before starting — if a postback wipes the page,
+    // resumePendingSuggestions() will pick up where we left off on re-init.
+    savePendingSuggestions(suggestions);
+    applyPendingSuggestionsSequentially();
+}
+
+function applyPendingSuggestionsSequentially() {
+    const suggestions = loadPendingSuggestions();
+    if (suggestions.length === 0) return;
+
+    const suggestion = suggestions[0];
+    const remaining = suggestions.slice(1);
+
+    const elements = findFieldElementsByIdentifier(suggestion.id);
+    const applied = applySuggestionToElements(suggestion, elements);
+    if (!applied) {
+        console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
     }
 
-    applyNext(0);
+    // Save the remaining suggestions so a postback can resume from here
+    if (remaining.length > 0) {
+        savePendingSuggestions(remaining);
+        // Give the postback time to complete before applying the next field
+        setTimeout(applyPendingSuggestionsSequentially, 600);
+    } else {
+        clearPendingSuggestions();
+    }
+}
+
+// Called on every page load / postback re-init to resume any interrupted suggestion queue
+function resumePendingSuggestions() {
+    const suggestions = loadPendingSuggestions();
+    if (suggestions.length === 0) return;
+    console.log(`Resuming ${suggestions.length} pending form suggestion(s) after postback.`);
+    setTimeout(applyPendingSuggestionsSequentially, 400);
 }
 
 
@@ -946,6 +989,9 @@ function initBot() {
     });
 
     autoResizeChatInput();
+
+    // Resume any suggestions that were interrupted by an ASP.NET postback
+    resumePendingSuggestions();
 }
 
 if (document.readyState === 'loading') {
