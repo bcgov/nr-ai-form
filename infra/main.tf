@@ -149,6 +149,13 @@ module "container_apps" {
   azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
   azure_blobstorage_container         = var.azure_blobstorage_container
 
+  # Redis
+  redis_host     = var.redis_host
+  redis_port     = var.redis_port
+  redis_password = var.redis_password
+  redis_ssl      = var.redis_ssl
+  redis_ttl_days = var.redis_ttl_days
+
   depends_on = [module.network, module.cosmos, module.monitoring]
 }
 

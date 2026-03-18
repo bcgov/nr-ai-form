@@ -202,11 +202,13 @@ jobs:
         CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
         FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
         API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
-        
+        API_BACKEND_IMAGE="ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
+
         echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
+        echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
     
     - name: Safety Plan Check
       if: inputs.prevent_destroy == true && inputs.command == 'apply'
@@ -221,6 +223,7 @@ jobs:
           orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
+          api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
@@ -242,6 +245,12 @@ jobs:
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
           AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          # Redis Configuration
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_SSL: ${{ vars.REDIS_SSL }}
+          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
       run: |
           echo "Running plan to check for resource destructions..."
           terragrunt run-all plan --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }} 2>&1 | tee /tmp/tfplan_output.txt
@@ -265,6 +274,7 @@ jobs:
           orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
+          api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
@@ -291,6 +301,12 @@ jobs:
           # Azure Blob Storage Configuration
           AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          # Redis Configuration
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_SSL: ${{ vars.REDIS_SSL }}
+          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
       run: |
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
