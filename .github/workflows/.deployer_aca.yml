@@ -202,11 +202,13 @@ jobs:
         CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
         FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
         API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
-        
+        API_BACKEND_IMAGE="ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
+
         echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
+        echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
     
     - name: Safety Plan Check
       if: inputs.prevent_destroy == true && inputs.command == 'apply'
@@ -221,6 +223,7 @@ jobs:
           orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
+          api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
@@ -265,6 +268,7 @@ jobs:
           orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
+          api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
