@@ -3,8 +3,7 @@
 
 
 //-------------------------- Services Starts ---------------------------//
-// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
-const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
 
 
 
@@ -222,34 +221,12 @@ function getStep3SubstepFromPaneHeader() {
     const paneHeaderText = normalizeComparableValue(paneHeader.textContent || '');
     if (!paneHeaderText) return null;
 
-    // Exact and partial matches for all known step3 substeps
     const step3PaneHeaderMap = {
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        feeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        feeexemption: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
-        damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-        jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
-        otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
-        sourceofwaterforapplication: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
-        works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
-        addsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-        addpurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION
     };
 
-    // Try exact match first
-    if (step3PaneHeaderMap[paneHeaderText]) {
-        return step3PaneHeaderMap[paneHeaderText];
-    }
-
-    // Try partial/contains match as fallback
-    for (const [key, value] of Object.entries(step3PaneHeaderMap)) {
-        if (paneHeaderText.includes(key) || key.includes(paneHeaderText)) {
-            return value;
-        }
-    }
-
-    return null;
+    return step3PaneHeaderMap[paneHeaderText] || null;
 }
 
 function getCurrentFormStepFromDom() {
@@ -423,118 +400,17 @@ function applySuggestionToElements(suggestion, elements) {
     return false;
 }
 
-const PENDING_SUGGESTIONS_KEY = 'wp_pending_suggestions';
-
-function savePendingSuggestions(suggestions) {
-    try {
-        sessionStorage.setItem(PENDING_SUGGESTIONS_KEY, JSON.stringify(suggestions));
-    } catch (e) {
-        console.warn('Could not save pending suggestions to sessionStorage', e);
-    }
-}
-
-function loadPendingSuggestions() {
-    try {
-        const raw = sessionStorage.getItem(PENDING_SUGGESTIONS_KEY);
-        return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-        return [];
-    }
-}
-
-function clearPendingSuggestions() {
-    sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
-}
-
-// Hook into ASP.NET UpdatePanel postback completion if available.
-// This fires once after every partial postback DOM update.
-// Deferred to ensure Sys is loaded before we try to access it.
-function hookAspNetPostback() {
-    if (typeof Sys === 'undefined' || !Sys.WebForms) return false;
-    try {
-        const prm = Sys.WebForms.PageRequestManager.getInstance();
-        prm.add_endRequest(function () {
-            const suggestions = loadPendingSuggestions();
-            if (suggestions.length === 0) return;
-            // Give the DOM a moment to fully settle after the UpdatePanel swap
-            setTimeout(applyNextPendingSuggestion, 200);
-        });
-        return true;
-    } catch (e) {
-        console.warn('Could not hook ASP.NET PageRequestManager', e);
-        return false;
-    }
-}
-
-let _aspNetHooked = false;
-function ensureAspNetHook() {
-    if (_aspNetHooked) return;
-    _aspNetHooked = hookAspNetPostback();
-}
-
 function applyFormSupportSuggestionsFromResponse(response) {
-    ensureAspNetHook();
     const suggestions = parseFormSupportSuggestions(response);
     if (suggestions.length === 0) return;
-    clearPendingSuggestions();
-    savePendingSuggestions(suggestions);
-    applyNextPendingSuggestion();
-}
 
-function applyNextPendingSuggestion() {
-    const suggestions = loadPendingSuggestions();
-    if (suggestions.length === 0) {
-        clearPendingSuggestions();
-        return;
-    }
-
-    const suggestion = suggestions[0];
-    const remaining = suggestions.slice(1);
-
-    // Persist remaining BEFORE touching the DOM so any postback sees the correct queue
-    savePendingSuggestions(remaining);
-
-    const elements = findFieldElementsByIdentifier(suggestion.id);
-    const applied = applySuggestionToElements(suggestion, elements);
-
-    if (!applied) {
-        console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
-    }
-
-    // string/textarea fields don't trigger a postback — nudge next manually
-    if (suggestion.type === 'string' || !triggersPostback(suggestion.type)) {
-        if (remaining.length > 0) {
-            setTimeout(applyNextPendingSuggestion, 300);
-        } else {
-            clearPendingSuggestions();
+    suggestions.forEach((suggestion) => {
+        const elements = findFieldElementsByIdentifier(suggestion.id);
+        const applied = applySuggestionToElements(suggestion, elements);
+        if (!applied) {
+            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
         }
-    }
-    // radio/select will trigger a postback → endRequest hook above handles the next one
-    // If PageRequestManager isn't available, fall back to a fixed delay
-    else if (!_aspNetHooked) {
-        if (remaining.length > 0) {
-            setTimeout(applyNextPendingSuggestion, 800);
-        } else {
-            setTimeout(clearPendingSuggestions, 800);
-        }
-    }
-    // else: endRequest hook will fire and call applyNextPendingSuggestion
-}
-
-function triggersPostback(type) {
-    return type === 'radio' || type === 'checkbox' || type === 'select';
-}
-
-// Called on every page load / postback re-init to resume any interrupted suggestion queue
-function resumePendingSuggestions() {
-    ensureAspNetHook();
-    const suggestions = loadPendingSuggestions();
-    if (suggestions.length === 0) return;
-    // Only resume here if PageRequestManager hook isn't available
-    // (if it is, endRequest already handles it)
-    if (_aspNetHooked) return;
-    console.log(`Resuming ${suggestions.length} pending form suggestion(s) after page load.`);
-    setTimeout(applyNextPendingSuggestion, 400);
+    });
 }
 
 
@@ -1011,7 +887,6 @@ function initBot() {
             .replace(/>/g, '&gt;');
 
         let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         formatted = formatted.replace(/\n/g, '<br>');
         formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
 
@@ -1061,9 +936,6 @@ function initBot() {
     });
 
     autoResizeChatInput();
-
-    // Resume any suggestions that were interrupted by an ASP.NET postback
-    resumePendingSuggestions();
 }
 
 if (document.readyState === 'loading') {
