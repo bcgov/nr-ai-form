@@ -222,12 +222,34 @@ function getStep3SubstepFromPaneHeader() {
     const paneHeaderText = normalizeComparableValue(paneHeader.textContent || '');
     if (!paneHeaderText) return null;
 
+    // Exact and partial matches for all known step3 substeps
     const step3PaneHeaderMap = {
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION
+        feeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+        feeexemption: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+        jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+        otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+        sourceofwaterforapplication: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+        works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+        addsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+        addpurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
     };
 
-    return step3PaneHeaderMap[paneHeaderText] || null;
+    // Try exact match first
+    if (step3PaneHeaderMap[paneHeaderText]) {
+        return step3PaneHeaderMap[paneHeaderText];
+    }
+
+    // Try partial/contains match as fallback
+    for (const [key, value] of Object.entries(step3PaneHeaderMap)) {
+        if (paneHeaderText.includes(key) || key.includes(paneHeaderText)) {
+            return value;
+        }
+    }
+
+    return null;
 }
 
 function getCurrentFormStepFromDom() {
@@ -402,7 +424,6 @@ function applySuggestionToElements(suggestion, elements) {
 }
 
 const PENDING_SUGGESTIONS_KEY = 'wp_pending_suggestions';
-const APPLYING_LOCK_KEY = 'wp_applying_suggestion';
 
 function savePendingSuggestions(suggestions) {
     try {
@@ -423,30 +444,36 @@ function loadPendingSuggestions() {
 
 function clearPendingSuggestions() {
     sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
-    sessionStorage.removeItem(APPLYING_LOCK_KEY);
 }
 
-function setApplyingLock() {
-    // Record timestamp so we can detect stale locks
-    sessionStorage.setItem(APPLYING_LOCK_KEY, String(Date.now()));
-}
-
-function clearApplyingLock() {
-    sessionStorage.removeItem(APPLYING_LOCK_KEY);
-}
-
-function isApplyingLocked() {
-    const ts = sessionStorage.getItem(APPLYING_LOCK_KEY);
-    if (!ts) return false;
-    // Stale lock after 5s — clear it
-    if (Date.now() - Number(ts) > 5000) {
-        clearApplyingLock();
+// Hook into ASP.NET UpdatePanel postback completion if available.
+// This fires once after every partial postback DOM update.
+// Deferred to ensure Sys is loaded before we try to access it.
+function hookAspNetPostback() {
+    if (typeof Sys === 'undefined' || !Sys.WebForms) return false;
+    try {
+        const prm = Sys.WebForms.PageRequestManager.getInstance();
+        prm.add_endRequest(function () {
+            const suggestions = loadPendingSuggestions();
+            if (suggestions.length === 0) return;
+            // Give the DOM a moment to fully settle after the UpdatePanel swap
+            setTimeout(applyNextPendingSuggestion, 200);
+        });
+        return true;
+    } catch (e) {
+        console.warn('Could not hook ASP.NET PageRequestManager', e);
         return false;
     }
-    return true;
+}
+
+let _aspNetHooked = false;
+function ensureAspNetHook() {
+    if (_aspNetHooked) return;
+    _aspNetHooked = hookAspNetPostback();
 }
 
 function applyFormSupportSuggestionsFromResponse(response) {
+    ensureAspNetHook();
     const suggestions = parseFormSupportSuggestions(response);
     if (suggestions.length === 0) return;
     clearPendingSuggestions();
@@ -455,8 +482,6 @@ function applyFormSupportSuggestionsFromResponse(response) {
 }
 
 function applyNextPendingSuggestion() {
-    if (isApplyingLocked()) return;
-
     const suggestions = loadPendingSuggestions();
     if (suggestions.length === 0) {
         clearPendingSuggestions();
@@ -466,80 +491,49 @@ function applyNextPendingSuggestion() {
     const suggestion = suggestions[0];
     const remaining = suggestions.slice(1);
 
-    // Save remaining BEFORE touching DOM so a postback sees the correct queue
+    // Persist remaining BEFORE touching the DOM so any postback sees the correct queue
     savePendingSuggestions(remaining);
-    setApplyingLock();
 
     const elements = findFieldElementsByIdentifier(suggestion.id);
     const applied = applySuggestionToElements(suggestion, elements);
 
     if (!applied) {
         console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
-        clearApplyingLock();
-        if (remaining.length > 0) {
-            setTimeout(applyNextPendingSuggestion, 200);
-        } else {
-            clearPendingSuggestions();
-        }
-        return;
     }
 
-    // For fields that don't trigger a postback (string/textarea), nudge next manually
-    if (suggestion.type === 'string') {
-        clearApplyingLock();
+    // string/textarea fields don't trigger a postback — nudge next manually
+    if (suggestion.type === 'string' || !triggersPostback(suggestion.type)) {
         if (remaining.length > 0) {
             setTimeout(applyNextPendingSuggestion, 300);
         } else {
             clearPendingSuggestions();
         }
-        return;
     }
-
-    // For radio/select — a postback will fire and re-init the page.
-    // Wait for DOM mutation to settle, then apply next.
-    waitForDomSettleAndApplyNext(remaining);
+    // radio/select will trigger a postback → endRequest hook above handles the next one
+    // If PageRequestManager isn't available, fall back to a fixed delay
+    else if (!_aspNetHooked) {
+        if (remaining.length > 0) {
+            setTimeout(applyNextPendingSuggestion, 800);
+        } else {
+            setTimeout(clearPendingSuggestions, 800);
+        }
+    }
+    // else: endRequest hook will fire and call applyNextPendingSuggestion
 }
 
-function waitForDomSettleAndApplyNext(remaining) {
-    if (remaining.length === 0) {
-        // No more fields — but wait for the final postback to finish
-        // before clearing so the applied value isn't wiped
-        setTimeout(() => {
-            clearApplyingLock();
-            clearPendingSuggestions();
-        }, 800);
-        return;
-    }
-
-    const target = document.body;
-    let settleTimer = null;
-
-    const observer = new MutationObserver(() => {
-        // DOM changed — reset the settle timer
-        clearTimeout(settleTimer);
-        settleTimer = setTimeout(() => {
-            observer.disconnect();
-            clearApplyingLock();
-            applyNextPendingSuggestion();
-        }, 400); // 400ms of DOM silence = postback done
-    });
-
-    observer.observe(target, { childList: true, subtree: true, attributes: true });
-
-    // Safety fallback: if no mutation fires within 2s, proceed anyway
-    setTimeout(() => {
-        observer.disconnect();
-        clearApplyingLock();
-        applyNextPendingSuggestion();
-    }, 2000);
+function triggersPostback(type) {
+    return type === 'radio' || type === 'checkbox' || type === 'select';
 }
 
 // Called on every page load / postback re-init to resume any interrupted suggestion queue
 function resumePendingSuggestions() {
+    ensureAspNetHook();
     const suggestions = loadPendingSuggestions();
     if (suggestions.length === 0) return;
-    console.log(`Resuming ${suggestions.length} pending form suggestion(s) after postback.`);
-    clearApplyingLock(); // Clear any stale lock from previous cycle
+    // Only resume here if PageRequestManager hook isn't available
+    // (if it is, endRequest already handles it)
+    if (_aspNetHooked) return;
+    console.log(`Resuming ${suggestions.length} pending form suggestion(s) after page load.`);
     setTimeout(applyNextPendingSuggestion, 400);
 }
 
