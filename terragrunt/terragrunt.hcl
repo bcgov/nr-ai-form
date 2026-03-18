@@ -44,6 +44,13 @@ locals {
   # Azure Blob Storage Configuration
   azure_blobstorage_connectionstring = get_env("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
   azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER")
+
+  # Redis Configuration
+  redis_host     = get_env("REDIS_HOST")
+  redis_port     = get_env("REDIS_PORT", "10000")
+  redis_password = get_env("REDIS_PASSWORD")
+  redis_ssl      = get_env("REDIS_SSL", "true")
+  redis_ttl_days = get_env("REDIS_TTL_DAYS", "14")
   
   # Container Registry Configuration
   container_registry_url      = get_env("CONTAINER_REGISTRY_URL", "https://ghcr.io")
@@ -121,6 +128,13 @@ azure_storage_container_name = "${local.azure_storage_container_name}"
 # Azure Blob Storage Configuration
 azure_blobstorage_connectionstring = "${local.azure_blobstorage_connectionstring}"
 azure_blobstorage_container         = "${local.azure_blobstorage_container}"
+
+# Redis Configuration
+redis_host     = "${local.redis_host}"
+redis_port     = ${local.redis_port}
+redis_password = "${local.redis_password}"
+redis_ssl      = ${local.redis_ssl}
+redis_ttl_days = ${local.redis_ttl_days}
 
 # Container Registry Configuration
 container_registry_url      = "${local.container_registry_url}"
