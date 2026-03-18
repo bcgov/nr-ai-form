@@ -441,19 +441,24 @@ function applyPendingSuggestionsSequentially() {
     const suggestion = suggestions[0];
     const remaining = suggestions.slice(1);
 
+    // Always persist the remaining queue BEFORE touching the DOM.
+    // If this field triggers a postback, the next resumePendingSuggestions()
+    // call on re-init will find exactly what's left and apply one more.
+    savePendingSuggestions(remaining);
+
     const elements = findFieldElementsByIdentifier(suggestion.id);
     const applied = applySuggestionToElements(suggestion, elements);
     if (!applied) {
         console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+        // Field didn't apply (maybe not in DOM yet), skip and try next
+        if (remaining.length > 0) {
+            setTimeout(applyPendingSuggestionsSequentially, 400);
+        }
     }
-
-    // Save the remaining suggestions so a postback can resume from here
-    if (remaining.length > 0) {
-        savePendingSuggestions(remaining);
-        // Give the postback time to complete before applying the next field
-        setTimeout(applyPendingSuggestionsSequentially, 600);
-    } else {
-        clearPendingSuggestions();
+    // If applied and remaining exist, the postback will trigger initBot → resumePendingSuggestions.
+    // If no postback occurs (e.g. text/textarea fields), nudge the next one manually.
+    else if (remaining.length > 0 && (suggestion.type === 'string')) {
+        setTimeout(applyPendingSuggestionsSequentially, 300);
     }
 }
 
