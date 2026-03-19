@@ -294,6 +294,17 @@ function tryParseJson(value) {
         cleanedValue = match[1].trim();
     }
 
+    // Handle mixed response: JSON followed by a plain text follow-up question.
+    // Extract just the JSON portion (object or array) from the start of the string.
+    const jsonMatch = cleanedValue.match(/^(\[[\s\S]*\]|\{[\s\S]*\})/);
+    if (jsonMatch) {
+        try {
+            return JSON.parse(jsonMatch[1]);
+        } catch {
+            // fall through to full parse attempt
+        }
+    }
+
     try {
         return JSON.parse(cleanedValue);
     } catch {
