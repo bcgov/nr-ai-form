@@ -429,7 +429,11 @@ let _aspNetHooked = false;
 function ensureAspNetHook() {
     if (_aspNetHooked) return;
     try {
-        if (typeof Sys === 'undefined' || !Sys.WebForms) return;
+        if (typeof Sys === 'undefined' || !Sys.WebForms) {
+            // Sys not ready yet — retry once it might be available
+            setTimeout(ensureAspNetHook, 500);
+            return;
+        }
         Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
             const pending = loadPendingSuggestions();
             if (pending.length > 0) setTimeout(applyNextPendingSuggestion, 250);
@@ -454,40 +458,58 @@ function applyNextPendingSuggestion() {
     const suggestion = suggestions[0];
     const remaining = suggestions.slice(1);
 
-    // Persist remaining BEFORE touching DOM — postback fires immediately on radio/select change
-    savePendingSuggestions(remaining);
+    // Poll until the target element appears in the DOM (handles post-reload timing).
+    // Retries every 150ms for up to 5 seconds before giving up on this field.
+    const maxAttempts = 33;
+    let attempts = 0;
 
-    const elements = findFieldElementsByIdentifier(suggestion.id);
-    const applied = applySuggestionToElements(suggestion, elements);
-    if (!applied) {
-        console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+    function tryApply() {
+        const elements = findFieldElementsByIdentifier(suggestion.id);
+        if (elements.length === 0 && attempts < maxAttempts) {
+            attempts++;
+            setTimeout(tryApply, 150);
+            return;
+        }
+
+        if (elements.length === 0) {
+            console.warn(`FormSupport: element not found after retries, skipping id=${suggestion.id}`);
+            // Skip this field and move on
+            savePendingSuggestions(remaining);
+            if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
+            return;
+        }
+
+        // Persist remaining BEFORE touching DOM — postback fires immediately on radio/select change
+        savePendingSuggestions(remaining);
+
+        const applied = applySuggestionToElements(suggestion, elements);
+        if (!applied) {
+            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+        }
+
+        const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
+
+        if (!triggersPostback) {
+            // string/textarea — no postback, nudge next manually
+            if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 200);
+            else clearPendingSuggestions();
+        } else if (!_aspNetHooked) {
+            // No PageRequestManager — use fixed delay fallback
+            if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
+            else setTimeout(clearPendingSuggestions, 900);
+        }
+        // else: endRequest hook handles the next field after postback settles
     }
 
-    const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
-
-    if (!triggersPostback) {
-        // string/textarea — no postback, nudge next manually
-        if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 200);
-        else clearPendingSuggestions();
-    } else if (!_aspNetHooked) {
-        // No PageRequestManager — use fixed delay fallback
-        if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
-        else setTimeout(clearPendingSuggestions, 900);
-    }
-    // else: endRequest hook handles the next field after postback settles
+    tryApply();
 }
 
 // Called on every page load/reload to resume suggestions interrupted by a postback.
 function resumePendingSuggestions() {
     const pending = loadPendingSuggestions();
     if (pending.length === 0) return;
-
-    // Try to hook ASP.NET UpdatePanel for partial postbacks (may not be ready yet).
-    // We delay slightly to give ScriptManager time to initialize, then apply.
-    setTimeout(function () {
-        ensureAspNetHook();
-        applyNextPendingSuggestion();
-    }, 400);
+    ensureAspNetHook();
+    applyNextPendingSuggestion();
 }
 
 
