@@ -477,13 +477,17 @@ function applyNextPendingSuggestion() {
     // else: endRequest hook handles the next field after postback settles
 }
 
-// Fallback resume on page re-init (only used when PageRequestManager hook isn't available)
+// Called on every page load/reload to resume suggestions interrupted by a postback.
 function resumePendingSuggestions() {
-    ensureAspNetHook();
-    if (_aspNetHooked) return; // endRequest handles it
     const pending = loadPendingSuggestions();
     if (pending.length === 0) return;
-    setTimeout(applyNextPendingSuggestion, 400);
+
+    // Try to hook ASP.NET UpdatePanel for partial postbacks (may not be ready yet).
+    // We delay slightly to give ScriptManager time to initialize, then apply.
+    setTimeout(function () {
+        ensureAspNetHook();
+        applyNextPendingSuggestion();
+    }, 400);
 }
 
 
@@ -947,11 +951,8 @@ function initBot() {
         chatMessages.appendChild(msgDiv);
         if (persist) {
             appendChatHistory(sessionId, role, String(text));
-    autoResizeChatInput();
-
-    // Resume any suggestions interrupted by an ASP.NET postback
-    resumePendingSuggestions();
-}       if (scroll) {
+        }
+        if (scroll) {
             scrollToBottom();
         }
     }
@@ -1013,6 +1014,10 @@ function initBot() {
     });
 
     autoResizeChatInput();
+
+    // On every page load/reload (including after ASP.NET postbacks), resume any
+    // pending suggestions that were saved to sessionStorage before the page refreshed.
+    resumePendingSuggestions();
 }
 
 if (document.readyState === 'loading') {
