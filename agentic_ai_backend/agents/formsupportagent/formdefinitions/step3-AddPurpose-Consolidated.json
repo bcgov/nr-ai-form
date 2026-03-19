@@ -4,7 +4,7 @@
     "properties": {
         "PurposeUseSector": {
             "type": "select",
-            "id": "PurposeUseSector_100534931_N0",
+            "id": "PurposeUseSector",
             "title": "What purpose do you want to use the water for?",
             "enum": [
                 "(select)",
@@ -24,7 +24,7 @@
         },
         "PurposeUse": {
             "type": "select",
-            "id": "PurposeUse_100536054_N0",
+            "id": "PurposeUse",
             "title": "Please select one of the following sub-purposes",
             "enum": [
                 "(select)",
@@ -66,7 +66,7 @@
         },
         "SeasonalUse": {
             "type": "radio",
-            "id": "WSLICUseOfWaterSeasonal_100536333_N0",
+            "id": "WSLICUseOfWaterSeasonal",
             "title": "Do you want to use the water only seasonally?",
             "enum": [
                 "Yes",
@@ -76,7 +76,7 @@
         },
         "UseOfWaterFromMonth": {
             "type": "select",
-            "id": "WSLICUseOfWaterFromMonth_100536333_N0",
+            "id": "WSLICUseOfWaterFromMonth",
             "title": "During which months do you want to use the water?",
             "enum": [
                 "(None)",
@@ -97,7 +97,7 @@
         },
         "UseOfWaterToMonth": {
             "type": "select",
-            "id": "WSLICUseOfWaterToMonth_100536333_N0",
+            "id": "WSLICUseOfWaterToMonth",
             "title": "to",
             "enum": [
                 "(None)",
@@ -118,7 +118,7 @@
         },
         "TotalAnnualQuantity": {
             "type": "number",
-            "id": "Quantity_100534688_N0",
+            "id": "Quantity",
             "title": "Total Annual Quantity",
             "required": true,
             "units": "m3/day",
@@ -134,7 +134,7 @@
         },
         "TypeOfStock": {
             "type": "select",
-            "id": "TypeOfStock_100536098_N0",
+            "id": "TypeOfStock",
             "title": "Type of Stock:",
             "enum": [
                 "(None)",
@@ -153,7 +153,7 @@
         },
         "NumberOfStock": {
             "type": "number",
-            "id": "NumberOfStock_100536098_N0",
+            "id": "NumberOfStock",
             "title": "Quantity of Stock:",
             "maxLength": 6,
             "required": false
@@ -169,7 +169,7 @@
         },
         "MaximumRateOfDiversion": {
             "type": "number",
-            "id": "MaximumRateOfDiversion_101016710_N0",
+            "id": "MaximumRateOfDiversion",
             "title": "Maximum Rate of Diversion (m3/sec)",
             "description": "The maximum rate you will divert the water measured in m3/sec.",
             "required": false,
@@ -177,7 +177,7 @@
         },
         "Comments": {
             "type": "textarea",
-            "id": "Comments_100848882_N0",
+            "id": "Comments",
             "title": "Comments",
             "required": false,
             "maxLength": 4000

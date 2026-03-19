@@ -226,10 +226,7 @@ function normalizeStepLabelToStepValue(label) {
 }
 
 function getStep3SubstepFromPaneHeader() {
-    const paneHeader = document.querySelector('span.paneheader');
-    if (!paneHeader) return null;
-
-    const paneHeaderText = normalizeComparableValue(paneHeader.textContent || '');
+    const paneHeaderText = getPreferredPaneHeaderText();
     if (!paneHeaderText) return null;
 
     const step3PaneHeaderMap = {
@@ -238,6 +235,33 @@ function getStep3SubstepFromPaneHeader() {
     };
 
     return step3PaneHeaderMap[paneHeaderText] || null;
+}
+
+function getPreferredPaneHeaderText() {
+    const subHeader = document.querySelector('span[data-id="subheadername"]');
+    const subHeaderText = normalizeComparableValue(subHeader?.textContent || '');
+    if (subHeaderText) return subHeaderText;
+
+    const stepHeader = document.querySelector('span[data-id="stepheadername"]');
+    const stepHeaderText = normalizeComparableValue(stepHeader?.textContent || '');
+    if (stepHeaderText) return stepHeaderText;
+
+    return null;
+}
+
+function getCurrentFormStepFromPaneHeaders() {
+    const paneHeaderText = getPreferredPaneHeaderText();
+    if (!paneHeaderText) return null;
+
+    const paneHeaderStepMap = {
+        introduction: FormSteps.step1introduction,
+        eligibility: FormSteps.step2eligibility,
+        technicalinformation: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+        governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION
+    };
+
+    return paneHeaderStepMap[paneHeaderText] || null;
 }
 
 function getCurrentFormStepFromDom() {
@@ -252,7 +276,7 @@ function getCurrentFormStepFromDom() {
         if (hasAltchaValidation || hasCaptchaIframeValidation) {
             return FormSteps.step0bot || 'step0-Bot';
         }
-        return null;
+        return getCurrentFormStepFromPaneHeaders();
     }
 
     const activeLi =
@@ -270,7 +294,12 @@ function getCurrentFormStepFromDom() {
         if (hasAltchaValidation || hasCaptchaIframeValidation) {
             return FormSteps.step0bot || 'step0-Bot';
         }
-        return null;
+        return getCurrentFormStepFromPaneHeaders();
+    }
+
+    const paneHeaderStep = getCurrentFormStepFromPaneHeaders();
+    if (paneHeaderStep) {
+        return paneHeaderStep;
     }
 
     const labelFromText = (activeLi.textContent || '').trim();
