@@ -230,6 +230,7 @@ function getStep3SubstepFromPaneHeader() {
 }
 
 function getCurrentFormStepFromDom() {
+    return "step3-Technical-Information-Fee-Exemption-Request"
     const progressBar = document.getElementById('progressbar');
     if (!progressBar) {
         const hasAltchaValidation = Boolean(
@@ -400,17 +401,78 @@ function applySuggestionToElements(suggestion, elements) {
     return false;
 }
 
+const PENDING_SUGGESTIONS_KEY = 'wp_pending_suggestions';
+
+function savePendingSuggestions(suggestions) {
+    try { sessionStorage.setItem(PENDING_SUGGESTIONS_KEY, JSON.stringify(suggestions)); } catch (e) {}
+}
+function loadPendingSuggestions() {
+    try { const r = sessionStorage.getItem(PENDING_SUGGESTIONS_KEY); return r ? JSON.parse(r) : []; } catch (e) { return []; }
+}
+function clearPendingSuggestions() {
+    sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
+}
+
+// Hook ASP.NET UpdatePanel endRequest once — fires after every partial postback DOM update
+let _aspNetHooked = false;
+function ensureAspNetHook() {
+    if (_aspNetHooked) return;
+    try {
+        if (typeof Sys === 'undefined' || !Sys.WebForms) return;
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
+            const pending = loadPendingSuggestions();
+            if (pending.length > 0) setTimeout(applyNextPendingSuggestion, 250);
+        });
+        _aspNetHooked = true;
+    } catch (e) {}
+}
+
 function applyFormSupportSuggestionsFromResponse(response) {
+    ensureAspNetHook();
     const suggestions = parseFormSupportSuggestions(response);
     if (suggestions.length === 0) return;
+    clearPendingSuggestions();
+    savePendingSuggestions(suggestions);
+    applyNextPendingSuggestion();
+}
 
-    suggestions.forEach((suggestion) => {
-        const elements = findFieldElementsByIdentifier(suggestion.id);
-        const applied = applySuggestionToElements(suggestion, elements);
-        if (!applied) {
-            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
-        }
-    });
+function applyNextPendingSuggestion() {
+    const suggestions = loadPendingSuggestions();
+    if (suggestions.length === 0) { clearPendingSuggestions(); return; }
+
+    const suggestion = suggestions[0];
+    const remaining = suggestions.slice(1);
+
+    // Persist remaining BEFORE touching DOM — postback fires immediately on radio/select change
+    savePendingSuggestions(remaining);
+
+    const elements = findFieldElementsByIdentifier(suggestion.id);
+    const applied = applySuggestionToElements(suggestion, elements);
+    if (!applied) {
+        console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+    }
+
+    const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
+
+    if (!triggersPostback) {
+        // string/textarea — no postback, nudge next manually
+        if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 200);
+        else clearPendingSuggestions();
+    } else if (!_aspNetHooked) {
+        // No PageRequestManager — use fixed delay fallback
+        if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
+        else setTimeout(clearPendingSuggestions, 900);
+    }
+    // else: endRequest hook handles the next field after postback settles
+}
+
+// Fallback resume on page re-init (only used when PageRequestManager hook isn't available)
+function resumePendingSuggestions() {
+    ensureAspNetHook();
+    if (_aspNetHooked) return; // endRequest handles it
+    const pending = loadPendingSuggestions();
+    if (pending.length === 0) return;
+    setTimeout(applyNextPendingSuggestion, 400);
 }
 
 
@@ -874,8 +936,11 @@ function initBot() {
         chatMessages.appendChild(msgDiv);
         if (persist) {
             appendChatHistory(sessionId, role, String(text));
-        }
-        if (scroll) {
+    autoResizeChatInput();
+
+    // Resume any suggestions interrupted by an ASP.NET postback
+    resumePendingSuggestions();
+}       if (scroll) {
             scrollToBottom();
         }
     }
@@ -887,6 +952,7 @@ function initBot() {
             .replace(/>/g, '&gt;');
 
         let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         formatted = formatted.replace(/\n/g, '<br>');
         formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
 
