@@ -5,6 +5,7 @@
         "PurposeUseSector": {
             "type": "select",
             "id": "PurposeUseSector",
+            "description": "The purpose of use is the reason(Industrial, Irrigation etc.) for which you want to use the water",
             "title": "What purpose do you want to use the water for?",
             "enum": [
                 "(select)",
@@ -25,6 +26,7 @@
         "PurposeUse": {
             "type": "select",
             "id": "PurposeUse",
+            "description": "The sub-purpose or category (Livestock and Animal or Irrigation or etc.)  is the specific reason for which you want to use the water within the broader purpose of use category you selected above.",
             "title": "Please select one of the following sub-purposes",
             "enum": [
                 "(select)",
@@ -67,6 +69,7 @@
         "SeasonalUse": {
             "type": "radio",
             "id": "WSLICUseOfWaterSeasonal",
+            "description": "Seasonal use means that you will only be using the water during certain months of the year.",
             "title": "Do you want to use the water only seasonally?",
             "enum": [
                 "Yes",
@@ -77,6 +80,7 @@
         "UseOfWaterFromMonth": {
             "type": "select",
             "id": "WSLICUseOfWaterFromMonth",
+            "description": "Select the month from which you want to start(from) using the water.",
             "title": "During which months do you want to use the water?",
             "enum": [
                 "(None)",
@@ -98,6 +102,7 @@
         "UseOfWaterToMonth": {
             "type": "select",
             "id": "WSLICUseOfWaterToMonth",
+            "description": "Select the month to which you want to end(to) using the water.",
             "title": "to",
             "enum": [
                 "(None)",
@@ -119,6 +124,7 @@
         "TotalAnnualQuantity": {
             "type": "number",
             "id": "Quantity",
+            "description": "The total annual quantity is the total amount of water you will be using in a year measured in m3/day. Use Tools to calculate the water consumption",
             "title": "Total Annual Quantity",
             "required": true,
             "units": "m3/day",
@@ -135,6 +141,7 @@
         "TypeOfStock": {
             "type": "select",
             "id": "TypeOfStock",
+            "description": "The type of stock is the kind of animals you will be watering or providing water for.",
             "title": "Type of Stock:",
             "enum": [
                 "(None)",
@@ -154,6 +161,7 @@
         "NumberOfStock": {
             "type": "number",
             "id": "NumberOfStock",
+            "description": "The number of stock is the total count of animals you will be watering or providing water for.",
             "title": "Quantity of Stock:",
             "maxLength": 6,
             "required": false
@@ -178,6 +186,7 @@
         "Comments": {
             "type": "textarea",
             "id": "Comments",
+            "description": "Use this space to provide any additional information or comments about your water use that you think may be relevant to your application.",
             "title": "Comments",
             "required": false,
             "maxLength": 4000

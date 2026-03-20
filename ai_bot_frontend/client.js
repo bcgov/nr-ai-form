@@ -255,12 +255,11 @@ function getCurrentFormStepFromPaneHeaders() {
 
     const paneHeaderStepMap = {
         introduction: FormSteps.step1introduction,
-        eligibility: FormSteps.step2eligibility,
-        technicalinformation: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+        eligibility: FormSteps.step2eligibility,        
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        addapurpose : FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED
     };
-
     return paneHeaderStepMap[paneHeaderText] || null;
 }
 
