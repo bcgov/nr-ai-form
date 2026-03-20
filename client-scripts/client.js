@@ -614,35 +614,19 @@ function applyNextPendingSuggestion() {
             }
 
             if (!triggersPostback) {
-                // text/textarea — no postback expected, nudge next field immediately after a short settle
+                // text/textarea — no postback expected, nudge next field after a short settle
                 if (remaining.length > 0) {
                     waitForDomSettle(null, applyNextPendingSuggestion);
                 } else {
                     clearPendingSuggestions();
                 }
-            } else {
-                // radio/select/checkbox — listen for beforeunload to detect the postback.
-                // If beforeunload fires, the page is reloading and resumePendingSuggestions handles the rest.
-                // If it doesn't fire within 100ms, fall back to nudging the next field manually.
-                let unloading = false;
-                function onBeforeUnload() { unloading = true; }
-                window.addEventListener('beforeunload', onBeforeUnload);
-
-                // Wait 100ms for the browser to fire beforeunload if a postback was triggered.
-                setTimeout(function () {
-                    window.removeEventListener('beforeunload', onBeforeUnload);
-                    if (unloading) {
-                        // Page is reloading — resumePendingSuggestions handles next field on reload
-                        return;
-                    }
-                    // No postback detected — nudge next field manually (e.g. PageRequestManager not hooked)
-                    if (remaining.length > 0) {
-                        waitForDomSettle(null, applyNextPendingSuggestion);
-                    } else {
-                        clearPendingSuggestions();
-                    }
-                }, 100);
+            } else if (!_aspNetHooked) {
+                // No PageRequestManager available — fixed delay fallback
+                if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
+                else setTimeout(clearPendingSuggestions, 900);
             }
+            // else: page reloads after postback, resumePendingSuggestions handles next field on reload
+            // OR endRequest hook fires after partial postback and calls applyNextPendingSuggestion
         });
     }
 
