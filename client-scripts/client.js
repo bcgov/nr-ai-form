@@ -230,7 +230,6 @@ function getStep3SubstepFromPaneHeader() {
 }
 
 function getCurrentFormStepFromDom() {
-    return "step3-Technical-Information-Fee-Exemption-Request"
     const progressBar = document.getElementById('progressbar');
     if (!progressBar) {
         const hasAltchaValidation = Boolean(
@@ -302,6 +301,7 @@ function tryParseJson(value) {
             return JSON.parse(jsonMatch[1]);
         } catch {
             // fall through to full parse attempt
+            console.error("Failed to parse JSON from response");
         }
     }
 
@@ -1124,6 +1124,9 @@ function initBot() {
             .replace(/>/g, '&gt;');
 
         let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Convert Markdown links [text](url) to HTML anchor tags.
+        // target="_blank" opens in a new tab; rel="noopener noreferrer" prevents the new tab
+        // from accessing window.opener (security best practice for external links).
         formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         formatted = formatted.replace(/\n/g, '<br>');
         formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
