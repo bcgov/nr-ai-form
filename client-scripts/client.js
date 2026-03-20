@@ -430,16 +430,53 @@ function ensureAspNetHook() {
     if (_aspNetHooked) return;
     try {
         if (typeof Sys === 'undefined' || !Sys.WebForms) {
-            // Sys not ready yet — retry once it might be available
             setTimeout(ensureAspNetHook, 500);
             return;
         }
         Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
             const pending = loadPendingSuggestions();
-            if (pending.length > 0) setTimeout(applyNextPendingSuggestion, 250);
+            if (pending.length > 0) waitForDomSettle(null, applyNextPendingSuggestion);
         });
         _aspNetHooked = true;
     } catch (e) {}
+}
+
+// Wait until the DOM stops mutating for `quietMs` milliseconds, then call `callback`.
+// Watches `root` (defaults to document.body). Falls back after `maxWaitMs`.
+function waitForDomSettle(root, callback, quietMs, maxWaitMs) {
+    quietMs = quietMs || 300;
+    maxWaitMs = maxWaitMs || 5000;
+    var target = root || document.body;
+    var quietTimer = null;
+    var giveUpTimer = null;
+    var done = false;
+
+    function finish() {
+        if (done) return;
+        done = true;
+        if (observer) observer.disconnect();
+        clearTimeout(quietTimer);
+        clearTimeout(giveUpTimer);
+        callback();
+    }
+
+    var observer = null;
+    try {
+        observer = new MutationObserver(function () {
+            clearTimeout(quietTimer);
+            quietTimer = setTimeout(finish, quietMs);
+        });
+        observer.observe(target, { childList: true, subtree: true, attributes: true, characterData: true });
+    } catch (e) {
+        // MutationObserver not available — fall through to immediate callback
+        callback();
+        return;
+    }
+
+    // Start the quiet timer immediately — if nothing mutates, fire after quietMs
+    quietTimer = setTimeout(finish, quietMs);
+    // Hard cap
+    giveUpTimer = setTimeout(finish, maxWaitMs);
 }
 
 function applyFormSupportSuggestionsFromResponse(response) {
@@ -473,32 +510,47 @@ function applyNextPendingSuggestion() {
 
         if (elements.length === 0) {
             console.warn(`FormSupport: element not found after retries, skipping id=${suggestion.id}`);
-            // Skip this field and move on
             savePendingSuggestions(remaining);
             if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
             return;
         }
 
-        // Persist remaining BEFORE touching DOM — postback fires immediately on radio/select change
-        savePendingSuggestions(remaining);
+        // Wait for DOM to fully settle before applying — handles all field types generically.
+        // For postback-triggering fields (radio/select/checkbox) the page will reload after
+        // apply, so the next field is picked up by resumePendingSuggestions on reload.
+        // For non-postback fields (text/textarea) we wait for any in-flight panel updates
+        // to finish before writing, then nudge the next field manually.
+        waitForDomSettle(null, function () {
+            // Re-fetch elements after settle — panel re-render may have replaced DOM nodes
+            const freshElements = findFieldElementsByIdentifier(suggestion.id);
+            if (freshElements.length === 0) {
+                console.warn(`FormSupport: element disappeared after DOM settle, skipping id=${suggestion.id}`);
+                savePendingSuggestions(remaining);
+                if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
+                return;
+            }
 
-        const applied = applySuggestionToElements(suggestion, elements);
-        if (!applied) {
-            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
-        }
+            // Persist remaining BEFORE touching DOM — postback fires immediately on radio/select change
+            savePendingSuggestions(remaining);
 
-        const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
+            const applied = applySuggestionToElements(suggestion, freshElements);
+            if (!applied) {
+                console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+            }
 
-        if (!triggersPostback) {
-            // string/textarea — no postback, nudge next manually
-            if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 200);
-            else clearPendingSuggestions();
-        } else if (!_aspNetHooked) {
-            // No PageRequestManager — use fixed delay fallback
-            if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
-            else setTimeout(clearPendingSuggestions, 900);
-        }
-        // else: endRequest hook handles the next field after postback settles
+            const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
+
+            if (!triggersPostback) {
+                // No postback — nudge next field after a short settle
+                if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 200);
+                else clearPendingSuggestions();
+            } else if (!_aspNetHooked) {
+                // No PageRequestManager available — fixed delay fallback
+                if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
+                else setTimeout(clearPendingSuggestions, 900);
+            }
+            // else: endRequest hook fires after postback and calls applyNextPendingSuggestion
+        });
     }
 
     tryApply();
@@ -509,7 +561,8 @@ function resumePendingSuggestions() {
     const pending = loadPendingSuggestions();
     if (pending.length === 0) return;
     ensureAspNetHook();
-    applyNextPendingSuggestion();
+    // Wait for DOM to settle after page load before starting
+    waitForDomSettle(null, applyNextPendingSuggestion);
 }
 
 
