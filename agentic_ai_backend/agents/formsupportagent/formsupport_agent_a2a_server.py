@@ -49,6 +49,8 @@ if blob_connection_string and blob_container:
 
 # Cache of agent instances per step number (step_number -> agent_instance)
 _agent_cache = {}
+# Per-session thread storage keyed on (session_id, step_identifier)
+_session_threads: dict = {}
 
 def get_agent(step_identifier: Union[int, str]):
     """
@@ -132,9 +134,17 @@ async def invoke_agent(request: InvokeRequest):
             
         # Get agent instance for this step
         agent = get_agent(step_identifier)
-        
+
+        # Resolve thread for this session+step combination
+        thread = None
+        if request.session_id:
+            thread_key = request.session_id
+            thread = _session_threads.get(thread_key)
+            if thread is None:
+                thread = agent.agent.get_new_thread()
+                _session_threads[thread_key] = thread
         # Run the agent with the cleaned query (or original if no step was found)
-        result = await agent.run(query)
+        result = await agent.run(query, thread=thread)
         
         return InvokeResponse(
             response=result,

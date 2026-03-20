@@ -90,11 +90,9 @@ class FormSupportAgent():
                 name="FormSupportAgent",                
             ) 
 
-
-
-    async def run(self, userquery):
-            result = await self.agent.run(userquery)
-            return result.text
+    async def run(self, userquery, thread=None):
+        result = await self.agent.run(userquery, thread=thread)
+        return result.text
 
 
 async def dryrun(query):

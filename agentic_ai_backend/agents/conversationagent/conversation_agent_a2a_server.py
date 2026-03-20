@@ -24,6 +24,8 @@ app = FastAPI(
 
 # Global agent instance (singleton pattern)
 _agent_instance = None
+# Per-session thread storage
+_session_threads: dict = {}
 
 def get_agent():
     """Get or create the agent instance"""
@@ -57,7 +59,16 @@ async def invoke_agent(request: InvokeRequest):
     """
     try:
         agent = get_agent()
-        result = await agent.run(request.query)
+        # Use session_id to maintain per-session conversation thread
+        thread = None
+        if request.session_id:
+            thread = _session_threads.get(request.session_id)
+            if thread is None:
+                thread = agent.agent.get_new_thread()
+                _session_threads[request.session_id] = thread
+
+        # Run the agent
+        result = await agent.run(request.query, thread=thread)
         return InvokeResponse(
             response=result,
             session_id=request.session_id

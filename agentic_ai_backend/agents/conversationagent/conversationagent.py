@@ -33,9 +33,8 @@ class ConversationAgent:
 
 
 
-    async def run(self, userquery):
-        
-        result = await self.agent.run(userquery)
+    async def run(self, userquery, thread=None):
+        result = await self.agent.run(userquery, thread=thread)
         return result.text
 
 

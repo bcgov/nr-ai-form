@@ -73,7 +73,8 @@ class Aggregator(Executor):
                 - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.
                 - If the Form Support Agent suggests a specific action, YOU MUST PRIORITIZE this action in your response. Guide the user to take that action.
                 - For e.g. if the `type` is "button" and `title` is "Apply without BCeID", then you must guide the user "If you'd like to proceed without a BCeID, please click the "Apply without BCeID" button on the form to start your application".
-                - *Strict*: if the suggestion from Form Support Agent has `type` is "radio" or `type` is "select" and then response should indicate like "AI Assistant has selected the option for you."                
+                - *Strict*: if the suggestion from Form Support Agent has `type` is "radio" or `type` is "select" then the response should indicate like "AI Assistant has selected the option for you."
+                - *Strict*: if the suggestion from Form Support Agent has `type` is "string" then the response should acknowledge that the information has been filled in for the user (e.g., "AI Assistant has filled in your supporting information details for you.")
                 - If the Form Support Agent says "no match" or implies no specific form action is needed right now, rely primarily on the Conversation Agent's information if there are any response from Conversation Agent.
                 - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").
                 - *Strict*: if the conversation agent's response is NOT FOUND, and there is valid 'suggestedvalue' in JSON response from Form Support agent, then response should indicate the action taken by AI Bot's suggestion, rather than directing the user to take action.
