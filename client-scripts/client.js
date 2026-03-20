@@ -601,10 +601,13 @@ function applyNextPendingSuggestion() {
             savePendingSuggestions(remaining);
 
             // Determine if this field type is known to trigger an ASP.NET postback on change.
-            // For these types we use beforeunload detection to know when the page is reloading.
-            // For text/textarea (string) we skip postback detection entirely — they never cause
-            // a postback on their own, and waiting for beforeunload risks false positives from
-            // other controls on the page (timers, AutoPostBack fields, validation triggers).
+            // radio/checkbox/select → ASP.NET wires these to __doPostBack, causing a page reload on change.
+            // string/textarea → no postback by default; we nudge the next field manually after applying.
+            //
+            // NOTE: If a textarea has AutoPostBack="true" set in ASP.NET markup (unusual but possible),
+            // it would also trigger a postback and wipe the value we just set. In that case, add 'string'
+            // to this check or detect it from the DOM element's attributes. For standard forms this is
+            // not an issue as TextBox/TextArea controls do not have AutoPostBack enabled by default.
             const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
 
             // Apply the suggestion value to the DOM element
