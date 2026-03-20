@@ -600,12 +600,12 @@ function applyNextPendingSuggestion() {
             // applySuggestionToElements() can run, so remaining must already be in sessionStorage.
             savePendingSuggestions(remaining);
 
-            // Listen for page unload to detect whether this field triggers a postback.
-            // This approach works for ANY field type — we don't need a hardcoded list.
-            // If the field causes a postback, beforeunload fires and we let the reload handle it.
-            let unloading = false;
-            function onBeforeUnload() { unloading = true; }
-            window.addEventListener('beforeunload', onBeforeUnload);
+            // Determine if this field type is known to trigger an ASP.NET postback on change.
+            // For these types we use beforeunload detection to know when the page is reloading.
+            // For text/textarea (string) we skip postback detection entirely — they never cause
+            // a postback on their own, and waiting for beforeunload risks false positives from
+            // other controls on the page (timers, AutoPostBack fields, validation triggers).
+            const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
 
             // Apply the suggestion value to the DOM element
             const applied = applySuggestionToElements(suggestion, freshElements);
@@ -613,25 +613,36 @@ function applyNextPendingSuggestion() {
                 console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
             }
 
-            // Wait 100ms for the browser to fire beforeunload if a postback was triggered.
-            // 100ms is enough for the synchronous postback chain to start, but short enough
-            // that non-postback fields don't feel sluggish.
-            setTimeout(function () {
-                window.removeEventListener('beforeunload', onBeforeUnload);
-                if (unloading) {
-                    // A postback was triggered — the page is reloading.
-                    // resumePendingSuggestions() will pick up `remaining` from sessionStorage on the next load.
-                    return;
-                }
-                // No postback occurred — page is still alive.
-                // Nudge the next field after waiting for any DOM updates caused by this field.
+            if (!triggersPostback) {
+                // text/textarea — no postback expected, nudge next field immediately after a short settle
                 if (remaining.length > 0) {
                     waitForDomSettle(null, applyNextPendingSuggestion);
                 } else {
-                    // All fields applied — clean up sessionStorage
                     clearPendingSuggestions();
                 }
-            }, 100);
+            } else {
+                // radio/select/checkbox — listen for beforeunload to detect the postback.
+                // If beforeunload fires, the page is reloading and resumePendingSuggestions handles the rest.
+                // If it doesn't fire within 100ms, fall back to nudging the next field manually.
+                let unloading = false;
+                function onBeforeUnload() { unloading = true; }
+                window.addEventListener('beforeunload', onBeforeUnload);
+
+                // Wait 100ms for the browser to fire beforeunload if a postback was triggered.
+                setTimeout(function () {
+                    window.removeEventListener('beforeunload', onBeforeUnload);
+                    if (unloading) {
+                        // Page is reloading — resumePendingSuggestions handles next field on reload
+                        return;
+                    }
+                    // No postback detected — nudge next field manually (e.g. PageRequestManager not hooked)
+                    if (remaining.length > 0) {
+                        waitForDomSettle(null, applyNextPendingSuggestion);
+                    } else {
+                        clearPendingSuggestions();
+                    }
+                }, 100);
+            }
         });
     }
 
