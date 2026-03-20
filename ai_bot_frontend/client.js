@@ -3,8 +3,8 @@
 
 
 //-------------------------- Services Starts ---------------------------//
-const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
-
+// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.salmonsky-b7207c87.canadacentral.azurecontainerapps.io/invoke";
+const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 
 
 async function invokeOrchestrator(query, step_number, session_id = null) {
@@ -293,6 +293,18 @@ function tryParseJson(value) {
         cleanedValue = match[1].trim();
     }
 
+    // Handle mixed response: JSON followed by a plain text follow-up question.
+    // Extract just the JSON portion (object or array) from the start of the string.
+    const jsonMatch = cleanedValue.match(/^(\[[\s\S]*\]|\{[\s\S]*\})/);
+    if (jsonMatch) {
+        try {
+            return JSON.parse(jsonMatch[1]);
+        } catch {
+            // fall through to full parse attempt
+            console.error("Failed to parse JSON from response");
+        }
+    }
+
     try {
         return JSON.parse(cleanedValue);
     } catch {
@@ -400,17 +412,242 @@ function applySuggestionToElements(suggestion, elements) {
     return false;
 }
 
+/** 
+ * sessionStorage key used to persist the queue of pending field suggestions across page reloads.
+ * sessionStorage survives ASP.NET postback reloads (unlike in-memory JS variables which reset),
+ * but is cleared when the browser tab is closed.
+*/
+const PENDING_SUGGESTIONS_KEY = 'wp_pending_suggestions';
+
+/** 
+ * Serialize the suggestions array to sessionStorage as JSON.
+ * Wrapped in try/catch in case sessionStorage is unavailable (e.g. private browsing restrictions).
+*/
+function savePendingSuggestions(suggestions) {
+    try { sessionStorage.setItem(PENDING_SUGGESTIONS_KEY, JSON.stringify(suggestions)); } catch (e) { }
+}
+
+/** 
+ * Read and deserialize the suggestions array from sessionStorage.
+ * Returns an empty array if nothing is stored or if parsing fails.
+*/
+function loadPendingSuggestions() {
+    try { const r = sessionStorage.getItem(PENDING_SUGGESTIONS_KEY); return r ? JSON.parse(r) : []; } catch (e) { return []; }
+}
+
+/** 
+ * Remove the suggestions key from sessionStorage entirely — used when the queue is fully processed.
+*/
+function clearPendingSuggestions() {
+    sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
+}
+
+/** 
+ * Flag to ensure we only register the ASP.NET endRequest hook once per page lifecycle.
+ * On a full postback reload this resets to false, so the hook is re-registered on the new page.
+*/
+let _aspNetHooked = false;
+
+/** 
+ * Register a listener on ASP.NET's PageRequestManager.endRequest event.
+ * This event fires after every PARTIAL postback (UpdatePanel refresh) when the DOM has been
+ * updated by the server response. We use it to continue applying suggestions after a partial refresh.
+ * If Sys (ASP.NET ScriptManager) is not ready yet, we retry in 500ms.
+*/
+function ensureAspNetHook() {
+    if (_aspNetHooked) return;
+    try {
+        if (typeof Sys === 'undefined' || !Sys.WebForms) {
+            // ScriptManager not initialized yet — retry shortly
+            setTimeout(ensureAspNetHook, 500);
+            return;
+        }
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
+            // After each partial postback, check if there are pending suggestions and resume.
+            // We wait for DOM to settle first because the UpdatePanel may still be re-rendering.
+            const pending = loadPendingSuggestions();
+            if (pending.length > 0) waitForDomSettle(null, applyNextPendingSuggestion);
+        });
+        _aspNetHooked = true;
+    } catch (e) { }
+}
+
+/** 
+ * Wait until the DOM stops mutating for `quietMs` milliseconds, then invoke `callback`.
+ * This is used to detect when ASP.NET has finished re-rendering panels after a postback,
+ * so we don't write field values into DOM nodes that are about to be replaced.
+ * 
+ * How it works:
+ *   - A MutationObserver watches `root` (defaults to document.body) for any DOM changes.
+ *   - Every time a mutation fires, the quiet timer is reset.
+ *   - Once `quietMs` (default 300ms) passes with no mutations, the DOM is considered settled.
+ *   - A hard cap of `maxWaitMs` (default 5000ms) prevents waiting forever if mutations never stop.
+ *   - If MutationObserver is unavailable, callback is invoked immediately as a fallback.
+*/
+function waitForDomSettle(root, callback, quietMs, maxWaitMs) {
+    quietMs = quietMs || 300;
+    maxWaitMs = maxWaitMs || 5000;
+    var target = root || document.body;
+    var quietTimer = null;
+    var giveUpTimer = null;
+    var done = false;
+
+    /** 
+     * `done` flag prevents callback from firing more than once
+     * (both timers could theoretically fire close together)
+    */
+    function finish() {
+        if (done) return;
+        done = true;
+        if (observer) observer.disconnect(); // stop watching DOM
+        clearTimeout(quietTimer);
+        clearTimeout(giveUpTimer);
+        callback();
+    }
+
+    var observer = null;
+    try {
+        observer = new MutationObserver(function () {
+            // DOM changed — reset the quiet timer, we're not settled yet
+            clearTimeout(quietTimer);
+            quietTimer = setTimeout(finish, quietMs);
+        });
+        // Watch the entire subtree for any kind of DOM change
+        observer.observe(target, { childList: true, subtree: true, attributes: true, characterData: true });
+    } catch (e) {
+        // MutationObserver not supported — proceed immediately
+        callback();
+        return;
+    }
+
+    // If the DOM is already quiet (no mutations happen at all), fire after quietMs
+    quietTimer = setTimeout(finish, quietMs);
+    // Safety net — never wait longer than maxWaitMs regardless of ongoing mutations
+    giveUpTimer = setTimeout(finish, maxWaitMs);
+}
+
+/** 
+ * Entry point called when the AI response contains form field suggestions.
+ * Clears any stale queue, saves the new suggestions, and starts applying them one by one.
+*/
 function applyFormSupportSuggestionsFromResponse(response) {
+    ensureAspNetHook();
     const suggestions = parseFormSupportSuggestions(response);
     if (suggestions.length === 0) return;
+    // Clear any leftover suggestions from a previous response before saving the new batch
+    clearPendingSuggestions();
+    savePendingSuggestions(suggestions);
+    applyNextPendingSuggestion();
+}
 
-    suggestions.forEach((suggestion) => {
+/** 
+ * Applies the next pending suggestion from sessionStorage to the form.
+ * This function is called:
+ *   - Directly after receiving AI suggestions (first field)
+ *   - After each non-postback field is applied (nudged manually)
+ *   - After each partial postback settles (via endRequest hook)
+ *   - On every page reload (via resumePendingSuggestions)
+*/
+function applyNextPendingSuggestion() {
+    const suggestions = loadPendingSuggestions();
+    if (suggestions.length === 0) { clearPendingSuggestions(); return; }
+
+    // Take the first suggestion off the queue
+    const suggestion = suggestions[0];
+    const remaining = suggestions.slice(1); // everything after the first
+
+    // Poll until the target element appears in the DOM.
+    // After a full page reload, the script runs before ASP.NET has finished rendering all controls,
+    // so the element may not exist in the DOM yet. We retry every 150ms for up to ~5 seconds.
+    const maxAttempts = 33; // 33 × 150ms ≈ 5 seconds
+    let attempts = 0;
+
+    function tryApply() {
         const elements = findFieldElementsByIdentifier(suggestion.id);
-        const applied = applySuggestionToElements(suggestion, elements);
-        if (!applied) {
-            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+        if (elements.length === 0 && attempts < maxAttempts) {
+            // Element not in DOM yet — wait and retry
+            attempts++;
+            setTimeout(tryApply, 150);
+            return;
         }
-    });
+
+        if (elements.length === 0) {
+            // Gave up waiting — element never appeared. Skip this field and move to the next.
+            console.warn(`FormSupport: element not found after retries, skipping id=${suggestion.id}`);
+            savePendingSuggestions(remaining);
+            if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
+            return;
+        }
+
+        // Element found in DOM. Now wait for the DOM to fully settle before applying.
+        // ASP.NET UpdatePanels can still be mid-render even after the element appears —
+        // writing a value too early risks it being wiped when the panel finishes updating.
+        waitForDomSettle(null, function () {
+            // Re-fetch the element after settling — UpdatePanel re-renders replace DOM nodes,
+            // so the reference we had before the settle may now point to a detached element.
+            const freshElements = findFieldElementsByIdentifier(suggestion.id);
+            if (freshElements.length === 0) {
+                // Element was removed during the panel re-render — skip and continue
+                console.warn(`FormSupport: element disappeared after DOM settle, skipping id=${suggestion.id}`);
+                savePendingSuggestions(remaining);
+                if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
+                return;
+            }
+
+            // Save remaining suggestions BEFORE touching the DOM.
+            // This is critical: some fields (radio, select) trigger an immediate ASP.NET postback
+            // the moment their value changes. The page reloads before any code after
+            // applySuggestionToElements() can run, so remaining must already be in sessionStorage.
+            savePendingSuggestions(remaining);
+
+            // Determine if this field type is known to trigger an ASP.NET postback on change.
+            // radio/checkbox/select → ASP.NET wires these to __doPostBack, causing a page reload on change.
+            // string/textarea → no postback by default; we nudge the next field manually after applying.
+            //
+            // NOTE: If a textarea has AutoPostBack="true" set in ASP.NET markup (unusual but possible),
+            // it would also trigger a postback and wipe the value we just set. In that case, add 'string'
+            // to this check or detect it from the DOM element's attributes. For standard forms this is
+            // not an issue as TextBox/TextArea controls do not have AutoPostBack enabled by default.
+            const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
+
+            // Apply the suggestion value to the DOM element
+            const applied = applySuggestionToElements(suggestion, freshElements);
+            if (!applied) {
+                console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+            }
+
+            if (!triggersPostback) {
+                // text/textarea — no postback expected, nudge next field after a short settle
+                if (remaining.length > 0) {
+                    waitForDomSettle(null, applyNextPendingSuggestion);
+                } else {
+                    clearPendingSuggestions();
+                }
+            } else if (!_aspNetHooked) {
+                // No PageRequestManager available — fixed delay fallback
+                if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
+                else setTimeout(clearPendingSuggestions, 900);
+            }
+            // else: page reloads after postback, resumePendingSuggestions handles next field on reload
+            // OR endRequest hook fires after partial postback and calls applyNextPendingSuggestion
+        });
+    }
+
+    tryApply();
+}
+
+/** 
+ * Called on every page load/reload to resume any suggestions that were interrupted by a postback.
+ * On a full ASP.NET postback, all JS state resets but sessionStorage persists.
+ * This function checks sessionStorage and continues from where the previous page left off.
+*/
+function resumePendingSuggestions() {
+    const pending = loadPendingSuggestions();
+    if (pending.length === 0) return;
+    // Try to register the partial postback hook (Sys may now be available after full page load)
+    ensureAspNetHook();
+    // Wait for the page DOM to fully settle before starting to apply fields
+    waitForDomSettle(null, applyNextPendingSuggestion);
 }
 
 
@@ -887,6 +1124,10 @@ function initBot() {
             .replace(/>/g, '&gt;');
 
         let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Convert Markdown links [text](url) to HTML anchor tags.
+        // target="_blank" opens in a new tab; rel="noopener noreferrer" prevents the new tab
+        // from accessing window.opener (security best practice for external links).
+        formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         formatted = formatted.replace(/\n/g, '<br>');
         formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
 
@@ -936,6 +1177,10 @@ function initBot() {
     });
 
     autoResizeChatInput();
+
+    // On every page load/reload (including after ASP.NET postbacks), resume any
+    // pending suggestions that were saved to sessionStorage before the page refreshed.
+    resumePendingSuggestions();
 }
 
 if (document.readyState === 'loading') {
