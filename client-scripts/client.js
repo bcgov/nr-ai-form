@@ -773,8 +773,8 @@ else {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 420px;
-            height: 650px;
+            width: 420px!important;
+            height: 650px!important;
             max-width: calc(100vw - 40px);
             max-height: calc(100vh - 40px);
             z-index: 99999;
