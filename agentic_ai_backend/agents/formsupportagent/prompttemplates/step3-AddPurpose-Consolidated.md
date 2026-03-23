@@ -17,7 +17,9 @@
         - **200**: If user mentions "200 cows" or "300 chickens", map to **NumberOfStock**
         - **Beef**: if user mentions "cows" or "buffalo", map to **TypeOfStock**, 
         - **Poultry**: if user mentions "chicken" or "duck", map to **TypeOfStock**,
-        - "No": if haven't mentioned about the seasonal use for watering, Its No. For e.g. June to September, if indicated a period June to September, its "Yes" , map to   **WSLICUseOfWaterSeasonal**
+        - "No": if user haven't mentioned about the seasonal use for watering, Its No. For e.g. June to September, if indicated a period June to September, its "Yes" , map to   **WSLICUseOfWaterSeasonal**
+        - "June": If user mentioned about seasonal use of water like " form June to September", map to **WSLICUseOfWaterFromMonth**
+        - "September": If user mentioned about seasonal use of water like " form June to September", map to **WSLICUseOfWaterToMonth**
         - **74.3**: If the LiveStock MCP Tool returns the water usage or consumption in cubic meters based on the TypeOfStock. **Calculate the Quantity for a year** , , map to **Quantity**.
         - **I am first farmer need to water 200 cows for 4 years, and has fee exemption** : Curated description from the last five user query which includes user needs, fee exemption etc, map to **Comments**.
 
