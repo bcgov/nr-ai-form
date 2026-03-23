@@ -67,16 +67,18 @@ class Aggregator(Executor):
                 {form_text}
                 
                 Your task:
-                - Synthesize a single, natural, and helpful response for the user.
+                - Synthesize a single, natural, and helpful response for the user. 
                 - Synthesized response content of Conversation Agent will come first, then the response content of Form Support Agent.
                 - On Step 2 - Eligibility, if the user query is related to 'North Coast Transmission line' or 'BC Hydro Sustainability Project' or 'clean energy project that received a new Energy Purchase Agreement from BC Hydro'or 'increasing the supply of housing units' then discard the responses from Form Support Agent and Conversation Agent, and indicate those queries are not supported for PILOT release.
                 - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.
                 - If the Form Support Agent suggests a specific action, YOU MUST PRIORITIZE this action in your response. Guide the user to take that action.
                 - For e.g. if the `type` is "button" and `title` is "Apply without BCeID", then you must guide the user "If you'd like to proceed without a BCeID, please click the "Apply without BCeID" button on the form to start your application".
+                - On step 3 - Technical Information, If there are any calculations involved, DO NOT use LATEX to display those calculations. Just write it out as a simple text.
                 - *Strict*: if the suggestion from Form Support Agent has `type` is "radio" or `type` is "select" then the response should indicate like "AI Assistant has selected the option for you."
                 - *Strict*: if the suggestion from Form Support Agent has `type` is "string" then the response should acknowledge that the information has been filled in for the user (e.g., "AI Assistant has filled in your supporting information details for you.")
                 - If the Form Support Agent says "no match" or implies no specific form action is needed right now, rely primarily on the Conversation Agent's information if there are any response from Conversation Agent.
                 - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").
+                - Do not send a JSON in the aggregated response; Only the original results can contain the respective responses from Conversation Agent and Form Support Agent.
                 - *Strict*: if the conversation agent's response is NOT FOUND, and there is valid 'suggestedvalue' in JSON response from Form Support agent, then response should indicate the action taken by AI Bot's suggestion, rather than directing the user to take action.
                 """
                 
