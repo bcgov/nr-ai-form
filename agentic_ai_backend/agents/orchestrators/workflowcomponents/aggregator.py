@@ -24,14 +24,15 @@ class Aggregator(Executor):
         api_key = os.getenv("AZURE_OPENAI_API_KEY")
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION")
 
-        if api_key and endpoint and deployment:
+        if api_key and endpoint and deployment and api_version:
             try:
                 client = AsyncAzureOpenAI(
                     api_key=api_key,
                     api_version=api_version,
-                    azure_endpoint=endpoint
+                    azure_endpoint=endpoint,
+                    azure_deployment=deployment,
                 )
                 
                 # Extract information from results
@@ -86,7 +87,7 @@ class Aggregator(Executor):
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
-                    ],                   
+                    ],
                 )
                 
                 final_text = completion.choices[0].message.content
@@ -108,7 +109,7 @@ class Aggregator(Executor):
                 print(f"Error in Aggregator LLM call: {e}")
                 # Fallback to returning original results if LLM fails/errors
         else:
-            print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, or DEPLOYMENT). Returning raw results.")
+            print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, DEPLOYMENT, or API_VERSION). Returning raw results.")
         
         print("Aggregator: Yielding raw results.")
         await ctx.yield_output(results)

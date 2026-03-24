@@ -34,7 +34,9 @@ def get_agent():
         try:            
             endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
             api_key = os.environ["AZURE_OPENAI_API_KEY"]
-            _agent_instance = ConversationAgent(endpoint, api_key)
+            deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+            api_version = os.environ["AZURE_OPENAI_API_VERSION"]
+            _agent_instance = ConversationAgent(endpoint, api_key, deployment_name, api_version)
         except Exception as e:
             raise RuntimeError(f"Failed to initialize agent: {str(e)}")
     return _agent_instance
