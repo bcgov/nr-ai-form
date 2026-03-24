@@ -57,7 +57,7 @@ def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_t
 
 
 class FormSupportAgent():
-    def __init__(self, endpoint, api_key, deployment_name, form_context_str, instructions):
+    def __init__(self, endpoint, api_key, deployment_name, api_version, form_context_str, instructions):
         if not instructions:
             raise ValueError("Instructions (Skill MD) are required to initialize the FormSupportAgent.")
             
@@ -84,7 +84,12 @@ class FormSupportAgent():
             "to calculate water demand in cubic meters (m3) and application fees."
         )
 
-        self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key, deployment_name=deployment_name).create_agent(
+        self.agent = AzureOpenAIChatClient(
+                endpoint=endpoint,
+                api_key=api_key,
+                deployment_name=deployment_name,
+                api_version=api_version,
+            ).create_agent(
                 instructions=final_instructions,                
                 tools=LIVESTOCK_WATER_CONSUMPTION_TOOLS,
                 name="FormSupportAgent",                
@@ -99,6 +104,7 @@ async def dryrun(query):
     endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
     api_key = os.environ["AZURE_OPENAI_API_KEY"]
     deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+    api_version = os.environ["AZURE_OPENAI_API_VERSION"]
 
     # Initialize Services
     connection_string = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
@@ -141,7 +147,14 @@ async def dryrun(query):
         print(f"WARNING: No prompt template (.md) found for step: {step_identifier}. Step is required to have a specialized prompt.")
         return
 
-    agent = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str, instructions=custom_instructions)
+    agent = FormSupportAgent(
+        endpoint,
+        api_key,
+        deployment_name,
+        api_version,
+        form_context_str,
+        instructions=custom_instructions,
+    )
   
     print("User Query is: {0}".format(actual_query))
     result = await agent.run(actual_query)

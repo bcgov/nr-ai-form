@@ -15,8 +15,13 @@ load_dotenv()
 
 class ConversationAgent:
     
-    def __init__(self,endpoint, api_key):        
-        self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key).create_agent(
+    def __init__(self, endpoint, api_key, deployment_name, api_version):
+        self.agent = AzureOpenAIChatClient(
+            endpoint=endpoint,
+            api_key=api_key,
+            deployment_name=deployment_name,
+            api_version=api_version,
+        ).create_agent(
             instructions=f"""
                 You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.
                 
@@ -43,8 +48,9 @@ class ConversationAgent:
 async def dryrun(query):
     endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
     api_key = os.environ["AZURE_OPENAI_API_KEY"]
-    model =  os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
-    agent = ConversationAgent(endpoint,api_key)
+    deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+    api_version = os.environ["AZURE_OPENAI_API_VERSION"]
+    agent = ConversationAgent(endpoint, api_key, deployment_name, api_version)
   
     print("User Query is {0}".format(query))
     result = await agent.run(query)

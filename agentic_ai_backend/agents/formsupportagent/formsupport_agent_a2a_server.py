@@ -75,6 +75,7 @@ def get_agent(step_identifier: Union[int, str]):
         endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
         api_key = os.environ["AZURE_OPENAI_API_KEY"]
         deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+        api_version = os.environ["AZURE_OPENAI_API_VERSION"]
         
         # Load assets using shared utility
         form_definition, custom_instructions, step_key = resolve_agent_assets(
@@ -93,7 +94,14 @@ def get_agent(step_identifier: Union[int, str]):
             raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
         
         # Create and cache the agent instance
-        agent_instance = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str, instructions=custom_instructions)
+        agent_instance = FormSupportAgent(
+            endpoint,
+            api_key,
+            deployment_name,
+            api_version,
+            form_context_str,
+            instructions=custom_instructions,
+        )
         _agent_cache[step_key] = agent_instance #TODO ABIN: Need to implement agent caching on an distributed cache. 
         
         print(f"Created FormSupportAgent for step {step_key}")
