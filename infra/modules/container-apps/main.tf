@@ -99,6 +99,11 @@ resource "azurerm_container_app" "backend" {
     value = var.azure_blobstorage_connectionstring
   }
 
+  secret {
+    name  = "redis-password"
+    value = var.redis_password
+  }
+
   template {
     max_replicas                     = var.max_replicas
     min_replicas                     = var.min_replicas
@@ -559,6 +564,86 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_blobstorage_container
       }
     }
+   # API Backend Container - Public-facing WebSocket gateway to orchestrator
+    container {
+      name   = "api-backend"
+      image  = var.api_backend_image
+      cpu    = var.container_cpu
+      memory = var.container_memory
+
+      startup_probe {
+        transport = "HTTP"
+        path      = "/health"
+        port      = var.api_backend_port
+        timeout   = 5
+      }
+
+      readiness_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = var.api_backend_port
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      liveness_probe {
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = var.api_backend_port
+        timeout                 = 5
+        failure_count_threshold = 3
+      }
+
+      env {
+        name  = "PORT"
+        value = tostring(var.api_backend_port)
+      }
+
+      env {
+        name  = "ORCHESTRATOR_AGENT_WS_URL"
+        value = "ws://localhost:${var.orchestrator_agent_port}/ws"
+      }
+
+      env {
+        name  = "LOG_LEVEL"
+        value = var.log_level
+      }
+
+      env {
+        name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        secret_name = "appinsights-connection-string"
+      }
+
+      env {
+        name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
+        secret_name = "appinsights-instrumentation-key"
+      }
+
+      env {
+        name  = "REDIS_HOST"
+        value = var.redis_host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(var.redis_port)
+      }
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+
+      env {
+        name  = "REDIS_SSL"
+        value = tostring(var.redis_ssl)
+      }
+
+      env {
+        name  = "REDIS_TTL_DAYS"
+        value = tostring(var.redis_ttl_days)
+      }
+    }
 
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {
@@ -568,8 +653,8 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true # Must be true for Front Door to reach the backend
-    target_port                = 8002 # Backend app runs on port 8002 (controlled by orchestrator_agent_port)
+    external_enabled           = true # Must be true for Front Door to reach the api_backend
+    target_port                = var.api_backend_port # api_backend is the public-facing gateway
     transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 

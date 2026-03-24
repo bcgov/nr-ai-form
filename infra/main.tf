@@ -80,6 +80,7 @@ module "container_apps" {
   orchestrator_agent_image = var.orchestrator_agent_image
   conversation_agent_image = var.conversation_agent_image
   formsupport_agent_image  = var.formsupport_agent_image
+  api_backend_image        = var.api_backend_image
   backend_image            = var.conversation_agent_image # Fallback for compatibility
 
   resource_group_name = azurerm_resource_group.main.name
@@ -147,6 +148,13 @@ module "container_apps" {
   # Azure Blob Storage
   azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
   azure_blobstorage_container         = var.azure_blobstorage_container
+
+  # Redis
+  redis_host     = var.redis_host
+  redis_port     = var.redis_port
+  redis_password = var.redis_password
+  redis_ssl      = var.redis_ssl
+  redis_ttl_days = var.redis_ttl_days
 
   depends_on = [module.network, module.cosmos, module.monitoring]
 }

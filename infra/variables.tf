@@ -28,6 +28,12 @@ variable "orchestrator_agent_image" {
   type        = string
 }
 
+variable "api_backend_image" {
+  description = "The image for the API Backend container (WebSocket gateway)"
+  type        = string
+  default     = ""
+}
+
 # Legacy variable for Container Apps compatibility - will use conversation_agent_image
 variable "api_image" {
   description = "The image for the API container (used by Container Apps - defaults to conversation_agent_image)"
@@ -278,6 +284,38 @@ variable "azure_blobstorage_container" {
   description = "Azure Blob Storage container name"
   type        = string
   nullable    = false
+}
+
+# Redis Configuration
+variable "redis_host" {
+  description = "Redis cache hostname"
+  type        = string
+  default     = ""
+}
+
+variable "redis_port" {
+  description = "Redis cache port"
+  type        = number
+  default     = 10000
+}
+
+variable "redis_password" {
+  description = "Redis cache access key"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "redis_ssl" {
+  description = "Whether to use SSL for Redis connections"
+  type        = bool
+  default     = true
+}
+
+variable "redis_ttl_days" {
+  description = "TTL in days for Redis cache entries"
+  type        = number
+  default     = 14
 }
 
 # Sidecar Deployment Configuration

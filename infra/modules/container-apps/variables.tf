@@ -143,6 +143,43 @@ variable "azure_blobstorage_container" {
   nullable    = false
 }
 
+# Redis Configuration
+variable "redis_host" {
+  description = "Redis cache hostname"
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "redis_port" {
+  description = "Redis cache port"
+  type        = number
+  default     = 10000
+  nullable    = false
+}
+
+variable "redis_password" {
+  description = "Redis cache access key"
+  type        = string
+  sensitive   = true
+  default     = ""
+  nullable    = false
+}
+
+variable "redis_ssl" {
+  description = "Whether to use SSL for Redis connections"
+  type        = bool
+  default     = true
+  nullable    = false
+}
+
+variable "redis_ttl_days" {
+  description = "TTL in days for Redis cache entries"
+  type        = number
+  default     = 14
+  nullable    = false
+}
+
 variable "backend_image" {
   description = "Container image for the backend API (deprecated - use orchestrator_agent_image)"
   type        = string
@@ -189,6 +226,20 @@ variable "formsupport_agent_port" {
   description = "Port for the Form Support Agent"
   type        = number
   default     = 8001
+  nullable    = false
+}
+
+variable "api_backend_image" {
+  description = "Container image for the API Backend (WebSocket gateway between frontend and orchestrator)"
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "api_backend_port" {
+  description = "Port for the API Backend"
+  type        = number
+  default     = 8003
   nullable    = false
 }
 
