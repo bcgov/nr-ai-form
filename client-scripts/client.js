@@ -60,8 +60,9 @@ else {
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="Units_100536361_100379172_185527876_sp" name="Units_100536361_100379172_185527876_sp" class="possegrid" style="text-align: left">{water_usage} m<sup>3</sup>/year </span></td>
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="ApplicationUnits_100536361_100379172_185527876_sp" name="ApplicationUnits_100536361_100379172_185527876_sp" class="possegrid" style="text-align: left"> </span></td>
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: right" nowrap=""><span id="ApplicationFee_100536361_100379172_185527876_sp" name="ApplicationFee_100536361_100379172_185527876_sp" class="possegrid" style="text-align: right">$250.00</span></td>
-                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: right" nowrap=""><span id="Delete_1_100536361_100379172_173010900_sp" name="Delete_1_100536361_100379172_173010900_sp" class="possegrid" style="text-align: right"><img src="images/btndel.gif?v=5797" width="23" height="20" id="Delete_1_100536361_100379172_173010900" name="Delete_1_100536361_100379172_173010900" class="possegrid" onclick="if (confirm('Are you sure you want to delete this?')) {PosseDelete('https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Default.aspx?PossePresentation=Public&PosseObjectId=173010563%27,%27173010900%27); PosseSubmit();}" tabindex="3" title="Delete this line" alt="Delete" onmouseover="this.style.cursor='pointer'" onkeypress="if(event.keyCode=='13'){this.click();}"></span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: right" nowrap=""><span id="Delete_1_100536361_100379172_173010900_sp" name="Delete_1_100536361_100379172_173010900_sp" class="possegrid" style="text-align: right"><img src="images/btndel.gif?v=5797" width="23" height="20" id="Delete_1_100536361_100379172_173010900" name="Delete_1_100536361_100379172_173010900" class="possegrid" onclick="if (confirm('Are you sure you want to delete this?')) {PosseDelete('https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Default.aspx?PossePresentation=Public&amp;PosseObjectId=173010563','173010900'); PosseSubmit();}" tabindex="3" title="Delete this line" alt="Delete" onmouseover="this.style.cursor='pointer'" onkeypress="if(event.keyCode=='13'){this.click();}"></span></td>
                             </tr>`
+
 
 
         async function invokeOrchestrator(query, step_number, session_id = null) {
@@ -283,6 +284,7 @@ else {
             return step3PaneHeaderMap[paneHeaderText] || null;
         }
 
+
         function getPreferredPaneHeaderText() {
             const subHeader = document.querySelector('span[data-id="subheadername"]');
             const subHeaderText = normalizeComparableValue(subHeader?.textContent || '');
@@ -449,6 +451,29 @@ else {
             if (byName.length > 0) return byName;
 
             return [];
+        }
+
+        function applyPurposeTableSuggestion(suggestion) {
+            if (String(suggestion.type || '').toLowerCase() !== 'grid' || suggestion.id !== 'Purpose_Table') {
+                return false;
+            }
+
+            const purposeTable = document.querySelector('[data-id="Purpose_Table"]');
+            if (!purposeTable) {
+                console.warn('Purpose_Table element was not found in the DOM.');
+                return false;
+            }
+
+            const waterUsage = String(suggestion.suggestedvalue ?? '').trim();
+            const renderedHtml = livestockPurposehtml.replace('{water_usage}', waterUsage);
+
+            const insertTarget =
+                purposeTable.tagName?.toLowerCase() === 'table'
+                    ? purposeTable.tBodies[0] || purposeTable
+                    : purposeTable;
+
+            insertTarget.insertAdjacentHTML('beforeend', renderedHtml);
+            return true;
         }
 
         function applySuggestionToElements(suggestion, elements) {
@@ -1203,18 +1228,39 @@ else {
             }
 
             function formatMessage(text) {
-                const escaped = text
+                // Step 1: Extract Markdown links [text](url) before escaping so URLs are preserved intact.
+                // Replace them with placeholders to protect them from HTML escaping and plain-URL detection.
+                const mdLinkPlaceholders = [];
+                let processed = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, linkText, url) => {
+                    const idx = mdLinkPlaceholders.length;
+                    mdLinkPlaceholders.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`);
+                    return `\x00MDLINK${idx}\x00`;
+                });
+
+                // Step 2: Extract plain URLs (http/https and www.) before escaping.
+                const plainUrlPlaceholders = [];
+                // Match http(s):// URLs and www. URLs not already inside a Markdown link
+                processed = processed.replace(/(?<!\x00MDLINK\d*)(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+)/g, (url) => {
+                    const idx = plainUrlPlaceholders.length;
+                    const href = url.startsWith('http') ? url : `https://${url}`;
+                    plainUrlPlaceholders.push(`<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+                    return `\x00PLAINURL${idx}\x00`;
+                });
+
+                // Step 3: HTML-escape the remaining text (safe — placeholders use \x00 which won't be escaped)
+                let formatted = processed
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;');
 
-                let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                // Convert Markdown links [text](url) to HTML anchor tags.
-                // target="_blank" opens in a new tab; rel="noopener noreferrer" prevents the new tab
-                // from accessing window.opener (security best practice for external links).
-                formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+                // Step 4: Apply remaining Markdown formatting
+                formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
                 formatted = formatted.replace(/\n/g, '<br>');
                 formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
+
+                // Step 5: Restore placeholders
+                formatted = formatted.replace(/\x00MDLINK(\d+)\x00/g, (_, i) => mdLinkPlaceholders[Number(i)]);
+                formatted = formatted.replace(/\x00PLAINURL(\d+)\x00/g, (_, i) => plainUrlPlaceholders[Number(i)]);
 
                 if (formatted.includes('<li>')) {
                     formatted = `<ul>${formatted}</ul>`;
