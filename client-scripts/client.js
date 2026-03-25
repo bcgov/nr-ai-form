@@ -1182,39 +1182,18 @@ function initBot() {
     }
 
     function formatMessage(text) {
-        // Step 1: Extract Markdown links [text](url) before escaping so URLs are preserved intact.
-        // Replace them with placeholders to protect them from HTML escaping and plain-URL detection.
-        const mdLinkPlaceholders = [];
-        let processed = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, linkText, url) => {
-            const idx = mdLinkPlaceholders.length;
-            mdLinkPlaceholders.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`);
-            return `\x00MDLINK${idx}\x00`;
-        });
-
-        // Step 2: Extract plain URLs (http/https and www.) before escaping.
-        const plainUrlPlaceholders = [];
-        // Match http(s):// URLs and www. URLs not already inside a Markdown link
-        processed = processed.replace(/(?<!\x00MDLINK\d*)(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+)/g, (url) => {
-            const idx = plainUrlPlaceholders.length;
-            const href = url.startsWith('http') ? url : `https://${url}`;
-            plainUrlPlaceholders.push(`<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`);
-            return `\x00PLAINURL${idx}\x00`;
-        });
-
-        // Step 3: HTML-escape the remaining text (safe — placeholders use \x00 which won't be escaped)
-        let formatted = processed
+        const escaped = text
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
-        // Step 4: Apply remaining Markdown formatting
-        formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Convert Markdown links [text](url) to HTML anchor tags.
+        // target="_blank" opens in a new tab; rel="noopener noreferrer" prevents the new tab
+        // from accessing window.opener (security best practice for external links).
+        formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         formatted = formatted.replace(/\n/g, '<br>');
         formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
-
-        // Step 5: Restore placeholders
-        formatted = formatted.replace(/\x00MDLINK(\d+)\x00/g, (_, i) => mdLinkPlaceholders[Number(i)]);
-        formatted = formatted.replace(/\x00PLAINURL(\d+)\x00/g, (_, i) => plainUrlPlaceholders[Number(i)]);
 
         if (formatted.includes('<li>')) {
             formatted = `<ul>${formatted}</ul>`;
