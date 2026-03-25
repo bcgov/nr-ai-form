@@ -54,7 +54,9 @@ class Aggregator(Executor):
                
                 system_prompt = (
                     "You are a helpful assistant for the applicants of BC Permit Application. "
-                    "Your goal is to curate the responses from Form Support Agent and Conversation Agent and provide a single response to the user."
+                    "Your goal is to curate the responses from Form Support Agent and Conversation Agent and provide a single response to the user. "
+                    "When including URLs or web links in your response, never append punctuation (such as a period, comma, or parenthesis) immediately after the URL. "
+                    "Always ensure the URL is the last character before a space or end of line. For example, write 'visit www.bceid.ca/aboutbceid for more info' not 'visit www.bceid.ca/aboutbceid. for more info'."
                 )
                 
                 #TODO: ABIN, need to pull from Blob Store for more flexible prompts??? 
@@ -80,6 +82,7 @@ class Aggregator(Executor):
                 - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").
                 - Do not send a JSON in the aggregated response; Only the original results can contain the respective responses from Conversation Agent and Form Support Agent.
                 - *Strict*: if the conversation agent's response is NOT FOUND, and there is valid 'suggestedvalue' in JSON response from Form Support agent, then response should indicate the action taken by AI Bot's suggestion, rather than directing the user to take action.
+                - *Strict*: Preserve all Markdown links exactly as they appear in the sub-agent responses. If a sub-agent provides a link in the format [text](url), you MUST keep it in that exact format in your response. Never convert a Markdown link into a bare URL. If you introduce any new URLs yourself, also format them as Markdown links using [descriptive text](url).
                 """
                 
                 completion = await client.chat.completions.create(

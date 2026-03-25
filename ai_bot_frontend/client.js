@@ -4,8 +4,9 @@
 
 //-------------------------- Services Starts ---------------------------//
 const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+// const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 
- let livestockPurposehtml = `<tr class="possegrid">
+let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
                                         'editrelatedobject.aspx?PossePresentation=Default&amp;PosseObjectId=185527876&amp;SourceOfDiversion%3DGroundwater%26PostIssue11307%3DY',
                                             685, 800, 'PurposeEdit_100536361_100379172_173010900')">Edit</a></span></td>
@@ -1181,18 +1182,39 @@ function initBot() {
     }
 
     function formatMessage(text) {
-        const escaped = text
+        // Step 1: Extract Markdown links [text](url) before escaping so URLs are preserved intact.
+        // Replace them with placeholders to protect them from HTML escaping and plain-URL detection.
+        const mdLinkPlaceholders = [];
+        let processed = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, linkText, url) => {
+            const idx = mdLinkPlaceholders.length;
+            mdLinkPlaceholders.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`);
+            return `\x00MDLINK${idx}\x00`;
+        });
+
+        // Step 2: Extract plain URLs (http/https and www.) before escaping.
+        const plainUrlPlaceholders = [];
+        // Match http(s):// URLs and www. URLs not already inside a Markdown link
+        processed = processed.replace(/(?<!\x00MDLINK\d*)(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+)/g, (url) => {
+            const idx = plainUrlPlaceholders.length;
+            const href = url.startsWith('http') ? url : `https://${url}`;
+            plainUrlPlaceholders.push(`<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+            return `\x00PLAINURL${idx}\x00`;
+        });
+
+        // Step 3: HTML-escape the remaining text (safe — placeholders use \x00 which won't be escaped)
+        let formatted = processed
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
-        let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        // Convert Markdown links [text](url) to HTML anchor tags.
-        // target="_blank" opens in a new tab; rel="noopener noreferrer" prevents the new tab
-        // from accessing window.opener (security best practice for external links).
-        formatted = formatted.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        // Step 4: Apply remaining Markdown formatting
+        formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         formatted = formatted.replace(/\n/g, '<br>');
         formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
+
+        // Step 5: Restore placeholders
+        formatted = formatted.replace(/\x00MDLINK(\d+)\x00/g, (_, i) => mdLinkPlaceholders[Number(i)]);
+        formatted = formatted.replace(/\x00PLAINURL(\d+)\x00/g, (_, i) => plainUrlPlaceholders[Number(i)]);
 
         if (formatted.includes('<li>')) {
             formatted = `<ul>${formatted}</ul>`;
