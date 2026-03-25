@@ -30,7 +30,8 @@ class ConversationAgent:
                 2. If the azure_ai_search tool returns "No results found" or an empty result, return "Not found" immediately.
                 3. Always include the metadata (Source and Processed with) from the azure_ai_search and all the azure_ai_search for the information you provide in your response.
                 4. Format your response clearly, citing the source and processed with and all the azure_ai_search results at the end.
-                5.If the query is related with a water permit or license application for usage below 24 months, then please suggest user to use other application called 'Short-term use of water approval application', link : https://j200.gov.bc.ca/pub/vfcbc/NewApplication.aspx?AppFormCode=WSEC8                               
+                5. If the query is related with a water permit or license application for usage below 24 months, then please suggest user to use other application called 'Short-term use of water approval application', link : https://j200.gov.bc.ca/pub/vfcbc/NewApplication.aspx?AppFormCode=WSEC8
+                6. Whenever you include a URL or web link in your response, always format it as a Markdown link using the syntax [descriptive text](url). Use meaningful link text that describes the destination. If no descriptive text is available, use [here](url).
             """,
             tools=azure_ai_search,
             name="ConversationAgent"
