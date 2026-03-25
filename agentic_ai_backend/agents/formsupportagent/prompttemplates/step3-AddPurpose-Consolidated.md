@@ -25,10 +25,21 @@
 
 
 # Output Format & Rules
-    - **Strict:** Return a **array** of  **JSON  objects** for with `id` having **PurposeUseSector**,**PurposeUse**, **Quantity**, **TypeOfStock** , **NumberOfStock** and **Comments**.
-    - Attributes on each JSON object will be like `id`, `description`, `type` and `suggestedvalue` should be in **lower case** 
+    - **Strict:** Return a **array** of  **JSON  objects** for with `id` values having **PurposeUseSector**,**PurposeUse**, **Quantity**, **TypeOfStock** , **NumberOfStock** and **Comments**.
+    - Attribute name on each JSON object will be like `id`, `description`, `type` and `suggestedvalue` should be in **lower case**.
     - Example JSON response for **LiveStock Purpose** will look  this : **"[{"id":"PurposeUseSector","description":" purpose of water","suggestedvalue":"Industrial","type":"select"}]"**
     - Example JSON response for **LiveStock Purpose Use** will look  this : **"[{"id":"PurposeUse","description":" purpose of water use for","suggestedvalue":"Livestock and Animal","type":"select"}]"**
     - Example JSON response for **for user query with livestock/animal type with count and time/period requesting consumption and cost** will look  this : **"[{"id":"PurposeUseSector","description":"The purpose of use is the reason(Industrial, Irrigation etc.) for which you want to use the water","suggestedvalue":"Livestock and Animal","type":"select"},{"id":"PurposeUse","description":"The sub-purpose or category (Livestock and Animal or Irrigation or etc.)  is the specific reason for which you want to use the water within the broader purpose of use category you selected above.","type":"select"}, {"id":"WSLICUseOfWaterSeasonal","description":"Seasonal use means that you will only be using the water during certain months of the year.","suggestedvalue":"No","type":"radio"},{"id":"Quantity","description":"Annual Water Consumption in m3/year","suggestedvalue":"43.45","type":"number"},{"id":"TypeOfStock","description":"The type of stock is the kind of animals you will be watering or providing water for.","suggestedvalue":"Sheep and Goats","type":"select"},{"id":"NumberOfStock","description":"The number of stock is the total count of animals you will be watering or providing water for.","suggestedvalue":"200","type":"number"},{"id":"Comments","description":"Use this space to provide any additional information or comments about your water use that you think may be relevant to your application.","suggestedvalue":"Need to water consumption for watering 200 sheeps for 4 years","type":"textarea"} ]"**  
-    - Always suggest **WSLICUseOfWaterSeasonal** as No, If user's query has no seasonal usage wordings 
+    - Always suggest **WSLICUseOfWaterSeasonal** as No, If user's query has no seasonal usage wordings OR **from** a month **to** another month
     - If no properties are found at ALL, return "No Match".
+
+
+# Field Inquiry Rule
+- If the user asks about a specific field (e.g. "what is PurposeUseSector?", "what does Quantity mean?", "can you explain TypeOfStock?"), return the matching field's JSON with `suggestedvalue` set to `""` (empty string). Do NOT suggest a value.
+- Example: `{"id": "PurposeUseSector", "type": "select", "description": "The purpose of use is the reason (Industrial, Irrigation, Domestic, etc.) for which you want to use the water", "suggestedvalue": ""}`
+
+# Contextual Query Rule
+- If the user asks a contextual or informational question about the page or section (e.g. "what is this?", "what is this page for?", "what do I do here?", "what is this section about?", "can you explain this form?"), return a JSON object in this exact format:
+```json
+{"id": "step3-AddPurpose-Consolidated", "type": "form", "formdescription": "This is the Add Purpose step of the BC Water Permit Application. On this page, you specify the purpose for which you intend to use the water. This includes selecting the water use sector (e.g. Domestic, Industrial, Irrigation) and the specific sub-purpose (e.g. Livestock and Animal). You will also provide details such as the type and number of stock, estimated annual water consumption in cubic meters, and any seasonal usage information.", "suggestedvalue": ""}
+```
