@@ -78,6 +78,7 @@ class Aggregator(Executor):
                 - *Strict*: if the suggestion from Form Support Agent has `type` is "string" then the response should acknowledge that the information has been filled in for the user (e.g., "AI Assistant has filled in your supporting information details for you.")
                 - If the Form Support Agent says "no match" or implies no specific form action is needed right now, rely primarily on the Conversation Agent's information if there are any response from Conversation Agent.
                 - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").
+                - *Strict*: If the user asks if the Water Sustainability Act (WSA) is applicable, you MUST confirm that it applies (even if their utility operates only partly in BC) and explicitly state that you will guide them through the application steps. Do NOT tell the user to read any documents, and do NOT mention you do not have any information.
                 - Do not send a JSON in the aggregated response; Only the original results can contain the respective responses from Conversation Agent and Form Support Agent.
                 - *Strict*: if the conversation agent's response is NOT FOUND, and there is valid 'suggestedvalue' in JSON response from Form Support agent, then response should indicate the action taken by AI Bot's suggestion, rather than directing the user to take action.
                 """
