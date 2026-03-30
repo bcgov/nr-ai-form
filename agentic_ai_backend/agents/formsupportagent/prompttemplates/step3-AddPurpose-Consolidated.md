@@ -24,7 +24,7 @@
         - **WSLICUseOfWaterToMonth**: When a seasonal month range is mentioned, extract the end month and map it to the exact matching value from the `UseOfWaterToMonth` enum: `(None)`, `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, `December`. Apply the same natural language matching as above (e.g. "i need water between march to oct" → `WSLICUseOfWaterFromMonth`: `"March"`, `WSLICUseOfWaterToMonth`: `"October"`).
         - **74.3**: If the LiveStock MCP Tool returns the water usage or consumption in cubic meters based on the TypeOfStock. **Calculate the Quantity for a year** , , map to **Quantity**.
         - **I am first nation farmer need to water 200 cows for 4 years, and has fee exemption** : Curated description from the last user query which includes user needs/purpose etc, map to **Comments**.
-        - **Strict** : **Comments** field should indicate that the calculation for water consumption has been done by AI Assistant Bot. Exclude technical terms on Comments like LiveStock MCP Tools, MCP etc.
+        - **Strict** : **Comments** field should indicate that the calculation for water consumption has been done by AI Assistant. Exclude technical terms on Comments like LiveStock MCP Tools, MCP etc.
         - **Strict:** For calculations, If time period(for. e.g. "4 years" or "36 months" or "from June to August") is NOT mentioned on user query, then calculate for a year or 365 days. Always use the livestock water consumption tool even when no time period is provided — default to 1 year.
 
 
