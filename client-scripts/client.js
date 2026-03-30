@@ -1,3 +1,6 @@
+import { logHello } from './utils.js';
+
+logHello();
 // import { FormSteps } from './stepmappers.js';
 // import { invokeOrchestrator } from './services.js';
 
