@@ -15,8 +15,13 @@ load_dotenv()
 
 class ConversationAgent:
     
-    def __init__(self,endpoint, api_key):        
-        self.agent = AzureOpenAIChatClient(endpoint=endpoint, api_key=api_key).create_agent(
+    def __init__(self, endpoint, api_key, deployment_name, api_version):
+        self.agent = AzureOpenAIChatClient(
+            endpoint=endpoint,
+            api_key=api_key,
+            deployment_name=deployment_name,
+            api_version=api_version,
+        ).create_agent(
             instructions=f"""
                 You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.
                 
@@ -25,7 +30,7 @@ class ConversationAgent:
                 2. If the azure_ai_search tool returns "No results found" or an empty result, return "Not found" immediately.
                 3. Always include the metadata (Source and Processed with) from the azure_ai_search and all the azure_ai_search for the information you provide in your response.
                 4. Format your response clearly, citing the source and processed with and all the azure_ai_search results at the end.
-                5.If the query is related with a water permit or license application for usage below 24 months, then please suggest user to use other application called 'Short-term use of water approval application', link : https://j200.gov.bc.ca/pub/vfcbc/NewApplication.aspx?AppFormCode=WSEC8                               
+                6. Whenever you include a URL or web link in your response, always format it as a Markdown link using the syntax [descriptive text](url). Use meaningful link text that describes the destination. If no descriptive text is available, use [here](url).
             """,
             tools=azure_ai_search,
             name="ConversationAgent"
@@ -33,9 +38,8 @@ class ConversationAgent:
 
 
 
-    async def run(self, userquery):
-        
-        result = await self.agent.run(userquery)
+    async def run(self, userquery, thread=None):
+        result = await self.agent.run(userquery, thread=thread)
         return result.text
 
 
@@ -44,8 +48,9 @@ class ConversationAgent:
 async def dryrun(query):
     endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
     api_key = os.environ["AZURE_OPENAI_API_KEY"]
-    model =  os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
-    agent = ConversationAgent(endpoint,api_key)
+    deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+    api_version = os.environ["AZURE_OPENAI_API_VERSION"]
+    agent = ConversationAgent(endpoint, api_key, deployment_name, api_version)
   
     print("User Query is {0}".format(query))
     result = await agent.run(query)

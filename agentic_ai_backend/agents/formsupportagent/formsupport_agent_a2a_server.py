@@ -49,6 +49,8 @@ if blob_connection_string and blob_container:
 
 # Cache of agent instances per step number (step_number -> agent_instance)
 _agent_cache = {}
+# Per-session thread storage keyed on (session_id, step_identifier)
+_session_threads: dict = {}
 
 def get_agent(step_identifier: Union[int, str]):
     """
@@ -73,6 +75,7 @@ def get_agent(step_identifier: Union[int, str]):
         endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
         api_key = os.environ["AZURE_OPENAI_API_KEY"]
         deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+        api_version = os.environ["AZURE_OPENAI_API_VERSION"]
         
         # Load assets using shared utility
         form_definition, custom_instructions, step_key = resolve_agent_assets(
@@ -91,7 +94,14 @@ def get_agent(step_identifier: Union[int, str]):
             raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
         
         # Create and cache the agent instance
-        agent_instance = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str, instructions=custom_instructions)
+        agent_instance = FormSupportAgent(
+            endpoint,
+            api_key,
+            deployment_name,
+            api_version,
+            form_context_str,
+            instructions=custom_instructions,
+        )
         _agent_cache[step_key] = agent_instance #TODO ABIN: Need to implement agent caching on an distributed cache. 
         
         print(f"Created FormSupportAgent for step {step_key}")
@@ -132,9 +142,17 @@ async def invoke_agent(request: InvokeRequest):
             
         # Get agent instance for this step
         agent = get_agent(step_identifier)
-        
+
+        # Resolve thread for this session+step combination
+        thread = None
+        if request.session_id:
+            thread_key = request.session_id
+            thread = _session_threads.get(thread_key)
+            if thread is None:
+                thread = agent.agent.get_new_thread()
+                _session_threads[thread_key] = thread
         # Run the agent with the cleaned query (or original if no step was found)
-        result = await agent.run(query)
+        result = await agent.run(query, thread=thread)
         
         return InvokeResponse(
             response=result,

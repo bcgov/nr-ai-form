@@ -3,43 +3,56 @@
 
 
 //-------------------------- Services Starts ---------------------------//
-const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+// const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+
+let livestockPurposehtml = `<tr class="possegrid">
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
+                                        'editrelatedobject.aspx?PossePresentation=Default&amp;PosseObjectId=185527876&amp;SourceOfDiversion%3DGroundwater%26PostIssue11307%3DY',
+                                            685, 800, 'PurposeEdit_100536361_100379172_173010900')">Edit</a></span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeUse_100536361_100379172_185527876_sp" name="PurposeUse_100536361_100379172_185527876_sp" class="possegrid" style="text-align: left">Livestock and Animal</span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="Units_100536361_100379172_185527876_sp" name="Units_100536361_100379172_185527876_sp" class="possegrid" style="text-align: left">{water_usage} m<sup>3</sup>/year </span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="ApplicationUnits_100536361_100379172_185527876_sp" name="ApplicationUnits_100536361_100379172_185527876_sp" class="possegrid" style="text-align: left"> </span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: right" nowrap=""><span id="ApplicationFee_100536361_100379172_185527876_sp" name="ApplicationFee_100536361_100379172_185527876_sp" class="possegrid" style="text-align: right">$250.00</span></td>
+                                <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: right" nowrap=""><span id="Delete_1_100536361_100379172_173010900_sp" name="Delete_1_100536361_100379172_173010900_sp" class="possegrid" style="text-align: right"><img src="images/btndel.gif?v=5797" width="23" height="20" id="Delete_1_100536361_100379172_173010900" name="Delete_1_100536361_100379172_173010900" class="possegrid" onclick="if (confirm('Are you sure you want to delete this?')) {PosseDelete('https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Default.aspx?PossePresentation=Public&amp;PosseObjectId=173010563','173010900'); PosseSubmit();}" tabindex="3" title="Delete this line" alt="Delete" onmouseover="this.style.cursor='pointer'" onkeypress="if(event.keyCode=='13'){this.click();}"></span></td>
+                            </tr>`
+
 
 
 async function invokeOrchestrator(query, step_number, session_id = null) {
-  const payload = {
-    query: query,
-    step_number: step_number,
-    session_id: session_id
-  };
+    const payload = {
+        query: query,
+        step_number: step_number,
+        session_id: session_id
+    };
 
-  try {
-    const response = await fetch(ORCHESTRATOR_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    try {
+        const response = await fetch(ORCHESTRATOR_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error invoking Orchestrator Agent:", error);
+        throw error;
     }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error invoking Orchestrator Agent:", error);
-    throw error;
-  }
 }
 //-------------------------- Services Ends ---------------------------//
 
 //-------------------------- Steppers Starts ---------------------------//
 const FormSteps = {
     step1introduction: "step1-Introduction",
-    step0bot:"step0-Bot",
+    step0bot: "step0-Bot",
     STEP10_COMPLETE: "step10-Complete",
     step2eligibility: "step2-Eligibility",
     STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
@@ -79,6 +92,7 @@ const FormSteps = {
 
 const THREAD_ID_STORAGE_KEY = 'nrAiForm_threadId';
 const CHAT_HISTORY_STORAGE_PREFIX = 'nrAiForm_chatHistory';
+const CHAT_SCROLL_STORAGE_PREFIX = 'nrAiForm_chatScroll';
 
 function createFallbackThreadId() {
     return `session-${Math.random().toString(36).substring(2, 15)}`;
@@ -105,6 +119,10 @@ function getHistoryStorageKey(threadId) {
     return `${CHAT_HISTORY_STORAGE_PREFIX}:${threadId}`;
 }
 
+function getScrollStorageKey(threadId) {
+    return `${CHAT_SCROLL_STORAGE_PREFIX}:${threadId}`;
+}
+
 function loadChatHistory(threadId) {
     try {
         const raw = localStorage.getItem(getHistoryStorageKey(threadId));
@@ -125,6 +143,25 @@ function appendChatHistory(threadId, role, text) {
     }
 }
 
+function loadChatScrollPosition(threadId) {
+    try {
+        const raw = localStorage.getItem(getScrollStorageKey(threadId));
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    } catch {
+        return 0;
+    }
+}
+
+function saveChatScrollPosition(threadId, scrollTop) {
+    if (!threadId) return;
+    try {
+        localStorage.setItem(getScrollStorageKey(threadId), String(Math.max(0, scrollTop || 0)));
+    } catch (error) {
+        console.error("Error saving chat scroll position:", error);
+    }
+}
+
 function migrateChatHistory(oldThreadId, newThreadId) {
     if (!oldThreadId || !newThreadId || oldThreadId === newThreadId) return;
     try {
@@ -138,6 +175,22 @@ function migrateChatHistory(oldThreadId, newThreadId) {
         }
     } catch (error) {
         console.error("Error migrating chat history to new thread ID:", error);
+    }
+}
+
+function migrateChatScrollPosition(oldThreadId, newThreadId) {
+    if (!oldThreadId || !newThreadId || oldThreadId === newThreadId) return;
+    try {
+        const oldKey = getScrollStorageKey(oldThreadId);
+        const newKey = getScrollStorageKey(newThreadId);
+        if (!localStorage.getItem(newKey)) {
+            const oldData = localStorage.getItem(oldKey);
+            if (oldData !== null) {
+                localStorage.setItem(newKey, oldData);
+            }
+        }
+    } catch (error) {
+        console.error("Error migrating chat scroll position to new thread ID:", error);
     }
 }
 
@@ -174,10 +227,7 @@ function normalizeStepLabelToStepValue(label) {
 }
 
 function getStep3SubstepFromPaneHeader() {
-    const paneHeader = document.querySelector('span.paneheader');
-    if (!paneHeader) return null;
-
-    const paneHeaderText = normalizeComparableValue(paneHeader.textContent || '');
+    const paneHeaderText = getPreferredPaneHeaderText();
     if (!paneHeaderText) return null;
 
     const step3PaneHeaderMap = {
@@ -186,6 +236,33 @@ function getStep3SubstepFromPaneHeader() {
     };
 
     return step3PaneHeaderMap[paneHeaderText] || null;
+}
+
+
+function getPreferredPaneHeaderText() {
+    const subHeader = document.querySelector('span[data-id="subheadername"]');
+    const subHeaderText = normalizeComparableValue(subHeader?.textContent || '');
+    if (subHeaderText) return subHeaderText;
+
+    const stepHeader = document.querySelector('span[data-id="stepheadername"]');
+    const stepHeaderText = normalizeComparableValue(stepHeader?.textContent || '');
+    if (stepHeaderText) return stepHeaderText;
+
+    return null;
+}
+
+function getCurrentFormStepFromPaneHeaders() {
+    const paneHeaderText = getPreferredPaneHeaderText();
+    if (!paneHeaderText) return null;
+
+    const paneHeaderStepMap = {
+        introduction: FormSteps.step1introduction,
+        eligibility: FormSteps.step2eligibility,
+        governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED
+    };
+    return paneHeaderStepMap[paneHeaderText] || null;
 }
 
 function getCurrentFormStepFromDom() {
@@ -200,7 +277,7 @@ function getCurrentFormStepFromDom() {
         if (hasAltchaValidation || hasCaptchaIframeValidation) {
             return FormSteps.step0bot || 'step0-Bot';
         }
-        return null;
+        return getCurrentFormStepFromPaneHeaders();
     }
 
     const activeLi =
@@ -218,7 +295,12 @@ function getCurrentFormStepFromDom() {
         if (hasAltchaValidation || hasCaptchaIframeValidation) {
             return FormSteps.step0bot || 'step0-Bot';
         }
-        return null;
+        return getCurrentFormStepFromPaneHeaders();
+    }
+
+    const paneHeaderStep = getCurrentFormStepFromPaneHeaders();
+    if (paneHeaderStep) {
+        return paneHeaderStep;
     }
 
     const labelFromText = (activeLi.textContent || '').trim();
@@ -243,8 +325,29 @@ function normalizeComparableValue(value) {
 
 function tryParseJson(value) {
     if (typeof value !== 'string') return value;
+
+    let cleanedValue = value.trim();
+
+    // Extract JSON if it is wrapped in markdown code blocks
+    const match = cleanedValue.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (match) {
+        cleanedValue = match[1].trim();
+    }
+
+    // Handle mixed response: JSON followed by a plain text follow-up question.
+    // Extract just the JSON portion (object or array) from the start of the string.
+    const jsonMatch = cleanedValue.match(/^(\[[\s\S]*\]|\{[\s\S]*\})/);
+    if (jsonMatch) {
+        try {
+            return JSON.parse(jsonMatch[1]);
+        } catch {
+            // fall through to full parse attempt
+            console.error("Failed to parse JSON from response");
+        }
+    }
+
     try {
-        return JSON.parse(value);
+        return JSON.parse(cleanedValue);
     } catch {
         return null;
     }
@@ -304,6 +407,29 @@ function findFieldElementsByIdentifier(identifier) {
     return [];
 }
 
+function applyPurposeTableSuggestion(suggestion) {
+    if (String(suggestion.type || '').toLowerCase() !== 'grid' || suggestion.id !== 'Purpose_Table') {
+        return false;
+    }
+
+    const purposeTable = document.querySelector('[data-id="Purpose_Table"]');
+    if (!purposeTable) {
+        console.warn('Purpose_Table element was not found in the DOM.');
+        return false;
+    }
+
+    const waterUsage = String(suggestion.suggestedvalue ?? '').trim();
+    const renderedHtml = livestockPurposehtml.replace('{water_usage}', waterUsage);
+
+    const insertTarget =
+        purposeTable.tagName?.toLowerCase() === 'table'
+            ? purposeTable.tBodies[0] || purposeTable
+            : purposeTable;
+
+    insertTarget.insertAdjacentHTML('beforeend', renderedHtml);
+    return true;
+}
+
 function applySuggestionToElements(suggestion, elements) {
     if (!elements || elements.length === 0) return false;
 
@@ -350,17 +476,242 @@ function applySuggestionToElements(suggestion, elements) {
     return false;
 }
 
+/** 
+ * sessionStorage key used to persist the queue of pending field suggestions across page reloads.
+ * sessionStorage survives ASP.NET postback reloads (unlike in-memory JS variables which reset),
+ * but is cleared when the browser tab is closed.
+*/
+const PENDING_SUGGESTIONS_KEY = 'wp_pending_suggestions';
+
+/** 
+ * Serialize the suggestions array to sessionStorage as JSON.
+ * Wrapped in try/catch in case sessionStorage is unavailable (e.g. private browsing restrictions).
+*/
+function savePendingSuggestions(suggestions) {
+    try { sessionStorage.setItem(PENDING_SUGGESTIONS_KEY, JSON.stringify(suggestions)); } catch (e) { }
+}
+
+/** 
+ * Read and deserialize the suggestions array from sessionStorage.
+ * Returns an empty array if nothing is stored or if parsing fails.
+*/
+function loadPendingSuggestions() {
+    try { const r = sessionStorage.getItem(PENDING_SUGGESTIONS_KEY); return r ? JSON.parse(r) : []; } catch (e) { return []; }
+}
+
+/** 
+ * Remove the suggestions key from sessionStorage entirely — used when the queue is fully processed.
+*/
+function clearPendingSuggestions() {
+    sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
+}
+
+/** 
+ * Flag to ensure we only register the ASP.NET endRequest hook once per page lifecycle.
+ * On a full postback reload this resets to false, so the hook is re-registered on the new page.
+*/
+let _aspNetHooked = false;
+
+/** 
+ * Register a listener on ASP.NET's PageRequestManager.endRequest event.
+ * This event fires after every PARTIAL postback (UpdatePanel refresh) when the DOM has been
+ * updated by the server response. We use it to continue applying suggestions after a partial refresh.
+ * If Sys (ASP.NET ScriptManager) is not ready yet, we retry in 500ms.
+*/
+function ensureAspNetHook() {
+    if (_aspNetHooked) return;
+    try {
+        if (typeof Sys === 'undefined' || !Sys.WebForms) {
+            // ScriptManager not initialized yet — retry shortly
+            setTimeout(ensureAspNetHook, 500);
+            return;
+        }
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () {
+            // After each partial postback, check if there are pending suggestions and resume.
+            // We wait for DOM to settle first because the UpdatePanel may still be re-rendering.
+            const pending = loadPendingSuggestions();
+            if (pending.length > 0) waitForDomSettle(null, applyNextPendingSuggestion);
+        });
+        _aspNetHooked = true;
+    } catch (e) { }
+}
+
+/** 
+ * Wait until the DOM stops mutating for `quietMs` milliseconds, then invoke `callback`.
+ * This is used to detect when ASP.NET has finished re-rendering panels after a postback,
+ * so we don't write field values into DOM nodes that are about to be replaced.
+ * 
+ * How it works:
+ *   - A MutationObserver watches `root` (defaults to document.body) for any DOM changes.
+ *   - Every time a mutation fires, the quiet timer is reset.
+ *   - Once `quietMs` (default 300ms) passes with no mutations, the DOM is considered settled.
+ *   - A hard cap of `maxWaitMs` (default 5000ms) prevents waiting forever if mutations never stop.
+ *   - If MutationObserver is unavailable, callback is invoked immediately as a fallback.
+*/
+function waitForDomSettle(root, callback, quietMs, maxWaitMs) {
+    quietMs = quietMs || 300;
+    maxWaitMs = maxWaitMs || 5000;
+    var target = root || document.body;
+    var quietTimer = null;
+    var giveUpTimer = null;
+    var done = false;
+
+    /** 
+     * `done` flag prevents callback from firing more than once
+     * (both timers could theoretically fire close together)
+    */
+    function finish() {
+        if (done) return;
+        done = true;
+        if (observer) observer.disconnect(); // stop watching DOM
+        clearTimeout(quietTimer);
+        clearTimeout(giveUpTimer);
+        callback();
+    }
+
+    var observer = null;
+    try {
+        observer = new MutationObserver(function () {
+            // DOM changed — reset the quiet timer, we're not settled yet
+            clearTimeout(quietTimer);
+            quietTimer = setTimeout(finish, quietMs);
+        });
+        // Watch the entire subtree for any kind of DOM change
+        observer.observe(target, { childList: true, subtree: true, attributes: true, characterData: true });
+    } catch (e) {
+        // MutationObserver not supported — proceed immediately
+        callback();
+        return;
+    }
+
+    // If the DOM is already quiet (no mutations happen at all), fire after quietMs
+    quietTimer = setTimeout(finish, quietMs);
+    // Safety net — never wait longer than maxWaitMs regardless of ongoing mutations
+    giveUpTimer = setTimeout(finish, maxWaitMs);
+}
+
+/** 
+ * Entry point called when the AI response contains form field suggestions.
+ * Clears any stale queue, saves the new suggestions, and starts applying them one by one.
+*/
 function applyFormSupportSuggestionsFromResponse(response) {
+    ensureAspNetHook();
     const suggestions = parseFormSupportSuggestions(response);
     if (suggestions.length === 0) return;
+    // Clear any leftover suggestions from a previous response before saving the new batch
+    clearPendingSuggestions();
+    savePendingSuggestions(suggestions);
+    applyNextPendingSuggestion();
+}
 
-    suggestions.forEach((suggestion) => {
+/** 
+ * Applies the next pending suggestion from sessionStorage to the form.
+ * This function is called:
+ *   - Directly after receiving AI suggestions (first field)
+ *   - After each non-postback field is applied (nudged manually)
+ *   - After each partial postback settles (via endRequest hook)
+ *   - On every page reload (via resumePendingSuggestions)
+*/
+function applyNextPendingSuggestion() {
+    const suggestions = loadPendingSuggestions();
+    if (suggestions.length === 0) { clearPendingSuggestions(); return; }
+
+    // Take the first suggestion off the queue
+    const suggestion = suggestions[0];
+    const remaining = suggestions.slice(1); // everything after the first
+
+    // Poll until the target element appears in the DOM.
+    // After a full page reload, the script runs before ASP.NET has finished rendering all controls,
+    // so the element may not exist in the DOM yet. We retry every 150ms for up to ~5 seconds.
+    const maxAttempts = 33; // 33 × 150ms ≈ 5 seconds
+    let attempts = 0;
+
+    function tryApply() {
         const elements = findFieldElementsByIdentifier(suggestion.id);
-        const applied = applySuggestionToElements(suggestion, elements);
-        if (!applied) {
-            console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+        if (elements.length === 0 && attempts < maxAttempts) {
+            // Element not in DOM yet — wait and retry
+            attempts++;
+            setTimeout(tryApply, 150);
+            return;
         }
-    });
+
+        if (elements.length === 0) {
+            // Gave up waiting — element never appeared. Skip this field and move to the next.
+            console.warn(`FormSupport: element not found after retries, skipping id=${suggestion.id}`);
+            savePendingSuggestions(remaining);
+            if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
+            return;
+        }
+
+        // Element found in DOM. Now wait for the DOM to fully settle before applying.
+        // ASP.NET UpdatePanels can still be mid-render even after the element appears —
+        // writing a value too early risks it being wiped when the panel finishes updating.
+        waitForDomSettle(null, function () {
+            // Re-fetch the element after settling — UpdatePanel re-renders replace DOM nodes,
+            // so the reference we had before the settle may now point to a detached element.
+            const freshElements = findFieldElementsByIdentifier(suggestion.id);
+            if (freshElements.length === 0) {
+                // Element was removed during the panel re-render — skip and continue
+                console.warn(`FormSupport: element disappeared after DOM settle, skipping id=${suggestion.id}`);
+                savePendingSuggestions(remaining);
+                if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
+                return;
+            }
+
+            // Save remaining suggestions BEFORE touching the DOM.
+            // This is critical: some fields (radio, select) trigger an immediate ASP.NET postback
+            // the moment their value changes. The page reloads before any code after
+            // applySuggestionToElements() can run, so remaining must already be in sessionStorage.
+            savePendingSuggestions(remaining);
+
+            // Determine if this field type is known to trigger an ASP.NET postback on change.
+            // radio/checkbox/select → ASP.NET wires these to __doPostBack, causing a page reload on change.
+            // string/textarea → no postback by default; we nudge the next field manually after applying.
+            //
+            // NOTE: If a textarea has AutoPostBack="true" set in ASP.NET markup (unusual but possible),
+            // it would also trigger a postback and wipe the value we just set. In that case, add 'string'
+            // to this check or detect it from the DOM element's attributes. For standard forms this is
+            // not an issue as TextBox/TextArea controls do not have AutoPostBack enabled by default.
+            const triggersPostback = suggestion.type === 'radio' || suggestion.type === 'checkbox' || suggestion.type === 'select';
+
+            // Apply the suggestion value to the DOM element
+            const applied = applySuggestionToElements(suggestion, freshElements);
+            if (!applied) {
+                console.warn(`FormSupport suggestion could not be applied for id=${suggestion.id}`);
+            }
+
+            if (!triggersPostback) {
+                // text/textarea — no postback expected, nudge next field after a short settle
+                if (remaining.length > 0) {
+                    waitForDomSettle(null, applyNextPendingSuggestion);
+                } else {
+                    clearPendingSuggestions();
+                }
+            } else if (!_aspNetHooked) {
+                // No PageRequestManager available — fixed delay fallback
+                if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
+                else setTimeout(clearPendingSuggestions, 900);
+            }
+            // else: page reloads after postback, resumePendingSuggestions handles next field on reload
+            // OR endRequest hook fires after partial postback and calls applyNextPendingSuggestion
+        });
+    }
+
+    tryApply();
+}
+
+/** 
+ * Called on every page load/reload to resume any suggestions that were interrupted by a postback.
+ * On a full ASP.NET postback, all JS state resets but sessionStorage persists.
+ * This function checks sessionStorage and continues from where the previous page left off.
+*/
+function resumePendingSuggestions() {
+    const pending = loadPendingSuggestions();
+    if (pending.length === 0) return;
+    // Try to register the partial postback hook (Sys may now be available after full page load)
+    ensureAspNetHook();
+    // Wait for the page DOM to fully settle before starting to apply fields
+    waitForDomSettle(null, applyNextPendingSuggestion);
 }
 
 
@@ -401,8 +752,8 @@ function injectStyles() {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 420px;
-            height: 650px;
+            width: 420px!important;
+            height: 650px!important;
             max-width: calc(100vw - 40px);
             max-height: calc(100vh - 40px);
             z-index: 99999;
@@ -433,6 +784,19 @@ function injectStyles() {
             gap: 10px;
             font-size: 18px;
             font-weight: 600;
+        }
+
+        .wp-chat-title span {
+            padding-top: 12px
+        }
+
+        .wp-chat-title-image {
+            display: block;
+            height: 32px;
+            width: auto;
+            max-width: 140px;
+            object-fit: contain;
+            flex-shrink: 0;
         }
 
         .wp-chat-close {
@@ -470,6 +834,10 @@ function injectStyles() {
 
         .wp-chat-welcome p {
             margin: 0;
+        }
+            
+        .wp-chat-welcome p {
+            margin: 0 0 12px 0;
         }
 
         .wp-chat-message {
@@ -563,6 +931,7 @@ function injectStyles() {
             background: white;
             border-radius: 0 0 12px 12px;
             display: flex;
+            align-items: flex-end;
             gap: 12px;
         }
 
@@ -574,6 +943,14 @@ function injectStyles() {
             font-size: 14px;
             outline: none;
             transition: border-color 0.2s;
+            min-height: 48px;
+            max-height: 140px;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: inherit;
         }
 
         .wp-chat-input:focus {
@@ -635,7 +1012,14 @@ function initBot() {
         <button class="wp-chat-button" id="wp-chat-button">Assistant</button>
         <div class="wp-chat-modal" id="wp-chat-modal">
             <div class="wp-chat-header">
-                <div class="wp-chat-title">AI Assistant</div>
+                <div class="wp-chat-title">
+                    <img
+                        class="wp-chat-title-image"
+                        src="https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Images/banners/vfcbc_banner.png?v=5797"
+                        alt="AI Assistant"
+                    />
+                    <span>AI Assistant</span>
+                </div>
                 <button class="wp-chat-close" id="wp-chat-close" type="button">
                     &times;
                 </button>
@@ -643,7 +1027,19 @@ function initBot() {
 
             <div class="wp-chat-messages" id="wp-chat-messages">
                 <div class="wp-chat-welcome">
-                    <p>Hello! I can help you complete your form. Ask me anything to get started.</p>
+                    <div class="wp-chat-welcome">
+                        <p><strong>How I can help</strong></p>
+                        <p>I'm an AI assistant here to support you with your water licence application. 
+                        I can explain terms, clarify what information is needed, and suggest relevant resources based on what you share.
+                        </p>
+                        <p><strong>Disclaimer</strong></p>
+                        <p>I don't provide legal advice and I'm not a substitute for guidance from FrontCounter 
+                        BC staff or qualified professionals. You're responsible for ensuring your submission 
+                        is accurate and complete. Please don't share personal information. 
+                        Your questions may be stored to help improve this service.
+                        By using this assistant, you acknowledge and accept these terms.
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -654,8 +1050,10 @@ function initBot() {
             </div>
 
             <div class="wp-chat-input-container">
-                <input type="text" class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." />
-                <button class="wp-chat-send" id="wp-chat-send-btn" type="button">Send</button>
+                <textarea class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." rows="1"></textarea>
+                <button class="wp-chat-send" id="wp-chat-send-btn" type="button">
+                <span>➤</span>
+                </button>
             </div>
         </div>
     `;
@@ -672,6 +1070,7 @@ function initBot() {
     const typingIndicator = document.getElementById('wp-chat-typing');
 
     let sessionId = getStoredThreadId();
+    let restoredScrollTop = loadChatScrollPosition(sessionId);
     saveThreadId(sessionId);
     const existingHistory = loadChatHistory(sessionId);
     if (existingHistory.length > 0) {
@@ -679,16 +1078,23 @@ function initBot() {
         if (welcome) welcome.remove();
         existingHistory.forEach((entry) => {
             if (entry && typeof entry.role === 'string') {
-                appendMessage(entry.role, entry.text ?? '', false);
+                appendMessage(entry.role, entry.text ?? '', false, false);
             }
         });
     }
+
+    function restoreChatScrollPosition() {
+        chatMessages.scrollTop = restoredScrollTop;
+    }
+
+    requestAnimationFrame(restoreChatScrollPosition);
 
     function toggleChat() {
         const isOpen = chatModal.classList.contains('open');
         if (!isOpen) {
             chatModal.classList.add('open');
             chatButton.style.display = 'none';
+            requestAnimationFrame(restoreChatScrollPosition);
             chatInput.focus();
         } else {
             chatModal.classList.remove('open');
@@ -705,6 +1111,7 @@ function initBot() {
 
         appendMessage('user', text);
         chatInput.value = '';
+        autoResizeChatInput();
         sendBtn.classList.remove('wp-chat-send-ready');
         showTyping(true);
 
@@ -712,8 +1119,7 @@ function initBot() {
             const currentStep = getCurrentFormStepFromDom() || FormSteps.step1introduction || 'step1introduction';
             console.log(`Invoking orchestrator with sessionId=${sessionId}, step=${currentStep}, query=${text}`);
 
-            if(currentStep === FormSteps.step0bot)
-            {
+            if (currentStep === FormSteps.step0bot) {
                 text = `Human verification form query : ${text}`;
             }
 
@@ -722,7 +1128,9 @@ function initBot() {
             const serverThreadId = extractThreadIdFromResponse(response);
             if (serverThreadId && serverThreadId !== sessionId) {
                 migrateChatHistory(sessionId, serverThreadId);
+                migrateChatScrollPosition(sessionId, serverThreadId);
                 sessionId = serverThreadId;
+                restoredScrollTop = loadChatScrollPosition(sessionId);
             }
             saveThreadId(sessionId);
             showTyping(false);
@@ -757,7 +1165,7 @@ function initBot() {
         return [JSON.stringify(response)];
     }
 
-    function appendMessage(role, text, persist = true) {
+    function appendMessage(role, text, persist = true, scroll = true) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `wp-chat-message wp-chat-message-${role}`;
         const bubble = document.createElement('div');
@@ -768,18 +1176,45 @@ function initBot() {
         if (persist) {
             appendChatHistory(sessionId, role, String(text));
         }
-        scrollToBottom();
+        if (scroll) {
+            scrollToBottom();
+        }
     }
 
     function formatMessage(text) {
-        const escaped = text
+        // Step 1: Extract Markdown links [text](url) before escaping so URLs are preserved intact.
+        // Replace them with placeholders to protect them from HTML escaping and plain-URL detection.
+        const mdLinkPlaceholders = [];
+        let processed = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, linkText, url) => {
+            const idx = mdLinkPlaceholders.length;
+            mdLinkPlaceholders.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`);
+            return `\x00MDLINK${idx}\x00`;
+        });
+
+        // Step 2: Extract plain URLs (http/https and www.) before escaping.
+        const plainUrlPlaceholders = [];
+        // Match http(s):// URLs and www. URLs not already inside a Markdown link
+        processed = processed.replace(/(?<!\x00MDLINK\d*)(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+)/g, (url) => {
+            const idx = plainUrlPlaceholders.length;
+            const href = url.startsWith('http') ? url : `https://${url}`;
+            plainUrlPlaceholders.push(`<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+            return `\x00PLAINURL${idx}\x00`;
+        });
+
+        // Step 3: HTML-escape the remaining text (safe — placeholders use \x00 which won't be escaped)
+        let formatted = processed
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
-        let formatted = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Step 4: Apply remaining Markdown formatting
+        formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         formatted = formatted.replace(/\n/g, '<br>');
         formatted = formatted.replace(/^[\u2022\-]\s+(.+)/gm, '<li>$1</li>');
+
+        // Step 5: Restore placeholders
+        formatted = formatted.replace(/\x00MDLINK(\d+)\x00/g, (_, i) => mdLinkPlaceholders[Number(i)]);
+        formatted = formatted.replace(/\x00PLAINURL(\d+)\x00/g, (_, i) => plainUrlPlaceholders[Number(i)]);
 
         if (formatted.includes('<li>')) {
             formatted = `<ul>${formatted}</ul>`;
@@ -794,12 +1229,25 @@ function initBot() {
         sendBtn.disabled = show;
     }
 
+    function autoResizeChatInput() {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = `${Math.min(chatInput.scrollHeight, 140)}px`;
+    }
+
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        restoredScrollTop = chatMessages.scrollTop;
+        saveChatScrollPosition(sessionId, restoredScrollTop);
     }
+
+    chatMessages.addEventListener('scroll', () => {
+        restoredScrollTop = chatMessages.scrollTop;
+        saveChatScrollPosition(sessionId, restoredScrollTop);
+    });
 
     sendBtn.addEventListener('click', sendMessage);
     chatInput.addEventListener('input', () => {
+        autoResizeChatInput();
         if (chatInput.value.trim()) {
             sendBtn.classList.add('wp-chat-send-ready');
         } else {
@@ -812,6 +1260,12 @@ function initBot() {
             sendMessage();
         }
     });
+
+    autoResizeChatInput();
+
+    // On every page load/reload (including after ASP.NET postbacks), resume any
+    // pending suggestions that were saved to sessionStorage before the page refreshed.
+    resumePendingSuggestions();
 }
 
 if (document.readyState === 'loading') {

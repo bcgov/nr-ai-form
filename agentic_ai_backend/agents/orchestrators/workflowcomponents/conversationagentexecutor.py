@@ -18,10 +18,12 @@ class ConversationAgentA2AExecutor(Executor):
         base_url: str = "http://localhost:8000",
         id: str = "ConversationAgentA2A",
         name: str = "Conversation Agent (A2A)",
-        instructions: str = "Handles conversation queries using A2A protocol"
+        instructions: str = "Handles conversation queries using A2A protocol",
+        session_id: str = None
     ):
         super().__init__(id=id, name=name, instructions=instructions)
         self.client = ConversationAgentA2AClient(base_url=base_url)
+        self.session_id = session_id
         
     @handler
     async def handle(self, query: str, ctx: WorkflowContext[str]):
@@ -33,8 +35,8 @@ class ConversationAgentA2AExecutor(Executor):
             ctx: Workflow context for sending messages
         """
         try:
-            # Invoke the remote agent via A2A
-            response = await self.client.invoke(query)
+            # Invoke the remote agent via A2A, passing session_id for conversation history
+            response = await self.client.invoke(query, session_id=self.session_id)
             
             # Send the response with source information
             # Wrap it in a dict so we can track the source
