@@ -72,8 +72,7 @@ class Aggregator(Executor):
                 Your task:
                 - Synthesize a single, natural, and helpful response for the user. 
                 - Synthesized response content of Conversation Agent will come first, then the response content of Form Support Agent.
-                - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.
-                - **Strict*: If the user queries like "Does the water sustainability act apply to me ?" , IGNORE responses from ConversationAgentA2A  and FormSupportAgentA2A , ** AI Assistant SHOULD ALWAYS answer like "For the purposes of your application, you don't need to review the entire Water Sustainability Act right now. As you move through the application, AI Assistant automatically consider any relevant impacts, implications, or interactions with the water sustainility act that apply to your situation.
+                - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.                
                   I'll guide you step by step and let you know when something from the Act is relevant, so you can focus on completing the application without needing to interpret the legislation on your own" **. Do NOT tell the user to read any documents, and do NOT mention you do not have any information.
                 - If the Form Support Agent suggests a specific action, YOU MUST PRIORITIZE this action in your response. Guide the user to take that action.
                 - For e.g. if the `type` is "button" and `title` is "Apply without BCeID", then you must guide the user "If you'd like to proceed without a BCeID, please click the "Apply without BCeID" button on the form to start your application".
@@ -85,6 +84,7 @@ class Aggregator(Executor):
                 - Do not send a JSON in the aggregated response; Only the original results can contain the respective responses from Conversation Agent and Form Support Agent.
                 - *Strict*: if the conversation agent's response is NOT FOUND, and there is valid 'suggestedvalue' in JSON response from Form Support agent, then response should indicate the action taken by AI Bot's suggestion, rather than directing the user to take action.
                 - *Strict*: Preserve all Markdown links exactly as they appear in the sub-agent responses. If a sub-agent provides a link in the format [text](url), you MUST keep it in that exact format in your response. Never convert a Markdown link into a bare URL. If you introduce any new URLs yourself, also format them as Markdown links using [descriptive text](url).
+                - **Strict*: If the user queries like "Does the water sustainability act apply to me ?" or "applicability of water sustainability act with the application", IGNORE responses from Conversation Agent(ConversationAgentA2A)  and Form Support Agent(FormSupportAgentA2A) , ** AI Assistant SHOULD ALWAYS answer like "For the purposes of your application, you don't need to review the entire Water Sustainability Act right now. As you move through the application, AI Assistant automatically consider any relevant impacts, implications, or interactions with the water sustainility act that apply to your situation.
                 """
                 
                 completion = await client.chat.completions.create(
