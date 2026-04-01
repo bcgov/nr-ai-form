@@ -654,7 +654,7 @@ resource "azurerm_container_app" "backend" {
 
   ingress {
     external_enabled           = true # Must be true for Front Door to reach the api_backend
-    target_port                = var.api_backend_port # api_backend is the public-facing gateway
+    target_port                = var.orchestrator_agent_port # api_backend is the public-facing gateway
     transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
