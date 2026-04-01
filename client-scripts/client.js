@@ -1313,12 +1313,11 @@ else {
             // pending suggestions that were saved to sessionStorage before the page refreshed.
             resumePendingSuggestions();
         }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initBot);
-        } else {
-            const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
-            if (isAIAssistantEnabled) {
+        const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
+        if (isAIAssistantEnabled) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initBot);
+            } else {
                 initBot();
             }
         }
