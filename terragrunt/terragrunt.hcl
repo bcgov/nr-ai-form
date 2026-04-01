@@ -101,7 +101,6 @@ api_image                 = "${local.conversation_agent_image}"  # For Container
 conversation_agent_image  = "${local.conversation_agent_image}"
 formsupport_agent_image   = "${local.formsupport_agent_image}"
 orchestrator_agent_image  = "${local.orchestrator_agent_image}"
-# api_backend_image         = "${local.api_backend_image}"
 vnet_address_space        = "${local.vnet_address_space}"
 repo_name                 = "${get_env("repo_name")}"
 
