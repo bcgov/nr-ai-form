@@ -90,6 +90,27 @@ variable "AZURE_SEARCH_API_KEY" {
   nullable    = false
 }
 
+variable "azure_search_top" {
+  description = "Number of top search results to return"
+  type        = number
+  default     = 10
+  nullable    = false
+}
+
+variable "azure_search_trim_length" {
+  description = "Maximum character length to trim search result content"
+  type        = number
+  default     = 1000
+  nullable    = false
+}
+
+variable "azure_search_enable_trimming" {
+  description = "Whether to enable trimming of search result content"
+  type        = bool
+  default     = false
+  nullable    = false
+}
+
 variable "azure_storage_account_key" {
   description = "Azure Storage account key"
   type        = string
@@ -119,6 +140,43 @@ variable "azure_blobstorage_connectionstring" {
 variable "azure_blobstorage_container" {
   description = "Azure Blob Storage container name"
   type        = string
+  nullable    = false
+}
+
+# Redis Configuration
+variable "redis_host" {
+  description = "Redis cache hostname"
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "redis_port" {
+  description = "Redis cache port"
+  type        = number
+  default     = 10000
+  nullable    = false
+}
+
+variable "redis_password" {
+  description = "Redis cache access key"
+  type        = string
+  sensitive   = true
+  default     = ""
+  nullable    = false
+}
+
+variable "redis_ssl" {
+  description = "Whether to use SSL for Redis connections"
+  type        = bool
+  default     = true
+  nullable    = false
+}
+
+variable "redis_ttl_days" {
+  description = "TTL in days for Redis cache entries"
+  type        = number
+  default     = 14
   nullable    = false
 }
 
@@ -171,6 +229,20 @@ variable "formsupport_agent_port" {
   nullable    = false
 }
 
+variable "api_backend_image" {
+  description = "Container image for the API Backend (WebSocket gateway between frontend and orchestrator)"
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "api_backend_port" {
+  description = "Port for the API Backend"
+  type        = number
+  default     = 8003
+  nullable    = false
+}
+
 variable "container_registry_url" {
   description = "Container registry URL for image pulls"
   type        = string
@@ -185,8 +257,9 @@ variable "common_tags" {
 }
 
 variable "container_apps_subnet_id" {
-  description = "Subnet ID for Container Apps Environment"
+  description = "Subnet ID for Container Apps Environment. Empty string or null means no dedicated subnet (dev without a pre-created subnet)."
   type        = string
+  default     = ""
   nullable    = false
 }
 
@@ -249,21 +322,31 @@ variable "log_level" {
 }
 
 # Front Door Integration
+variable "enable_front_door" {
+  description = "Whether Front Door is enabled for this environment. When false, all CDN/Front Door resources are skipped."
+  type        = bool
+  default     = true
+  nullable    = false
+}
+
 variable "api_frontdoor_id" {
   description = "Front Door Profile ID for API integration"
   type        = string
+  default     = ""
   nullable    = false
 }
 
 variable "api_frontdoor_resource_guid" {
   description = "Front Door Resource GUID for header validation"
   type        = string
+  default     = ""
   nullable    = false
 }
 
 variable "api_frontdoor_firewall_policy_id" {
   description = "Front Door Firewall Policy ID for API protection"
   type        = string
+  default     = ""
   nullable    = false
 }
 

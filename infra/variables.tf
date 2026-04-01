@@ -28,6 +28,12 @@ variable "orchestrator_agent_image" {
   type        = string
 }
 
+variable "api_backend_image" {
+  description = "The image for the API Backend container (WebSocket gateway)"
+  type        = string
+  default     = ""
+}
+
 # Legacy variable for Container Apps compatibility - will use conversation_agent_image
 variable "api_image" {
   description = "The image for the API container (used by Container Apps - defaults to conversation_agent_image)"
@@ -81,6 +87,12 @@ variable "common_tags" {
 }
 
 
+
+variable "enable_front_door" {
+  description = "Whether to deploy and connect Front Door. Set to false for environments that do not use Front Door (e.g. dev)."
+  type        = bool
+  default     = true
+}
 
 variable "frontdoor_sku_name" {
   description = "SKU name for the Front Door"
@@ -209,6 +221,24 @@ variable "azure_search_index_name" {
   nullable    = false
 }
 
+variable "azure_search_top" {
+  description = "Number of top search results to return (passed to conversation agent)."
+  type        = number
+  default     = 10
+}
+
+variable "azure_search_trim_length" {
+  description = "Maximum character length to trim search result content (passed to conversation agent)."
+  type        = number
+  default     = 1000
+}
+
+variable "azure_search_enable_trimming" {
+  description = "Whether to enable trimming of search result content (passed to conversation agent)."
+  type        = bool
+  default     = false
+}
+
 # Azure Document Intelligence Configuration
 variable "azure_document_intelligence_endpoint" {
   description = "The endpoint URL for Azure Document Intelligence service."
@@ -254,6 +284,38 @@ variable "azure_blobstorage_container" {
   description = "Azure Blob Storage container name"
   type        = string
   nullable    = false
+}
+
+# Redis Configuration
+variable "redis_host" {
+  description = "Redis cache hostname"
+  type        = string
+  default     = ""
+}
+
+variable "redis_port" {
+  description = "Redis cache port"
+  type        = number
+  default     = 10000
+}
+
+variable "redis_password" {
+  description = "Redis cache access key"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "redis_ssl" {
+  description = "Whether to use SSL for Redis connections"
+  type        = bool
+  default     = true
+}
+
+variable "redis_ttl_days" {
+  description = "TTL in days for Redis cache entries"
+  type        = number
+  default     = 14
 }
 
 # Sidecar Deployment Configuration

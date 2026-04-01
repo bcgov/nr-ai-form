@@ -7,6 +7,7 @@ locals {
   conversation_agent_image = get_env("conversation_agent_image")
   formsupport_agent_image  = get_env("formsupport_agent_image")
   orchestrator_agent_image = get_env("orchestrator_agent_image")
+  api_backend_image        = get_env("api_backend_image", "")
   vnet_resource_group_name = get_env("vnet_resource_group_name") # Resource group where the VNet exists.
   vnet_name                = get_env("vnet_name")                # Name of the existing VNet.
   target_env               = get_env("target_env")
@@ -43,6 +44,13 @@ locals {
   # Azure Blob Storage Configuration
   azure_blobstorage_connectionstring = get_env("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
   azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER")
+
+  # Redis Configuration
+  redis_host     = get_env("REDIS_HOST", "")
+  redis_port     = get_env("REDIS_PORT", "10000")
+  redis_password = get_env("REDIS_PASSWORD", "")
+  redis_ssl      = get_env("REDIS_SSL", "true")
+  redis_ttl_days = get_env("REDIS_TTL_DAYS", "14")
   
   # Container Registry Configuration
   container_registry_url      = get_env("CONTAINER_REGISTRY_URL", "https://ghcr.io")
@@ -93,6 +101,7 @@ api_image                 = "${local.conversation_agent_image}"  # For Container
 conversation_agent_image  = "${local.conversation_agent_image}"
 formsupport_agent_image   = "${local.formsupport_agent_image}"
 orchestrator_agent_image  = "${local.orchestrator_agent_image}"
+api_backend_image         = "${local.api_backend_image}"
 vnet_address_space        = "${local.vnet_address_space}"
 repo_name                 = "${get_env("repo_name")}"
 
@@ -119,6 +128,13 @@ azure_storage_container_name = "${local.azure_storage_container_name}"
 # Azure Blob Storage Configuration
 azure_blobstorage_connectionstring = "${local.azure_blobstorage_connectionstring}"
 azure_blobstorage_container         = "${local.azure_blobstorage_container}"
+
+# Redis Configuration
+redis_host     = "${local.redis_host}"
+redis_port     = "${local.redis_port != "" ? local.redis_port : "10000"}"
+redis_password = "${local.redis_password}"
+redis_ssl      = "${local.redis_ssl != "" ? local.redis_ssl : "true"}"
+redis_ttl_days = "${local.redis_ttl_days != "" ? local.redis_ttl_days : "14"}"
 
 # Container Registry Configuration
 container_registry_url      = "${local.container_registry_url}"
