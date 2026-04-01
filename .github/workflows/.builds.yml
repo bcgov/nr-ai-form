@@ -29,9 +29,9 @@ jobs:
           - name: orchestrator_agent
             context: ./agentic_ai_backend
             dockerfile: ./agentic_ai_backend/agents/orchestrators/Dockerfile
-          - name: api_backend
-            context: ./agentic_ai_backend
-            dockerfile: ./agentic_ai_backend/api_backend/Dockerfile
+          # - name: api_backend
+          #   context: ./agentic_ai_backend
+          #   dockerfile: ./agentic_ai_backend/api_backend/Dockerfile
     steps:
       - uses: actions/checkout@v4
 
