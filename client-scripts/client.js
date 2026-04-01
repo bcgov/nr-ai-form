@@ -1317,7 +1317,7 @@ else {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initBot);
         } else {
-            const isAIAssistantEnabled = Boolean(document.querySelector('[ai-modex]'));
+            const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
             if (isAIAssistantEnabled) {
                 initBot();
             }
