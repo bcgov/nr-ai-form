@@ -33,7 +33,20 @@ jobs:
             context: ./agentic_ai_backend
             dockerfile: ./agentic_ai_backend/api_backend/Dockerfile
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Check build context exists
+        id: check
+        run: |
+          if [ ! -d "${{ matrix.package.context }}" ] || [ ! -f "${{ matrix.package.dockerfile }}" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Skipping ${{ matrix.package.name }}: context or dockerfile not found"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - uses: bcgov/action-builder-ghcr@v4.0.0
+        if: steps.check.outputs.skip != 'true'
         with:
           package: ${{ matrix.package.name }}
           build_context: ${{ matrix.package.context }}
