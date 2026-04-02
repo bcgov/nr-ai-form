@@ -564,7 +564,8 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_blobstorage_container
       }
     }
-   # API Backend Container - Public-facing WebSocket gateway to orchestrator
+    /*
+    # API Backend Container - Public-facing WebSocket gateway to orchestrator
     container {
       name   = "api-backend"
       image  = var.api_backend_image
@@ -644,6 +645,7 @@ resource "azurerm_container_app" "backend" {
         value = tostring(var.redis_ttl_days)
       }
     }
+    */
 
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {
@@ -653,8 +655,8 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true # Must be true for Front Door to reach the api_backend
-    target_port                = var.api_backend_port # api_backend is the public-facing gateway
+    external_enabled           = true # Must be true for Front Door to reach the public orchestrator endpoint
+    target_port                = var.orchestrator_agent_port # Orchestrator Agent is the public-facing ACA endpoint
     transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
