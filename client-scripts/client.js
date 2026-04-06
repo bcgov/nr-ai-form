@@ -1325,10 +1325,9 @@ function initBot() {
         bubble.className = 'wp-chat-bubble';
         bubble.innerHTML = formatMessage(String(text));
         msgDiv.appendChild(bubble);
-        if (guidedQuestionsContainer && guidedQuestionsContainer.parentElement === chatMessages) {
-            chatMessages.insertBefore(msgDiv, guidedQuestionsContainer);
-        } else {
-            chatMessages.appendChild(msgDiv);
+        chatMessages.appendChild(msgDiv);
+        if (guidedQuestionsContainer && guidedQuestionsContainer.style.display !== 'none') {
+            chatMessages.appendChild(guidedQuestionsContainer);
         }
         if (persist) {
             appendChatHistory(sessionId, role, String(text));
