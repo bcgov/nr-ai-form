@@ -960,12 +960,12 @@ function injectStyles() {
 
         .wp-chat-guided-questions {
             display: none;
+            width: 100%;
             flex-direction: column;
             align-items: flex-end;
             gap: 14px;
-            padding: 12px 20px 14px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
+            padding-top: 12px;
+            margin-top: auto;
         }
 
         .wp-chat-guided-question {
@@ -1130,6 +1130,8 @@ function initBot() {
                         </p>
                     </div>
                 </div>
+
+                <div class="wp-chat-guided-questions" id="wp-chat-guided-questions" aria-live="polite"></div>
             </div>
 
             <div class="wp-chat-typing" id="wp-chat-typing">
@@ -1137,8 +1139,6 @@ function initBot() {
                 <span class="wp-typing-dot"></span>
                 <span class="wp-typing-dot"></span>
             </div>
-
-            <div class="wp-chat-guided-questions" id="wp-chat-guided-questions" aria-live="polite"></div>
 
             <div class="wp-chat-input-container">
                 <textarea class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." rows="1"></textarea>
