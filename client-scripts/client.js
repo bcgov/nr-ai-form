@@ -1,13 +1,11 @@
-import { logHello } from './utils.js';
-
-logHello();
 // import { FormSteps } from './stepmappers.js';
 // import { invokeOrchestrator } from './services.js';
 
 
 //-------------------------- Services Starts ---------------------------//
-// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
-const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+// const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
@@ -96,6 +94,7 @@ const FormSteps = {
 const THREAD_ID_STORAGE_KEY = 'nrAiForm_threadId';
 const CHAT_HISTORY_STORAGE_PREFIX = 'nrAiForm_chatHistory';
 const CHAT_SCROLL_STORAGE_PREFIX = 'nrAiForm_chatScroll';
+const ANSWERED_GUIDED_QUESTIONS_STORAGE_PREFIX = 'nrAiForm_answeredGuidedQuestions';
 
 function createFallbackThreadId() {
     return `session-${Math.random().toString(36).substring(2, 15)}`;
@@ -124,6 +123,10 @@ function getHistoryStorageKey(threadId) {
 
 function getScrollStorageKey(threadId) {
     return `${CHAT_SCROLL_STORAGE_PREFIX}:${threadId}`;
+}
+
+function getAnsweredGuidedQuestionsStorageKey(threadId, stepId) {
+    return `${ANSWERED_GUIDED_QUESTIONS_STORAGE_PREFIX}:${threadId}:${stepId}`;
 }
 
 function loadChatHistory(threadId) {
@@ -163,6 +166,58 @@ function saveChatScrollPosition(threadId, scrollTop) {
     } catch (error) {
         console.error("Error saving chat scroll position:", error);
     }
+}
+
+function loadAnsweredGuidedQuestionIds(threadId, stepId) {
+    if (!threadId || !stepId) return [];
+    try {
+        const raw = localStorage.getItem(getAnsweredGuidedQuestionsStorageKey(threadId, stepId));
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+        return [];
+    }
+}
+
+async function fetchGuidedQuestions(stepId) {
+    if (!stepId) return [];
+
+    const url = new URL(GUIDED_QUESTIONS_API_URL);
+    url.searchParams.set('stepId', stepId);
+    // url.searchParams.set('limit', String(limit));
+
+    // const response = await fetch(url.toString(), {
+    //     method: 'GET',
+    //     headers: {
+    //         'Accept': 'application/json'
+    //     }
+    // });
+
+    // if (!response.ok) {
+    //     const errorText = await response.text();
+    //     throw new Error(`Guided questions API error: ${response.status} ${response.statusText} - ${errorText}`);
+    // }
+
+    // const payload = await response.json();
+    // const questions = Array.isArray(payload) ? payload : payload.questions;
+    const questions = [
+        {
+            "id": "1",
+            "question": "What is the purpose of this form?",
+            "stepId": "step1introduction"
+        },
+        {
+            "id": "2",
+            "question": "What is a water licence?",
+            "stepId": "step1introduction"
+        },
+        {
+            "id": "3",
+            "question": "Who needs a water licence?",
+            "stepId": "step1introduction"
+        }
+    ]
+    return Array.isArray(questions) ? questions : [];
 }
 
 function migrateChatHistory(oldThreadId, newThreadId) {
@@ -903,6 +958,40 @@ function injectStyles() {
             align-items: center;
         }
 
+        .wp-chat-guided-questions {
+            display: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px 16px 0;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .wp-chat-guided-questions-label {
+            width: 100%;
+            margin: 0;
+            color: #4b5563;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .wp-chat-guided-question {
+            border: 1px solid #2f5fa7;
+            border-radius: 18px;
+            background: #f4f8ff;
+            color: #1f3f73;
+            font-size: 14px;
+            line-height: 1.4;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .wp-chat-guided-question:hover {
+            background: #e7f0ff;
+            border-color: #1f3f73;
+        }
+
         .wp-typing-dot {
             width: 8px;
             height: 8px;
@@ -1052,6 +1141,8 @@ function initBot() {
                 <span class="wp-typing-dot"></span>
             </div>
 
+            <div class="wp-chat-guided-questions" id="wp-chat-guided-questions" aria-live="polite"></div>
+
             <div class="wp-chat-input-container">
                 <textarea class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." rows="1"></textarea>
                 <button class="wp-chat-send" id="wp-chat-send-btn" type="button">
@@ -1071,9 +1162,11 @@ function initBot() {
     const sendBtn = document.getElementById('wp-chat-send-btn');
     const chatMessages = document.getElementById('wp-chat-messages');
     const typingIndicator = document.getElementById('wp-chat-typing');
+    const guidedQuestionsContainer = document.getElementById('wp-chat-guided-questions');
 
     let sessionId = getStoredThreadId();
     let restoredScrollTop = loadChatScrollPosition(sessionId);
+    let guidedQuestionsRequestToken = 0;
     saveThreadId(sessionId);
     const existingHistory = loadChatHistory(sessionId);
     if (existingHistory.length > 0) {
@@ -1098,6 +1191,7 @@ function initBot() {
             chatModal.classList.add('open');
             chatButton.style.display = 'none';
             requestAnimationFrame(restoreChatScrollPosition);
+            refreshGuidedQuestions();
             chatInput.focus();
         } else {
             chatModal.classList.remove('open');
@@ -1107,6 +1201,69 @@ function initBot() {
 
     chatButton.addEventListener('click', toggleChat);
     closeBtn.addEventListener('click', toggleChat);
+
+    function hideGuidedQuestions() {
+        guidedQuestionsContainer.innerHTML = '';
+        guidedQuestionsContainer.style.display = 'none';
+    }
+
+    function createGuidedQuestionButton(question) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'wp-chat-guided-question';
+        button.textContent = String(question.question || '');
+        button.dataset.questionId = String(question.id || '');
+        button.dataset.stepId = String(question.stepId || '');
+        return button;
+    }
+
+    function renderGuidedQuestions(stepId, questions) {
+        if (!stepId || !Array.isArray(questions) || questions.length === 0) {
+            hideGuidedQuestions();
+            return;
+        }
+
+        guidedQuestionsContainer.innerHTML = '';
+
+        const label = document.createElement('p');
+        label.className = 'wp-chat-guided-questions-label';
+        label.textContent = 'Suggested questions';
+        guidedQuestionsContainer.appendChild(label);
+
+        questions.forEach((question) => {
+            if (!question || !question.id || !question.question) return;
+            guidedQuestionsContainer.appendChild(createGuidedQuestionButton(question));
+        });
+
+        if (guidedQuestionsContainer.children.length <= 1) {
+            hideGuidedQuestions();
+            return;
+        }
+
+        guidedQuestionsContainer.style.display = 'flex';
+    }
+
+    async function refreshGuidedQuestions() {
+        const stepId = getCurrentFormStepFromDom() || FormSteps.step1introduction || 'step1introduction';
+        const requestToken = ++guidedQuestionsRequestToken;
+
+        try {
+            const answeredQuestionIds = new Set(loadAnsweredGuidedQuestionIds(sessionId, stepId));
+            const guidedQuestions = await fetchGuidedQuestions(stepId);
+
+            if (requestToken !== guidedQuestionsRequestToken) return;
+
+            const visibleQuestions = guidedQuestions
+                .filter((question) => question && question.id && question.question)
+                .filter((question) => !answeredQuestionIds.has(String(question.id)));
+
+            renderGuidedQuestions(stepId, visibleQuestions);
+        } catch (error) {
+            if (requestToken !== guidedQuestionsRequestToken) return;
+            hideGuidedQuestions();
+            console.error('Error fetching guided questions:', error);
+        }
+    }
 
     async function sendMessage() {
         let text = chatInput.value.trim();
@@ -1265,6 +1422,7 @@ function initBot() {
     });
 
     autoResizeChatInput();
+    refreshGuidedQuestions();
 
     // On every page load/reload (including after ASP.NET postbacks), resume any
     // pending suggestions that were saved to sessionStorage before the page refreshed.
