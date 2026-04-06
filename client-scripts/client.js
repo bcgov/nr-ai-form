@@ -1232,6 +1232,7 @@ function initBot() {
             return;
         }
 
+        chatMessages.appendChild(guidedQuestionsContainer);
         guidedQuestionsContainer.style.display = 'flex';
     }
 
@@ -1324,7 +1325,11 @@ function initBot() {
         bubble.className = 'wp-chat-bubble';
         bubble.innerHTML = formatMessage(String(text));
         msgDiv.appendChild(bubble);
-        chatMessages.appendChild(msgDiv);
+        if (guidedQuestionsContainer && guidedQuestionsContainer.parentElement === chatMessages) {
+            chatMessages.insertBefore(msgDiv, guidedQuestionsContainer);
+        } else {
+            chatMessages.appendChild(msgDiv);
+        }
         if (persist) {
             appendChatHistory(sessionId, role, String(text));
         }
