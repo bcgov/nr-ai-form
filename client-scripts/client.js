@@ -960,36 +960,33 @@ function injectStyles() {
 
         .wp-chat-guided-questions {
             display: none;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 12px 16px 0;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 14px;
+            padding: 12px 20px 14px;
             background: white;
             border-top: 1px solid #e0e0e0;
         }
 
-        .wp-chat-guided-questions-label {
-            width: 100%;
-            margin: 0;
-            color: #4b5563;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
         .wp-chat-guided-question {
-            border: 1px solid #2f5fa7;
-            border-radius: 18px;
-            background: #f4f8ff;
-            color: #1f3f73;
-            font-size: 14px;
-            line-height: 1.4;
-            padding: 8px 12px;
+            max-width: 85%;
+            border: 1px solid #e6e9ef;
+            border-radius: 8px;
+            background: #f8f9fb;
+            color: #4b5563;
+            font-size: 15px;
+            line-height: 1.35;
+            padding: 12px 16px;
             cursor: pointer;
-            transition: background 0.2s ease, border-color 0.2s ease;
+            text-align: left;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .wp-chat-guided-question:hover {
-            background: #e7f0ff;
-            border-color: #1f3f73;
+            background: #f2f4f7;
+            border-color: #d8dee8;
+            box-shadow: 0 2px 4px rgba(16, 24, 40, 0.1);
         }
 
         .wp-typing-dot {
@@ -1225,17 +1222,12 @@ function initBot() {
 
         guidedQuestionsContainer.innerHTML = '';
 
-        const label = document.createElement('p');
-        label.className = 'wp-chat-guided-questions-label';
-        label.textContent = 'Suggested questions';
-        guidedQuestionsContainer.appendChild(label);
-
         questions.forEach((question) => {
             if (!question || !question.id || !question.question) return;
             guidedQuestionsContainer.appendChild(createGuidedQuestionButton(question));
         });
 
-        if (guidedQuestionsContainer.children.length <= 1) {
+        if (guidedQuestionsContainer.children.length === 0) {
             hideGuidedQuestions();
             return;
         }
