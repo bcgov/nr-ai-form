@@ -219,35 +219,37 @@ async function fetchGuidedQuestions(stepId) {
         {
             "id": "1",
             "question": "What is the purpose of this form?",
-            "stepId": "step1introduction"
+            "stepId": "step1-Introduction"
         },
         {
             "id": "2",
             "question": "What is a water licence?",
-            "stepId": "step1introduction"
+            "stepId": "step1-Introduction"
         },
         {
             "id": "3",
             "question": "Who needs a water licence?",
-            "stepId": "step1introduction"
+            "stepId": "step1-Introduction"
         },
         {
             "id": "4",
-            "question": "Who needs a water licence?",
+            "question": "what is this screen about?",
             "stepId": "step2-Eligibility"
         },
         {
             "id": "5",
-            "question": "Who needs a water licence?",
+            "question": "As a first nation, am I eligible?",
             "stepId": "step2-Eligibility"
         },
         {
             "id": "6",
-            "question": "Who needs a water licence?",
+            "question": "As a farm owner, am I eligible?",
             "stepId": "step2-Eligibility"
         }
-    ]
-    return Array.isArray(questions) ? questions : [];
+    ];
+    return Array.isArray(questions)
+        ? questions.filter((question) => question && String(question.stepId || '') === String(stepId))
+        : [];
 }
 
 function migrateChatHistory(oldThreadId, newThreadId) {
