@@ -179,6 +179,21 @@ function loadAnsweredGuidedQuestionIds(threadId, stepId) {
     }
 }
 
+function saveAnsweredGuidedQuestionId(threadId, stepId, questionId) {
+    if (!threadId || !stepId || !questionId) return;
+    try {
+        const existingIds = loadAnsweredGuidedQuestionIds(threadId, stepId);
+        if (existingIds.includes(String(questionId))) return;
+        existingIds.push(String(questionId));
+        localStorage.setItem(
+            getAnsweredGuidedQuestionsStorageKey(threadId, stepId),
+            JSON.stringify(existingIds)
+        );
+    } catch (error) {
+        console.error("Error saving answered guided question:", error);
+    }
+}
+
 async function fetchGuidedQuestions(stepId) {
     if (!stepId) return [];
 
@@ -215,6 +230,21 @@ async function fetchGuidedQuestions(stepId) {
             "id": "3",
             "question": "Who needs a water licence?",
             "stepId": "step1introduction"
+        },
+        {
+            "id": "4",
+            "question": "Who needs a water licence?",
+            "stepId": "step2-Eligibility"
+        },
+        {
+            "id": "5",
+            "question": "Who needs a water licence?",
+            "stepId": "step2-Eligibility"
+        },
+        {
+            "id": "6",
+            "question": "Who needs a water licence?",
+            "stepId": "step2-Eligibility"
         }
     ]
     return Array.isArray(questions) ? questions : [];
@@ -1164,6 +1194,7 @@ function initBot() {
     let sessionId = getStoredThreadId();
     let restoredScrollTop = loadChatScrollPosition(sessionId);
     let guidedQuestionsRequestToken = 0;
+    let pendingGuidedQuestion = null;
     saveThreadId(sessionId);
     const existingHistory = loadChatHistory(sessionId);
     if (existingHistory.length > 0) {
@@ -1219,8 +1250,11 @@ function initBot() {
         if (!button || sendBtn.disabled) return;
 
         const questionText = String(button.textContent || '').trim();
+        const questionId = String(button.dataset.questionId || '').trim();
+        const stepId = String(button.dataset.stepId || '').trim();
         if (!questionText) return;
 
+        pendingGuidedQuestion = questionId && stepId ? { questionId, stepId } : null;
         button.remove();
         if (guidedQuestionsContainer.children.length === 0) {
             hideGuidedQuestions();
@@ -1303,9 +1337,14 @@ function initBot() {
             saveThreadId(sessionId);
             showTyping(false);
             const messages = extractAssistantMessages(response);
+            if (pendingGuidedQuestion && messages.length > 0) {
+                saveAnsweredGuidedQuestionId(sessionId, pendingGuidedQuestion.stepId, pendingGuidedQuestion.questionId);
+                pendingGuidedQuestion = null;
+            }
             messages.forEach((msg) => appendMessage('assistant', msg));
 
         } catch (error) {
+            pendingGuidedQuestion = null;
             showTyping(false);
             appendMessage('system', "Sorry, I encountered an error connecting to the server.");
             console.error(error);
