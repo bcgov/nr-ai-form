@@ -63,26 +63,33 @@ class FormSupportAgent():
             
         final_instructions = instructions
         
-        # Inject the form context into the template if the placeholder exists
-        if "{form_context_str}" in final_instructions:
-            final_instructions = final_instructions.replace("{form_context_str}", form_context_str)
-        else:
-            # If it's a completely custom prompt without the placeholder, 
-            # we should probably still append the context so the AI knows the fields
+        try:
+            # Inject the form context into the template if the placeholder exists
+            if "{form_context_str}" in final_instructions :                     
+                final_instructions = final_instructions.replace("{form_context_str}", form_context_str)               
+            else:
+                # If it's a completely custom prompt without the placeholder, 
+                # we should probably still append the context so the AI knows the fields
+                final_instructions = f"{final_instructions}\n\nHere is the form context:\n{form_context_str}"
+                
+        except Exception as e:
             final_instructions = f"{final_instructions}\n\nHere is the form context:\n{form_context_str}"
-            
+            print(f"Error processing instructions template: {e}")
+        
+
         # Append strict JSON formatting rule
         json_enforcement_rule = (
-            "\n\nCRITICAL INSTRUCTION: Your response MUST be valid JSON only. "
-            "NEVER wrap your response in markdown code blocks like ```json ... ```. "
-            "Output raw JSON that can be parsed directly by JSON.parse()."
-        )
+                "\n\nCRITICAL INSTRUCTION: Your response MUST be valid JSON only. "
+                "NEVER wrap your response in markdown code blocks like ```json ... ```. "
+                "Output raw JSON that can be parsed directly by JSON.parse()."
+            )
+        
         final_instructions += json_enforcement_rule
         final_instructions += (
-            "\n\n CRITICAL INSTRUCTION: If the user provides livestock type, livestock count, and a time period "
-            "(days, weeks, months, or years), use the livestock water consumption tools "
-            "to calculate water demand in cubic meters (m3) and application fees."
-        )
+                "\n\n CRITICAL INSTRUCTION: If the user provides livestock type, livestock count, and a time period "
+                "(days, weeks, months, or years), use the livestock water consumption tools "
+                "to calculate water demand in cubic meters (m3) and application fees."
+            )
 
         self.agent = AzureOpenAIChatClient(
                 endpoint=endpoint,
@@ -92,7 +99,8 @@ class FormSupportAgent():
             ).create_agent(
                 instructions=final_instructions,                
                 tools=LIVESTOCK_WATER_CONSUMPTION_TOOLS,
-                name="FormSupportAgent",                
+                name="FormSupportAgent", 
+                temperature=0.1,               
             ) 
 
     async def run(self, userquery, thread=None):

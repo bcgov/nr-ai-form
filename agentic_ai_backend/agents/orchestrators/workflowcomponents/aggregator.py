@@ -89,6 +89,7 @@ class Aggregator(Executor):
                 
                 completion = await client.chat.completions.create(
                     model=deployment,
+                    temperature=0.1,
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
