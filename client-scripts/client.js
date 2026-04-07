@@ -1211,7 +1211,22 @@ function initBot() {
         button.textContent = String(question.question || '');
         button.dataset.questionId = String(question.id || '');
         button.dataset.stepId = String(question.stepId || '');
+        button.addEventListener('click', () => handleGuidedQuestionClick(button));
         return button;
+    }
+
+    function handleGuidedQuestionClick(button) {
+        if (!button || sendBtn.disabled) return;
+
+        const questionText = String(button.textContent || '').trim();
+        if (!questionText) return;
+
+        button.remove();
+        if (guidedQuestionsContainer.children.length === 0) {
+            hideGuidedQuestions();
+        }
+
+        sendMessage(questionText);
     }
 
     function renderGuidedQuestions(stepId, questions) {
@@ -1258,8 +1273,8 @@ function initBot() {
         }
     }
 
-    async function sendMessage() {
-        let text = chatInput.value.trim();
+    async function sendMessage(prefilledText = null) {
+        let text = typeof prefilledText === 'string' ? prefilledText.trim() : chatInput.value.trim();
         if (!text) return;
 
         appendMessage('user', text);
