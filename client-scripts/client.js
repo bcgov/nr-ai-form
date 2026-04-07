@@ -1277,7 +1277,7 @@ function initBot() {
         let text = typeof prefilledText === 'string' ? prefilledText.trim() : chatInput.value.trim();
         if (!text) return;
 
-        appendMessage('user', text);
+        appendMessage('user', text, true, true, { placeAfterGuidedQuestions: true });
         chatInput.value = '';
         autoResizeChatInput();
         sendBtn.classList.remove('wp-chat-send-ready');
@@ -1333,15 +1333,31 @@ function initBot() {
         return [JSON.stringify(response)];
     }
 
-    function appendMessage(role, text, persist = true, scroll = true) {
+    function appendMessage(role, text, persist = true, scroll = true, options = {}) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `wp-chat-message wp-chat-message-${role}`;
         const bubble = document.createElement('div');
         bubble.className = 'wp-chat-bubble';
         bubble.innerHTML = formatMessage(String(text));
         msgDiv.appendChild(bubble);
-        chatMessages.appendChild(msgDiv);
-        if (guidedQuestionsContainer && guidedQuestionsContainer.style.display !== 'none') {
+
+        const shouldPlaceAfterGuidedQuestions =
+            options.placeAfterGuidedQuestions &&
+            guidedQuestionsContainer &&
+            guidedQuestionsContainer.style.display !== 'none' &&
+            guidedQuestionsContainer.parentElement === chatMessages;
+
+        if (shouldPlaceAfterGuidedQuestions) {
+            if (guidedQuestionsContainer.nextSibling) {
+                chatMessages.insertBefore(msgDiv, guidedQuestionsContainer.nextSibling);
+            } else {
+                chatMessages.appendChild(msgDiv);
+            }
+        } else {
+            chatMessages.appendChild(msgDiv);
+        }
+
+        if (!shouldPlaceAfterGuidedQuestions && guidedQuestionsContainer && guidedQuestionsContainer.style.display !== 'none') {
             chatMessages.appendChild(guidedQuestionsContainer);
         }
         if (persist) {
