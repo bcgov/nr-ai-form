@@ -1256,13 +1256,24 @@ function initBot() {
         const stepId = String(button.dataset.stepId || '').trim();
         if (!questionText) return;
 
-        pendingGuidedQuestion = questionId && stepId ? { questionId, stepId } : null;
+        pendingGuidedQuestion = questionId && stepId ? { questionId, stepId, questionText } : null;
         button.remove();
         if (guidedQuestionsContainer.children.length === 0) {
             hideGuidedQuestions();
         }
 
         sendMessage(questionText);
+    }
+
+    function restorePendingGuidedQuestion() {
+        if (!pendingGuidedQuestion) return;
+        const pendingStepId = pendingGuidedQuestion.stepId;
+        pendingGuidedQuestion = null;
+
+        const currentStep = getCurrentFormStepFromDom() || FormSteps.step1introduction || 'step1introduction';
+        if (currentStep === pendingStepId) {
+            refreshGuidedQuestions();
+        }
     }
 
     function renderGuidedQuestions(stepId, questions) {
@@ -1339,14 +1350,18 @@ function initBot() {
             saveThreadId(sessionId);
             showTyping(false);
             const messages = extractAssistantMessages(response);
-            if (pendingGuidedQuestion && messages.length > 0) {
+            const hasAssistantReply = messages.some((msg) => String(msg || '').trim().length > 0);
+            if (pendingGuidedQuestion && hasAssistantReply) {
                 saveAnsweredGuidedQuestionId(sessionId, pendingGuidedQuestion.stepId, pendingGuidedQuestion.questionId);
                 pendingGuidedQuestion = null;
+            }
+            if (pendingGuidedQuestion && !hasAssistantReply) {
+                restorePendingGuidedQuestion();
             }
             messages.forEach((msg) => appendMessage('assistant', msg));
 
         } catch (error) {
-            pendingGuidedQuestion = null;
+            restorePendingGuidedQuestion();
             showTyping(false);
             appendMessage('system', "Sorry, I encountered an error connecting to the server.");
             console.error(error);
