@@ -198,12 +198,12 @@ jobs:
         STRIPPED=$(echo "$APP_NAME" | tr -cd 'a-zA-Z0-9')
 
         if ! terragrunt state list 2>/dev/null | grep -q 'module\.frontdoor\[0\]\.azurerm_cdn_frontdoor_profile\.frontend_frontdoor'; then
-          FD_ID=$(az afd profile show --profile-name "${APP_NAME}-frontend-frontdoor" --resource-group "${RG_NAME}" --query id -o tsv 2>/dev/null || true)
+          FD_ID=$(az afd profile show --profile-name "${APP_NAME}-frontend-frontdoor" --resource-group "${RG_NAME}" --query id -o tsv 2>/dev/null | sed 's|/resourcegroups/|/resourceGroups/|g' || true)
           [ -n "$FD_ID" ] && terragrunt import -lock=false 'module.frontdoor[0].azurerm_cdn_frontdoor_profile.frontend_frontdoor' "$FD_ID" || true
         fi
 
         if ! terragrunt state list 2>/dev/null | grep -q 'module\.frontdoor\[0\]\.azurerm_cdn_frontdoor_firewall_policy\.frontend_firewall_policy'; then
-          WAF_ID=$(az network front-door waf-policy show --name "${STRIPPED}frontendfirewall" --resource-group "${RG_NAME}" --query id -o tsv 2>/dev/null || true)
+          WAF_ID=$(az network front-door waf-policy show --name "${STRIPPED}frontendfirewall" --resource-group "${RG_NAME}" --query id -o tsv 2>/dev/null | sed 's|/resourcegroups/|/resourceGroups/|g' || true)
           [ -n "$WAF_ID" ] && terragrunt import -lock=false 'module.frontdoor[0].azurerm_cdn_frontdoor_firewall_policy.frontend_firewall_policy' "$WAF_ID" || true
         fi
 
