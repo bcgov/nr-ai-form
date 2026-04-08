@@ -32,12 +32,11 @@ export function saveAnsweredGuidedQuestionId(threadId, stepId, questionId) {
     }
 }
 
+/**
+ * This method is used to decide whether a clicked guided question should be marked as answered.
+ * Only a non-empty assistant response counts as success; failed requests or empty replies
+ * should not permanently hide the guided question.
+ */
 export function hasUsableAssistantReply(messages) {
-    // Called after extractAssistantMessages(response) runs in client.js.
-    // At this stage `messages` should be the assistant reply array returned by the orchestrator flow.
-    //
-    // We use this check to decide whether a clicked guided question should be marked as answered.
-    // Only a non-empty assistant response counts as success; failed requests or empty replies
-    // should not permanently hide the guided question.
     return Array.isArray(messages) && messages.some((msg) => String(msg || '').trim().length > 0);
 }
