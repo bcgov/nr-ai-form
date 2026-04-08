@@ -3,8 +3,8 @@
 
 
 //-------------------------- Services Starts ---------------------------//
-const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
-// const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
 
 let livestockPurposehtml = `<tr class="possegrid">
