@@ -193,7 +193,6 @@ jobs:
 
         # Import diagnostic settings if they exist in Azure but not in state
         CA_ENV_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${RG_NAME}/providers/Microsoft.App/managedEnvironments/${APP_NAME}-${app_env}-containerenv"
-        CA_BACKEND_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${RG_NAME}/providers/Microsoft.App/containerApps/${APP_NAME}-${branch_slug}-api"
 
         if ! terragrunt state list 2>/dev/null | grep -q 'module\.container_apps\.azurerm_monitor_diagnostic_setting\.container_app_env_diagnostics'; then
           terragrunt import -lock=false 'module.container_apps.azurerm_monitor_diagnostic_setting.container_app_env_diagnostics' \
@@ -201,8 +200,12 @@ jobs:
         fi
 
         if ! terragrunt state list 2>/dev/null | grep -q 'module\.container_apps\.azurerm_monitor_diagnostic_setting\.backend_container_app_diagnostics'; then
-          terragrunt import -lock=false 'module.container_apps.azurerm_monitor_diagnostic_setting.backend_container_app_diagnostics' \
-            "${CA_BACKEND_ID}|${APP_NAME}-backend-ca-diagnostics" 2>/dev/null || true
+          # Get the actual Container App ID from state (name may differ from computed value if created before branch_slug naming)
+          CA_BACKEND_ID=$(terragrunt state show 'module.container_apps.azurerm_container_app.backend' 2>/dev/null | grep -E '^\s+id\s+=' | awk -F'"' '{print $2}')
+          if [ -n "$CA_BACKEND_ID" ]; then
+            terragrunt import -lock=false 'module.container_apps.azurerm_monitor_diagnostic_setting.backend_container_app_diagnostics' \
+              "${CA_BACKEND_ID}|${APP_NAME}-backend-ca-diagnostics" 2>/dev/null || true
+          fi
         fi
 
 
