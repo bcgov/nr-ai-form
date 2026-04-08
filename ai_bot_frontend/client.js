@@ -16,6 +16,8 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 // const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
 const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 // Guided questions live on the same backend host as the chat/orchestrator API.
+
+// TODO: add the correct url for the guided questions API
 const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
 
 let livestockPurposehtml = `<tr class="possegrid">

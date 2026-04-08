@@ -37,8 +37,7 @@ export async function fetchGuidedQuestions(stepId, guidedQuestionsApiUrl) {
 
     const url = new URL(guidedQuestionsApiUrl);
     url.searchParams.set('stepId', stepId);
-
-    // Uncomment when the backend endpoint is available.
+    // TODO: Uncomment when the backend endpoint is available and remove the MOCK_GUIDED_QUESTIONS.
     // const response = await fetch(url.toString(), {
     //     method: 'GET',
     //     headers: {
