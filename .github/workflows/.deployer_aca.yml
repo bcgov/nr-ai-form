@@ -170,10 +170,12 @@ jobs:
         fi
 
         # Import container-apps-subnet if it exists in Azure but not in state
-        CONTAINER_APPS_SUBNET_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/virtualNetworks/${vnet_name}/subnets/container-apps-subnet"
-
-        if ! terragrunt state list 2>/dev/null | grep -q 'module\.network\.azapi_resource\.container_apps_subnet'; then
-          terragrunt import -lock=false "module.network.azapi_resource.container_apps_subnet[0]" "$CONTAINER_APPS_SUBNET_ID" 2>/dev/null || true
+        # Skipped for dev: the resource has count=0 there (subnet is pre-existing, not managed by Terraform)
+        if [ "${app_env}" != "dev" ]; then
+          CONTAINER_APPS_SUBNET_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/virtualNetworks/${vnet_name}/subnets/container-apps-subnet"
+          if ! terragrunt state list 2>/dev/null | grep -q 'module\.network\.azapi_resource\.container_apps_subnet'; then
+            terragrunt import -lock=false "module.network.azapi_resource.container_apps_subnet[0]" "$CONTAINER_APPS_SUBNET_ID" 2>/dev/null || true
+          fi
         fi
 
         # Import frontdoor resources if they exist in Azure but not in state
