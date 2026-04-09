@@ -12,8 +12,12 @@ from orchestratoragent import orchestrate_a2a
 load_dotenv()
 
 from models.orchestratormodel import InvokeRequest, InvokeResponse
+from utils.blobservice import BlobService
+from services.suggested_questions_service import SuggestedQuestionsService
 
 #TODO ABIN: This is a temporary A2A enoiinbt for testing and invoke, later on we will use PUB-SUB mechanism from a Queue to use that.
+
+suggested_questions_service = None
 
 app = FastAPI(
     version="1.0.0"
@@ -90,6 +94,61 @@ async def invoke_agent(request: InvokeRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+
+@app.get("/suggested-questions")
+async def get_suggested_questions():
+    global suggested_questions_service
+    if suggested_questions_service is None:
+        try:
+            conn_str = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
+            container = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
+            if conn_str:
+                blob_service = BlobService(connection_string=conn_str)
+                suggested_questions_service = SuggestedQuestionsService(blob_service, container)
+        except Exception as e:
+            print(f"Failed to initialize SuggestedQuestionsService: {e}")
+
+    if suggested_questions_service:
+        questions_str = suggested_questions_service.fetch_suggested_questions()
+        if questions_str:
+            import json
+            try:
+                return json.loads(questions_str)
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse suggested questions JSON: {e}")
+                
+    return [
+        {
+            "id": "1",
+            "question": "What is the purpose of this form?",
+            "stepId": "step1-Introduction"
+        },
+        {
+            "id": "2",
+            "question": "What is a water licence?",
+            "stepId": "step1-Introduction"
+        },
+        {
+            "id": "3",
+            "question": "Who needs a water licence?",
+            "stepId": "step1-Introduction"
+        },
+        {
+            "id": "4",
+            "question": "what is this screen about?",
+            "stepId": "step2-Eligibility"
+        },
+        {
+            "id": "5",
+            "question": "As a first nation, am I eligible?",
+            "stepId": "step2-Eligibility"
+        },
+        {
+            "id": "6",
+            "question": "As a farm owner, am I eligible?",
+            "stepId": "step2-Eligibility"
+        }
+    ]
 
 @app.get("/health")
 async def health_check():
