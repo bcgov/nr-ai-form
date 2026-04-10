@@ -15,7 +15,7 @@ load_dotenv()
 
 class ConversationAgent:
     
-    def __init__(self, endpoint, api_key, deployment_name, api_version):
+    def __init__(self, endpoint, api_key, deployment_name, api_version,max_tokens, temperature):
         self.agent = AzureOpenAIChatClient(
             endpoint=endpoint,
             api_key=api_key,
@@ -33,13 +33,16 @@ class ConversationAgent:
                 6. Whenever you include a URL or web link in your response, always format it as a Markdown link using the syntax [descriptive text](url). Use meaningful link text that describes the destination. If no descriptive text is available, use [here](url).
             """,
             tools=azure_ai_search,
-            name="ConversationAgent"
+            name="ConversationAgent",
+            temperature=temperature,
+            ToolMode = "required",
+            additional_chat_options={"max_completion_tokens": max_tokens},
         ) 
 
 
 
     async def run(self, userquery, thread=None):
-        result = await self.agent.run(userquery, thread=thread)
+        result = await self.agent.run(userquery)
         return result.text
 
 
