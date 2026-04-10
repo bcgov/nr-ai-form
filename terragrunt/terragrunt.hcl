@@ -12,13 +12,17 @@ locals {
   vnet_name                = get_env("vnet_name")                # Name of the existing VNet.
   target_env               = get_env("target_env")
   app_env                  = get_env("app_env") # Application environment (dev, test, prod).
+  # Branch slug is used in dev to give each branch its own Container App and state file.
+  # Defaults to "master" so test/prod deployments (which don't set this) are unaffected.
+  branch_slug              = get_env("branch_slug", "master")
   deployment_type          = get_env("deployment_type", "container_apps") # Deployment type (container_apps only)
   azure_subscription_id    = get_env("azure_subscription_id")
   azure_tenant_id          = get_env("azure_tenant_id")
   azure_client_id          = get_env("azure_client_id")      # Azure service principal client ID.
   storage_account_name     = get_env("storage_account_name") # Created by initial setup script.
   vnet_address_space       = get_env("vnet_address_space")   # Address space for the VNet.
-  statefile_key            = "${local.stack_prefix}/${local.app_env}/terraform.tfstate"
+  # State is scoped per branch in dev so each branch manages its own Container App independently.
+  statefile_key            = "${local.stack_prefix}/${local.app_env}/${local.branch_slug}/terraform.tfstate"
   container_name           = "tfstate"
   
   # Azure OpenAI Configuration
@@ -90,6 +94,7 @@ generate "tfvars" {
   contents          = <<-EOF
 resource_group_name        = "${get_env("repo_name")}-${local.app_env}"
 app_name                  = "${local.stack_prefix}-${local.app_env}"
+branch_slug               = "${local.branch_slug}"
 app_env                   = "${local.app_env}"
 deployment_type           = "${local.deployment_type}"
 subscription_id           = "${local.azure_subscription_id}"

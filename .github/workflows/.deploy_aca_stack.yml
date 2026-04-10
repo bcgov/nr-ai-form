@@ -38,6 +38,11 @@ on:
         type: string
         default: ''
         description: 'Space-separated -target flags to scope the Terraform operation (e.g. "-target=module.container_apps")'
+      branch_slug:
+        required: false
+        type: string
+        default: 'master'
+        description: 'URL-safe slug of the deploying branch appended to the ACA Container App name (dev only)'
 
 env:
     AZURE_REGION: Canada Central
@@ -61,4 +66,5 @@ jobs:
       deployment_type: ${{ inputs.deployment_type }}
       prevent_destroy: ${{ inputs.prevent_destroy }}
       target_modules: ${{ inputs.target_modules }}
+      branch_slug: ${{ inputs.branch_slug }}
     secrets: inherit
