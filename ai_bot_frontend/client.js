@@ -18,7 +18,7 @@ const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8
 // Guided questions live on the same backend host as the chat/orchestrator API.
 
 // TODO: add the correct url for the guided questions API
-const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
+const GUIDED_QUESTIONS_API_URL = new URL('/suggested-questions', ORCHESTRATOR_API_URL).toString();
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
@@ -1216,7 +1216,7 @@ function initBot() {
         try {
             // Filter on the client as a final guard so answered prompts stay hidden after refresh.
             const answeredQuestionIds = new Set(loadAnsweredGuidedQuestionIds(sessionId, stepId));
-            const guidedQuestions = await fetchGuidedQuestions(stepId, GUIDED_QUESTIONS_API_URL);
+            const guidedQuestions = await fetchGuidedQuestions(GUIDED_QUESTIONS_API_URL);
 
             if (requestToken !== guidedQuestionsRequestToken) return;
 
