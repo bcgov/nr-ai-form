@@ -72,9 +72,10 @@ module "cosmos" {
 module "container_apps" {
   source = "./modules/container-apps"
 
-  app_name  = var.app_name
-  app_env   = var.app_env
-  repo_name = var.repo_name
+  app_name    = var.app_name
+  app_env     = var.app_env
+  repo_name   = var.repo_name
+  branch_slug = var.branch_slug
 
   # Agent Images
   orchestrator_agent_image = var.orchestrator_agent_image

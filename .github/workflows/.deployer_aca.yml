@@ -42,6 +42,11 @@ on:
         type: string
         default: ''
         description: 'Space-separated list of -target=<module> flags to scope the Terraform operation (e.g. "-target=module.container_apps")'
+      branch_slug:
+        required: false
+        type: string
+        default: 'master'
+        description: 'URL-safe slug of the deploying branch; appended to the ACA Container App name (dev only)'
 
 env:
     TG_VERSION: 0.63.6
@@ -82,7 +87,7 @@ jobs:
           target_env: ${{ inputs.environment_name }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
+          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: "ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
           orchestrator_agent_image: "ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
@@ -90,10 +95,10 @@ jobs:
           formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
           # api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
-          branch_slug: ${{ inputs.branch_slug }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
+          branch_slug: ${{ inputs.branch_slug }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           deployment_type: ${{ inputs.deployment_type }}
@@ -116,99 +121,7 @@ jobs:
           # Azure Blob Storage Configuration
           AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
-      run: |
-        # Initialize Terragrunt to access state
-        echo "Initializing Terragrunt..."
-        terragrunt init -upgrade
-        
-        # Check and remove azurerm_subnet.container_apps_subnet if it exists (migration from azurerm to azapi)
-        echo "Checking for azurerm_subnet.container_apps_subnet in state..."
-        if terragrunt state list 2>/dev/null | grep -q 'module.network.azurerm_subnet.container_apps_subnet'; then
-          echo "Found azurerm_subnet.container_apps_subnet - removing from state..."
-          terragrunt state rm -lock=false 'module.network.azurerm_subnet.container_apps_subnet[0]' || true
-          echo "Removed azurerm_subnet from state"
-        else
-          echo "azurerm_subnet not found in state"
-        fi
-        
-        # Check and remove azurerm_subnet_network_security_group_association if it exists
-        echo "Checking for NSG association in state..."
-        if terragrunt state list 2>/dev/null | grep -q 'module.network.azurerm_subnet_network_security_group_association.container_apps'; then
-          echo "Found NSG association - removing from state..."
-          terragrunt state rm -lock=false 'module.network.azurerm_subnet_network_security_group_association.container_apps[0]' || true
-          echo "Removed NSG association from state"
-        else
-          echo "NSG association not found in state"
-        fi
-        
-        # Remove stale module.frontdoor resources from state (dev has enable_front_door=false so these would be destroyed)
-        # Matches both module.frontdoor. (created before count was added) and module.frontdoor[0]. (with count)
-        echo "Checking for stale module.frontdoor resources in state..."
-        FRONTDOOR_RESOURCES=$(terragrunt state list 2>/dev/null | grep -E 'module\.frontdoor(\[|\.)'  || true)
-        if [ -n "$FRONTDOOR_RESOURCES" ]; then
-          echo "Found module.frontdoor resources - removing from state to prevent destruction..."
-          while IFS= read -r resource; do
-            terragrunt state rm -lock=false "$resource" || true
-          done <<< "$FRONTDOOR_RESOURCES"
-          echo "Removed all module.frontdoor resources from state"
-        else
-          echo "No module.frontdoor resources in state"
-        fi
-
-        # Remove stale module.api resources from state (switching to container_apps deployment type)
-        # Matches both module.api. (created before count was added) and module.api[0]. (with count)
-        echo "Checking for stale module.api resources in state..."
-        API_RESOURCES=$(terragrunt state list 2>/dev/null | grep -E 'module\.api(\[|\.)' || true)
-        if [ -n "$API_RESOURCES" ]; then
-          echo "Found module.api resources - removing from state to prevent destruction..."
-          while IFS= read -r resource; do
-            terragrunt state rm -lock=false "$resource" || true
-          done <<< "$API_RESOURCES"
-          echo "Removed all module.api resources from state"
-        else
-          echo "No module.api resources in state"
-        fi
-
-        # Import container-apps-subnet if it exists in Azure but not in state
-        # Skipped for dev: the resource has count=0 there (subnet is pre-existing, not managed by Terraform)
-        if [ "${app_env}" != "dev" ]; then
-          CONTAINER_APPS_SUBNET_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/virtualNetworks/${vnet_name}/subnets/container-apps-subnet"
-          if ! terragrunt state list 2>/dev/null | grep -q 'module\.network\.azapi_resource\.container_apps_subnet'; then
-            terragrunt import -lock=false "module.network.azapi_resource.container_apps_subnet[0]" "$CONTAINER_APPS_SUBNET_ID" 2>/dev/null || true
-          fi
-        fi
-
-        # Import frontdoor resources if they exist in Azure but not in state
-        APP_NAME="${stack_prefix}-${app_env}"
-        RG_NAME="${repo_name}-${app_env}"
-        STRIPPED=$(echo "$APP_NAME" | tr -cd 'a-zA-Z0-9')
-
-        if ! terragrunt state list 2>/dev/null | grep -q 'module\.frontdoor\[0\]\.azurerm_cdn_frontdoor_profile\.frontend_frontdoor'; then
-          terragrunt import -lock=false 'module.frontdoor[0].azurerm_cdn_frontdoor_profile.frontend_frontdoor' \
-            "/subscriptions/${azure_subscription_id}/resourceGroups/${RG_NAME}/providers/Microsoft.Cdn/profiles/${APP_NAME}-frontend-frontdoor" 2>/dev/null || true
-        fi
-
-        if ! terragrunt state list 2>/dev/null | grep -q 'module\.frontdoor\[0\]\.azurerm_cdn_frontdoor_firewall_policy\.frontend_firewall_policy'; then
-          terragrunt import -lock=false 'module.frontdoor[0].azurerm_cdn_frontdoor_firewall_policy.frontend_firewall_policy' \
-            "/subscriptions/${azure_subscription_id}/resourceGroups/${RG_NAME}/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/${STRIPPED}frontendfirewall" 2>/dev/null || true
-        fi
-
-        # Import diagnostic settings if they exist in Azure but not in state
-        CA_ENV_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${RG_NAME}/providers/Microsoft.App/managedEnvironments/${APP_NAME}-${app_env}-containerenv"
-
-        if ! terragrunt state list 2>/dev/null | grep -q 'module\.container_apps\.azurerm_monitor_diagnostic_setting\.container_app_env_diagnostics'; then
-          terragrunt import -lock=false 'module.container_apps.azurerm_monitor_diagnostic_setting.container_app_env_diagnostics' \
-            "${CA_ENV_ID}|${APP_NAME}-ca-env-diagnostics" 2>/dev/null || true
-        fi
-
-        if ! terragrunt state list 2>/dev/null | grep -q 'module\.container_apps\.azurerm_monitor_diagnostic_setting\.backend_container_app_diagnostics'; then
-          # Get the actual Container App ID from state (name may differ from computed value if created before branch_slug naming)
-          CA_BACKEND_ID=$(terragrunt state show 'module.container_apps.azurerm_container_app.backend' 2>/dev/null | grep -E '^\s+id\s+=' | awk -F'"' '{print $2}')
-          if [ -n "$CA_BACKEND_ID" ]; then
-            terragrunt import -lock=false 'module.container_apps.azurerm_monitor_diagnostic_setting.backend_container_app_diagnostics' \
-              "${CA_BACKEND_ID}|${APP_NAME}-backend-ca-diagnostics" 2>/dev/null || true
-          fi
-        fi
+      run: bash ${{ github.workspace }}/scripts/state-prep.sh
 
 
     - name: Image Tags
@@ -246,6 +159,7 @@ jobs:
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
+          branch_slug: ${{ inputs.branch_slug }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           deployment_type: ${{ inputs.deployment_type }}
@@ -297,6 +211,7 @@ jobs:
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
+          branch_slug: ${{ inputs.branch_slug }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           deployment_type: ${{ inputs.deployment_type }}

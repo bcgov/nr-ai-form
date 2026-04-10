@@ -1,4 +1,19 @@
 
+locals {
+  # Azure Container App name constraints: ≤32 chars, lowercase alphanumeric + hyphen, no '--'.
+  #
+  # app_name = "{stack_prefix}-{app_env}" (e.g. "nraii-a3f2-dev" = 14 chars)
+  # Adding branch_slug (up to 15) + "-api" (4) would exceed 32 in dev.
+  #
+  # In dev: strip the trailing "-{app_env}" to reclaim 4 chars, giving:
+  #   "{stack_prefix}-{branch_slug}-api"  →  max 10 + 1 + 15 + 4 = 30 chars ✓
+  #
+  # In test/prod: branch_slug is always "master" (default) and the original
+  # name "{app_name}-api" is used unchanged for backward compatibility.
+  _app_name_base     = trimsuffix(var.app_name, "-${var.app_env}")
+  container_app_name = var.app_env == "dev" ? "${local._app_name_base}-${var.branch_slug}-api" : "${var.app_name}-api"
+}
+
 resource "azurerm_container_app_environment" "main" {
   name                               = "${var.app_name}-${var.app_env}-containerenv"
   location                           = var.location
@@ -59,7 +74,7 @@ resource "azurerm_private_endpoint" "containerapps" {
 }
 
 resource "azurerm_container_app" "backend" {
-  name                         = "${var.app_name}-api"
+  name                         = local.container_app_name
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = var.resource_group_name
   revision_mode                = "Single"
