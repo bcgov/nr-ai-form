@@ -102,8 +102,6 @@ async def get_suggested_questions():
         try:
             conn_str = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
             container = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
-            print("conn_str", conn_str)
-            print("container", container)
             if conn_str:
                 blob_service = BlobService(connection_string=conn_str)
                 suggested_questions_service = SuggestedQuestionsService(blob_service, container)
@@ -111,9 +109,7 @@ async def get_suggested_questions():
             print(f"Failed to initialize SuggestedQuestionsService: {e}")
 
     if suggested_questions_service:
-        print("SuggestedQuestionsService initialized")
         questions_str = suggested_questions_service.fetch_suggested_questions()
-        print("questions_str", questions_str)
         if questions_str:
             import json
             try:
