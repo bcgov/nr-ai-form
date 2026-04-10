@@ -6,13 +6,13 @@
 # Migration: azurerm_subnet → azapi_resource for the Container Apps subnet
 # The subnet is now managed by azapi_resource.container_apps_subnet in the network module.
 removed {
-  from = module.network.azurerm_subnet.container_apps_subnet[0]
+  from = module.network.azurerm_subnet.container_apps_subnet
   lifecycle { destroy = false }
 }
 
 # Migration: NSG association for the Container Apps subnet was dropped when moving to azapi
 # (azapi inline body handles the NSG association, no separate resource needed)
 removed {
-  from = module.network.azurerm_subnet_network_security_group_association.container_apps[0]
+  from = module.network.azurerm_subnet_network_security_group_association.container_apps
   lifecycle { destroy = false }
 }
