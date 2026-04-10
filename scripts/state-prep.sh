@@ -25,6 +25,23 @@ STATE=$(terragrunt state list 2>/dev/null || true)
 # Derived names used in Azure resource IDs
 APP_NAME="${stack_prefix}-${app_env}"
 RG_NAME="${repo_name}-${app_env}"
+CA_ENV_NAME="${APP_NAME}-${app_env}-containerenv"
+CA_ENV_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${RG_NAME}/providers/Microsoft.App/managedEnvironments/${CA_ENV_NAME}"
+
+# ─── Import root shared resources (first-deploy / fresh state guard) ────────
+# The resource group is a root dependency of every module. If it already exists
+# in Azure but not in state, every apply would fail trying to create it.
+
+echo "==> Checking resource group import..."
+if ! echo "$STATE" | grep -q 'azurerm_resource_group\.main'; then
+  echo "  Resource group not in state, checking Azure..."
+  EXISTING_RG=$(az group show --name "${RG_NAME}" --query id -o tsv 2>/dev/null || true)
+  if [ -n "$EXISTING_RG" ]; then
+    echo "  Importing resource group: ${RG_NAME}"
+    terragrunt import -lock=false 'azurerm_resource_group.main' "$EXISTING_RG" || true
+    STATE=$(terragrunt state list 2>/dev/null || true)
+  fi
+fi
 
 # ─── Remove stale resources (prevent_destroy guard won't catch these because ───
 # ─── they no longer exist in the Terraform config)                            ───
@@ -81,30 +98,6 @@ if ! echo "$STATE" | grep -q 'module\.frontdoor\[0\]\.azurerm_cdn_frontdoor_fire
     'module.frontdoor[0].azurerm_cdn_frontdoor_firewall_policy.frontend_firewall_policy' \
     "/subscriptions/${azure_subscription_id}/resourceGroups/${RG_NAME}/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/${STRIPPED}frontendfirewall" \
     2>/dev/null || true
-fi
-
-# Container App Environment — shared across all branch deployments.
-# If another branch already created it, import it into this branch's state so
-# Terraform doesn't try to create a duplicate.
-echo "==> Checking Container App Environment import..."
-CA_ENV_NAME="${APP_NAME}-${app_env}-containerenv"
-CA_ENV_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${RG_NAME}/providers/Microsoft.App/managedEnvironments/${CA_ENV_NAME}"
-if ! echo "$STATE" | grep -q 'module\.container_apps\.azurerm_container_app_environment\.main'; then
-  echo "  Checking Azure for existing environment: ${CA_ENV_NAME}..."
-  EXISTING_ENV_ID=$(az containerapp env show \
-    --name "${CA_ENV_NAME}" \
-    --resource-group "${RG_NAME}" \
-    --query id -o tsv 2>/dev/null || true)
-  if [ -n "$EXISTING_ENV_ID" ]; then
-    echo "  Importing Container App Environment..."
-    terragrunt import -lock=false 'module.container_apps.azurerm_container_app_environment.main' "$EXISTING_ENV_ID" || true
-    # Refresh state after import before using it for diagnostic imports below
-    STATE=$(terragrunt state list 2>/dev/null || true)
-  else
-    echo "  Environment does not exist yet — will be created by apply"
-  fi
-else
-  echo "  Container App Environment already in state"
 fi
 
 # Diagnostic settings — environment diagnostics
