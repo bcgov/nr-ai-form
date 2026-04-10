@@ -111,6 +111,16 @@ import_if_missing \
   "module.cosmos.azurerm_cosmosdb_sql_container.cosmosdb_sql_db_container" \
   "${COSMOS_CONTAINER_ID}"
 
+# 7. CosmosDB private endpoint
+import_if_missing \
+  "module.cosmos.azurerm_private_endpoint.cosmosdb_sql_db_private_endpoint" \
+  "${RG_ID}/providers/Microsoft.Network/privateEndpoints/${APP_NAME}-cosmosdb-pe"
+
+# 8. CosmosDB diagnostic setting
+import_if_missing \
+  "module.cosmos.azurerm_monitor_diagnostic_setting.cosmosdb_sql_diagnostics" \
+  "${COSMOS_ACCT_ID}|${APP_NAME}-cosmosdb-diagnostics"
+
 # 7. Container App Environment — shared across all branches (one per dev environment)
 #    Use az CLI here since this resource requires the environment to actually exist
 #    before we attempt import (unlike the others which have deterministic IDs).
