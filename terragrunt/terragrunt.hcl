@@ -21,8 +21,11 @@ locals {
   azure_client_id          = get_env("azure_client_id")      # Azure service principal client ID.
   storage_account_name     = get_env("storage_account_name") # Created by initial setup script.
   vnet_address_space       = get_env("vnet_address_space")   # Address space for the VNet.
-  # State is scoped per branch in dev so each branch manages its own Container App independently.
-  statefile_key            = "${local.stack_prefix}/${local.app_env}/${local.branch_slug}/terraform.tfstate"
+  # Single shared state per environment. Branch isolation is achieved through the Container App
+  # name (which includes branch_slug) — not through separate state files. Separate state per
+  # branch would require importing every shared resource (resource group, cosmos, monitoring)
+  # on every new branch, which is fragile and slow.
+  statefile_key            = "${local.stack_prefix}/${local.app_env}/terraform.tfstate"
   container_name           = "tfstate"
   
   # Azure OpenAI Configuration
