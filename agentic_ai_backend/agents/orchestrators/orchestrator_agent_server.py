@@ -102,6 +102,8 @@ async def get_suggested_questions():
         try:
             conn_str = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
             container = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
+            print("conn_str", conn_str)
+            print("container", container)
             if conn_str:
                 blob_service = BlobService(connection_string=conn_str)
                 suggested_questions_service = SuggestedQuestionsService(blob_service, container)
@@ -109,7 +111,9 @@ async def get_suggested_questions():
             print(f"Failed to initialize SuggestedQuestionsService: {e}")
 
     if suggested_questions_service:
+        print("SuggestedQuestionsService initialized")
         questions_str = suggested_questions_service.fetch_suggested_questions()
+        print("questions_str", questions_str)
         if questions_str:
             import json
             try:
@@ -117,38 +121,7 @@ async def get_suggested_questions():
             except json.JSONDecodeError as e:
                 print(f"Failed to parse suggested questions JSON: {e}")
                 
-    return [
-        {
-            "id": "1",
-            "question": "What is the purpose of this form?",
-            "stepId": "step1-Introduction"
-        },
-        {
-            "id": "2",
-            "question": "What is a water licence?",
-            "stepId": "step1-Introduction"
-        },
-        {
-            "id": "3",
-            "question": "Who needs a water licence?",
-            "stepId": "step1-Introduction"
-        },
-        {
-            "id": "4",
-            "question": "what is this screen about?",
-            "stepId": "step2-Eligibility"
-        },
-        {
-            "id": "5",
-            "question": "As a first nation, am I eligible?",
-            "stepId": "step2-Eligibility"
-        },
-        {
-            "id": "6",
-            "question": "As a farm owner, am I eligible?",
-            "stepId": "step2-Eligibility"
-        }
-    ]
+    return []
 
 @app.get("/health")
 async def health_check():
