@@ -59,7 +59,7 @@ resource "azurerm_private_endpoint" "containerapps" {
 }
 
 resource "azurerm_container_app" "backend" {
-  name                         = "${var.app_name}-api"
+  name                         = "${var.app_name}-${var.branch_slug}-api"
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = var.resource_group_name
   revision_mode                = "Single"
