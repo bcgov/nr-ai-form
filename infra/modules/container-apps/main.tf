@@ -43,6 +43,8 @@ resource "azurerm_container_app_environment" "main" {
       infrastructure_subnet_id,
       infrastructure_resource_group_name,
     ]
+    # The environment is shared across all branch deployments — never let a branch destroy destroy it
+    prevent_destroy = true
   }
 
   logs_destination = "log-analytics"

@@ -7,9 +7,8 @@ resource "azurerm_resource_group" "main" {
   location = var.location
   tags     = var.common_tags
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes  = [tags]
+    prevent_destroy = true
   }
 }
 

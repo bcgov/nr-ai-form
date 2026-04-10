@@ -11,9 +11,9 @@ on:
   # Auto-trigger when a branch is deleted (merged or manually deleted)
   delete:
 
-  # Also trigger when a PR is merged, in case the branch survives deletion briefly
+  # Also trigger on any PR merge (regardless of target branch).
+  # We destroy the SOURCE branch's ACA (github.head_ref), never the target branch's.
   pull_request:
-    branches: [master]
     types: [closed]
 
   # Manual fallback: destroy any branch by name
