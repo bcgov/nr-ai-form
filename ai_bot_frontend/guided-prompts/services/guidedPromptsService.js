@@ -1,5 +1,5 @@
 // Temporary fallback data while the guided-questions backend endpoint is being wired in.
-// const MOCK_GUIDED_QUESTIONS = [
+// const MOCK_GUIDED_PROMPTS = [
 //     {
 //         id: "1",
 //         question: "What is the purpose of this form?",
@@ -32,9 +32,9 @@
 //     }
 // ];
 
-export async function fetchGuidedQuestions(guidedQuestionsApiUrl) {
+export async function fetchGuidedPrompts(guidedPromptsApiUrl) {
 
-    const url = new URL(guidedQuestionsApiUrl);
+    const url = new URL(guidedPromptsApiUrl);
     const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
@@ -44,7 +44,7 @@ export async function fetchGuidedQuestions(guidedQuestionsApiUrl) {
     
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Guided questions API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(`Guided prompts API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
     const payload = await response.json();

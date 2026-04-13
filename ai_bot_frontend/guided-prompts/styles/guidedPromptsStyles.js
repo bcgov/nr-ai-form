@@ -1,5 +1,5 @@
-export const GUIDED_QUESTIONS_STYLES = `
-        .wp-chat-guided-questions {
+export const GUIDED_PROMPTS_STYLES = `
+        .wp-chat-guided-prompts {
             display: none;
             width: 100%;
             flex-direction: column;
@@ -9,7 +9,7 @@ export const GUIDED_QUESTIONS_STYLES = `
             margin-top: auto;
         }
 
-        .wp-chat-guided-question {
+        .wp-chat-guided-prompt {
             max-width: 85%;
             border: 1px solid #e6e9ef;
             border-radius: 8px;
@@ -24,7 +24,7 @@ export const GUIDED_QUESTIONS_STYLES = `
             transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .wp-chat-guided-question:hover {
+        .wp-chat-guided-prompt:hover {
             background: #f2f4f7;
             border-color: #d8dee8;
             box-shadow: 0 2px 4px rgba(16, 24, 40, 0.1);

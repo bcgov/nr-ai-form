@@ -1,24 +1,24 @@
-import { fetchGuidedQuestions } from './guided-questions/services/guidedQuestionsService.js';
+import { fetchGuidedPrompts } from './guided-prompts/services/guidedPromptsService.js';
 import {
     hasUsableAssistantReply,
-    loadAnsweredGuidedQuestionIds
-} from './guided-questions/utils/guidedQuestionStorage.js';
+    loadAnsweredGuidedPromptIds
+} from './guided-prompts/utils/guidedPromptStorage.js';
 import {
-    completePendingGuidedQuestion,
-    createPendingGuidedQuestion,
-    shouldRestorePendingGuidedQuestion
-} from './guided-questions/utils/guidedQuestionLifecycle.js';
-import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
-import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
+    completePendingGuidedPrompt,
+    createPendingGuidedPrompt,
+    shouldRestorePendingGuidedPrompt
+} from './guided-prompts/utils/guidedPromptLifecycle.js';
+import { GUIDED_PROMPTS_STYLES } from './guided-prompts/styles/guidedPromptsStyles.js';
+import { createGuidedPromptsRenderer as createGuidedPromptsRenderer } from './guided-prompts/ui/guidedPromptsRenderer.js';
 
 
 //-------------------------- Services Starts ---------------------------//
 const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
 // const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
-// Guided questions live on the same backend host as the chat/orchestrator API.
+// Guided prompts live on the same backend host as the chat/orchestrator API.
 
-// TODO: add the correct url for the guided questions API
-const GUIDED_QUESTIONS_API_URL = new URL('/suggested-questions', ORCHESTRATOR_API_URL).toString();
+// TODO: add the correct url for the guided prompts API
+const GUIDED_PROMPTS_API_URL = new URL('/guided-prompts', ORCHESTRATOR_API_URL).toString();
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
@@ -914,7 +914,7 @@ function injectStyles() {
             align-items: center;
         }
 
-        ${GUIDED_QUESTIONS_STYLES}
+        ${GUIDED_PROMPTS_STYLES}
 
         .wp-typing-dot {
             width: 8px;
@@ -1058,7 +1058,7 @@ function initBot() {
                     </div>
                 </div>
 
-                <div class="wp-chat-guided-questions" id="wp-chat-guided-questions" aria-live="polite"></div>
+                <div class="wp-chat-guided-prompts" id="wp-chat-guided-prompts" aria-live="polite"></div>
             </div>
 
             <div class="wp-chat-typing" id="wp-chat-typing">
@@ -1086,16 +1086,16 @@ function initBot() {
     const sendBtn = document.getElementById('wp-chat-send-btn');
     const chatMessages = document.getElementById('wp-chat-messages');
     const typingIndicator = document.getElementById('wp-chat-typing');
-    const guidedQuestionsContainer = document.getElementById('wp-chat-guided-questions');
+    const guidedPromptsContainer = document.getElementById('wp-chat-guided-prompts');
 
     let sessionId = getStoredThreadId();
     let restoredScrollTop = loadChatScrollPosition(sessionId);
-    let guidedQuestionsRequestToken = 0;
-    let pendingGuidedQuestion = null;
-    const guidedQuestionsRenderer = createGuidedQuestionsRenderer({
-        guidedQuestionsContainer,
+    let guidedPromptsRequestToken = 0;
+    let pendingGuidedPrompt = null;
+    const guidedPromptsRenderer = createGuidedPromptsRenderer({
+        guidedPromptsContainer,
         chatMessages,
-        onQuestionClick: handleGuidedQuestionClick
+        onPromptClick: handleGuidedPromptClick
     });
     saveThreadId(sessionId);
     const existingHistory = loadChatHistory(sessionId);
@@ -1122,12 +1122,12 @@ function initBot() {
             // 1. show the modal,
             // 2. hide the floating launcher button,
             // 3. restore the last saved scroll position on the next paint,
-            // 4. refresh guided questions for the current step,
+            // 4. refresh guided prompts for the current step,
             // 5. move keyboard focus into the input so the user can type immediately.
             chatModal.classList.add('open');
             chatButton.style.display = 'none';
             requestAnimationFrame(restoreChatScrollPosition);
-            refreshGuidedQuestions();
+            refreshGuidedPrompts();
             chatInput.focus();
         } else {
             chatModal.classList.remove('open');
@@ -1139,20 +1139,20 @@ function initBot() {
     closeBtn.addEventListener('click', toggleChat);
 
     /**
-     * Handles the full "guided question clicked" path.
+     * Handles the full "guided prompt clicked" path.
      *
      * What happens here:
-     * 1. Read the clicked question text and ids from the button dataset.
-     * 2. Build an in-memory pendingGuidedQuestion record for later success/failure handling.
+     * 1. Read the clicked prompt text and ids from the button dataset.
+     * 2. Build an in-memory pendingGuidedPrompt record for later success/failure handling.
      * 3. Remove the clicked button immediately so the UI feels responsive.
-     * 4. Hide the guided-question container if that was the last visible prompt.
-     * 5. Send the clicked question through the normal chat send flow so it behaves exactly like
+     * 4. Hide the guided-prompt container if that was the last visible prompt.
+     * 5. Send the clicked prompt through the normal chat send flow so it behaves exactly like
      *    a user-typed message and goes through the same orchestrator/request path.
      *
-     * Important: this does NOT persist the question as answered yet.
+     * Important: this does NOT persist the prompt as answered yet.
      * We only mark it answered later after a usable assistant reply comes back.
      */
-    function handleGuidedQuestionClick(button) {
+    function handleGuidedPromptClick(button) {
         if (!button || sendBtn.disabled) return;
 
         const questionText = String(button.textContent || '').trim();
@@ -1162,78 +1162,78 @@ function initBot() {
 
         // Remove the clicked prompt immediately for responsive UX, but keep enough state to
         // restore it if the request fails or comes back without an answer.
-        pendingGuidedQuestion = createPendingGuidedQuestion(questionId, stepId, questionText);
+        pendingGuidedPrompt = createPendingGuidedPrompt(questionId, stepId, questionText);
         button.remove();
-        if (guidedQuestionsContainer.children.length === 0) {
-            guidedQuestionsRenderer.hideGuidedQuestions();
+        if (guidedPromptsContainer.children.length === 0) {
+            guidedPromptsRenderer.hideGuidedPrompts();
         }
 
         sendMessage(questionText);
     }
 
-    /** Restores a clicked guided question when it was never successfully answered.
+    /** Restores a clicked guided prompt when it was never successfully answered.
     *
     * This is used in two cases:
     * 1. the request throws an error, or
     * 2. the request completes but the assistant reply is empty/unusable.
     *
     * We clear the pending state first, then only refresh prompts if the user is still on the same
-    * step where the question was originally clicked. That prevents re-showing prompts from an older
+    * step where the prompt was originally clicked. That prevents re-showing prompts from an older
     * step after the user has already navigated elsewhere in the form.
     */
-    function restorePendingGuidedQuestion() {
-        if (!pendingGuidedQuestion) return;
-        const pendingStepId = pendingGuidedQuestion.stepId;
-        pendingGuidedQuestion = null;
+    function restorePendingGuidedPrompt() {
+        if (!pendingGuidedPrompt) return;
+        const pendingStepId = pendingGuidedPrompt.stepId;
+        pendingGuidedPrompt = null;
 
         const currentStep = getCurrentFormStepFromDom();
         // Only re-show the prompt if the user is still on the step where it was requested.
-        if (shouldRestorePendingGuidedQuestion({ stepId: pendingStepId }, currentStep)) {
-            refreshGuidedQuestions();
+        if (shouldRestorePendingGuidedPrompt({ stepId: pendingStepId }, currentStep)) {
+            refreshGuidedPrompts();
         }
     }
 
-    /** Load guided questions for the currently detected form step.
+    /** Load guided prompts for the currently detected form step.
     *
     * What this does:
     * 1. Detect the current step from the page DOM.
-    * 2. Read answered guided-question IDs for the current thread + step from localStorage.
-    * 3. Fetch the available questions for this step from the guided-question service.
+    * 2. Read answered guided-prompt IDs for the current thread + step from localStorage.
+    * 3. Fetch the available prompts for this step from the guided-prompt service.
     * 4. Ignore stale async results if another refresh started after this one.
-    * 5. Filter out questions that were already successfully answered in this thread/step.
-    * 6. Render only the remaining visible questions into the chat window.
+    * 5. Filter out prompts that were already successfully answered in this thread/step.
+    * 6. Render only the remaining visible prompts into the chat window.
     *
     * Why requestToken exists:
-    * refreshGuidedQuestions() can be called multiple times in quick succession
+    * refreshGuidedPrompts() can be called multiple times in quick succession
     * (for example on load, on chat open, or after restoring a failed prompt).
     * If an older request finishes after a newer one, we discard that older result so it
-    * does not overwrite the most up-to-date guided-question list in the UI.
+    * does not overwrite the most up-to-date guided-prompt list in the UI.
     */
-    async function refreshGuidedQuestions() {
+    async function refreshGuidedPrompts() {
         const stepId = getCurrentFormStepFromDom();
-        const requestToken = ++guidedQuestionsRequestToken;
+        const requestToken = ++guidedPromptsRequestToken;
 
         try {
             // Filter on the client as a final guard so answered prompts stay hidden after refresh.
-            const answeredQuestionIds = new Set(loadAnsweredGuidedQuestionIds(sessionId, stepId));
-            const guidedQuestions = await fetchGuidedQuestions(GUIDED_QUESTIONS_API_URL);
+            const answeredPromptIds = new Set(loadAnsweredGuidedPromptIds(sessionId, stepId));
+            const guidedPrompts = await fetchGuidedPrompts(GUIDED_PROMPTS_API_URL);
 
-            if (requestToken !== guidedQuestionsRequestToken) return;
+            if (requestToken !== guidedPromptsRequestToken) return;
 
-            const visibleQuestions = guidedQuestions
-                .filter((question) => question && question.id && question.question)
-                .filter((question) => !answeredQuestionIds.has(String(question.id)));
+            const visiblePrompts = guidedPrompts
+                .filter((prompt) => prompt && prompt.id && prompt.question)
+                .filter((prompt) => !answeredPromptIds.has(String(prompt.id)));
 
-            guidedQuestionsRenderer.renderGuidedQuestions(stepId, visibleQuestions);
+            guidedPromptsRenderer.renderGuidedPrompts(stepId, visiblePrompts);
         } catch (error) {
-            if (requestToken !== guidedQuestionsRequestToken) return;
-            guidedQuestionsRenderer.hideGuidedQuestions();
-            console.error('Error fetching guided questions:', error);
+            if (requestToken !== guidedPromptsRequestToken) return;
+            guidedPromptsRenderer.hideGuidedPrompts();
+            console.error('Error fetching guided prompts:', error);
         }
     }
 
     async function sendMessage(prefilledText = null) {
-        // sendMessage supports both user-typed text and auto-sent guided questions.
+        // sendMessage supports both user-typed text and auto-sent guided prompts.
         // If prefilledText is passed in, use it as the outgoing message; otherwise
         // read the current value from the chat input.
         let text = typeof prefilledText === 'string' ? prefilledText.trim() : chatInput.value.trim();
@@ -1241,9 +1241,9 @@ function initBot() {
 
         // Add the outgoing user message to the chat immediately so the UI updates
         // before the network request completes.
-        // placeAfterGuidedQuestions keeps the just-clicked prompt visually below the
+        // placeAfterGuidedPrompts keeps the just-clicked prompt visually below the
         // suggestion list while the assistant reply is still loading.
-        appendMessage('user', text, true, true, { placeAfterGuidedQuestions: true });
+        appendMessage('user', text, true, true, { placeAfterGuidedPrompts: true });
         // Reset the input UI because the message is now in flight.
         chatInput.value = '';
         autoResizeChatInput();
@@ -1273,26 +1273,26 @@ function initBot() {
 
             // Convert the backend/orchestrator response into the assistant message array that
             // will be rendered in the chat, then use that same array to determine whether a
-            // clicked guided question was actually answered.
+            // clicked guided prompt was actually answered.
             const messages = extractAssistantMessages(response);
             const hasAssistantReply = hasUsableAssistantReply(messages);
-            if (pendingGuidedQuestion && hasAssistantReply) {
+            if (pendingGuidedPrompt && hasAssistantReply) {
                 // A prompt only becomes permanent once the assistant actually answered it.
-                pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
+                pendingGuidedPrompt = completePendingGuidedPrompt(sessionId, pendingGuidedPrompt);
             }
-            if (pendingGuidedQuestion && !hasAssistantReply) {
+            if (pendingGuidedPrompt && !hasAssistantReply) {
                 // If the request completed but did not return a usable answer, treat the prompt
                 // as unanswered and show it again for the current step.
-                restorePendingGuidedQuestion();
+                restorePendingGuidedPrompt();
             }
             // Finally render the assistant reply messages into the chat window.
             messages.forEach((msg) => appendMessage('assistant', msg));
 
         } catch (error) {
             // Request-level failure:
-            // restore the clicked guided question because it was never successfully answered,
+            // restore the clicked guided prompt because it was never successfully answered,
             // reset the loading state, and show a generic system error in the chat.
-            restorePendingGuidedQuestion();
+            restorePendingGuidedPrompt();
             showTyping(false);
             appendMessage('system', "Sorry, I encountered an error connecting to the server.");
             console.error(error);
@@ -1329,16 +1329,16 @@ function initBot() {
         msgDiv.appendChild(bubble);
 
         // During the loading state for a clicked prompt, place the outgoing user message
-        // just below the visible guided-question list instead of moving the list below it.
-        const shouldPlaceAfterGuidedQuestions =
-            options.placeAfterGuidedQuestions &&
-            guidedQuestionsContainer &&
-            guidedQuestionsContainer.style.display !== 'none' &&
-            guidedQuestionsContainer.parentElement === chatMessages;
+        // just below the visible guided-prompt list instead of moving the list below it.
+        const shouldPlaceAfterGuidedPrompts =
+            options.placeAfterGuidedPrompts &&
+            guidedPromptsContainer &&
+            guidedPromptsContainer.style.display !== 'none' &&
+            guidedPromptsContainer.parentElement === chatMessages;
 
-        if (shouldPlaceAfterGuidedQuestions) {
-            if (guidedQuestionsContainer.nextSibling) {
-                chatMessages.insertBefore(msgDiv, guidedQuestionsContainer.nextSibling);
+        if (shouldPlaceAfterGuidedPrompts) {
+            if (guidedPromptsContainer.nextSibling) {
+                chatMessages.insertBefore(msgDiv, guidedPromptsContainer.nextSibling);
             } else {
                 chatMessages.appendChild(msgDiv);
             }
@@ -1346,10 +1346,10 @@ function initBot() {
             chatMessages.appendChild(msgDiv);
         }
 
-        // For assistant/system messages, keep the guided-question block anchored at the end
+        // For assistant/system messages, keep the guided-prompt block anchored at the end
         // of the chat content so prompts remain at the bottom after the latest reply.
-        if (!shouldPlaceAfterGuidedQuestions && guidedQuestionsContainer && guidedQuestionsContainer.style.display !== 'none') {
-            chatMessages.appendChild(guidedQuestionsContainer);
+        if (!shouldPlaceAfterGuidedPrompts && guidedPromptsContainer && guidedPromptsContainer.style.display !== 'none') {
+            chatMessages.appendChild(guidedPromptsContainer);
         }
         if (persist) {
             appendChatHistory(sessionId, role, String(text));
@@ -1440,7 +1440,7 @@ function initBot() {
     });
 
     autoResizeChatInput();
-    refreshGuidedQuestions();
+    refreshGuidedPrompts();
 
     // On every page load/reload (including after ASP.NET postbacks), resume any
     // pending suggestions that were saved to sessionStorage before the page refreshed.
