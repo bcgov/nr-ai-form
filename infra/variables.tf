@@ -2,6 +2,12 @@
 # Root Variables for Azure Infrastructure
 # -------------
 
+variable "branch_slug" {
+  description = "URL-safe slug of the deploying branch. Appended to the Container App name in dev so each branch gets its own ACA. Defaults to 'master'."
+  type        = string
+  default     = "master"
+}
+
 variable "deployment_type" {
   description = "Type of deployment: 'container_apps'"
   type        = string
