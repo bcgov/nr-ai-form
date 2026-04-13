@@ -13,11 +13,11 @@ load_dotenv()
 
 from models.orchestratormodel import InvokeRequest, InvokeResponse
 from utils.blobservice import BlobService
-from services.suggested_questions_service import SuggestedQuestionsService
+from services.guided_prompts_service import GuidedPromptsService
 
 #TODO ABIN: This is a temporary A2A enoiinbt for testing and invoke, later on we will use PUB-SUB mechanism from a Queue to use that.
 
-suggested_questions_service = None
+guided_prompts_service = None
 
 app = FastAPI(
     version="1.0.0"
@@ -95,27 +95,27 @@ async def invoke_agent(request: InvokeRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
 
-@app.get("/suggested-questions")
-async def get_suggested_questions():
-    global suggested_questions_service
-    if suggested_questions_service is None:
+@app.get("/guided-prompts")
+async def get_guided_prompts():
+    global guided_prompts_service
+    if guided_prompts_service is None:
         try:
             conn_str = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
             container = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
             if conn_str:
                 blob_service = BlobService(connection_string=conn_str)
-                suggested_questions_service = SuggestedQuestionsService(blob_service, container)
+                guided_prompts_service = GuidedPromptsService(blob_service, container)
         except Exception as e:
-            print(f"Failed to initialize SuggestedQuestionsService: {e}")
+            print(f"Failed to initialize GuidedPromptsService: {e}")
 
-    if suggested_questions_service:
-        questions_str = suggested_questions_service.fetch_suggested_questions()
+    if guided_prompts_service:
+        questions_str = guided_prompts_service.fetch_guided_prompts()
         if questions_str:
             import json
             try:
                 return json.loads(questions_str)
             except json.JSONDecodeError as e:
-                print(f"Failed to parse suggested questions JSON: {e}")
+                print(f"Failed to parse guided prompts JSON: {e}")
                 
     return []
 
