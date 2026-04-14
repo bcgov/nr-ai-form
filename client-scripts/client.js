@@ -11,10 +11,13 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
+// Feature flag: set to true to re-enable the guided questions UI when ready.
+const GUIDED_QUESTIONS_ENABLED = false;
+
 
 //-------------------------- Services Starts ---------------------------//
-// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
-const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+// const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 // Guided questions live on the same backend host as the chat/orchestrator API.
 
 // TODO: add the correct url for the guided questions API
@@ -1210,6 +1213,8 @@ function initBot() {
     * does not overwrite the most up-to-date guided-question list in the UI.
     */
     async function refreshGuidedQuestions() {
+        if (!GUIDED_QUESTIONS_ENABLED) return;
+
         const stepId = getCurrentFormStepFromDom();
         const requestToken = ++guidedQuestionsRequestToken;
 
