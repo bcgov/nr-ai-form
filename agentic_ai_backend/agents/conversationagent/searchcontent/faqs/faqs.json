@@ -1,0 +1,97 @@
+[
+  {
+    "question": "What's a BCEID? Do I have to sign in?",
+    "answer": "BCeID Login is recommended, not required. You can apply with or without BCeID. However, we strongly encourage applying with BCeID because you can save your progress and edit your application after submission.",
+    "tags": ["bceid", "login", "sign-in", "application"]
+  },
+  {
+    "question": "Does the Water Sustainability Act apply to me?",
+    "answer": "The Water Sustainability Act applies to any water utilities or services that fall under the legislative authority of the Government of British Columbia. Even if a utility operates partly outside provincial authority, the Act still applies to any portion that is regulated by the Province of BC. You don't need to read the document, and the system will guide you through how it applies to your application.",
+    "tags": ["water sustainability act", "regulation", "eligibility", "bc law"]
+  },
+  {
+    "question": "I heard there's new livestock regulations, should I wait?",
+    "answer": "No, you should not wait. If you need water for your operation, apply now rather than waiting for potential future changes. Livestock watering rules have been discussed in policy work, but the current requirement is still to get a water authorization for industrial livestock watering.",
+    "tags": ["livestock regulations", "timing", "authorization"]
+  },
+  {
+    "question": "How much will it cost?",
+    "answer": "There's a one-time application fee of at least $250. If an authorization is issued, annual water rentals may also apply. Fees depend on the type of water use, and some purposes are charged a flat rate.",
+    "tags": ["fees", "cost", "application fee", "water rental"]
+  },
+  {
+    "question": "How long will it take to process my application?",
+    "answer": "Processing time varies. Applications can take longer if more technical review is needed, if other parties are notified, or if First Nations consultation is required. Submitting a complete and accurate application can help avoid delays.",
+    "tags": ["processing time", "timeline", "application", "permit review time"]
+  },
+  {
+    "question": "Can I start watering cattle while waiting for approval?",
+    "answer": "No. You need a water licence or approval before you start using water for livestock or irrigation. Proceeding without authorization can lead to compliance or enforcement action, including orders to stop, change, or remove the work.",
+    "tags": ["use before approval", "compliance", "livestock", "water use"]
+  },
+  {
+    "question": "Do I need a licence for my hobby farm?",
+    "answer": "If you're diverting or using water for livestock watering, that is considered a non-domestic use and normally requires an authorization.",
+    "tags": ["hobby farm", "licence", "livestock", "water use"]
+  },
+  {
+    "question": "I'm the land owner, am I eligible?",
+    "answer": "Yes. If you own the land where the water will be used, you are eligible to apply for a water licence.",
+    "tags": ["eligibility", "land owner", "water licence"]
+  },
+  {
+    "question": "Where do I find my client number?",
+    "answer": "Your client number is shown on past correspondence from FrontCounter BC, such as previous applications, invoices, or approval letters.",
+    "tags": ["client number", "frontcounter bc", "application"]
+  },
+  {
+    "question": "How do I know if I have an existing water licence?",
+    "answer": "You can check existing licences using the Water Licence Search tool(https://j200.gov.bc.ca/pub/ams/Default.aspx). This helps confirm whether a licence is already attached to the property and what it authorizes, including the water use purpose and quantity.",
+    "tags": ["existing licence", "search", "water licence", "water rights"]
+  },
+  {
+    "question": "What's the difference between surface water and groundwater?",
+    "answer": "Groundwater is water found below the surface of the ground, while surface water includes water in rivers, lakes, and streams. For licensing purposes, how water is classified depends on how it is accessed and used.",
+    "tags": ["surface water", "groundwater", "definition", "water types"]
+  },
+  {
+    "question": "I would like to divert water from a spring to troughs for cattle. Is it groundwater or surface water?",
+    "answer": "A spring is groundwater that has reached the surface. For licensing purposes, how the water is treated depends on how it is collected and used. If the spring flows into a channel and you divert from that channel, it is generally treated as surface water.",
+    "tags": ["spring", "surface water", "groundwater", "classification", "livestock"]
+  },
+  {
+    "question": "Is there already a water licence on this land?",
+    "answer": "You can check existing licences using the Water Licence Search tool. This helps confirm whether a licence is already attached to the property and what it authorizes.",
+    "tags": ["existing licence", "water licence", "search"]
+  },
+  {
+    "question": "Calculate the total annual water quantity for me",
+    "answer": "I can help estimate your annual water quantity, but I first need information about your livestock type, number of animals, and how many days per year water is required.",
+    "tags": ["calculation", "water quantity", "livestock", "estimation"]
+  },
+  {
+    "question": "I'm planning to water 60 cows year-round. What is my estimated annual water use?",
+    "answer": "Based on 60 beef cattle requiring water year-round (365 days), the estimated total annual water use is about 1,100 cubic metres per year.",
+    "tags": ["calculation", "livestock", "water use", "estimate"]
+  },
+  {
+    "question": "What information should I include in the comments section?",
+    "answer": "Include a clear description of your water use plan, such as how the water source behaves throughout the year, how water is taken, whether flow is continuous, and any other relevant details that help reviewers understand your proposal.",
+    "tags": ["comments", "application", "review", "description"]
+  },
+  {
+    "question": "Does the spring flow year-round?",
+    "answer": "You should describe whether the spring flows year-round, whether it decreases in summer, or if it ever stops flowing. This helps reviewers assess the reliability of the water source.",
+    "tags": ["spring", "flow", "water source", "technical"]
+  },
+  {
+    "question": "How do I describe how I take water from the spring?",
+    "answer": "You should describe whether water is taken continuously or intermittently, and whether it is a low or high volume diversion.",
+    "tags": ["water diversion", "spring", "technical", "description"]
+  },
+  {
+    "question": "Do cattle need to drink directly from the spring?",
+    "answer": "No. Water can be diverted to off-stream troughs, and cattle do not need to access the spring or channel directly.",
+    "tags": ["livestock", "troughs", "water access"]
+  }
+]
