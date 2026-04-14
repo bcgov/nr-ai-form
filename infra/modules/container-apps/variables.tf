@@ -12,6 +12,12 @@ variable "app_name" {
   nullable    = false
 }
 
+variable "branch_slug" {
+  description = "URL-safe slug of the deploying branch. Appended to the Container App name so each branch gets its own ACA in dev."
+  type        = string
+  default     = "master"
+}
+
 variable "repo_name" {
   description = "Name of the repository"
   type        = string
@@ -229,6 +235,7 @@ variable "formsupport_agent_port" {
   nullable    = false
 }
 
+/*
 variable "api_backend_image" {
   description = "Container image for the API Backend (WebSocket gateway between frontend and orchestrator)"
   type        = string
@@ -242,6 +249,7 @@ variable "api_backend_port" {
   default     = 8003
   nullable    = false
 }
+*/
 
 variable "container_registry_url" {
   description = "Container registry URL for image pulls"

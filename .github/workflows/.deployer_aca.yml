@@ -42,6 +42,11 @@ on:
         type: string
         default: ''
         description: 'Space-separated list of -target=<module> flags to scope the Terraform operation (e.g. "-target=module.container_apps")'
+      branch_slug:
+        required: false
+        type: string
+        default: 'master'
+        description: 'URL-safe slug of the deploying branch; appended to the ACA Container App name (dev only)'
 
 env:
     TG_VERSION: 0.63.6
@@ -82,17 +87,18 @@ jobs:
           target_env: ${{ inputs.environment_name }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }} 
+          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: "ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
           orchestrator_agent_image: "ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
           conversation_agent_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
           formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-          api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
+          # api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
+          branch_slug: ${{ inputs.branch_slug }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           deployment_type: ${{ inputs.deployment_type }}
@@ -115,84 +121,9 @@ jobs:
           # Azure Blob Storage Configuration
           AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
-      run: |
-        # Initialize Terragrunt to access state
-        echo "Initializing Terragrunt..."
-        terragrunt init -upgrade
-        
-        # Check and remove azurerm_subnet.container_apps_subnet if it exists (migration from azurerm to azapi)
-        echo "Checking for azurerm_subnet.container_apps_subnet in state..."
-        if terragrunt state list 2>/dev/null | grep -q 'module.network.azurerm_subnet.container_apps_subnet'; then
-          echo "Found azurerm_subnet.container_apps_subnet - removing from state..."
-          terragrunt state rm -lock=false 'module.network.azurerm_subnet.container_apps_subnet[0]' || true
-          echo "Removed azurerm_subnet from state"
-        else
-          echo "azurerm_subnet not found in state"
-        fi
-        
-        # Check and remove azurerm_subnet_network_security_group_association if it exists
-        echo "Checking for NSG association in state..."
-        if terragrunt state list 2>/dev/null | grep -q 'module.network.azurerm_subnet_network_security_group_association.container_apps'; then
-          echo "Found NSG association - removing from state..."
-          terragrunt state rm -lock=false 'module.network.azurerm_subnet_network_security_group_association.container_apps[0]' || true
-          echo "Removed NSG association from state"
-        else
-          echo "NSG association not found in state"
-        fi
-        
-        # Remove stale module.frontdoor resources from state (dev has enable_front_door=false so these would be destroyed)
-        # Matches both module.frontdoor. (created before count was added) and module.frontdoor[0]. (with count)
-        echo "Checking for stale module.frontdoor resources in state..."
-        FRONTDOOR_RESOURCES=$(terragrunt state list 2>/dev/null | grep -E 'module\.frontdoor(\[|\.)'  || true)
-        if [ -n "$FRONTDOOR_RESOURCES" ]; then
-          echo "Found module.frontdoor resources - removing from state to prevent destruction..."
-          while IFS= read -r resource; do
-            terragrunt state rm -lock=false "$resource" || true
-          done <<< "$FRONTDOOR_RESOURCES"
-          echo "Removed all module.frontdoor resources from state"
-        else
-          echo "No module.frontdoor resources in state"
-        fi
+      run: bash ${{ github.workspace }}/scripts/state-prep.sh
 
-        # Remove stale module.api resources from state (switching to container_apps deployment type)
-        # Matches both module.api. (created before count was added) and module.api[0]. (with count)
-        echo "Checking for stale module.api resources in state..."
-        API_RESOURCES=$(terragrunt state list 2>/dev/null | grep -E 'module\.api(\[|\.)' || true)
-        if [ -n "$API_RESOURCES" ]; then
-          echo "Found module.api resources - removing from state to prevent destruction..."
-          while IFS= read -r resource; do
-            terragrunt state rm -lock=false "$resource" || true
-          done <<< "$API_RESOURCES"
-          echo "Removed all module.api resources from state"
-        else
-          echo "No module.api resources in state"
-        fi
 
-        # Import container-apps-subnet if it exists in Azure but not in state
-        echo "Checking if container-apps-subnet needs to be imported..."
-        CONTAINER_APPS_SUBNET_ID="/subscriptions/${azure_subscription_id}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/virtualNetworks/${vnet_name}/subnets/container-apps-subnet"
-        
-        # Debug: Show the resource ID being used
-        echo "Resource ID: $CONTAINER_APPS_SUBNET_ID"
-        
-        # Check if this resource exists in state
-        if ! terragrunt state list 2>/dev/null | grep -q 'module.network.azapi_resource.container_apps_subnet'; then
-          echo "container-apps-subnet not in state, attempting to import..."
-          if terragrunt import -lock=false "module.network.azapi_resource.container_apps_subnet[0]" "$CONTAINER_APPS_SUBNET_ID"; then
-            echo "Successfully imported container-apps-subnet into state"
-          else
-            echo "Import failed - checking if resource exists in Azure or if it's already managed..."
-            # Try to delete the resource in Azure so Terraform can create it fresh
-            echo "Attempting to delete existing container-apps-subnet from Azure..."
-            az network vnet subnet delete --name container-apps-subnet --resource-group "${vnet_resource_group_name}" --vnet-name "${vnet_name}" 2>&1 || {
-              echo "Subnet deletion failed - it may not exist or may be in use"
-            }
-          fi
-        else
-          echo "container-apps-subnet already in state"
-        fi
-
-    
     - name: Image Tags
       id: image-tags
       shell: bash
@@ -201,14 +132,14 @@ jobs:
         ORCHESTRATOR_AGENT_IMAGE="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
         CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
         FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-        API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
-        API_BACKEND_IMAGE="ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
+        # API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
+        # API_BACKEND_IMAGE="ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
 
         echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
-        echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
+        # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
+        # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
     
     - name: Safety Plan Check
       if: inputs.prevent_destroy == true && inputs.command == 'apply'
@@ -223,11 +154,12 @@ jobs:
           orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
-          api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
+          # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
+          branch_slug: ${{ inputs.branch_slug }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           deployment_type: ${{ inputs.deployment_type }}
@@ -274,11 +206,12 @@ jobs:
           orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
-          api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
+          # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
+          branch_slug: ${{ inputs.branch_slug }}
           storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           deployment_type: ${{ inputs.deployment_type }}

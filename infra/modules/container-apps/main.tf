@@ -1,4 +1,19 @@
 
+locals {
+  # Azure Container App name constraints: ≤32 chars, lowercase alphanumeric + hyphen, no '--'.
+  #
+  # app_name = "{stack_prefix}-{app_env}" (e.g. "nraii-a3f2-dev" = 14 chars)
+  # Adding branch_slug (up to 15) + "-api" (4) would exceed 32 in dev.
+  #
+  # In dev: strip the trailing "-{app_env}" to reclaim 4 chars, giving:
+  #   "{stack_prefix}-{branch_slug}-api"  →  max 10 + 1 + 15 + 4 = 30 chars ✓
+  #
+  # In test/prod: branch_slug is always "master" (default) and the original
+  # name "{app_name}-api" is used unchanged for backward compatibility.
+  _app_name_base     = trimsuffix(var.app_name, "-${var.app_env}")
+  container_app_name = var.app_env == "dev" ? "${local._app_name_base}-${var.branch_slug}-api" : "${var.app_name}-api"
+}
+
 resource "azurerm_container_app_environment" "main" {
   name                               = "${var.app_name}-${var.app_env}-containerenv"
   location                           = var.location
@@ -28,6 +43,8 @@ resource "azurerm_container_app_environment" "main" {
       infrastructure_subnet_id,
       infrastructure_resource_group_name,
     ]
+    # The environment is shared across all branch deployments — never let a branch destroy destroy it
+    prevent_destroy = true
   }
 
   logs_destination = "log-analytics"
@@ -59,7 +76,7 @@ resource "azurerm_private_endpoint" "containerapps" {
 }
 
 resource "azurerm_container_app" "backend" {
-  name                         = "${var.app_name}-api"
+  name                         = local.container_app_name
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = var.resource_group_name
   revision_mode                = "Single"
@@ -564,7 +581,8 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_blobstorage_container
       }
     }
-   # API Backend Container - Public-facing WebSocket gateway to orchestrator
+    /*
+    # API Backend Container - Public-facing WebSocket gateway to orchestrator
     container {
       name   = "api-backend"
       image  = var.api_backend_image
@@ -644,6 +662,7 @@ resource "azurerm_container_app" "backend" {
         value = tostring(var.redis_ttl_days)
       }
     }
+    */
 
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {
@@ -653,8 +672,8 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true # Must be true for Front Door to reach the api_backend
-    target_port                = var.api_backend_port # api_backend is the public-facing gateway
+    external_enabled           = true # Must be true for Front Door to reach the public orchestrator endpoint
+    target_port                = var.orchestrator_agent_port # Orchestrator Agent is the public-facing ACA endpoint
     transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 

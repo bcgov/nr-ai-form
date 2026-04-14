@@ -2,6 +2,12 @@
 # Root Variables for Azure Infrastructure
 # -------------
 
+variable "branch_slug" {
+  description = "URL-safe slug of the deploying branch. Appended to the Container App name in dev so each branch gets its own ACA. Defaults to 'master'."
+  type        = string
+  default     = "master"
+}
+
 variable "deployment_type" {
   description = "Type of deployment: 'container_apps'"
   type        = string
@@ -28,11 +34,13 @@ variable "orchestrator_agent_image" {
   type        = string
 }
 
+/*
 variable "api_backend_image" {
   description = "The image for the API Backend container (WebSocket gateway)"
   type        = string
   default     = ""
 }
+*/
 
 # Legacy variable for Container Apps compatibility - will use conversation_agent_image
 variable "api_image" {
