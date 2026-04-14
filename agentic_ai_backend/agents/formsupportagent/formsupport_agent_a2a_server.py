@@ -7,6 +7,7 @@ import os
 import sys
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
+import json
 
 # Add parent directories to path to allow importing modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -48,7 +49,7 @@ if blob_connection_string and blob_container:
         print(f"Failed to initialize Blob Services: {e}")
 
 # Cache of agent instances per step number (step_number -> agent_instance)
-_agent_cache = {}
+# _agent_cache = {}
 # Per-session thread storage keyed on (session_id, step_identifier)
 _session_threads: dict = {}
 
@@ -62,14 +63,14 @@ def get_agent(step_identifier: Union[int, str]):
     Returns:
         FormSupportAgent instance configured for the specified step
     """
-    global _agent_cache#TODO ABIN: Need to implement agent caching on an distributed cache. 
+    # global _agent_cache#TODO ABIN: Need to implement agent caching on an distributed cache. 
     
     # Convert to string for consistent lookup
     step_key = str(step_identifier)
     
     # Return cached instance if available
-    if step_key in _agent_cache:
-        return _agent_cache[step_key]
+    # if step_key in _agent_cache:
+    #     return _agent_cache[step_key]
     
     try:            
         endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
@@ -87,8 +88,10 @@ def get_agent(step_identifier: Union[int, str]):
         if not form_definition:
             raise FileNotFoundError(f"Form definition not found for identifier: {step_key}")
 
+        
         # get_form_context handles dict or string path (though we expect dict from service or dict/content from local fallback now)
-        form_context_str = get_form_context(form_definition)
+        #form_context_str = get_form_context(form_definition)
+        form_context_str = json.dumps(form_definition)        
         
         if not custom_instructions:
             raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
@@ -102,7 +105,7 @@ def get_agent(step_identifier: Union[int, str]):
             form_context_str,
             instructions=custom_instructions,
         )
-        _agent_cache[step_key] = agent_instance #TODO ABIN: Need to implement agent caching on an distributed cache. 
+        # _agent_cache[step_key] = agent_instance #TODO ABIN: Need to implement agent caching on an distributed cache. 
         
         print(f"Created FormSupportAgent for step {step_key}")
         return agent_instance

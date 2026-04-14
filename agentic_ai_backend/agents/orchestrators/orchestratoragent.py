@@ -105,7 +105,8 @@ async def orchestrate_a2a(query: str,
 
         logger.info(f"Thread state loaded: {thread}")
        
-        input_messages = normalize_messages_input(query)
+        step_appened_query= f"{step_number}:{query}"  #TODO : This is a temp solution to pass the step number to Conversation, Once DISPATCHER Logic is implemented we will have a better solution later.
+        input_messages = normalize_messages_input(step_appened_query)
 
         # Pass thread to agent.run() so WorkflowAgent maintains conversation history (b251216+)
         result = await agent.run(input_messages, thread=thread)

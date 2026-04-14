@@ -1,12 +1,12 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 2 - Eligibility",
-    "properties": {
+    "formName": "Step 2 - Eligibility Step for  Water Licence Application",
+    "formDescription": "This step has a set of questions/fields to determine if the applicant is eligible to apply for a water licence. Also there are other fields to  check whether the application is part of North Coast Transmission Line project, BC Hydro Sustainment Project, clean energy project or part of increasing the supply of housing units within British Columbia.",
+    "formfields": {
         "AnswerOnJob_eligible": {
             "type": "radio",
             "id": "AnswerOnJob_eligible",
             "title": "Are you eligible to apply for a water licence?",
-            "description": "If user is eligible to apply for a water licence, select 'Yes' option, else select 'No' option.",
+            "description": "Applicant is eligible to apply if has ownership or entitled to possession a land or mine in British Columbia, OR  acting as an agent for a municipality, regional district, improvement district, development district, BC Hydro or water users' community OR  a holder of a certificate of public convenience and necessity issued under the Public Utilities Act",
             "enum": [
                 "Yes",
                 "No"
@@ -54,7 +54,7 @@
             "type": "radio",
             "id": "AnswerOnJob_clean-energy",
             "title": "Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024-present?",
-            "description": "The purpose of this application must be related with clean energy project",
+            "description": "The purpose of this application must be related with clean energy project like wind or solar activities",
             "enum": [
                 "Yes",
                 "No"
