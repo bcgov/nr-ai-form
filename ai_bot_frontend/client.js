@@ -11,6 +11,9 @@ import {
 import { GUIDED_PROMPTS_STYLES } from './guided-prompts/styles/guidedPromptsStyles.js';
 import { createGuidedPromptsRenderer as createGuidedPromptsRenderer } from './guided-prompts/ui/guidedPromptsRenderer.js';
 
+// Feature flag: set to true to re-enable the guided questions UI when ready.
+const GUIDED_QUESTIONS_ENABLED = false;
+
 
 //-------------------------- Services Starts ---------------------------//
 const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
@@ -1210,6 +1213,7 @@ function initBot() {
     * does not overwrite the most up-to-date guided-prompt list in the UI.
     */
     async function refreshGuidedPrompts() {
+        if (!GUIDED_QUESTIONS_ENABLED) return;
         const stepId = getCurrentFormStepFromDom();
         const requestToken = ++guidedPromptsRequestToken;
 
