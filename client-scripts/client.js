@@ -1,3 +1,15 @@
+import { fetchGuidedQuestions } from './guided-questions/services/guidedQuestionsService.js';
+import {
+    hasUsableAssistantReply,
+    loadAnsweredGuidedQuestionIds
+} from './guided-questions/utils/guidedQuestionStorage.js';
+import {
+    completePendingGuidedQuestion,
+    createPendingGuidedQuestion,
+    shouldRestorePendingGuidedQuestion
+} from './guided-questions/utils/guidedQuestionLifecycle.js';
+import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
+import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
 /**
  * Allow testing of alternative javascript 
@@ -44,18 +56,6 @@ else if (clientInstance === 'css') {
 else {
 
     (function () {
-        import { fetchGuidedQuestions } from './guided-questions/services/guidedQuestionsService.js';
-        import {
-            hasUsableAssistantReply,
-            loadAnsweredGuidedQuestionIds
-        } from './guided-questions/utils/guidedQuestionStorage.js';
-        import {
-            completePendingGuidedQuestion,
-            createPendingGuidedQuestion,
-            shouldRestorePendingGuidedQuestion
-        } from './guided-questions/utils/guidedQuestionLifecycle.js';
-        import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
-        import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
         // Feature flag: set to true to re-enable the guided questions UI when ready.
         const GUIDED_QUESTIONS_ENABLED = false;
@@ -1506,5 +1506,7 @@ else {
                 initBot();
             }
         }
-    })();
+    }
+)();
+
 }
