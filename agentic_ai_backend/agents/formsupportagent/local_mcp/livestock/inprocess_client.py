@@ -2,7 +2,7 @@
 
 import json
 
-from agent_framework import ai_function
+from agent_framework import tool
 
 from .calculator import (
     calculate_multiple_water_consumption,
@@ -11,7 +11,7 @@ from .calculator import (
 )
 
 
-@ai_function(
+@tool(
     name="calculate_livestock_water_consumption_days",
     description=(
         "Calculate livestock water consumption in cubic meters (m3) for a number "
@@ -28,7 +28,7 @@ def calculate_livestock_water_consumption_days(
     )
 
 
-@ai_function(
+@tool(
     name="calculate_livestock_water_consumption_weeks",
     description=(
         "Calculate livestock water consumption in cubic meters (m3) for a number "
@@ -45,7 +45,7 @@ def calculate_livestock_water_consumption_weeks(
     )
 
 
-@ai_function(
+@tool(
     name="calculate_livestock_water_consumption_months",
     description=(
         "Calculate livestock water consumption in cubic meters (m3) for a number "
@@ -62,7 +62,7 @@ def calculate_livestock_water_consumption_months(
     )
 
 
-@ai_function(
+@tool(
     name="calculate_livestock_water_consumption_years",
     description=(
         "Calculate livestock water consumption in cubic meters (m3) for a number "
@@ -79,7 +79,7 @@ def calculate_livestock_water_consumption_years(
     )
 
 
-@ai_function(
+@tool(
     name="list_supported_livestock_types",
     description="List supported livestock types for water-consumption calculations.",
 )
@@ -87,7 +87,7 @@ def list_supported_livestock_types() -> str:
     return json.dumps(get_supported_livestock())
 
 
-@ai_function(
+@tool(
     name="calculate_multiple_livestock_water_consumption",
     description=(
         "Calculate combined livestock water consumption in cubic meters (m3) for "
