@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from agent_framework import AgentSession
 from utils.cosmosdbservice import CosmosDBService
 import os
 from .thread_manager_interface import IThreadManager
@@ -16,15 +17,15 @@ class cosmosdbutils(IThreadManager):
         self.cosmos_service = CosmosDBService(connection_string=None, endpoint=self.cosmos_endpoint, cosmosapi_key=self.cosmos_api_key, database_name=self.database_name, environment=self.environment)
 
     async def get_thread_state(self, thread_id: str, agent):
-        thread = None
+        session = None
         try:                          
-                # Try to load existing thread
+                # Try to load existing session
                 if thread_id:
                     print(f"Loading thread {thread_id} from Cosmos DB...")
                     thread_state = await self.cosmos_service.load_item(self.container_name, thread_id, thread_id)                    
                     if thread_state:
                         print("Thread state found. Resuming conversation.")
-                        thread = await agent.deserialize_thread(thread_state)
+                        session = AgentSession.from_dict(thread_state)
                     else:
                         print("Thread state not found. Creating new thread.")
 
@@ -34,16 +35,16 @@ class cosmosdbutils(IThreadManager):
             await self.close()
         #ABIN: Add a check here to see if the thread is expired, if so, create a new thread.
 
-        # Create new thread if not loaded
-        if thread is None:
+        # Create new session if not loaded
+        if session is None:
             print("Creating new thread.")
-            thread = agent.get_new_thread()
+            session = agent.create_session(session_id=thread_id)
 
-        return thread   
+        return session   
 
     async def save_thread_state(self, thread_id: str,thread):
         try:
-            state = await thread.serialize()
+            state = thread.to_dict()
             item = {
                 "id": thread_id,
                 "thread_state": state
