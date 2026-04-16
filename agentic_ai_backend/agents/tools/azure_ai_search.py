@@ -3,10 +3,13 @@ from azure.core.credentials import AzureKeyCredential
 import inspect
 import os
 
-from agent_framework import ai_function
+from agent_framework import tool
 
 
-@ai_function(name="azure_ai_search", description="Retrieves information related with Permit Applications using Azure AI Search")
+@tool(
+    name="azure_ai_search",
+    description="Retrieves information related with Permit Applications using Azure AI Search",
+)
 def azure_ai_search(query: str) -> str:
     """
         Retrieves information related with BC government permit application
