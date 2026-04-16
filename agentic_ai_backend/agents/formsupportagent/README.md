@@ -50,6 +50,7 @@ Create a `.env` file in the `formsupportagent` directory with the following vari
 AZURE_OPENAI_ENDPOINT=https://your-openai-resource.openai.azure.com/
 AZURE_OPENAI_API_KEY=your-api-key-here
 AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=your-deployment-name
+AZURE_OPENAI_API_VERSION=2024-10-21
 ```
 
 ### Environment Variables
@@ -59,6 +60,7 @@ AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=your-deployment-name
 | `AZURE_OPENAI_ENDPOINT` | The endpoint URL for your Azure OpenAI resource |
 | `AZURE_OPENAI_API_KEY` | API key for Azure OpenAI authentication |
 | `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` | Name of your deployed chat model |
+| `AZURE_OPENAI_API_VERSION` | Azure OpenAI API version for chat completions. Use a version supported by your endpoint or gateway. |
 
 ## Usage
 
@@ -113,9 +115,10 @@ formsupportagent/
 
 ## Dependencies
 
-- **agent-framework-core** (>=1.0.0b251211): Microsoft Agent Framework
-- **azure-storage-blob** (>=12.27.1): Azure Blob Storage SDK
-- **python-dotenv** (>=1.2.1): Environment variable management
+- **agent-framework-core** (1.0.1): Microsoft Agent Framework core
+- **agent-framework-openai** (1.0.1): OpenAI/Azure OpenAI integration for Microsoft Agent Framework
+- **azure-storage-blob** (12.28.0): Azure Blob Storage SDK
+- **python-dotenv** (1.2.2): Environment variable management
 - **utils** (0.1.0): Local utility package for form context processing
 
 ## Form Definition Structure
@@ -127,6 +130,10 @@ Form definitions are stored as JSON files in the `formdefinitions` directory. Id
 1. **Form Loading**: The agent loads form definitions from JSON files using `get_form_context()`
 2. **Context Building**: Form fields are converted into a structured string format for the LLM
 3. **Query Processing**: User queries are passed to the agent's `run()` method
+
+### Agent Framework GA Note
+
+This agent uses the Agent Framework chat completions client instead of the newer responses client. That is intentional: the agent only needs function tools, and some Azure OpenAI gateways or APIM front doors reject the GA responses payloads or API version routing.
 4. **Semantic Matching**: The Azure OpenAI model compares the query against field titles and descriptions
 5. **Response Generation**: The agent returns:
    - **Match**: JSON with `ID`, `Description`, and `SuggestedValue`
