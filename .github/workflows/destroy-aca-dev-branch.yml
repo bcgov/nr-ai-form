@@ -15,9 +15,6 @@ on:
   # We destroy the SOURCE branch's ACA (github.head_ref), never the target branch's.
   pull_request:
     types: [closed]
-    paths:
-      - 'agentic_ai_backend/**'
-      - '.github/workflows/destroy-aca-dev-branch.yml'
 
   # Manual fallback: destroy any branch by name
   workflow_dispatch:
@@ -39,7 +36,6 @@ jobs:
     outputs:
       should_destroy: ${{ steps.check.outputs.should_destroy }}
       branch_name: ${{ steps.check.outputs.branch_name }}
-      aca_exists: ${{ steps.check_aca.outputs.aca_exists }}
     steps:
       - name: Determine if destroy should run
         id: check
@@ -71,41 +67,10 @@ jobs:
             echo "branch_name=" >> $GITHUB_OUTPUT
           fi
 
-      - name: Checkout code
-        if: steps.check.outputs.should_destroy == 'true'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check if ACA was deployed for this branch
-        id: check_aca
-        if: steps.check.outputs.should_destroy == 'true'
-        shell: bash
-        env:
-          BRANCH_NAME: ${{ steps.check.outputs.branch_name }}
-        run: |
-          # Compute branch slug to match ACA naming convention
-          branch="${BRANCH_NAME}"
-          slug=$(echo "$branch" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g' | \
-                 sed 's/[^a-z0-9-]/-/g' | sed 's/-\{2,\}/-/g' | sed 's/^-//;s/-$//')
-          slug="${slug:0:15}"
-          slug=$(echo "$slug" | sed 's/-$//')
-          
-          echo "Checking for ACA with slug: $slug"
-          
-          # Check if branch modified agentic_ai_backend code
-          if git diff origin/master..HEAD --quiet -- 'agentic_ai_backend/' '.github/workflows/destroy-aca-dev-branch.yml'; then
-            echo "aca_exists=false" >> $GITHUB_OUTPUT
-            echo "No agentic_ai_backend changes detected. Skipping ACA destroy."
-          else
-            echo "aca_exists=true" >> $GITHUB_OUTPUT
-            echo "agentic_ai_backend changes detected. ACA destroy will proceed."
-          fi
-
   branch-slug:
     name: Branch Slug
     needs: check
-    if: needs.check.outputs.should_destroy == 'true' && needs.check.outputs.aca_exists == 'true'
+    if: needs.check.outputs.should_destroy == 'true'
     runs-on: ubuntu-24.04
     outputs:
       branch_slug: ${{ steps.slug.outputs.branch_slug }}
@@ -125,13 +90,13 @@ jobs:
   stack-prefix:
     name: Stack Prefix
     needs: check
-    if: needs.check.outputs.should_destroy == 'true' && needs.check.outputs.aca_exists == 'true'
+    if: needs.check.outputs.should_destroy == 'true'
     uses: ./.github/workflows/.stack-prefix.yml
 
   destroy:
     name: Destroy ACA for branch ${{ needs.check.outputs.branch_name }}
     needs: [check, branch-slug, stack-prefix]
-    if: needs.check.outputs.should_destroy == 'true' && needs.check.outputs.aca_exists == 'true'
+    if: needs.check.outputs.should_destroy == 'true'
     uses: ./.github/workflows/.deployer_aca.yml
     with:
       environment_name: dev
