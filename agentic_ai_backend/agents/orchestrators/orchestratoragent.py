@@ -49,12 +49,17 @@ async def orchestrate_a2a(query: str,
         session_id: Optional session ID for thread persistence
     """
     
+    effective_session_id = session_id or str(uuid.uuid4())
+
     # Create A2A executors
-    conversation_executor = ConversationAgentA2AExecutor(base_url=conversation_agent_url, session_id=session_id)
+    conversation_executor = ConversationAgentA2AExecutor(
+        base_url=conversation_agent_url,
+        session_id=effective_session_id,
+    )
     form_support_executor = FormSupportAgentA2AExecutor(
         base_url=form_support_agent_url,
         step_number=step_number,
-        session_id=session_id
+        session_id=effective_session_id,
     )
     
     executors = [conversation_executor, form_support_executor]
@@ -85,7 +90,7 @@ async def orchestrate_a2a(query: str,
     )
 
     
-    thread_id = session_id or str(uuid.uuid4()) #TODO: This UUID is generated for with GUID temp, once we crack the logic from FE, ths will have mapper.
+    thread_id = effective_session_id
     
 
     final_data = None
