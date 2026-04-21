@@ -257,11 +257,11 @@ function getStep3SubstepFromPaneHeader() {
 
 
 function getPreferredPaneHeaderText() {
-    const subHeader = document.querySelector('span[data-id="subheadername"]');
+    const subHeader = document.querySelector('[data-id="subheadername"]');
     const subHeaderText = normalizeComparableValue(subHeader?.textContent || '');
     if (subHeaderText) return subHeaderText;
 
-    const stepHeader = document.querySelector('span[data-id="stepheadername"]');
+    const stepHeader = document.querySelector('[data-id="stepheadername"]');
     const stepHeaderText = normalizeComparableValue(stepHeader?.textContent || '');
     if (stepHeaderText) return stepHeaderText;
 
