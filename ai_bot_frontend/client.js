@@ -158,7 +158,10 @@ else {
         const CHAT_SCROLL_STORAGE_PREFIX = 'nrAiForm_chatScroll';
 
         function createFallbackThreadId() {
-            return `session-${Math.random().toString(36).substring(2, 15)}`;
+            const randomBytes = new Uint8Array(16);
+            globalThis.crypto.getRandomValues(randomBytes);
+            const randomHex = Array.from(randomBytes, byte => byte.toString(16).padStart(2, '0')).join('');
+            return `session-${randomHex}`;
         }
 
         function getStoredThreadId() {
