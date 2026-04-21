@@ -6,6 +6,7 @@ import asyncio
 import os
 import sys
 from fastapi import FastAPI, HTTPException
+from agent_framework import AgentSession
 from dotenv import load_dotenv
 from conversationagent import ConversationAgent
 from models.conversationmodel import InvokeRequest, InvokeResponse
@@ -23,8 +24,8 @@ app = FastAPI(
 )
 
 
-# Per-session thread storage
-_session_threads: dict = {}
+# Per-session history storage
+_session_threads: dict[str, AgentSession] = {}
 
 def get_agent():
     """Get or create the agent instance"""
@@ -61,12 +62,20 @@ async def invoke_agent(request: InvokeRequest):
     Accepts a query and returns the agent's response.
     """
     try:
-        agent = get_agent()    
+        agent = get_agent()
+
+        session = None
+        if request.session_id:
+            session = _session_threads.get(request.session_id)
+            if session is None:
+                session = agent.agent.create_session(session_id=request.session_id)
+                _session_threads[request.session_id] = session
+
         # Run the agent
-        result = await agent.run(request.query)
+        result = await agent.run(request.query, session=session)
         return InvokeResponse(
             response=result,
-            session_id=None
+            session_id=request.session_id
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
