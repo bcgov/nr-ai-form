@@ -254,6 +254,67 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_search_index_name
       }
 
+      env {
+        name  = "AZURE_SEARCH_TOP"
+        value = tostring(var.azure_search_top)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_TRIM_LENGTH"
+        value = tostring(var.azure_search_trim_length)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
+        value = tostring(var.azure_search_enable_trimming)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
+        value = tostring(var.azure_search_include_total_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_TYPE"
+        value = var.azure_search_query_type
+      }
+
+      env {
+        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
+        value = var.azure_search_semantic_configuration
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_CAPTION"
+        value = var.azure_search_query_caption
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER"
+        value = var.azure_search_query_answer
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
+        value = tostring(var.azure_search_query_answer_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
+        value = var.azure_search_query_language
+      }
+
+      # Agent Configuration
+      env {
+        name  = "AGENT_TEMPERATURE"
+        value = tostring(var.agent_temperature)
+      }
+
+      env {
+        name  = "AGENT_MAX_TOKENS"
+        value = tostring(var.agent_max_tokens)
+      }
+
       # Azure Document Intelligence Configuration
       env {
         name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
@@ -412,6 +473,52 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_SEARCH_ENABLE_TRIMMING"
         value = tostring(var.azure_search_enable_trimming)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
+        value = tostring(var.azure_search_include_total_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_TYPE"
+        value = var.azure_search_query_type
+      }
+
+      env {
+        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
+        value = var.azure_search_semantic_configuration
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_CAPTION"
+        value = var.azure_search_query_caption
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER"
+        value = var.azure_search_query_answer
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
+        value = tostring(var.azure_search_query_answer_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
+        value = var.azure_search_query_language
+      }
+
+      # Agent Configuration
+      env {
+        name  = "AGENT_TEMPERATURE"
+        value = tostring(var.agent_temperature)
+      }
+
+      env {
+        name  = "AGENT_MAX_TOKENS"
+        value = tostring(var.agent_max_tokens)
       }
 
       # Azure Document Intelligence Configuration
@@ -583,6 +690,67 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_SEARCH_INDEX_NAME"
         value = var.azure_search_index_name
+      }
+
+      env {
+        name  = "AZURE_SEARCH_TOP"
+        value = tostring(var.azure_search_top)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_TRIM_LENGTH"
+        value = tostring(var.azure_search_trim_length)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
+        value = tostring(var.azure_search_enable_trimming)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
+        value = tostring(var.azure_search_include_total_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_TYPE"
+        value = var.azure_search_query_type
+      }
+
+      env {
+        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
+        value = var.azure_search_semantic_configuration
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_CAPTION"
+        value = var.azure_search_query_caption
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER"
+        value = var.azure_search_query_answer
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
+        value = tostring(var.azure_search_query_answer_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
+        value = var.azure_search_query_language
+      }
+
+      # Agent Configuration
+      env {
+        name  = "AGENT_TEMPERATURE"
+        value = tostring(var.agent_temperature)
+      }
+
+      env {
+        name  = "AGENT_MAX_TOKENS"
+        value = tostring(var.agent_max_tokens)
       }
 
       # Azure Document Intelligence Configuration
