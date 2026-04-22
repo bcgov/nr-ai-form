@@ -140,7 +140,31 @@ jobs:
         echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
         # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
         # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
-    
+
+    - name: Debug - Verify Environment Variables
+      shell: bash
+      run: |
+        echo "=== Checking Redis Configuration Variables ==="
+        echo "REDIS_HOST is set: $([[ -z '${{ vars.REDIS_HOST }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo "REDIS_PASSWORD is set: $([[ -z '${{ secrets.REDIS_PASSWORD }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo "REDIS_PORT is set: $([[ -z '${{ vars.REDIS_PORT }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo "REDIS_SSL is set: $([[ -z '${{ vars.REDIS_SSL }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo "REDIS_TTL_DAYS is set: $([[ -z '${{ vars.REDIS_TTL_DAYS }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo ""
+        echo "If any are NO (empty), you must add them as GitHub Secrets/Variables."
+    - name: Debug - Verify Environment Variables
+      shell: bash
+      run: |
+        echo "=== Checking Redis Configuration Variables ==="
+        echo "REDIS_HOST is set: $([[ -z '${{ vars.REDIS_HOST }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo "REDIS_PASSWORD is set: $([[ -z '${{ secrets.REDIS_PASSWORD }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo "REDIS_PORT is set: $([[ -z '${{ vars.REDIS_PORT }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo "REDIS_SSL is set: $([[ -z '${{ vars.REDIS_SSL }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo "REDIS_TTL_DAYS is set: $([[ -z '${{ vars.REDIS_TTL_DAYS }}' ]] && echo 'NO (empty)' || echo 'YES')"
+        echo ""
+        echo "If any are NO (empty), you must add them as GitHub Secrets/Variables."
+        echo "See: https://github.com/${{ github.repository }}/settings/variables/actions"
+
     - name: Safety Plan Check
       if: inputs.prevent_destroy == true && inputs.command == 'apply'
       working-directory: terragrunt/${{ inputs.environment_name }}

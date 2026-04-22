@@ -352,6 +352,32 @@ resource "azurerm_container_app" "backend" {
         name  = "AZURE_BLOBSTORAGE_CONTAINER"
         value = var.azure_blobstorage_container
       }
+
+      # Redis Configuration
+      env {
+        name  = "REDIS_HOST"
+        value = var.redis_host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(var.redis_port)
+      }
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+
+      env {
+        name  = "REDIS_SSL"
+        value = tostring(var.redis_ssl)
+      }
+
+      env {
+        name  = "REDIS_TTL_DAYS"
+        value = tostring(var.redis_ttl_days)
+      }
     }
 
     # Conversation Agent Container - Sidecar 1
