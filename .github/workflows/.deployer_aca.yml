@@ -81,6 +81,30 @@ jobs:
       with:
         terragrunt-version: ${{ env.TG_VERSION }}
     
+    - name: Debug - Environment Context Check
+      shell: bash
+      run: |
+        echo "=== GitHub Actions Context ==="
+        echo "Environment: ${{ inputs.environment_name }}"
+        echo "Job environment: ${{ job.environment }}"
+        echo ""
+        echo "=== Checking All Environment Variables ==="
+        printenv | grep -E '^(REDIS_|AZURE_)' | sort || echo "No REDIS_* or AZURE_* variables found in environment"
+        echo ""
+        echo "=== Checking GitHub Variables & Secrets Directly ==="
+        echo "REDIS_HOST via vars: ${{ vars.REDIS_HOST }}"
+        echo "REDIS_PORT via vars: ${{ vars.REDIS_PORT }}"
+        echo "REDIS_SSL via vars: ${{ vars.REDIS_SSL }}"
+        echo "REDIS_TTL_DAYS via vars: ${{ vars.REDIS_TTL_DAYS }}"
+        echo "REDIS_PASSWORD via secrets: ${{ secrets.REDIS_PASSWORD }}"
+        echo ""
+        echo "=== Expected vs Actual ==="
+        [[ -z "${{ vars.REDIS_HOST }}" ]] && echo "❌ REDIS_HOST is EMPTY" || echo "✅ REDIS_HOST is SET"
+        [[ -z "${{ vars.REDIS_PORT }}" ]] && echo "❌ REDIS_PORT is EMPTY" || echo "✅ REDIS_PORT is SET"
+        [[ -z "${{ vars.REDIS_SSL }}" ]] && echo "❌ REDIS_SSL is EMPTY" || echo "✅ REDIS_SSL is SET"
+        [[ -z "${{ vars.REDIS_TTL_DAYS }}" ]] && echo "❌ REDIS_TTL_DAYS is EMPTY" || echo "✅ REDIS_TTL_DAYS is SET"
+        [[ -z "${{ secrets.REDIS_PASSWORD }}" ]] && echo "❌ REDIS_PASSWORD is EMPTY" || echo "✅ REDIS_PASSWORD is SET"
+    
     - name: Pre-Migration State Cleanup
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
@@ -121,6 +145,12 @@ jobs:
           # Azure Blob Storage Configuration
           AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
           AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          # Redis Configuration
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_SSL: ${{ vars.REDIS_SSL }}
+          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
       run: bash ${{ github.workspace }}/scripts/state-prep.sh
 
 
@@ -140,30 +170,6 @@ jobs:
         echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
         # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
         # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
-
-    - name: Debug - Verify Environment Variables
-      shell: bash
-      run: |
-        echo "=== Checking Redis Configuration Variables ==="
-        echo "REDIS_HOST is set: $([[ -z '${{ vars.REDIS_HOST }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo "REDIS_PASSWORD is set: $([[ -z '${{ secrets.REDIS_PASSWORD }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo "REDIS_PORT is set: $([[ -z '${{ vars.REDIS_PORT }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo "REDIS_SSL is set: $([[ -z '${{ vars.REDIS_SSL }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo "REDIS_TTL_DAYS is set: $([[ -z '${{ vars.REDIS_TTL_DAYS }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo ""
-        echo "If any are NO (empty), you must add them as GitHub Secrets/Variables."
-    - name: Debug - Verify Environment Variables
-      shell: bash
-      run: |
-        echo "=== Checking Redis Configuration Variables ==="
-        echo "REDIS_HOST is set: $([[ -z '${{ vars.REDIS_HOST }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo "REDIS_PASSWORD is set: $([[ -z '${{ secrets.REDIS_PASSWORD }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo "REDIS_PORT is set: $([[ -z '${{ vars.REDIS_PORT }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo "REDIS_SSL is set: $([[ -z '${{ vars.REDIS_SSL }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo "REDIS_TTL_DAYS is set: $([[ -z '${{ vars.REDIS_TTL_DAYS }}' ]] && echo 'NO (empty)' || echo 'YES')"
-        echo ""
-        echo "If any are NO (empty), you must add them as GitHub Secrets/Variables."
-        echo "See: https://github.com/${{ github.repository }}/settings/variables/actions"
 
     - name: Safety Plan Check
       if: inputs.prevent_destroy == true && inputs.command == 'apply'
