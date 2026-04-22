@@ -15,10 +15,10 @@ locals {
 }
 
 resource "azurerm_container_app_environment" "main" {
-  name                               = "${var.app_name}-${var.app_env}-containerenv"
-  location                           = var.location
-  resource_group_name                = var.resource_group_name
-  log_analytics_workspace_id         = var.log_analytics_workspace_id
+  name                       = "${var.app_name}-${var.app_env}-containerenv"
+  location                   = var.location
+  resource_group_name        = var.resource_group_name
+  log_analytics_workspace_id = var.log_analytics_workspace_id
   # infrastructure_subnet_id and its companions must all be set together or all omitted.
   # When no subnet is provided (e.g. dev without a pre-created subnet), omit all three.
   infrastructure_subnet_id           = var.container_apps_subnet_id != "" ? var.container_apps_subnet_id : null
@@ -51,7 +51,7 @@ resource "azurerm_container_app_environment" "main" {
 }
 
 resource "azurerm_private_endpoint" "containerapps" {
-  count               = var.internal_load_balancer_enabled ? 1 : 0  # Only create if using internal load balancer
+  count               = var.internal_load_balancer_enabled ? 1 : 0 # Only create if using internal load balancer
   name                = "${var.app_name}-containerapps-pe"
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -908,9 +908,9 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true # Must be true for Front Door to reach the public orchestrator endpoint
+    external_enabled           = true                        # Must be true for Front Door to reach the public orchestrator endpoint
     target_port                = var.orchestrator_agent_port # Orchestrator Agent is the public-facing ACA endpoint
-    transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
+    transport                  = "auto"                      # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
     traffic_weight {
