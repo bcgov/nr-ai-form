@@ -102,6 +102,11 @@ resource "azurerm_container_app" "backend" {
   }
 
   secret {
+    name  = "azure-search-api-key"
+    value = var.AZURE_SEARCH_API_KEY
+  }
+
+  secret {
     name  = "azure-document-intelligence-key"
     value = var.azure_document_intelligence_key
   }
@@ -240,8 +245,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_SEARCH_API_KEY"
-        value = var.AZURE_SEARCH_API_KEY
+        name        = "AZURE_SEARCH_API_KEY"
+        secret_name = "azure-search-api-key"
       }
 
       env {
@@ -385,8 +390,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_SEARCH_API_KEY"
-        value = var.AZURE_SEARCH_API_KEY
+        name        = "AZURE_SEARCH_API_KEY"
+        secret_name = "azure-search-api-key"
       }
 
       env {
@@ -434,6 +439,43 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_STORAGE_CONTAINER_NAME"
         value = var.azure_storage_container_name
+      }
+
+      # Azure Blob Storage Configuration
+      env {
+        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+        secret_name = "azure-blobstorage-connectionstring"
+      }
+
+      env {
+        name  = "AZURE_BLOBSTORAGE_CONTAINER"
+        value = var.azure_blobstorage_container
+      }
+
+      # Redis Configuration
+      env {
+        name  = "REDIS_HOST"
+        value = var.redis_host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(var.redis_port)
+      }
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+
+      env {
+        name  = "REDIS_SSL"
+        value = tostring(var.redis_ssl)
+      }
+
+      env {
+        name  = "REDIS_TTL_DAYS"
+        value = tostring(var.redis_ttl_days)
       }
     }
 
@@ -534,8 +576,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_SEARCH_API_KEY"
-        value = var.AZURE_SEARCH_API_KEY
+        name        = "AZURE_SEARCH_API_KEY"
+        secret_name = "azure-search-api-key"
       }
 
       env {
@@ -579,6 +621,32 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_BLOBSTORAGE_CONTAINER"
         value = var.azure_blobstorage_container
+      }
+
+      # Redis Configuration
+      env {
+        name  = "REDIS_HOST"
+        value = var.redis_host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(var.redis_port)
+      }
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+
+      env {
+        name  = "REDIS_SSL"
+        value = tostring(var.redis_ssl)
+      }
+
+      env {
+        name  = "REDIS_TTL_DAYS"
+        value = tostring(var.redis_ttl_days)
       }
     }
     /*
