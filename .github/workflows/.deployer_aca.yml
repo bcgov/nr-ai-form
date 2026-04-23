@@ -57,14 +57,18 @@ permissions:
   id-token: write # This is required for requesting the JWT
   contents: write # This is required for actions/checkout
 jobs:
- infra-dev:
-  if: ${{ inputs.environment_name == 'dev' }}
-  environment: dev
-  name: Terragrunt ${{inputs.command}} ACA Dev
+ infra:
+  environment: ${{ inputs.environment_name }}
+  name: Terragrunt ${{inputs.command}} ACA ${{ inputs.environment_name }}
   runs-on: ubuntu-24.04
   steps:
     - name: Checkout
       uses: actions/checkout@v4
+    
+    - name: Verify Correct Environment
+      shell: bash
+      run: |
+        echo "ERROR: This job is configured for 'dev' but was called with '${{ inputs.environment_name }}'"
     
     - name: Azure CLI Login
       uses: azure/login@v2
@@ -86,10 +90,8 @@ jobs:
       shell: bash
       run: |
         echo "=== GitHub Actions Context ==="
-        echo "Input environment_name: '${{ inputs.environment_name }}'"
-        echo "Job environment: '${{ job.environment }}'"
-        echo "Environment from context: '${{ github.environment }}'"
-        echo "Length of environment_name: ${#GITHUB_ENVIRONMENT_NAME}"
+        echo "Environment: ${{ inputs.environment_name }}"
+        echo "Job environment: ${{ job.environment }}"
         echo ""
         echo "=== Checking All Environment Variables ==="
         printenv | grep -E '^(REDIS_|AZURE_)' | sort || echo "No REDIS_* or AZURE_* variables found in environment"
@@ -277,222 +279,3 @@ jobs:
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
     
-
- infra-test:
-  if: ${{ inputs.environment_name == 'test' }}
-  environment: test
-  name: Terragrunt ${{inputs.command}} ACA Test
-  runs-on: ubuntu-24.04
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    
-    - name: Azure CLI Login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    
-    - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-    
-    - name: Setup Terragrunt
-      uses: autero1/action-terragrunt@aefb0a43c4f5503a91fefb307745c4d51c26ed0e # v3
-      with:
-        terragrunt-version: ${{ env.TG_VERSION }}
-    
-    - name: Debug - Environment Context Check
-      shell: bash
-      run: |
-        echo "=== GitHub Actions Context ==="
-        echo "Input environment_name: '${{ inputs.environment_name }}'"
-        echo "Job environment: '${{ job.environment }}'"
-        echo "Environment from context: '${{ github.environment }}'"
-        echo "Length of environment_name: ${#GITHUB_ENVIRONMENT_NAME}"
-        echo ""
-        echo "=== Checking All Environment Variables ==="
-        printenv | grep -E '^(REDIS_|AZURE_)' | sort || echo "No REDIS_* or AZURE_* variables found in environment"
-        echo ""
-        echo "=== Checking GitHub Variables & Secrets Directly ==="
-        echo "REDIS_HOST via vars: ${{ vars.REDIS_HOST }}"
-        echo "REDIS_PORT via vars: ${{ vars.REDIS_PORT }}"
-        echo "REDIS_SSL via vars: ${{ vars.REDIS_SSL }}"
-        echo "REDIS_TTL_DAYS via vars: ${{ vars.REDIS_TTL_DAYS }}"
-        echo "REDIS_PASSWORD via secrets: ${{ secrets.REDIS_PASSWORD }}"
-        echo ""
-        echo "=== Expected vs Actual ==="
-        [[ -z "${{ vars.REDIS_HOST }}" ]] && echo "❌ REDIS_HOST is EMPTY" || echo "✅ REDIS_HOST is SET"
-        [[ -z "${{ vars.REDIS_PORT }}" ]] && echo "❌ REDIS_PORT is EMPTY" || echo "✅ REDIS_PORT is SET"
-        [[ -z "${{ vars.REDIS_SSL }}" ]] && echo "❌ REDIS_SSL is EMPTY" || echo "✅ REDIS_SSL is SET"
-        [[ -z "${{ vars.REDIS_TTL_DAYS }}" ]] && echo "❌ REDIS_TTL_DAYS is EMPTY" || echo "✅ REDIS_TTL_DAYS is SET"
-        [[ -z "${{ secrets.REDIS_PASSWORD }}" ]] && echo "❌ REDIS_PASSWORD is EMPTY" || echo "✅ REDIS_PASSWORD is SET"
-    
-    - name: Pre-Migration State Cleanup
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
-          target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
-          vnet_name: ${{ vars.VNET_NAME }}
-          api_image: "ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
-          orchestrator_agent_image: "ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
-          conversation_agent_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
-          formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-          # api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
-          stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          repo_name: ${{ github.event.repository.name }}
-          app_env: ${{ inputs.app_env }}
-          branch_slug: ${{ inputs.branch_slug }}
-          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
-          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-          deployment_type: ${{ inputs.deployment_type }}
-          # Azure OpenAI Configuration
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-          # Azure Search Configuration
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
-          AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
-          # Azure Document Intelligence Configuration
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
-          AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
-          # Azure Storage Configuration
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          # Azure Blob Storage Configuration
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
-          # Redis Configuration
-          REDIS_HOST: ${{ vars.REDIS_HOST }}
-          REDIS_PORT: ${{ vars.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_SSL: ${{ vars.REDIS_SSL }}
-          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
-      run: bash ${{ github.workspace }}/scripts/state-prep.sh
-
-    - name: Image Tags
-      id: image-tags
-      shell: bash
-      run: |
-        # Build full registry URLs for agent images
-        ORCHESTRATOR_AGENT_IMAGE="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
-        CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
-        FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-        # API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
-        # API_BACKEND_IMAGE="ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
-
-        echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
-        # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
-
-    - name: Safety Plan Check
-      if: inputs.prevent_destroy == true && inputs.command == 'apply'
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
-          target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
-          vnet_name: ${{ vars.VNET_NAME }}
-          api_image: ${{ steps.image-tags.outputs.api-image }}
-          orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
-          conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
-          formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
-          # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
-          stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          repo_name: ${{ github.event.repository.name }}
-          app_env: ${{ inputs.app_env }}
-          branch_slug: ${{ inputs.branch_slug }}
-          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
-          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-          deployment_type: ${{ inputs.deployment_type }}
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
-          AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
-          AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
-          # Redis Configuration
-          REDIS_HOST: ${{ vars.REDIS_HOST }}
-          REDIS_PORT: ${{ vars.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_SSL: ${{ vars.REDIS_SSL }}
-          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
-      run: |
-          echo "Running plan to check for resource destructions..."
-          terragrunt run-all plan --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }} 2>&1 | tee /tmp/tfplan_output.txt
-
-          if grep -E "(will be destroyed|must be replaced)" /tmp/tfplan_output.txt; then
-            echo "::error::Plan contains resource destructions or replacements. Aborting to protect the ${{ inputs.environment_name }} environment."
-            echo "Review the plan output above. If the destruction is intentional, use a destroy workflow instead."
-            exit 1
-          fi
-          echo "Safety check passed: no resource destructions detected."
-
-    - name: Terragrunt ${{inputs.command}}
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
-          target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
-          vnet_name: ${{ vars.VNET_NAME }}
-          api_image: ${{ steps.image-tags.outputs.api-image }}
-          orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
-          conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
-          formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
-          # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
-          stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          repo_name: ${{ github.event.repository.name }}
-          app_env: ${{ inputs.app_env }}
-          branch_slug: ${{ inputs.branch_slug }}
-          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
-          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-          deployment_type: ${{ inputs.deployment_type }}
-          # Azure OpenAI Configuration
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-          # Azure Search Configuration
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
-          AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
-          # Azure Document Intelligence Configuration
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
-          AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
-          # Azure Storage Configuration
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          # Azure Blob Storage Configuration
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
-          # Redis Configuration
-          REDIS_HOST: ${{ vars.REDIS_HOST }}
-          REDIS_PORT: ${{ vars.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_SSL: ${{ vars.REDIS_SSL }}
-          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
-      run: |
-          # Run terraform with lock=false to avoid state lock issues
-          terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
