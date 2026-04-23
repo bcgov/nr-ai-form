@@ -131,22 +131,17 @@ jobs:
         echo "  - REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}"
         echo ""
         echo "=== ALL AVAILABLE GITHUB SECRETS (secrets.*) ==="
-        echo "Repository-level Secrets:"
-        for secret in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_OPENAI_API_KEY AZURE_OPENAI_ENDPOINT AZURE_OPENAI_CHAT_DEPLOYMENT_NAME AZURE_SEARCH_ENDPOINT AZURE_SEARCH_API_KEY AZURE_SEARCH_INDEX_NAME AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT AZURE_DOCUMENT_INTELLIGENCE_KEY AZURE_STORAGE_ACCOUNT_NAME AZURE_STORAGE_ACCOUNT_KEY AZURE_STORAGE_CONTAINER_NAME AZURE_BLOBSTORAGE_CONNECTIONSTRING AZURE_BLOBSTORAGE_CONTAINER; do
-          secret_value=$(eval echo \$\{\{\ secrets.${secret}\ \}\})
-          if [ -n "$secret_value" ]; then
-            echo "  ✅ $secret is SET"
-          else
-            echo "  ❌ $secret is EMPTY"
-          fi
-        done
+        echo "Repository-level Secrets (checking if SET):"
+        echo "  - AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID != '' && '✅ SET' || '❌ EMPTY' }}"
+        echo "  - AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID != '' && '✅ SET' || '❌ EMPTY' }}"
+        echo "  - AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID != '' && '✅ SET' || '❌ EMPTY' }}"
+        echo "  - AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY != '' && '✅ SET' || '❌ EMPTY' }}"
+        echo "  - AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT != '' && '✅ SET' || '❌ EMPTY' }}"
+        echo "  - AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT != '' && '✅ SET' || '❌ EMPTY' }}"
+        echo "  - AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME != '' && '✅ SET' || '❌ EMPTY' }}"
         echo ""
         echo "Environment-level Secrets:"
-        if [ -n "${{ secrets.REDIS_PASSWORD }}" ]; then
-          echo "  ✅ REDIS_PASSWORD is SET"
-        else
-          echo "  ❌ REDIS_PASSWORD is EMPTY"
-        fi
+        echo "  - REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD != '' && '✅ SET' || '❌ EMPTY' }}"
         echo ""
         echo "=== HOW TO ADD MISSING VARIABLES ==="
         echo "GitHub Variables and Secrets have two levels:"
