@@ -65,11 +65,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     
-    - name: Verify Correct Environment
-      shell: bash
-      run: |
-        echo "ERROR: This job is configured for 'dev' but was called with '${{ inputs.environment_name }}'"
-    
     - name: Azure CLI Login
       uses: azure/login@v2
       with:
@@ -109,6 +104,66 @@ jobs:
         [[ -z "${{ vars.REDIS_SSL }}" ]] && echo "❌ REDIS_SSL is EMPTY" || echo "✅ REDIS_SSL is SET"
         [[ -z "${{ vars.REDIS_TTL_DAYS }}" ]] && echo "❌ REDIS_TTL_DAYS is EMPTY" || echo "✅ REDIS_TTL_DAYS is SET"
         [[ -z "${{ secrets.REDIS_PASSWORD }}" ]] && echo "❌ REDIS_PASSWORD is EMPTY" || echo "✅ REDIS_PASSWORD is SET"
+    
+    - name: Debug - List ALL Available GitHub Variables & Secrets
+      shell: bash
+      run: |
+        echo "=== ALL AVAILABLE GITHUB VARIABLES (vars.*) ==="
+        echo "To view, access via: \${{ vars.VARIABLE_NAME }}"
+        echo "Repository-level Variables are ALWAYS available"
+        echo "Environment-level Variables are ONLY available when job has 'environment: dev/test' set"
+        echo ""
+        echo "To see actual values, you must explicitly reference them in this workflow."
+        echo "GitHub Actions does NOT provide a way to list all variable names dynamically."
+        echo ""
+        echo "=== KNOWN VARIABLES IN THIS WORKFLOW ==="
+        echo "Repository-level (always available):"
+        echo "  - RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_NAME }}"
+        echo "  - VNET_NAME: ${{ vars.VNET_NAME }}"
+        echo "  - TFSTATE_STORAGE_ACCOUNT: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}"
+        echo "  - VNET_ADDRESS_SPACE: ${{ vars.VNET_ADDRESS_SPACE }}"
+        echo "  - AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}"
+        echo ""
+        echo "Environment-level (dev/test only):"
+        echo "  - REDIS_HOST: ${{ vars.REDIS_HOST }}"
+        echo "  - REDIS_PORT: ${{ vars.REDIS_PORT }}"
+        echo "  - REDIS_SSL: ${{ vars.REDIS_SSL }}"
+        echo "  - REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}"
+        echo ""
+        echo "=== ALL AVAILABLE GITHUB SECRETS (secrets.*) ==="
+        echo "Repository-level Secrets:"
+        for secret in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_OPENAI_API_KEY AZURE_OPENAI_ENDPOINT AZURE_OPENAI_CHAT_DEPLOYMENT_NAME AZURE_SEARCH_ENDPOINT AZURE_SEARCH_API_KEY AZURE_SEARCH_INDEX_NAME AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT AZURE_DOCUMENT_INTELLIGENCE_KEY AZURE_STORAGE_ACCOUNT_NAME AZURE_STORAGE_ACCOUNT_KEY AZURE_STORAGE_CONTAINER_NAME AZURE_BLOBSTORAGE_CONNECTIONSTRING AZURE_BLOBSTORAGE_CONTAINER; do
+          secret_value=$(eval echo \$\{\{\ secrets.${secret}\ \}\})
+          if [ -n "$secret_value" ]; then
+            echo "  ✅ $secret is SET"
+          else
+            echo "  ❌ $secret is EMPTY"
+          fi
+        done
+        echo ""
+        echo "Environment-level Secrets:"
+        if [ -n "${{ secrets.REDIS_PASSWORD }}" ]; then
+          echo "  ✅ REDIS_PASSWORD is SET"
+        else
+          echo "  ❌ REDIS_PASSWORD is EMPTY"
+        fi
+        echo ""
+        echo "=== HOW TO ADD MISSING VARIABLES ==="
+        echo "GitHub Variables and Secrets have two levels:"
+        echo ""
+        echo "1. REPOSITORY-LEVEL (Settings > Secrets and variables > Actions)"
+        echo "   - Available to: All workflows, all branches, all environments"
+        echo "   - Use for: Shared configuration (same everywhere)"
+        echo "   - Examples: RESOURCE_GROUP_NAME, VNET_NAME"
+        echo ""
+        echo "2. ENVIRONMENT-LEVEL (Settings > Environments > [dev|test|prod] > Secrets/Variables)"
+        echo "   - Available to: Only when job has 'environment: dev' (or test/prod)"
+        echo "   - Use for: Environment-specific config (different per env)"
+        echo "   - Examples: REDIS_HOST (dev vs test), API_KEYS, DB credentials"
+        echo ""
+        echo "Environment URLs:"
+        echo "  - Dev:  https://github.com/${{ github.repository }}/settings/environments/7906991569/edit"
+        echo "  - Test: https://github.com/${{ github.repository }}/settings/environments/7846231462/edit"
     
     - name: Pre-Migration State Cleanup
       working-directory: terragrunt/${{ inputs.environment_name }}
@@ -278,4 +333,3 @@ jobs:
       run: |
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
-    
