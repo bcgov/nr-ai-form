@@ -117,6 +117,81 @@ variable "azure_search_enable_trimming" {
   nullable    = false
 }
 
+# Extended Azure Search Configuration Variables
+variable "azure_search_include_total_count" {
+  description = "Include total count of search results"
+  type        = bool
+  default     = true
+  nullable    = false
+}
+
+variable "azure_search_query_type" {
+  description = "Type of Azure Search query (simple, semantic, full)"
+  type        = string
+  default     = "semantic"
+  nullable    = false
+}
+
+variable "azure_search_semantic_configuration" {
+  description = "Semantic search configuration name"
+  type        = string
+  default     = "semanticconfig"
+  nullable    = false
+}
+
+variable "azure_search_query_caption" {
+  description = "Caption extraction method for search results"
+  type        = string
+  default     = "extractive"
+  nullable    = false
+}
+
+variable "azure_search_query_answer" {
+  description = "Answer extraction method for search results"
+  type        = string
+  default     = "extractive"
+  nullable    = false
+}
+
+variable "azure_search_query_answer_count" {
+  description = "Number of answers to extract from search results"
+  type        = number
+  default     = 3
+  nullable    = false
+}
+
+variable "azure_search_query_language" {
+  description = "Language for semantic search configuration"
+  type        = string
+  default     = "en-us"
+  nullable    = false
+}
+
+# LLM Agent Configuration Variables
+variable "agent_temperature" {
+  description = "Temperature parameter for LLM responses (0.0-2.0, lower is more deterministic)"
+  type        = number
+  default     = 0.1
+  nullable    = false
+
+  validation {
+    condition     = var.agent_temperature >= 0.0 && var.agent_temperature <= 2.0
+    error_message = "agent_temperature must be between 0.0 and 2.0"
+  }
+}
+
+variable "agent_max_tokens" {
+  description = "Maximum tokens allowed in LLM response"
+  type        = number
+  default     = 800
+  nullable    = false
+
+  validation {
+    condition     = var.agent_max_tokens >= 1 && var.agent_max_tokens <= 4096
+    error_message = "agent_max_tokens must be between 1 and 4096"
+  }
+}
+
 variable "azure_storage_account_key" {
   description = "Azure Storage account key"
   type        = string
