@@ -9,6 +9,7 @@ import ast
 from agent_framework import WorkflowBuilder
 from agent_framework._workflows._message_utils import normalize_messages_input
 from typing import Any, Union, Optional
+from models.intentmodel import IntentModel
 from dotenv import load_dotenv
 import uuid
 
@@ -78,11 +79,13 @@ async def orchestrate_a2a(query: str,
         instructions="You are an aggregator that aggregates the results from the different executors. In this case the conversation agent and the form support agent."
     )
 
-    # Build the workflow
-    builder = WorkflowBuilder(start_executor=dispatcher, output_executors=[aggregator])
-    builder.add_fan_out_edges(dispatcher, executors)   
-    builder.add_fan_in_edges(executors, aggregator)
-    workflow = builder.build()
+    # Build the workflow using the current agent-framework API.
+    workflow = (
+        WorkflowBuilder(start_executor=dispatcher)
+        .add_multi_selection_edge_group(dispatcher, executors, selection_func=select_subagents)
+        .add_fan_in_edges(executors, aggregator)
+        .build()
+    )
 
     #ABIN : as part of SHOWCASE-4181 workflow is transformed as an agent to accomodate multi-turn conversation
     agent = workflow.as_agent(
@@ -127,9 +130,14 @@ async def orchestrate_a2a(query: str,
     return final_data
 
 
- 
+# Select workers based on task priority
+def select_subagents(task: IntentModel, agents: list[str]) -> list[str]:
+    if task.confidence >= 7 and task.targetagent in agents:
+        return [task.targetagent]
 
+    return list(agents)
 
+    
 
 if __name__ == "__main__":
     # Get query from command line or use default
