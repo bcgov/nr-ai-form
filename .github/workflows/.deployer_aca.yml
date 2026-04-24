@@ -99,12 +99,18 @@ jobs:
         echo "REDIS_TTL_DAYS via vars: ${{ vars.REDIS_TTL_DAYS }}"
         echo "REDIS_PASSWORD via secrets: ${{ secrets.REDIS_PASSWORD }}"
         echo ""
-        echo "=== Expected vs Actual ==="
-        [[ -z "${{ vars.REDIS_HOST }}" ]] && echo "❌ REDIS_HOST is EMPTY" || echo "✅ REDIS_HOST is SET"
-        [[ -z "${{ vars.REDIS_PORT }}" ]] && echo "❌ REDIS_PORT is EMPTY" || echo "✅ REDIS_PORT is SET"
-        [[ -z "${{ vars.REDIS_SSL }}" ]] && echo "❌ REDIS_SSL is EMPTY" || echo "✅ REDIS_SSL is SET"
-        [[ -z "${{ vars.REDIS_TTL_DAYS }}" ]] && echo "❌ REDIS_TTL_DAYS is EMPTY" || echo "✅ REDIS_TTL_DAYS is SET"
-        [[ -z "${{ secrets.REDIS_PASSWORD }}" ]] && echo "❌ REDIS_PASSWORD is EMPTY" || echo "✅ REDIS_PASSWORD is SET"
+        echo "=== Variable Status Check ==="
+        REDIS_HOST_VALUE="${{ vars.REDIS_HOST }}"
+        REDIS_PORT_VALUE="${{ vars.REDIS_PORT }}"
+        REDIS_SSL_VALUE="${{ vars.REDIS_SSL }}"
+        REDIS_TTL_VALUE="${{ vars.REDIS_TTL_DAYS }}"
+        REDIS_PASS_VALUE="${{ secrets.REDIS_PASSWORD }}"
+        
+        if [[ -z "$REDIS_HOST_VALUE" ]]; then echo "REDIS_HOST: EMPTY"; else echo "REDIS_HOST: SET"; fi
+        if [[ -z "$REDIS_PORT_VALUE" ]]; then echo "REDIS_PORT: EMPTY"; else echo "REDIS_PORT: SET"; fi
+        if [[ -z "$REDIS_SSL_VALUE" ]]; then echo "REDIS_SSL: EMPTY"; else echo "REDIS_SSL: SET"; fi
+        if [[ -z "$REDIS_TTL_VALUE" ]]; then echo "REDIS_TTL_DAYS: EMPTY"; else echo "REDIS_TTL_DAYS: SET"; fi
+        if [[ -z "$REDIS_PASS_VALUE" ]]; then echo "REDIS_PASSWORD: EMPTY"; else echo "REDIS_PASSWORD: SET"; fi
     
     - name: Debug - List ALL Available GitHub Variables & Secrets
       shell: bash
@@ -124,13 +130,12 @@ jobs:
         echo "  - TFSTATE_STORAGE_ACCOUNT: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}"
         echo "  - VNET_ADDRESS_SPACE: ${{ vars.VNET_ADDRESS_SPACE }}"
         echo "  - AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}"
+        echo ""
+        echo "Environment-level (dev/test only):"
         echo "  - REDIS_HOST: ${{ vars.REDIS_HOST }}"
         echo "  - REDIS_PORT: ${{ vars.REDIS_PORT }}"
         echo "  - REDIS_SSL: ${{ vars.REDIS_SSL }}"
         echo "  - REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}"
-        echo ""
-        echo "Environment-level (dev/test only):"
-        echo "  (None currently configured)"
         echo ""
         echo "=== ALL AVAILABLE GITHUB SECRETS (secrets.*) ==="
         echo "Repository-level Secrets:"
@@ -374,12 +379,18 @@ jobs:
         echo "REDIS_TTL_DAYS via vars: ${{ vars.REDIS_TTL_DAYS }}"
         echo "REDIS_PASSWORD via secrets: ${{ secrets.REDIS_PASSWORD }}"
         echo ""
-        echo "=== Expected vs Actual ==="
-        [[ -z "${{ vars.REDIS_HOST }}" ]] && echo "❌ REDIS_HOST is EMPTY" || echo "✅ REDIS_HOST is SET"
-        [[ -z "${{ vars.REDIS_PORT }}" ]] && echo "❌ REDIS_PORT is EMPTY" || echo "✅ REDIS_PORT is SET"
-        [[ -z "${{ vars.REDIS_SSL }}" ]] && echo "❌ REDIS_SSL is EMPTY" || echo "✅ REDIS_SSL is SET"
-        [[ -z "${{ vars.REDIS_TTL_DAYS }}" ]] && echo "❌ REDIS_TTL_DAYS is EMPTY" || echo "✅ REDIS_TTL_DAYS is SET"
-        [[ -z "${{ secrets.REDIS_PASSWORD }}" ]] && echo "❌ REDIS_PASSWORD is EMPTY" || echo "✅ REDIS_PASSWORD is SET"
+        echo "=== Variable Status Check ==="
+        REDIS_HOST_VALUE="${{ vars.REDIS_HOST }}"
+        REDIS_PORT_VALUE="${{ vars.REDIS_PORT }}"
+        REDIS_SSL_VALUE="${{ vars.REDIS_SSL }}"
+        REDIS_TTL_VALUE="${{ vars.REDIS_TTL_DAYS }}"
+        REDIS_PASS_VALUE="${{ secrets.REDIS_PASSWORD }}"
+        
+        if [[ -z "$REDIS_HOST_VALUE" ]]; then echo "REDIS_HOST: EMPTY"; else echo "REDIS_HOST: SET"; fi
+        if [[ -z "$REDIS_PORT_VALUE" ]]; then echo "REDIS_PORT: EMPTY"; else echo "REDIS_PORT: SET"; fi
+        if [[ -z "$REDIS_SSL_VALUE" ]]; then echo "REDIS_SSL: EMPTY"; else echo "REDIS_SSL: SET"; fi
+        if [[ -z "$REDIS_TTL_VALUE" ]]; then echo "REDIS_TTL_DAYS: EMPTY"; else echo "REDIS_TTL_DAYS: SET"; fi
+        if [[ -z "$REDIS_PASS_VALUE" ]]; then echo "REDIS_PASSWORD: EMPTY"; else echo "REDIS_PASSWORD: SET"; fi
     
     - name: Debug - List ALL Available GitHub Variables & Secrets
       shell: bash
@@ -399,13 +410,12 @@ jobs:
         echo "  - TFSTATE_STORAGE_ACCOUNT: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}"
         echo "  - VNET_ADDRESS_SPACE: ${{ vars.VNET_ADDRESS_SPACE }}"
         echo "  - AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}"
+        echo ""
+        echo "Environment-level (dev/test only):"
         echo "  - REDIS_HOST: ${{ vars.REDIS_HOST }}"
         echo "  - REDIS_PORT: ${{ vars.REDIS_PORT }}"
         echo "  - REDIS_SSL: ${{ vars.REDIS_SSL }}"
         echo "  - REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}"
-        echo ""
-        echo "Environment-level (dev/test only):"
-        echo "  (None currently configured)"
         echo ""
         echo "=== ALL AVAILABLE GITHUB SECRETS (secrets.*) ==="
         echo "Repository-level Secrets:"
