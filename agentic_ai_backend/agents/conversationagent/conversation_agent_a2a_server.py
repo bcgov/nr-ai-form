@@ -6,6 +6,7 @@ import asyncio
 import os
 import sys
 from fastapi import FastAPI, HTTPException
+from agent_framework import AgentSession
 from dotenv import load_dotenv
 from conversationagent import ConversationAgent
 from models.conversationmodel import InvokeRequest, InvokeResponse
@@ -22,20 +23,25 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Global agent instance (singleton pattern)
-_agent_instance = None
+
+# Per-session history storage
+_session_threads: dict[str, AgentSession] = {}
 
 def get_agent():
     """Get or create the agent instance"""
-    global _agent_instance
-    if _agent_instance is None:
-        try:            
-            endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
-            api_key = os.environ["AZURE_OPENAI_API_KEY"]
-            _agent_instance = ConversationAgent(endpoint, api_key)
-        except Exception as e:
-            raise RuntimeError(f"Failed to initialize agent: {str(e)}")
-    return _agent_instance
+    agent_instance = None
+    try:            
+        endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
+        api_key = os.environ["AZURE_OPENAI_API_KEY"]
+        deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+        api_version = os.environ["AZURE_OPENAI_API_VERSION"]
+        max_tokens = int(os.getenv("AGENT_MAX_TOKENS", "800"))
+        temperature = float(os.getenv("AGENT_TEMPERATURE", "0.1"))
+        agent_instance = ConversationAgent(endpoint, api_key, deployment_name, api_version,max_tokens, temperature)
+    except Exception as e:
+        raise RuntimeError(f"Failed to initialize agent: {str(e)}")
+    
+    return agent_instance
 
 @app.get("/.well-known/agent.json")
 async def agent_manifest():
@@ -57,7 +63,16 @@ async def invoke_agent(request: InvokeRequest):
     """
     try:
         agent = get_agent()
-        result = await agent.run(request.query)
+
+        session = None
+        if request.session_id:
+            session = _session_threads.get(request.session_id)
+            if session is None:
+                session = agent.agent.create_session(session_id=request.session_id)
+                _session_threads[request.session_id] = session
+
+        # Run the agent
+        result = await agent.run(request.query, session=session)
         return InvokeResponse(
             response=result,
             session_id=request.session_id

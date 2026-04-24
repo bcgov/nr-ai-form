@@ -18,6 +18,27 @@ permissions:
   packages: write
 
 jobs:
+  # Compute a URL-safe slug from the deploying branch name (max 15 chars)
+  branch-slug:
+    name: Branch Slug
+    runs-on: ubuntu-24.04
+    outputs:
+      branch_slug: ${{ steps.slug.outputs.branch_slug }}
+    steps:
+      - name: Compute branch slug
+        id: slug
+        shell: bash
+        run: |
+          branch="${{ github.ref_name }}"
+          # Lowercase, replace slashes and non-alphanumeric chars with hyphens, collapse runs, strip edges
+          slug=$(echo "$branch" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g' | \
+                 sed 's/[^a-z0-9-]/-/g' | sed 's/-\{2,\}/-/g' | sed 's/^-//;s/-$//')
+          # Truncate to 15 chars and strip any trailing hyphen introduced by truncation
+          slug="${slug:0:15}"
+          slug=$(echo "$slug" | sed 's/-$//')
+          echo "branch_slug=$slug" >> $GITHUB_OUTPUT
+          echo "Branch slug: $slug"
+
   # Builds only run on apply — plan does not need new images
   builds:
     if: inputs.command == 'apply'
@@ -28,7 +49,8 @@ jobs:
     with:
       tags: |
         latest
-        dev-aca
+        dev-aca-${{ github.run_number }}
+
 
   lint:
     name: Lint
@@ -60,20 +82,21 @@ jobs:
         run: tflint -f compact
 
   deploy-aca-dev:
-    name: ${{ inputs.command == 'plan' && 'Plan' || 'Deploy' }} Azure Container Apps to Dev
-    needs: builds
+    name: ${{ inputs.command == 'plan' && 'Plan' || 'Deploy' }} Azure Container Apps to Dev (${{ needs.branch-slug.outputs.branch_slug }})
+    needs: [builds, branch-slug]
     # Run even when builds was skipped (plan path) but not when builds failed
     if: always() && (needs.builds.result == 'success' || needs.builds.result == 'skipped')
     concurrency:
-      group: deploy-aca-dev-${{ github.run_id }}
+      group: deploy-aca-dev-${{ needs.branch-slug.outputs.branch_slug }}-${{ github.run_id }}
       cancel-in-progress: false
     uses: ./.github/workflows/.deploy_aca_stack.yml
     with:
       command: ${{ inputs.command }}
-      tag: dev-aca
+      tag: dev-aca-${{ github.run_number }}
       app_env: dev
       environment_name: dev
       deployment_type: container_apps
       prevent_destroy: true
       target_modules: '-target=module.container_apps'
+      branch_slug: ${{ needs.branch-slug.outputs.branch_slug }}
     secrets: inherit

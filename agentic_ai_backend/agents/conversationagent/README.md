@@ -47,6 +47,7 @@ Create a `.env` file in the `conversationagent` directory with the following var
 AZURE_OPENAI_ENDPOINT=https://your-openai-resource.openai.azure.com/
 AZURE_OPENAI_API_KEY=your-api-key-here
 AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=your-deployment-name
+AZURE_OPENAI_API_VERSION=2024-10-21
 
 # Azure AI Search Configuration
 AZURE_SEARCH_ENDPOINT=https://your-search-service.search.windows.net
@@ -61,6 +62,7 @@ AZURE_SEARCH_INDEX_NAME=your-index-name
 | `AZURE_OPENAI_ENDPOINT` | The endpoint URL for your Azure OpenAI resource |
 | `AZURE_OPENAI_API_KEY` | API key for Azure OpenAI authentication |
 | `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` | Name of your deployed chat model |
+| `AZURE_OPENAI_API_VERSION` | Azure OpenAI API version for chat completions. Use a version supported by your endpoint or gateway. |
 | `AZURE_SEARCH_ENDPOINT` | The endpoint URL for your Azure AI Search service |
 | `AZURE_SEARCH_API_KEY` | API key for Azure AI Search authentication |
 | `AZURE_SEARCH_INDEX_NAME` | Name of the search index containing water permit documents |
@@ -95,10 +97,11 @@ conversationagent/
 
 ## Dependencies
 
-- **agent-framework-core** (>=1.0.0b251211): Microsoft Agent Framework
+- **agent-framework-core** (1.0.1): Microsoft Agent Framework core
+- **agent-framework-openai** (1.0.1): OpenAI/Azure OpenAI integration for Microsoft Agent Framework
 - **azure-search-documents** (>=11.6.0): Azure AI Search SDK
-- **azure-storage-blob** (>=12.27.1): Azure Blob Storage SDK
-- **python-dotenv** (>=1.2.1): Environment variable management
+- **azure-storage-blob** (12.28.0): Azure Blob Storage SDK
+- **python-dotenv** (1.2.2): Environment variable management
 
 ## How It Works
 
@@ -107,6 +110,10 @@ conversationagent/
 3. **Tool Execution**: The agent automatically invokes the `azure_ai_search` tool
 4. **Search**: The tool queries the Azure AI Search index for relevant documents
 5. **Response**: Search results are returned to the user
+
+### Agent Framework GA Note
+
+This agent uses the Agent Framework chat completions client instead of the newer responses client. That is intentional: the agent only needs function tools, and some Azure OpenAI gateways or APIM front doors reject the GA responses payloads or API version routing.
 
 ## Agent Instructions
 

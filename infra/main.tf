@@ -7,9 +7,8 @@ resource "azurerm_resource_group" "main" {
   location = var.location
   tags     = var.common_tags
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes  = [tags]
+    prevent_destroy = true
   }
 }
 
@@ -72,16 +71,17 @@ module "cosmos" {
 module "container_apps" {
   source = "./modules/container-apps"
 
-  app_name  = var.app_name
-  app_env   = var.app_env
-  repo_name = var.repo_name
+  app_name    = var.app_name
+  app_env     = var.app_env
+  repo_name   = var.repo_name
+  branch_slug = var.branch_slug
 
   # Agent Images
   orchestrator_agent_image = var.orchestrator_agent_image
   conversation_agent_image = var.conversation_agent_image
   formsupport_agent_image  = var.formsupport_agent_image
-  api_backend_image        = var.api_backend_image
-  backend_image            = var.conversation_agent_image # Fallback for compatibility
+  # api_backend_image        = var.api_backend_image
+  backend_image = var.conversation_agent_image # Fallback for compatibility
 
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
@@ -94,11 +94,11 @@ module "container_apps" {
   container_apps_subnet_id   = var.app_env == "dev" ? var.dev_container_apps_subnet_id : module.network.container_apps_subnet_id
 
   # Container Configuration
-  container_cpu    = var.container_cpu
-  container_memory = var.container_memory
-  min_replicas     = var.min_replicas
-  max_replicas     = var.max_replicas
-  internal_load_balancer_enabled = false  # Must be false for Front Door to reach the Container App via public HTTPS
+  container_cpu                  = var.container_cpu
+  container_memory               = var.container_memory
+  min_replicas                   = var.min_replicas
+  max_replicas                   = var.max_replicas
+  internal_load_balancer_enabled = false # Must be false for Front Door to reach the Container App via public HTTPS
 
   # Agent Ports
   orchestrator_agent_port = var.orchestrator_agent_port
@@ -123,9 +123,9 @@ module "container_apps" {
   api_frontdoor_firewall_policy_id = var.enable_front_door ? module.frontdoor[0].firewall_policy_id : ""
 
   # Azure OpenAI
-  azure_openai_api_key         = var.azure_openai_api_key
-  azure_openai_endpoint        = var.azure_openai_endpoint
-  azure_openai_api_version     = var.azure_openai_api_version
+  azure_openai_api_key              = var.azure_openai_api_key
+  azure_openai_endpoint             = var.azure_openai_endpoint
+  azure_openai_api_version          = var.azure_openai_api_version
   AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
 
   # Azure Search
@@ -135,6 +135,19 @@ module "container_apps" {
   azure_search_top             = var.azure_search_top
   azure_search_trim_length     = var.azure_search_trim_length
   azure_search_enable_trimming = var.azure_search_enable_trimming
+
+  # Extended Azure Search Configuration
+  azure_search_include_total_count    = var.azure_search_include_total_count
+  azure_search_query_type             = var.azure_search_query_type
+  azure_search_semantic_configuration = var.azure_search_semantic_configuration
+  azure_search_query_caption          = var.azure_search_query_caption
+  azure_search_query_answer           = var.azure_search_query_answer
+  azure_search_query_answer_count     = var.azure_search_query_answer_count
+  azure_search_query_language         = var.azure_search_query_language
+
+  # LLM Agent Configuration
+  agent_temperature = var.agent_temperature
+  agent_max_tokens  = var.agent_max_tokens
 
   # Azure Document Intelligence
   azure_document_intelligence_endpoint = var.azure_document_intelligence_endpoint
@@ -147,7 +160,7 @@ module "container_apps" {
 
   # Azure Blob Storage
   azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
-  azure_blobstorage_container         = var.azure_blobstorage_container
+  azure_blobstorage_container        = var.azure_blobstorage_container
 
   # Redis
   redis_host     = var.redis_host

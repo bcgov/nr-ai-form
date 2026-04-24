@@ -5,10 +5,9 @@ This version uses A2A to communicate with remote agents instead of direct import
 import os
 import sys
 import asyncio
-from agent_framework import Executor, WorkflowBuilder, handler
-from agent_framework import ChatMessage, Role
+import ast
+from agent_framework import WorkflowBuilder
 from agent_framework._workflows._message_utils import normalize_messages_input
-from typing_extensions import Never
 from typing import Any, Union, Optional
 from dotenv import load_dotenv
 import uuid
@@ -50,11 +49,17 @@ async def orchestrate_a2a(query: str,
         session_id: Optional session ID for thread persistence
     """
     
+    effective_session_id = session_id or str(uuid.uuid4())
+
     # Create A2A executors
-    conversation_executor = ConversationAgentA2AExecutor(base_url=conversation_agent_url)
+    conversation_executor = ConversationAgentA2AExecutor(
+        base_url=conversation_agent_url,
+        session_id=effective_session_id,
+    )
     form_support_executor = FormSupportAgentA2AExecutor(
         base_url=form_support_agent_url,
-        step_number=step_number
+        step_number=step_number,
+        session_id=effective_session_id,
     )
     
     executors = [conversation_executor, form_support_executor]
@@ -74,8 +79,7 @@ async def orchestrate_a2a(query: str,
     )
 
     # Build the workflow
-    builder = WorkflowBuilder()
-    builder.set_start_executor(dispatcher)
+    builder = WorkflowBuilder(start_executor=dispatcher, output_executors=[aggregator])
     builder.add_fan_out_edges(dispatcher, executors)   
     builder.add_fan_in_edges(executors, aggregator)
     workflow = builder.build()
@@ -86,7 +90,7 @@ async def orchestrate_a2a(query: str,
     )
 
     
-    thread_id = session_id or str(uuid.uuid4()) #TODO: This UUID is generated for with GUID temp, once we crack the logic from FE, ths will have mapper.
+    thread_id = effective_session_id
     
 
     final_data = None
@@ -95,75 +99,23 @@ async def orchestrate_a2a(query: str,
     db_utils = get_redis_utils()
 
     try:
-        # Load thread state
-        thread = await db_utils.get_thread_state(thread_id, agent)
+        # Load session state
+        session = await db_utils.get_thread_state(thread_id, agent)
        
-        input_messages = normalize_messages_input(query)
+        step_appened_query= f"{step_number}:{query}"  #TODO : This is a temp solution to pass the step number to Conversation, Once DISPATCHER Logic is implemented we will have a better solution later.
+        input_messages = normalize_messages_input(step_appened_query)
 
-        workflow_result = await agent.workflow.run(input_messages)
-        outputs = workflow_result.get_outputs()
-        if outputs:
-            # The Aggregator calls ctx.yield_output([aggregated_result])
-            # so outputs[0] is the list directly; unwrap if needed.
-            first_output = outputs[0]
-            if isinstance(first_output, list):
-                final_data = first_output
-            else:
-                final_data = outputs
+        result = await agent.run(input_messages, session=session)
+        final_data = ast.literal_eval(result.text) if result.text else None
 
-        if thread and final_data:
-            from agent_framework import ChatMessage, Role
-            # Build a response ChatMessage from the aggregated result text
-            aggregated_text = ""
-            if isinstance(final_data, list) and final_data:
-                agg = final_data[0]
-                if isinstance(agg, dict):
-                    aggregated_text = agg.get("response", str(agg))
-                else:
-                    aggregated_text = str(agg)
-            response_messages = [ChatMessage(role=Role.ASSISTANT, text=aggregated_text)] if aggregated_text else []
-            await agent._notify_thread_of_new_messages(thread, input_messages, response_messages)
-
-        # Save Thread State
-        if thread:
+        # Save updated session state to Redis
+        if session:
             try:
                 print(f"Saving thread {thread_id} to Redis...")          
-                await db_utils.save_thread_state(thread_id, thread)
+                await db_utils.save_thread_state(thread_id, session)
                 print("Thread state saved.")
             except Exception as e:
                 print(f"Error saving thread state: {e}")
-       
-        # Process and display results
-        if final_data and isinstance(final_data, list):
-            print("===== Final Aggregated Conversation (A2A) from Orchestrator Agent=====")
-            messages: list[Any] = final_data      
-            for i, item in enumerate(messages, start=1):
-                source = "unknown"
-                text = str(item)
-                
-                # Handle dict responses from A2A executors (most common case)
-                if isinstance(item, dict):
-                    source = item.get('source', 'unknown')
-                    text = item.get('response', str(item))
-                
-                # Handle AgentExecutorResponse
-                elif hasattr(item, 'executor_id'):
-                    source = item.executor_id
-                    
-                    # Try to get text from agent_run_response
-                    if hasattr(item, 'agent_run_response') and hasattr(item.agent_run_response, 'text'):
-                        text = item.agent_run_response.text
-                    elif hasattr(item, 'full_conversation') and item.full_conversation:
-                        last_msg = item.full_conversation[-1]
-                        if hasattr(last_msg, 'text'):
-                            text = last_msg.text
-                
-                # Handle ChatMessage directly (fallback)
-                elif hasattr(item, 'author_name'):
-                    source = item.author_name if item.author_name else "user"
-                    text = item.text
-
-                print(f"{'-' * 60}\n\n{i:02d} [{source}]:\n{text}")
         # Add thread_id to response
         if final_data and isinstance(final_data, list):
             final_data.append({"thread_id": thread_id})

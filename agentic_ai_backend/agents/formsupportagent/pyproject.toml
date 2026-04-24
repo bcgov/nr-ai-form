@@ -5,14 +5,17 @@ description = "NR Sector CSS AI Form Support Agent"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "agent-framework-core==1.0.0b251211", # use this fixed version for MAF, since higher versions need code refactoring.
-    "opentelemetry-semantic-conventions-ai==0.4.13", #this is temporarily added for MAF, remove once MAF goes to GA
-    "azure-storage-blob==12.27.1",
-    "python-dotenv==1.2.1",
-    "fastapi==0.127.0",
-    "uvicorn==0.38.0",
+    "agent-framework-core==1.0.1",
+    "agent-framework-openai==1.0.1",
+    "azure-storage-blob==12.28.0",
+    "python-dotenv==1.2.2",
+    "fastapi==0.135.3",
+    "uvicorn==0.44.0",
+    "mcp==1.27.0",
     "utils",
+ 
 ]
 
 [tool.uv.sources]
 utils = { path = "../../utils" }
+

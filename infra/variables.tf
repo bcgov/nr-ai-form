@@ -2,6 +2,12 @@
 # Root Variables for Azure Infrastructure
 # -------------
 
+variable "branch_slug" {
+  description = "URL-safe slug of the deploying branch. Appended to the Container App name in dev so each branch gets its own ACA. Defaults to 'master'."
+  type        = string
+  default     = "master"
+}
+
 variable "deployment_type" {
   description = "Type of deployment: 'container_apps'"
   type        = string
@@ -28,11 +34,13 @@ variable "orchestrator_agent_image" {
   type        = string
 }
 
+/*
 variable "api_backend_image" {
   description = "The image for the API Backend container (WebSocket gateway)"
   type        = string
   default     = ""
 }
+*/
 
 # Legacy variable for Container Apps compatibility - will use conversation_agent_image
 variable "api_image" {
@@ -237,6 +245,70 @@ variable "azure_search_enable_trimming" {
   description = "Whether to enable trimming of search result content (passed to conversation agent)."
   type        = bool
   default     = false
+}
+
+variable "azure_search_include_total_count" {
+  description = "Whether to include total count of search results. Defaults to true."
+  type        = bool
+  default     = true
+}
+
+variable "azure_search_query_type" {
+  description = "Type of search query (e.g., 'simple', 'semantic'). Defaults to 'semantic'."
+  type        = string
+  default     = "semantic"
+}
+
+variable "azure_search_semantic_configuration" {
+  description = "Name of the semantic configuration to use. Defaults to 'semanticconfig'."
+  type        = string
+  default     = "semanticconfig"
+}
+
+variable "azure_search_query_caption" {
+  description = "Caption extraction method for search results (e.g., 'extractive', 'generative'). Defaults to 'extractive'."
+  type        = string
+  default     = "extractive"
+}
+
+variable "azure_search_query_answer" {
+  description = "Answer extraction method for search results (e.g., 'extractive', 'generative'). Defaults to 'extractive'."
+  type        = string
+  default     = "extractive"
+}
+
+variable "azure_search_query_answer_count" {
+  description = "Number of answers to extract from search results. Defaults to 3."
+  type        = number
+  default     = 3
+}
+
+variable "azure_search_query_language" {
+  description = "Language code for semantic search queries (e.g., 'en-us'). Defaults to 'en-us'."
+  type        = string
+  default     = "en-us"
+}
+
+variable "agent_temperature" {
+  description = "Temperature for LLM responses (0.0-2.0). Lower = more deterministic, higher = more creative. Defaults to 0.1."
+  type        = number
+  default     = 0.1
+
+  validation {
+    condition     = var.agent_temperature >= 0.0 && var.agent_temperature <= 2.0
+    error_message = "agent_temperature must be between 0.0 and 2.0."
+  }
+}
+
+variable "agent_max_tokens" {
+  description = "Maximum number of tokens in LLM responses. Defaults to 800."
+  type        = number
+  default     = 800
+
+  validation {
+    condition     = var.agent_max_tokens > 0 && var.agent_max_tokens <= 4096
+    error_message = "agent_max_tokens must be between 1 and 4096."
+  }
 }
 
 # Azure Document Intelligence Configuration

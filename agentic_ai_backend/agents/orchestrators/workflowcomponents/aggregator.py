@@ -1,5 +1,6 @@
 from agent_framework import Executor, WorkflowContext, handler
 from typing import Any
+from typing_extensions import Never
 import os
 from openai import AsyncAzureOpenAI
 
@@ -7,7 +8,7 @@ class Aggregator(Executor):
     """Aggregate the results from the different tasks and yield the final output."""
 
     @handler
-    async def handle(self, results: list[Any], ctx: WorkflowContext):
+    async def handle(self, results: list[Any], ctx: WorkflowContext[Never, list[Any]]):
         """Receive the results from the source executors.
 
         The framework will automatically collect messages from the source executors
@@ -24,14 +25,15 @@ class Aggregator(Executor):
         api_key = os.getenv("AZURE_OPENAI_API_KEY")
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION")
 
-        if api_key and endpoint and deployment:
+        if api_key and endpoint and deployment and api_version:
             try:
                 client = AsyncAzureOpenAI(
                     api_key=api_key,
                     api_version=api_version,
-                    azure_endpoint=endpoint
+                    azure_endpoint=endpoint,
+                    azure_deployment=deployment,
                 )
                 
                 # Extract information from results
@@ -53,7 +55,9 @@ class Aggregator(Executor):
                
                 system_prompt = (
                     "You are a helpful assistant for the applicants of BC Permit Application. "
-                    "Your goal is to curate the responses from Form Support Agent and Conversation Agent and provide a single response to the user."
+                    "Your goal is to curate the responses from Form Support Agent and Conversation Agent and provide a single response to the user. "
+                    "When including URLs or web links in your response, never append punctuation (such as a period, comma, or parenthesis) immediately after the URL. "
+                    "Always ensure the URL is the last character before a space or end of line. For example, write 'visit www.bceid.ca/aboutbceid for more info' not 'visit www.bceid.ca/aboutbceid. for more info'."
                 )
                 
                 #TODO: ABIN, need to pull from Blob Store for more flexible prompts??? 
@@ -67,24 +71,30 @@ class Aggregator(Executor):
                 {form_text}
                 
                 Your task:
-                - Synthesize a single, natural, and helpful response for the user.
+                - Synthesize a single, natural, and helpful response for the user. 
                 - Synthesized response content of Conversation Agent will come first, then the response content of Form Support Agent.
-                - On Step 2 - Eligibility, if the user query is related to 'North Coast Transmission line' or 'BC Hydro Sustainability Project' or 'clean energy project that received a new Energy Purchase Agreement from BC Hydro'or 'increasing the supply of housing units' then discard the responses from Form Support Agent and Conversation Agent, and indicate those queries are not supported for PILOT release.
-                - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.
+                - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.                
+                  I'll guide you step by step and let you know when something from the Act is relevant, so you can focus on completing the application without needing to interpret the legislation on your own" **. Do NOT tell the user to read any documents, and do NOT mention you do not have any information.
                 - If the Form Support Agent suggests a specific action, YOU MUST PRIORITIZE this action in your response. Guide the user to take that action.
                 - For e.g. if the `type` is "button" and `title` is "Apply without BCeID", then you must guide the user "If you'd like to proceed without a BCeID, please click the "Apply without BCeID" button on the form to start your application".
-                - *Strict*: if the suggestion from Form Support Agent has `type` is "radio" and then response should indicate like "AI Assistant has selected the option for you."                
+                - On step 3 - Technical Information, If there are any calculations involved, DO NOT use LATEX to display those calculations. Just write it out as a simple text.
+                - *Strict*: if the suggestion from Form Support Agent has `type` is "radio" or `type` is "select" then the response should indicate like "AI Assistant has selected the option for you."
+                - *Strict*: if the suggestion from Form Support Agent has `type` is "string" then the response should acknowledge that the information has been filled in for the user (e.g., "AI Assistant has filled in your supporting information details for you.")
                 - If the Form Support Agent says "no match" or implies no specific form action is needed right now, rely primarily on the Conversation Agent's information if there are any response from Conversation Agent.
-                - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").
+                - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").                
+                - Do not send a JSON in the aggregated response; Only the original results can contain the respective responses from Conversation Agent and Form Support Agent.
                 - *Strict*: if the conversation agent's response is NOT FOUND, and there is valid 'suggestedvalue' in JSON response from Form Support agent, then response should indicate the action taken by AI Bot's suggestion, rather than directing the user to take action.
+                - *Strict*: Preserve all Markdown links exactly as they appear in the sub-agent responses. If a sub-agent provides a link in the format [text](url), you MUST keep it in that exact format in your response. Never convert a Markdown link into a bare URL. If you introduce any new URLs yourself, also format them as Markdown links using [descriptive text](url).
+                - **Strict*: If the user queries like "Does the water sustainability act apply to me ?" or "applicability of water sustainability act with the application", IGNORE responses from Conversation Agent(ConversationAgentA2A)  and Form Support Agent(FormSupportAgentA2A) , ** AI Assistant SHOULD ALWAYS answer like "For the purposes of your application, you don't need to review the entire Water Sustainability Act right now. As you move through the application, AI Assistant automatically consider any relevant impacts, implications, or interactions with the water sustainility act that apply to your situation.
                 """
                 
                 completion = await client.chat.completions.create(
                     model=deployment,
+                    temperature=0.1,
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
-                    ],                   
+                    ],
                 )
                 
                 final_text = completion.choices[0].message.content
@@ -106,7 +116,7 @@ class Aggregator(Executor):
                 print(f"Error in Aggregator LLM call: {e}")
                 # Fallback to returning original results if LLM fails/errors
         else:
-            print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, or DEPLOYMENT). Returning raw results.")
+            print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, DEPLOYMENT, or API_VERSION). Returning raw results.")
         
         print("Aggregator: Yielding raw results.")
         await ctx.yield_output(results)

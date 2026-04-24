@@ -19,5 +19,5 @@ inputs = {
   # Container Apps subnet - MUST be a dedicated, empty subnet with NO other resources
   # This subnet will be delegated to Microsoft.App/environments
   # TODO: Replace with actual subnet ID once network team creates it
-  dev_container_apps_subnet_id   = ""  # e.g., "/subscriptions/.../subnets/container-apps-subnet"
+  dev_container_apps_subnet_id   = "/subscriptions/56358ccd-64df-4586-98cc-f472e4c7323f/resourceGroups/d94cca-dev-networking/providers/Microsoft.Network/virtualNetworks/d94cca-dev-vwan-spoke/subnets/container-apps-dev-subnet"  # e.g., "/subscriptions/.../subnets/container-apps-subnet"
 }

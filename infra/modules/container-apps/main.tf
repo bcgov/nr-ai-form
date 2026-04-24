@@ -1,9 +1,24 @@
 
+locals {
+  # Azure Container App name constraints: ≤32 chars, lowercase alphanumeric + hyphen, no '--'.
+  #
+  # app_name = "{stack_prefix}-{app_env}" (e.g. "nraii-a3f2-dev" = 14 chars)
+  # Adding branch_slug (up to 15) + "-api" (4) would exceed 32 in dev.
+  #
+  # In dev: strip the trailing "-{app_env}" to reclaim 4 chars, giving:
+  #   "{stack_prefix}-{branch_slug}-api"  →  max 10 + 1 + 15 + 4 = 30 chars ✓
+  #
+  # In test/prod: branch_slug is always "master" (default) and the original
+  # name "{app_name}-api" is used unchanged for backward compatibility.
+  _app_name_base     = trimsuffix(var.app_name, "-${var.app_env}")
+  container_app_name = var.app_env == "dev" ? "${local._app_name_base}-${var.branch_slug}-api" : "${var.app_name}-api"
+}
+
 resource "azurerm_container_app_environment" "main" {
-  name                               = "${var.app_name}-${var.app_env}-containerenv"
-  location                           = var.location
-  resource_group_name                = var.resource_group_name
-  log_analytics_workspace_id         = var.log_analytics_workspace_id
+  name                       = "${var.app_name}-${var.app_env}-containerenv"
+  location                   = var.location
+  resource_group_name        = var.resource_group_name
+  log_analytics_workspace_id = var.log_analytics_workspace_id
   # infrastructure_subnet_id and its companions must all be set together or all omitted.
   # When no subnet is provided (e.g. dev without a pre-created subnet), omit all three.
   infrastructure_subnet_id           = var.container_apps_subnet_id != "" ? var.container_apps_subnet_id : null
@@ -28,13 +43,15 @@ resource "azurerm_container_app_environment" "main" {
       infrastructure_subnet_id,
       infrastructure_resource_group_name,
     ]
+    # The environment is shared across all branch deployments — never let a branch destroy destroy it
+    prevent_destroy = true
   }
 
   logs_destination = "log-analytics"
 }
 
 resource "azurerm_private_endpoint" "containerapps" {
-  count               = var.internal_load_balancer_enabled ? 1 : 0  # Only create if using internal load balancer
+  count               = var.internal_load_balancer_enabled ? 1 : 0 # Only create if using internal load balancer
   name                = "${var.app_name}-containerapps-pe"
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -59,7 +76,7 @@ resource "azurerm_private_endpoint" "containerapps" {
 }
 
 resource "azurerm_container_app" "backend" {
-  name                         = "${var.app_name}-api"
+  name                         = local.container_app_name
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = var.resource_group_name
   revision_mode                = "Single"
@@ -82,6 +99,11 @@ resource "azurerm_container_app" "backend" {
   secret {
     name  = "azure-openai-api-key"
     value = var.azure_openai_api_key
+  }
+
+  secret {
+    name  = "azure-search-api-key"
+    value = var.AZURE_SEARCH_API_KEY
   }
 
   secret {
@@ -223,13 +245,74 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_SEARCH_API_KEY"
-        value = var.AZURE_SEARCH_API_KEY
+        name        = "AZURE_SEARCH_API_KEY"
+        secret_name = "azure-search-api-key"
       }
 
       env {
         name  = "AZURE_SEARCH_INDEX_NAME"
         value = var.azure_search_index_name
+      }
+
+      env {
+        name  = "AZURE_SEARCH_TOP"
+        value = tostring(var.azure_search_top)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_TRIM_LENGTH"
+        value = tostring(var.azure_search_trim_length)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
+        value = tostring(var.azure_search_enable_trimming)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
+        value = tostring(var.azure_search_include_total_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_TYPE"
+        value = var.azure_search_query_type
+      }
+
+      env {
+        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
+        value = var.azure_search_semantic_configuration
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_CAPTION"
+        value = var.azure_search_query_caption
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER"
+        value = var.azure_search_query_answer
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
+        value = tostring(var.azure_search_query_answer_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
+        value = var.azure_search_query_language
+      }
+
+      # Agent Configuration
+      env {
+        name  = "AGENT_TEMPERATURE"
+        value = tostring(var.agent_temperature)
+      }
+
+      env {
+        name  = "AGENT_MAX_TOKENS"
+        value = tostring(var.agent_max_tokens)
       }
 
       # Azure Document Intelligence Configuration
@@ -268,6 +351,32 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_BLOBSTORAGE_CONTAINER"
         value = var.azure_blobstorage_container
+      }
+
+      # Redis Configuration
+      env {
+        name  = "REDIS_HOST"
+        value = var.redis_host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(var.redis_port)
+      }
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+
+      env {
+        name  = "REDIS_SSL"
+        value = tostring(var.redis_ssl)
+      }
+
+      env {
+        name  = "REDIS_TTL_DAYS"
+        value = tostring(var.redis_ttl_days)
       }
     }
 
@@ -368,8 +477,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_SEARCH_API_KEY"
-        value = var.AZURE_SEARCH_API_KEY
+        name        = "AZURE_SEARCH_API_KEY"
+        secret_name = "azure-search-api-key"
       }
 
       env {
@@ -390,6 +499,52 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_SEARCH_ENABLE_TRIMMING"
         value = tostring(var.azure_search_enable_trimming)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
+        value = tostring(var.azure_search_include_total_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_TYPE"
+        value = var.azure_search_query_type
+      }
+
+      env {
+        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
+        value = var.azure_search_semantic_configuration
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_CAPTION"
+        value = var.azure_search_query_caption
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER"
+        value = var.azure_search_query_answer
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
+        value = tostring(var.azure_search_query_answer_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
+        value = var.azure_search_query_language
+      }
+
+      # Agent Configuration
+      env {
+        name  = "AGENT_TEMPERATURE"
+        value = tostring(var.agent_temperature)
+      }
+
+      env {
+        name  = "AGENT_MAX_TOKENS"
+        value = tostring(var.agent_max_tokens)
       }
 
       # Azure Document Intelligence Configuration
@@ -417,6 +572,43 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_STORAGE_CONTAINER_NAME"
         value = var.azure_storage_container_name
+      }
+
+      # Azure Blob Storage Configuration
+      env {
+        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+        secret_name = "azure-blobstorage-connectionstring"
+      }
+
+      env {
+        name  = "AZURE_BLOBSTORAGE_CONTAINER"
+        value = var.azure_blobstorage_container
+      }
+
+      # Redis Configuration
+      env {
+        name  = "REDIS_HOST"
+        value = var.redis_host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(var.redis_port)
+      }
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+
+      env {
+        name  = "REDIS_SSL"
+        value = tostring(var.redis_ssl)
+      }
+
+      env {
+        name  = "REDIS_TTL_DAYS"
+        value = tostring(var.redis_ttl_days)
       }
     }
 
@@ -517,13 +709,74 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "AZURE_SEARCH_API_KEY"
-        value = var.AZURE_SEARCH_API_KEY
+        name        = "AZURE_SEARCH_API_KEY"
+        secret_name = "azure-search-api-key"
       }
 
       env {
         name  = "AZURE_SEARCH_INDEX_NAME"
         value = var.azure_search_index_name
+      }
+
+      env {
+        name  = "AZURE_SEARCH_TOP"
+        value = tostring(var.azure_search_top)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_TRIM_LENGTH"
+        value = tostring(var.azure_search_trim_length)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
+        value = tostring(var.azure_search_enable_trimming)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
+        value = tostring(var.azure_search_include_total_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_TYPE"
+        value = var.azure_search_query_type
+      }
+
+      env {
+        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
+        value = var.azure_search_semantic_configuration
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_CAPTION"
+        value = var.azure_search_query_caption
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER"
+        value = var.azure_search_query_answer
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
+        value = tostring(var.azure_search_query_answer_count)
+      }
+
+      env {
+        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
+        value = var.azure_search_query_language
+      }
+
+      # Agent Configuration
+      env {
+        name  = "AGENT_TEMPERATURE"
+        value = tostring(var.agent_temperature)
+      }
+
+      env {
+        name  = "AGENT_MAX_TOKENS"
+        value = tostring(var.agent_max_tokens)
       }
 
       # Azure Document Intelligence Configuration
@@ -563,8 +816,35 @@ resource "azurerm_container_app" "backend" {
         name  = "AZURE_BLOBSTORAGE_CONTAINER"
         value = var.azure_blobstorage_container
       }
+
+      # Redis Configuration
+      env {
+        name  = "REDIS_HOST"
+        value = var.redis_host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = tostring(var.redis_port)
+      }
+
+      env {
+        name        = "REDIS_PASSWORD"
+        secret_name = "redis-password"
+      }
+
+      env {
+        name  = "REDIS_SSL"
+        value = tostring(var.redis_ssl)
+      }
+
+      env {
+        name  = "REDIS_TTL_DAYS"
+        value = tostring(var.redis_ttl_days)
+      }
     }
-   # API Backend Container - Public-facing WebSocket gateway to orchestrator
+    /*
+    # API Backend Container - Public-facing WebSocket gateway to orchestrator
     container {
       name   = "api-backend"
       image  = var.api_backend_image
@@ -644,6 +924,7 @@ resource "azurerm_container_app" "backend" {
         value = tostring(var.redis_ttl_days)
       }
     }
+    */
 
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {
@@ -653,9 +934,9 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true # Must be true for Front Door to reach the api_backend
-    target_port                = var.api_backend_port # api_backend is the public-facing gateway
-    transport                  = "auto" # Allows HTTPS from Front Door, HTTP internally
+    external_enabled           = true                        # Must be true for Front Door to reach the public orchestrator endpoint
+    target_port                = var.orchestrator_agent_port # Orchestrator Agent is the public-facing ACA endpoint
+    transport                  = "auto"                      # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 
     traffic_weight {

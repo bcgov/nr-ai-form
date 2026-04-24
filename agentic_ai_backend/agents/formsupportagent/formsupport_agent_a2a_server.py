@@ -3,9 +3,11 @@ FastAPI A2A Wrapper for Form Support Agent
 This is a standalone wrapper that imports and exposes the FormSupportAgent via HTTP
 """
 import asyncio
+import json
 import os
 import sys
 from fastapi import FastAPI, HTTPException
+from agent_framework import AgentSession
 from dotenv import load_dotenv
 
 # Add parent directories to path to allow importing modules
@@ -48,7 +50,9 @@ if blob_connection_string and blob_container:
         print(f"Failed to initialize Blob Services: {e}")
 
 # Cache of agent instances per step number (step_number -> agent_instance)
-_agent_cache = {}
+# _agent_cache = {}
+# Per-session history storage keyed on (session_id, step_identifier)
+_session_threads: dict[tuple[str, str], AgentSession] = {}
 
 def get_agent(step_identifier: Union[int, str]):
     """
@@ -60,39 +64,50 @@ def get_agent(step_identifier: Union[int, str]):
     Returns:
         FormSupportAgent instance configured for the specified step
     """
-    global _agent_cache#TODO ABIN: Need to implement agent caching on an distributed cache. 
+    # global _agent_cache#TODO ABIN: Need to implement agent caching on an distributed cache. 
     
     # Convert to string for consistent lookup
     step_key = str(step_identifier)
     
     # Return cached instance if available
-    if step_key in _agent_cache:
-        return _agent_cache[step_key]
+    # if step_key in _agent_cache:
+    #     return _agent_cache[step_key]
     
     try:            
         endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
         api_key = os.environ["AZURE_OPENAI_API_KEY"]
         deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+        api_version = os.environ["AZURE_OPENAI_API_VERSION"]
         
         # Load assets using shared utility
-        form_definition, custom_instructions, step_key = resolve_agent_assets(
-            step_identifier, 
-            form_definition_service=form_def_service, 
-            prompt_template_service=prompt_temp_service
-        )
+        form_definition, custom_instructions, step_key = resolve_agent_assets(step_identifier)
+        if (not form_definition or not custom_instructions) and form_def_service and prompt_temp_service:
+            form_definition, custom_instructions, step_key = resolve_agent_assets(
+                step_identifier,
+                form_definition_service=form_def_service,
+                prompt_template_service=prompt_temp_service,
+            )
         
         if not form_definition:
             raise FileNotFoundError(f"Form definition not found for identifier: {step_key}")
 
-        # get_form_context handles dict or string path (though we expect dict from service or dict/content from local fallback now)
-        form_context_str = get_form_context(form_definition)
+        
+        #form_context_str = get_form_context(form_definition)
+        form_context_str = json.dumps(form_definition)
         
         if not custom_instructions:
             raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
         
         # Create and cache the agent instance
-        agent_instance = FormSupportAgent(endpoint, api_key, deployment_name, form_context_str, instructions=custom_instructions)
-        _agent_cache[step_key] = agent_instance #TODO ABIN: Need to implement agent caching on an distributed cache. 
+        agent_instance = FormSupportAgent(
+            endpoint,
+            api_key,
+            deployment_name,
+            api_version,
+            form_context_str,
+            instructions=custom_instructions,
+        )
+        # _agent_cache[step_key] = agent_instance #TODO ABIN: Need to implement agent caching on an distributed cache. 
         
         print(f"Created FormSupportAgent for step {step_key}")
         return agent_instance
@@ -132,9 +147,17 @@ async def invoke_agent(request: InvokeRequest):
             
         # Get agent instance for this step
         agent = get_agent(step_identifier)
-        
+
+        # Resolve session for this session+step combination
+        session = None
+        if request.session_id:
+            session_key = (request.session_id, str(step_identifier))
+            session = _session_threads.get(session_key)
+            if session is None:
+                session = agent.agent.create_session(session_id=request.session_id)
+                _session_threads[session_key] = session
         # Run the agent with the cleaned query (or original if no step was found)
-        result = await agent.run(query)
+        result = await agent.run(query, session=session)
         
         return InvokeResponse(
             response=result,

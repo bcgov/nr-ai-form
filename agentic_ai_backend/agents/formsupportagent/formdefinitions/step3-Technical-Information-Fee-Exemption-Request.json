@@ -2,7 +2,7 @@
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Technical Information - Government and First Nation Fee Exemption Request",
     "properties": {
-        "V1IsEligibleForFeeExemption": {
+        "IsEligibleForFeeExemption": {
             "type": "radio",
             "enum": [
                 "Yes",
@@ -10,10 +10,10 @@
             ],
             "id": "V1IsEligibleForFeeExemption",
             "title": "Do you belong to, are you applying on behalf of, or are you an eligible government or First Nation entity for fee exemption?",
-            "description": "Do you belong to, are you applying on behalf of, or are you:\n\u2022 A provincial government ministry\n\u2022 The Government of Canada\n\u2022 A First Nation for water use on reserve land\n\u2022 A person applying to use water on Treaty Lands\n\u2022 A Nisga'a citizen\n\u2022 An entity applying to use water from the Nisga'a Water Reservation?",
+            "description": "if applying on behalf of  OR part of a provincial government ministry OR applying for the Government of Canada OR A First Nation for water use on reserve land OR A person applying to use water on Treaty Lands OR A Nisga'a citizen OR An entity applying to use water from the Nisga'a Water Reservation ",
             "required": true
         },
-        "V1IsExistingExemptClient": {
+        "IsExistingExemptClient": {
             "type": "radio",
             "enum": [
                 "Yes",
@@ -21,17 +21,19 @@
             ],
             "id": "V1IsExistingExemptClient",
             "title": "Are you an existing exempt client?",
+            "description":"Check whether if this is an existing client",
             "required": true
         },
-        "V1FeeExemptionClientNumber": {
+        "FeeExemptionClientNumber": {
             "type": "string",
             "id": "V1FeeExemptionClientNumber",
             "title": "Please enter your client number:",
+            "description":"Client Number of the  existing client",
             "maxLength": 4000,
             "required": true
         },
-        "V1FeeExemptionCategory": {
-            "type": "string",
+        "FeeExemptionCategory": {
+            "type": "select",
             "enum": [
                 "(None)",
                 "British Columbia Government Ministry",
@@ -42,9 +44,10 @@
             ],
             "id": "V1FeeExemptionCategory",
             "title": "Fee Exemption Category:",
+            "description":"Fee exempt category as per the applicant's situation -  First nation or BC Government ministry or Federal Government or Indian band",
             "required": true
         },
-        "V1FeeExemptionSupportingInfo": {
+        "FeeExemptionSupportingInfo": {
             "type": "string",
             "id": "V1FeeExemptionSupportingInfo",
             "title": "Supporting Information",

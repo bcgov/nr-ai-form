@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from agent_framework import AgentSession
 from utils.redisservice import RedisService
 import os
 from .thread_manager_interface import IThreadManager
@@ -15,31 +16,31 @@ class redisdbutils(IThreadManager):
         self.redis_service = RedisService(host=host, port=port, password=password, ssl=ssl, ttl=ttl_days*24*60*60)
 
     async def get_thread_state(self, thread_id: str, agent):
-        thread = None
+        session = None
         try:
-            # Try to load existing thread
+            # Try to load existing session
             if thread_id:
                 print(f"Loading thread {thread_id} from Redis...")
                 thread_state = await self.redis_service.load_thread(thread_id)
                 if thread_state:
                     print("Thread state found in Redis. Resuming conversation.")
-                    thread = await agent.deserialize_thread(thread_state)
+                    session = AgentSession.from_dict(thread_state)
                 else:
                     print("Thread state not found in Redis. Creating new thread.")
         
         except Exception as e:
             print(f"Error initializing Redis or loading thread: {e}")
 
-        # Create new thread if not loaded
-        if thread is None:
+        # Create new session if not loaded
+        if session is None:
             print("Creating new thread.")
-            thread = agent.get_new_thread()
+            session = agent.create_session(session_id=thread_id)
         
-        return thread
+        return session
 
     async def save_thread_state(self, thread_id: str, thread):
         try:
-            state = await thread.serialize()            
+            state = thread.to_dict()
             await self.redis_service.save_thread(thread_id, state) #setting TTL at Service level
         except Exception as e:
             print(f"Error saving thread state to Redis: {e}")

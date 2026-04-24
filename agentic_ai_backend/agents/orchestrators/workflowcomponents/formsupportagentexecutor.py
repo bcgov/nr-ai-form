@@ -15,11 +15,13 @@ class FormSupportAgentA2AExecutor(Executor):
         step_number: Optional[Union[int, str]] = "step2-Eligibility",
         id: str = "FormSupportAgentA2A",
         name: str = "Form Support Agent (A2A)",
-        instructions: str = "Handles form support queries using A2A protocol"
+        instructions: str = "Handles form support queries using A2A protocol",
+        session_id: str = None
     ):
         super().__init__(id=id, name=name, instructions=instructions)
         self.client = FormSupportAgentA2AClient(base_url=base_url)
         self.step_number = step_number
+        self.session_id = session_id
         
     @handler
     async def handle(self, query: str, ctx: WorkflowContext[str]):
@@ -31,8 +33,8 @@ class FormSupportAgentA2AExecutor(Executor):
             ctx: Workflow context for sending messages
         """
         try:
-            # Invoke the remote agent via A2A with step number
-            response = await self.client.invoke(query, step_number=self.step_number)
+            # Invoke the remote agent via A2A with step number and session_id for history
+            response = await self.client.invoke(query, session_id=self.session_id, step_number=self.step_number)
             
             # Send the response with source information
             # Wrap it in a dict so we can track the source
