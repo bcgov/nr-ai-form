@@ -282,7 +282,8 @@ function getCurrentFormStepFromPaneHeaders() {
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
         waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
         addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
-        step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD
+        step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
+        step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION
     };
     return paneHeaderStepMap[paneHeaderText] || null;
 }
