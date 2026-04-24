@@ -4,6 +4,7 @@ FastAPI A2A Wrapper for Orchestrator Agent
 """
 import os
 import uvicorn
+import uuid
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
 from typing import Any, List, Optional
@@ -65,6 +66,7 @@ async def invoke_agent(request: InvokeRequest):
         conversation_url = os.getenv("CONVERSATION_AGENT_A2A_URL", "http://localhost:8000")
         form_support_url = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
         step_number = request.step_number or os.getenv("FORM_STEP_NUMBER", "step2-Eligibility")
+        effective_session_id = request.session_id or str(uuid.uuid4())
 
         # Run the orchestrator logic
         output_event = await orchestrate_a2a(
@@ -72,7 +74,7 @@ async def invoke_agent(request: InvokeRequest):
             conversation_agent_url=conversation_url, 
             form_support_agent_url=form_support_url,
             step_number=step_number,
-            session_id=request.session_id
+            session_id=effective_session_id
         )
         
         if output_event:
@@ -80,12 +82,12 @@ async def invoke_agent(request: InvokeRequest):
              # We want to return something serializable. data is typically a list of messages.
              return InvokeResponse(
                  response=output_event,
-                 session_id=request.session_id
+                 session_id=effective_session_id
              )
         else:
              return InvokeResponse(
                  response="No response from orchestrator.",
-                 session_id=request.session_id
+                 session_id=effective_session_id
              )
 
     except Exception as e:

@@ -3,11 +3,12 @@ FastAPI A2A Wrapper for Form Support Agent
 This is a standalone wrapper that imports and exposes the FormSupportAgent via HTTP
 """
 import asyncio
+import json
 import os
 import sys
 from fastapi import FastAPI, HTTPException
+from agent_framework import AgentSession
 from dotenv import load_dotenv
-import json
 
 # Add parent directories to path to allow importing modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -50,8 +51,8 @@ if blob_connection_string and blob_container:
 
 # Cache of agent instances per step number (step_number -> agent_instance)
 # _agent_cache = {}
-# Per-session thread storage keyed on (session_id, step_identifier)
-_session_threads: dict = {}
+# Per-session history storage keyed on (session_id, step_identifier)
+_session_threads: dict[tuple[str, str], AgentSession] = {}
 
 def get_agent(step_identifier: Union[int, str]):
     """
@@ -79,19 +80,20 @@ def get_agent(step_identifier: Union[int, str]):
         api_version = os.environ["AZURE_OPENAI_API_VERSION"]
         
         # Load assets using shared utility
-        form_definition, custom_instructions, step_key = resolve_agent_assets(
-            step_identifier, 
-            form_definition_service=form_def_service, 
-            prompt_template_service=prompt_temp_service
-        )
+        form_definition, custom_instructions, step_key = resolve_agent_assets(step_identifier)
+        if (not form_definition or not custom_instructions) and form_def_service and prompt_temp_service:
+            form_definition, custom_instructions, step_key = resolve_agent_assets(
+                step_identifier,
+                form_definition_service=form_def_service,
+                prompt_template_service=prompt_temp_service,
+            )
         
         if not form_definition:
             raise FileNotFoundError(f"Form definition not found for identifier: {step_key}")
 
         
-        # get_form_context handles dict or string path (though we expect dict from service or dict/content from local fallback now)
         #form_context_str = get_form_context(form_definition)
-        form_context_str = json.dumps(form_definition)        
+        form_context_str = json.dumps(form_definition)
         
         if not custom_instructions:
             raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
@@ -146,16 +148,16 @@ async def invoke_agent(request: InvokeRequest):
         # Get agent instance for this step
         agent = get_agent(step_identifier)
 
-        # Resolve thread for this session+step combination
-        thread = None
+        # Resolve session for this session+step combination
+        session = None
         if request.session_id:
-            thread_key = request.session_id
-            thread = _session_threads.get(thread_key)
-            if thread is None:
-                thread = agent.agent.get_new_thread()
-                _session_threads[thread_key] = thread
+            session_key = (request.session_id, str(step_identifier))
+            session = _session_threads.get(session_key)
+            if session is None:
+                session = agent.agent.create_session(session_id=request.session_id)
+                _session_threads[session_key] = session
         # Run the agent with the cleaned query (or original if no step was found)
-        result = await agent.run(query, thread=thread)
+        result = await agent.run(query, session=session)
         
         return InvokeResponse(
             response=result,

@@ -6,9 +6,8 @@ import os
 import sys
 import asyncio
 import ast
-from agent_framework import Executor, WorkflowBuilder, handler
+from agent_framework import WorkflowBuilder
 from agent_framework._workflows._message_utils import normalize_messages_input
-from typing_extensions import Never
 from typing import Any, Union, Optional
 from dotenv import load_dotenv
 import uuid
@@ -50,12 +49,17 @@ async def orchestrate_a2a(query: str,
         session_id: Optional session ID for thread persistence
     """
     
+    effective_session_id = session_id or str(uuid.uuid4())
+
     # Create A2A executors
-    conversation_executor = ConversationAgentA2AExecutor(base_url=conversation_agent_url, session_id=session_id)
+    conversation_executor = ConversationAgentA2AExecutor(
+        base_url=conversation_agent_url,
+        session_id=effective_session_id,
+    )
     form_support_executor = FormSupportAgentA2AExecutor(
         base_url=form_support_agent_url,
         step_number=step_number,
-        session_id=session_id
+        session_id=effective_session_id,
     )
     
     executors = [conversation_executor, form_support_executor]
@@ -75,8 +79,7 @@ async def orchestrate_a2a(query: str,
     )
 
     # Build the workflow
-    builder = WorkflowBuilder()
-    builder.set_start_executor(dispatcher)
+    builder = WorkflowBuilder(start_executor=dispatcher, output_executors=[aggregator])
     builder.add_fan_out_edges(dispatcher, executors)   
     builder.add_fan_in_edges(executors, aggregator)
     workflow = builder.build()
@@ -87,7 +90,7 @@ async def orchestrate_a2a(query: str,
     )
 
     
-    thread_id = session_id or str(uuid.uuid4()) #TODO: This UUID is generated for with GUID temp, once we crack the logic from FE, ths will have mapper.
+    thread_id = effective_session_id
     
 
     final_data = None
@@ -96,21 +99,20 @@ async def orchestrate_a2a(query: str,
     db_utils = get_redis_utils()
 
     try:
-        # Load thread state
-        thread = await db_utils.get_thread_state(thread_id, agent)
+        # Load session state
+        session = await db_utils.get_thread_state(thread_id, agent)
        
         step_appened_query= f"{step_number}:{query}"  #TODO : This is a temp solution to pass the step number to Conversation, Once DISPATCHER Logic is implemented we will have a better solution later.
         input_messages = normalize_messages_input(step_appened_query)
 
-        # Pass thread to agent.run() so WorkflowAgent maintains conversation history (b251216+)
-        result = await agent.run(input_messages, thread=thread)
+        result = await agent.run(input_messages, session=session)
         final_data = ast.literal_eval(result.text) if result.text else None
 
-        # Save updated thread state to Redis
-        if thread:
+        # Save updated session state to Redis
+        if session:
             try:
                 print(f"Saving thread {thread_id} to Redis...")          
-                await db_utils.save_thread_state(thread_id, thread)
+                await db_utils.save_thread_state(thread_id, session)
                 print("Thread state saved.")
             except Exception as e:
                 print(f"Error saving thread state: {e}")

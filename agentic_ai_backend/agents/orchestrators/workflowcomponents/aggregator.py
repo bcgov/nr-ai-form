@@ -1,5 +1,6 @@
 from agent_framework import Executor, WorkflowContext, handler
 from typing import Any
+from typing_extensions import Never
 import os
 from openai import AsyncAzureOpenAI
 
@@ -7,7 +8,7 @@ class Aggregator(Executor):
     """Aggregate the results from the different tasks and yield the final output."""
 
     @handler
-    async def handle(self, results: list[Any], ctx: WorkflowContext):
+    async def handle(self, results: list[Any], ctx: WorkflowContext[Never, list[Any]]):
         """Receive the results from the source executors.
 
         The framework will automatically collect messages from the source executors
