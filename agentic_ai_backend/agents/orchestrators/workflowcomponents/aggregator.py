@@ -20,7 +20,13 @@ class Aggregator(Executor):
                 executors will produce.
             ctx (WorkflowContext[Never, list[Any]]): A workflow context that can yield the final output.
         """
-        
+        filtered_results = [
+            result
+            for result in results
+            if not (isinstance(result, dict) and result.get("skipped") is True)
+        ]
+        active_results = filtered_results or results
+
         # Check if we have OpenAI config
         api_key = os.getenv("AZURE_OPENAI_API_KEY")
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
@@ -41,7 +47,7 @@ class Aggregator(Executor):
                 form_text = ""
                 form_step = ""
                 
-                for res in results:
+                for res in active_results:
                     if isinstance(res, dict):
                         source = res.get("source", "")
                         if "Conversation" in source:
@@ -103,7 +109,7 @@ class Aggregator(Executor):
                 aggregated_result = {
                     "source": "Aggregator",
                     "response": final_text,
-                    "original_results": results 
+                    "original_results": active_results
                 }
 
                 print("Aggregated Result: ", aggregated_result)
@@ -119,4 +125,4 @@ class Aggregator(Executor):
             print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, DEPLOYMENT, or API_VERSION). Returning raw results.")
         
         print("Aggregator: Yielding raw results.")
-        await ctx.yield_output(results)
+        await ctx.yield_output(active_results)

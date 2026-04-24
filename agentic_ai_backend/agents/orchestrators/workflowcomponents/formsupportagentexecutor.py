@@ -1,7 +1,10 @@
 
-from agent_framework import Executor, WorkflowContext, handler
 from typing import Any, Optional, Union
+
+from agent_framework import Executor, WorkflowContext, handler
+
 from a2aclients.formsupportagentclient import FormSupportAgentA2AClient
+from models.intentmodel import IntentModel
 
 class FormSupportAgentA2AExecutor(Executor):
     """
@@ -24,24 +27,41 @@ class FormSupportAgentA2AExecutor(Executor):
         self.session_id = session_id
         
     @handler
-    async def handle(self, query: str, ctx: WorkflowContext[str]):
+    async def handle(self, intent: IntentModel, ctx: WorkflowContext[dict[str, Any]]):
         """
         Handle incoming query by forwarding to Form Support Agent via A2A.
         
         Args:
-            query: User query string
+            intent: Dispatcher output
             ctx: Workflow context for sending messages
         """
+        if intent.targetagent != self.id:
+            await ctx.send_message(
+                {
+                    "source": self.id,
+                    "skipped": True,
+                    "targetagent": intent.targetagent,
+                    "confidence": intent.confidence,
+                    "step_number": self.step_number,
+                }
+            )
+            return
+
         try:
             # Invoke the remote agent via A2A with step number and session_id for history
-            response = await self.client.invoke(query, session_id=self.session_id, step_number=self.step_number)
+            response = await self.client.invoke(
+                intent.query,
+                session_id=self.session_id,
+                step_number=self.step_number,
+            )
             
             # Send the response with source information
             # Wrap it in a dict so we can track the source
             response_with_source = {
                 "source": self.id,
                 "response": response,
-                "step_number": self.step_number
+                "step_number": self.step_number,
+                "confidence": intent.confidence,
             }
             await ctx.send_message(response_with_source)
             
@@ -51,6 +71,7 @@ class FormSupportAgentA2AExecutor(Executor):
             error_with_source = {
                 "source": self.id,
                 "response": error_msg,
-                "step_number": self.step_number
+                "step_number": self.step_number,
+                "confidence": intent.confidence,
             }
             await ctx.send_message(error_with_source)

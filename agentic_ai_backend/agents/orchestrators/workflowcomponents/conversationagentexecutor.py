@@ -2,9 +2,12 @@
 A2A Executors for Orchestrator Agent
 These executors communicate with agents via A2A protocol instead of direct imports.
 """
-from agent_framework import Executor, WorkflowContext, handler
 from typing import Any
+
+from agent_framework import Executor, WorkflowContext, handler
+
 from a2aclients.conversationagentclient import ConversationAgentA2AClient
+from models.intentmodel import IntentModel
 
 
 
@@ -26,23 +29,35 @@ class ConversationAgentA2AExecutor(Executor):
         self.session_id = session_id
         
     @handler
-    async def handle(self, query: str, ctx: WorkflowContext[str]):
+    async def handle(self, intent: IntentModel, ctx: WorkflowContext[dict[str, Any]]):
         """
         Handle incoming query by forwarding to Conversation Agent via A2A.
         
         Args:
-            query: User query string
+            intent: Dispatcher output
             ctx: Workflow context for sending messages
         """
+        if intent.targetagent != self.id:
+            await ctx.send_message(
+                {
+                    "source": self.id,
+                    "skipped": True,
+                    "targetagent": intent.targetagent,
+                    "confidence": intent.confidence,
+                }
+            )
+            return
+
         try:
             # Invoke the remote agent via A2A, passing session_id for conversation history
-            response = await self.client.invoke(query, session_id=self.session_id)
+            response = await self.client.invoke(intent.query, session_id=self.session_id)
             
             # Send the response with source information
             # Wrap it in a dict so we can track the source
             response_with_source = {
                 "source": self.id,
-                "response": response
+                "response": response,
+                "confidence": intent.confidence,
             }
             await ctx.send_message(response_with_source)
             
@@ -51,7 +66,8 @@ class ConversationAgentA2AExecutor(Executor):
             print(error_msg)
             error_with_source = {
                 "source": self.id,
-                "response": error_msg
+                "response": error_msg,
+                "confidence": intent.confidence,
             }
             await ctx.send_message(error_with_source)
 
