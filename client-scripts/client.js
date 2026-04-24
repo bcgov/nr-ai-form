@@ -283,7 +283,8 @@ function getCurrentFormStepFromPaneHeaders() {
         waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
         addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
         step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
-        step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION
+        step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
+        step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION
     };
     return paneHeaderStepMap[paneHeaderText] || null;
 }
