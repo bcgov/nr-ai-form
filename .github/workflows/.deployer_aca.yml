@@ -58,23 +58,10 @@ permissions:
   contents: write # This is required for actions/checkout
 jobs:
  infra:
-  environment: ${{ matrix.environment }}
-  name: Terragrunt ${{inputs.command}} ACA ${{ matrix.environment }}
+  environment: ${{ inputs.environment_name }}
+  name: Terragrunt ${{inputs.command}} ACA ${{ inputs.environment_name }}
   runs-on: ubuntu-24.04
-  strategy:
-    matrix:
-      include:
-        - environment: dev
-          condition: ${{ inputs.environment_name == 'dev' }}
-        - environment: test
-          condition: ${{ inputs.environment_name == 'test' }}
   steps:
-    - name: Skip Job Check
-      run: |
-        if [[ "${{ matrix.condition }}" != "true" ]]; then
-          echo "Skipping ${{ matrix.environment }} job as environment_name is not ${{ matrix.environment }}"
-          exit 0
-        fi
     
     - name: Checkout
       uses: actions/checkout@v4

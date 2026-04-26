@@ -140,7 +140,7 @@ azure_blobstorage_container         = "${local.azure_blobstorage_container}"
 redis_host     = "${local.redis_host}"
 redis_port     = "${local.redis_port != "" ? local.redis_port : "10000"}"
 redis_password = "${local.redis_password}"
-redis_ssl      = "${local.redis_ssl != "" ? local.redis_ssl : "true"}"
+redis_ssl      = ${local.redis_ssl != "" ? (lower(local.redis_ssl) == "true") : true}
 redis_ttl_days = "${local.redis_ttl_days != "" ? local.redis_ttl_days : "14"}"
 
 # Container Registry Configuration
