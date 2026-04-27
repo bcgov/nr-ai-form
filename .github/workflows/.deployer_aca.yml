@@ -65,6 +65,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     
+    - name: Debug Variables
+      run: |
+        echo "Checking GitHub variables..."
+        echo "AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}"
+        echo "AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}"
+        echo "AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}"
+    
     - name: Azure CLI Login
       uses: azure/login@v2
       with:
