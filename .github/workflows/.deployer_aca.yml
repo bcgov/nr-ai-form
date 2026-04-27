@@ -72,10 +72,6 @@ jobs:
         tenant-id: ${{ vars.AZURE_TENANT_ID }}
         subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         auth-type: IDENTITY
-        enable-AzPSSession: false
-        environment: azurecloud
-        allow-no-subscriptions: false
-        audience: api://AzureADTokenExchange
     
     # Using commit SHA instead of version tag for reproducibility and security.
     # SHA is immutable - guarantees exact same code runs every deployment.
