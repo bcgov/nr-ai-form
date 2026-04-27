@@ -60,6 +60,7 @@ jobs:
  infra:
   name: Terragrunt ${{inputs.command}} ACA ${{ inputs.environment_name }}
   runs-on: ubuntu-24.04
+  environment: ${{ inputs.environment_name }}
   steps:
     
     - name: Checkout
@@ -71,6 +72,7 @@ jobs:
         echo "AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}"
         echo "AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}"
         echo "AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}"
+        echo "Environment: ${{ github.environment }}"
     
     - name: Azure CLI Login
       uses: azure/login@v2
