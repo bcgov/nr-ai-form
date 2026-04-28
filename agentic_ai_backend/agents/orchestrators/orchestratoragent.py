@@ -8,8 +8,7 @@ import asyncio
 import ast
 from agent_framework import WorkflowBuilder
 from agent_framework._workflows._message_utils import normalize_messages_input
-from typing import Any, Union, Optional
-from models.intentmodel import IntentModel
+from typing import Union, Optional
 from dotenv import load_dotenv
 import uuid
 
@@ -21,6 +20,7 @@ from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExe
 from workflowcomponents.formsupportagentexecutor import FormSupportAgentA2AExecutor
 from workflowcomponents.dispatcher import Dispatcher
 from workflowcomponents.aggregator import Aggregator
+from workflowcomponents.routing import select_subagents
 
 load_dotenv()
 
@@ -32,7 +32,6 @@ def get_redis_utils():
     if _redis_utils_instance is None:
         _redis_utils_instance = redisdbutils()
     return _redis_utils_instance
-
 
 async def orchestrate_a2a(query: str, 
                           conversation_agent_url: str = "http://localhost:8000",
@@ -79,11 +78,14 @@ async def orchestrate_a2a(query: str,
         instructions="You are an aggregator that aggregates the results from the different executors. In this case the conversation agent and the form support agent."
     )
 
-    # Build the workflow using the current agent-framework API.
+    # Conditional fan-out selects one or both executors based on dispatcher confidence.
+    # The aggregator collects the direct executor outputs and finalizes once the expected
+    # number of results has arrived for the current route.
     workflow = (
         WorkflowBuilder(start_executor=dispatcher)
         .add_multi_selection_edge_group(dispatcher, executors, selection_func=select_subagents)
-        .add_fan_in_edges(executors, aggregator)
+        .add_edge(conversation_executor, aggregator)
+        .add_edge(form_support_executor, aggregator)
         .build()
     )
 
@@ -109,7 +111,10 @@ async def orchestrate_a2a(query: str,
         input_messages = normalize_messages_input(step_appened_query)
 
         result = await agent.run(input_messages, session=session)
+        print(f"Raw result from agent: {result}")
         final_data = ast.literal_eval(result.text) if result.text else None
+        if isinstance(final_data, dict):
+            final_data = [final_data]
 
         # Save updated session state to Redis
         if session:
@@ -129,16 +134,7 @@ async def orchestrate_a2a(query: str,
 
     return final_data
 
-
-# Select workers based on task priority
-def select_subagents(task: IntentModel, agents: list[str]) -> list[str]:
-    if task.confidence >= 7 and task.targetagent in agents:
-        return [task.targetagent]
-
-    return list(agents)
-
     
-
 if __name__ == "__main__":
     # Get query from command line or use default
     query = sys.argv[-1] if len(sys.argv) > 1 else "What is the BC government permit application process for Water License Application?"

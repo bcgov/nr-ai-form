@@ -8,24 +8,27 @@ class Aggregator(Executor):
     """Aggregate the results from the different tasks and yield the final output."""
 
     @handler
-    async def handle(self, results: list[Any], ctx: WorkflowContext[Never, list[Any]]):
+    async def handle(self, results: Any, ctx: WorkflowContext[Never, list[Any]]):
         """Receive the results from the source executors.
 
-        The framework will automatically collect messages from the source executors
-        and deliver them as a list.
-
         Args:
-            results (list[Any]): execution results from upstream executors.
-                The type annotation must be a list of union types that the upstream
-                executors will produce.
+            results: Execution result(s) from upstream executors. Depending on
+                the workflow wiring this can be a single dict or a list of dicts.
             ctx (WorkflowContext[Never, list[Any]]): A workflow context that can yield the final output.
         """
+        normalized_results = self._normalize_results(results)
+        print("Aggregator received results: ", normalized_results)
+
         filtered_results = [
             result
-            for result in results
+            for result in normalized_results
             if not (isinstance(result, dict) and result.get("skipped") is True)
         ]
-        active_results = filtered_results or results
+        if not filtered_results:
+            print("Aggregator: Skipped-only result received. Nothing to aggregate.")
+            return
+
+        active_results = filtered_results
 
         # Check if we have OpenAI config
         api_key = os.getenv("AZURE_OPENAI_API_KEY")
@@ -126,3 +129,11 @@ class Aggregator(Executor):
         
         print("Aggregator: Yielding raw results.")
         await ctx.yield_output(active_results)
+
+    def _normalize_results(self, results: Any) -> list[Any]:
+        """Normalize single-message and multi-message inputs to a list."""
+        if isinstance(results, list):
+            return results
+        if isinstance(results, tuple):
+            return list(results)
+        return [results]
