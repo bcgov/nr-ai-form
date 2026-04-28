@@ -104,7 +104,8 @@ const FormSteps = {
     STEP7_INDIVIDUAL_COAPPLICANT: "step7-Individual-Coapplicant",
     STEP7_INDIVIDUAL: "step7-Individual",
     STEP7_REFERRAL: "step7-Referral",
-    STEP9_DECLARATIONS: "step9-Declarations"
+    STEP9_DECLARATIONS: "step9-Declarations",
+    STEP7_CONTACT_INFORMATION: "step7-Contact-Information"
 };
 //-------------------------- Steppers Ends ---------------------------//
 
