@@ -57,123 +57,51 @@ permissions:
   id-token: write # This is required for requesting the JWT
   contents: write # This is required for actions/checkout
 jobs:
- infra-dev:
-  if: ${{ inputs.environment_name == 'dev' }}
-  environment: dev
-  name: Terragrunt ${{inputs.command}} ACA dev
+ infra:
+  name: Terragrunt ${{inputs.command}} ACA ${{ inputs.environment_name }}
   runs-on: ubuntu-24.04
+  environment: ${{ inputs.environment_name }}
   steps:
+    
     - name: Checkout
       uses: actions/checkout@v4
+    
+    - name: Debug Variables
+      run: |
+        echo "Checking GitHub variables..."
+        echo "AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}"
+        echo "AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}"
+        echo "AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}"
+        echo "Environment: ${{ github.environment }}"
     
     - name: Azure CLI Login
       uses: azure/login@v2
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }} 
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     
+    # Using commit SHA instead of version tag for reproducibility and security.
+    # SHA is immutable - guarantees exact same code runs every deployment.
+    # Version tags can be updated by maintainers, risking unexpected breaking changes.
     - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
       with:
         terraform_version: ${{ env.TF_VERSION }}
     
+    # Using commit SHA instead of version tag for reproducibility and security.
+    # SHA is immutable - guarantees exact same code runs every deployment.
+    # Version tags can be updated by maintainers, risking unexpected breaking changes.
     - name: Setup Terragrunt
       uses: autero1/action-terragrunt@aefb0a43c4f5503a91fefb307745c4d51c26ed0e # v3
       with:
         terragrunt-version: ${{ env.TG_VERSION }}
     
-    - name: Debug - Environment Context Check
-      shell: bash
-      run: |
-        echo "=== GitHub Actions Context ==="
-        echo "Environment: ${{ inputs.environment_name }}"
-        echo "Job environment: ${{ job.environment }}"
-        echo ""
-        echo "=== Checking All Environment Variables ==="
-        printenv | grep -E '^(REDIS_|AZURE_)' | sort || echo "No REDIS_* or AZURE_* variables found in environment"
-        echo ""
-        echo "=== Checking GitHub Variables & Secrets Directly ==="
-        echo "REDIS_HOST via vars: ${{ vars.REDIS_HOST }}"
-        echo "REDIS_PORT via vars: ${{ vars.REDIS_PORT }}"
-        echo "REDIS_SSL via vars: ${{ vars.REDIS_SSL }}"
-        echo "REDIS_TTL_DAYS via vars: ${{ vars.REDIS_TTL_DAYS }}"
-        echo "REDIS_PASSWORD via secrets: ${{ secrets.REDIS_PASSWORD }}"
-        echo ""
-        echo "=== Variable Status Check ==="
-        REDIS_HOST_VALUE="${{ vars.REDIS_HOST }}"
-        REDIS_PORT_VALUE="${{ vars.REDIS_PORT }}"
-        REDIS_SSL_VALUE="${{ vars.REDIS_SSL }}"
-        REDIS_TTL_VALUE="${{ vars.REDIS_TTL_DAYS }}"
-        REDIS_PASS_VALUE="${{ secrets.REDIS_PASSWORD }}"
-        
-        if [[ -z "$REDIS_HOST_VALUE" ]]; then echo "REDIS_HOST: EMPTY"; else echo "REDIS_HOST: SET"; fi
-        if [[ -z "$REDIS_PORT_VALUE" ]]; then echo "REDIS_PORT: EMPTY"; else echo "REDIS_PORT: SET"; fi
-        if [[ -z "$REDIS_SSL_VALUE" ]]; then echo "REDIS_SSL: EMPTY"; else echo "REDIS_SSL: SET"; fi
-        if [[ -z "$REDIS_TTL_VALUE" ]]; then echo "REDIS_TTL_DAYS: EMPTY"; else echo "REDIS_TTL_DAYS: SET"; fi
-        if [[ -z "$REDIS_PASS_VALUE" ]]; then echo "REDIS_PASSWORD: EMPTY"; else echo "REDIS_PASSWORD: SET"; fi
-    
-    - name: Debug - List ALL Available GitHub Variables & Secrets
-      shell: bash
-      run: |
-        echo "=== ALL AVAILABLE GITHUB VARIABLES (vars.*) ==="
-        echo "To view, access via: \${{ vars.VARIABLE_NAME }}"
-        echo "Repository-level Variables are ALWAYS available"
-        echo "Environment-level Variables are ONLY available when job has 'environment: dev/test' set"
-        echo ""
-        echo "To see actual values, you must explicitly reference them in this workflow."
-        echo "GitHub Actions does NOT provide a way to list all variable names dynamically."
-        echo ""
-        echo "=== KNOWN VARIABLES IN THIS WORKFLOW ==="
-        echo "Repository-level (always available):"
-        echo "  - RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_NAME }}"
-        echo "  - VNET_NAME: ${{ vars.VNET_NAME }}"
-        echo "  - TFSTATE_STORAGE_ACCOUNT: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}"
-        echo "  - VNET_ADDRESS_SPACE: ${{ vars.VNET_ADDRESS_SPACE }}"
-        echo "  - AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}"
-        echo ""
-        echo "Environment-level (dev/test only):"
-        echo "  - REDIS_HOST: ${{ vars.REDIS_HOST }}"
-        echo "  - REDIS_PORT: ${{ vars.REDIS_PORT }}"
-        echo "  - REDIS_SSL: ${{ vars.REDIS_SSL }}"
-        echo "  - REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}"
-        echo ""
-        echo "=== ALL AVAILABLE GITHUB SECRETS (secrets.*) ==="
-        echo "Repository-level Secrets:"
-        echo "  - AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}"
-        echo "  - AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}"
-        echo "  - AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-        echo "  - AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}"
-        echo "  - AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}"
-        echo "  - AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}"
-        echo "  - AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}"
-        echo "  - REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}"
-        echo ""
-        echo "Environment-level Secrets:"
-        echo "  (None currently configured)"
-        echo ""
-        echo "=== HOW TO ADD MISSING VARIABLES ==="
-        echo "GitHub Variables and Secrets have two levels:"
-        echo ""
-        echo "1. REPOSITORY-LEVEL (Settings > Secrets and variables > Actions)"
-        echo "   - Available to: All workflows, all branches, all environments"
-        echo "   - Use for: Shared configuration (same everywhere)"
-        echo "   - Examples: RESOURCE_GROUP_NAME, VNET_NAME"
-        echo ""
-        echo "2. ENVIRONMENT-LEVEL (Settings > Environments > [dev|test|prod] > Secrets/Variables)"
-        echo "   - Available to: Only when job has 'environment: dev' (or test/prod)"
-        echo "   - Use for: Environment-specific config (different per env)"
-        echo "   - Examples: REDIS_HOST (dev vs test), API_KEYS, DB credentials"
-        echo ""
-        echo "Environment URLs:"
-        echo "  - Dev:  https://github.com/${{ github.repository }}/settings/environments/7906991569/edit"
-        echo "  - Test: https://github.com/${{ github.repository }}/settings/environments/7846231462/edit"
-    
     - name: Pre-Migration State Cleanup
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: "ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
@@ -182,7 +110,7 @@ jobs:
           formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
           # api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           branch_slug: ${{ inputs.branch_slug }}
@@ -191,23 +119,23 @@ jobs:
           deployment_type: ${{ inputs.deployment_type }}
           # Azure OpenAI Configuration
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
+          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ vars.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
           # Azure Search Configuration
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_SEARCH_ENDPOINT: ${{ vars.AZURE_SEARCH_ENDPOINT }}
           AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
+          AZURE_SEARCH_INDEX_NAME: ${{ vars.AZURE_SEARCH_INDEX_NAME }}
           # Azure Document Intelligence Configuration
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ vars.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
           AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
           # Azure Storage Configuration
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_CONTAINER_NAME }}
           # Azure Blob Storage Configuration
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ vars.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER }}
           # Redis Configuration
           REDIS_HOST: ${{ vars.REDIS_HOST }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
@@ -239,8 +167,8 @@ jobs:
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: ${{ steps.image-tags.outputs.api-image }}
@@ -249,7 +177,7 @@ jobs:
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           branch_slug: ${{ inputs.branch_slug }}
@@ -257,19 +185,19 @@ jobs:
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           deployment_type: ${{ inputs.deployment_type }}
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ vars.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
+          AZURE_SEARCH_ENDPOINT: ${{ vars.AZURE_SEARCH_ENDPOINT }}
           AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+          AZURE_SEARCH_INDEX_NAME: ${{ vars.AZURE_SEARCH_INDEX_NAME }}
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ vars.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
           AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_CONTAINER_NAME }}
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ vars.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER }}
           # Redis Configuration
           REDIS_HOST: ${{ vars.REDIS_HOST }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
@@ -291,8 +219,8 @@ jobs:
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: ${{ steps.image-tags.outputs.api-image }}
@@ -301,7 +229,7 @@ jobs:
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           branch_slug: ${{ inputs.branch_slug }}
@@ -310,302 +238,23 @@ jobs:
           deployment_type: ${{ inputs.deployment_type }}
           # Azure OpenAI Configuration
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
+          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ vars.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
           # Azure Search Configuration
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_SEARCH_ENDPOINT: ${{ vars.AZURE_SEARCH_ENDPOINT }}
           AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
+          AZURE_SEARCH_INDEX_NAME: ${{ vars.AZURE_SEARCH_INDEX_NAME }}
           # Azure Document Intelligence Configuration
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ vars.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
           AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
           # Azure Storage Configuration
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_CONTAINER_NAME }}
           # Azure Blob Storage Configuration
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
-          # Redis Configuration
-          REDIS_HOST: ${{ vars.REDIS_HOST }}
-          REDIS_PORT: ${{ vars.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_SSL: ${{ vars.REDIS_SSL }}
-          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
-      run: |
-          # Run terraform with lock=false to avoid state lock issues
-          terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
-
- infra-test:
-  if: ${{ inputs.environment_name == 'test' }}
-  environment: test
-  name: Terragrunt ${{inputs.command}} ACA test
-  runs-on: ubuntu-24.04
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    
-    - name: Azure CLI Login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    
-    - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-    
-    - name: Setup Terragrunt
-      uses: autero1/action-terragrunt@aefb0a43c4f5503a91fefb307745c4d51c26ed0e # v3
-      with:
-        terragrunt-version: ${{ env.TG_VERSION }}
-    
-    - name: Debug - Environment Context Check
-      shell: bash
-      run: |
-        echo "=== GitHub Actions Context ==="
-        echo "Environment: ${{ inputs.environment_name }}"
-        echo "Job environment: ${{ job.environment }}"
-        echo ""
-        echo "=== Checking All Environment Variables ==="
-        printenv | grep -E '^(REDIS_|AZURE_)' | sort || echo "No REDIS_* or AZURE_* variables found in environment"
-        echo ""
-        echo "=== Checking GitHub Variables & Secrets Directly ==="
-        echo "REDIS_HOST via vars: ${{ vars.REDIS_HOST }}"
-        echo "REDIS_PORT via vars: ${{ vars.REDIS_PORT }}"
-        echo "REDIS_SSL via vars: ${{ vars.REDIS_SSL }}"
-        echo "REDIS_TTL_DAYS via vars: ${{ vars.REDIS_TTL_DAYS }}"
-        echo "REDIS_PASSWORD via secrets: ${{ secrets.REDIS_PASSWORD }}"
-        echo ""
-        echo "=== Variable Status Check ==="
-        REDIS_HOST_VALUE="${{ vars.REDIS_HOST }}"
-        REDIS_PORT_VALUE="${{ vars.REDIS_PORT }}"
-        REDIS_SSL_VALUE="${{ vars.REDIS_SSL }}"
-        REDIS_TTL_VALUE="${{ vars.REDIS_TTL_DAYS }}"
-        REDIS_PASS_VALUE="${{ secrets.REDIS_PASSWORD }}"
-        
-        if [[ -z "$REDIS_HOST_VALUE" ]]; then echo "REDIS_HOST: EMPTY"; else echo "REDIS_HOST: SET"; fi
-        if [[ -z "$REDIS_PORT_VALUE" ]]; then echo "REDIS_PORT: EMPTY"; else echo "REDIS_PORT: SET"; fi
-        if [[ -z "$REDIS_SSL_VALUE" ]]; then echo "REDIS_SSL: EMPTY"; else echo "REDIS_SSL: SET"; fi
-        if [[ -z "$REDIS_TTL_VALUE" ]]; then echo "REDIS_TTL_DAYS: EMPTY"; else echo "REDIS_TTL_DAYS: SET"; fi
-        if [[ -z "$REDIS_PASS_VALUE" ]]; then echo "REDIS_PASSWORD: EMPTY"; else echo "REDIS_PASSWORD: SET"; fi
-    
-    - name: Debug - List ALL Available GitHub Variables & Secrets
-      shell: bash
-      run: |
-        echo "=== ALL AVAILABLE GITHUB VARIABLES (vars.*) ==="
-        echo "To view, access via: \${{ vars.VARIABLE_NAME }}"
-        echo "Repository-level Variables are ALWAYS available"
-        echo "Environment-level Variables are ONLY available when job has 'environment: dev/test' set"
-        echo ""
-        echo "To see actual values, you must explicitly reference them in this workflow."
-        echo "GitHub Actions does NOT provide a way to list all variable names dynamically."
-        echo ""
-        echo "=== KNOWN VARIABLES IN THIS WORKFLOW ==="
-        echo "Repository-level (always available):"
-        echo "  - RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_NAME }}"
-        echo "  - VNET_NAME: ${{ vars.VNET_NAME }}"
-        echo "  - TFSTATE_STORAGE_ACCOUNT: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}"
-        echo "  - VNET_ADDRESS_SPACE: ${{ vars.VNET_ADDRESS_SPACE }}"
-        echo "  - AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}"
-        echo ""
-        echo "Environment-level (dev/test only):"
-        echo "  - REDIS_HOST: ${{ vars.REDIS_HOST }}"
-        echo "  - REDIS_PORT: ${{ vars.REDIS_PORT }}"
-        echo "  - REDIS_SSL: ${{ vars.REDIS_SSL }}"
-        echo "  - REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}"
-        echo ""
-        echo "=== ALL AVAILABLE GITHUB SECRETS (secrets.*) ==="
-        echo "Repository-level Secrets:"
-        echo "  - AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}"
-        echo "  - AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}"
-        echo "  - AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-        echo "  - AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}"
-        echo "  - AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}"
-        echo "  - AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}"
-        echo "  - AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}"
-        echo "  - REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}"
-        echo ""
-        echo "Environment-level Secrets:"
-        echo "  (None currently configured)"
-        echo ""
-        echo "=== HOW TO ADD MISSING VARIABLES ==="
-        echo "GitHub Variables and Secrets have two levels:"
-        echo ""
-        echo "1. REPOSITORY-LEVEL (Settings > Secrets and variables > Actions)"
-        echo "   - Available to: All workflows, all branches, all environments"
-        echo "   - Use for: Shared configuration (same everywhere)"
-        echo "   - Examples: RESOURCE_GROUP_NAME, VNET_NAME"
-        echo ""
-        echo "2. ENVIRONMENT-LEVEL (Settings > Environments > [dev|test|prod] > Secrets/Variables)"
-        echo "   - Available to: Only when job has 'environment: dev' (or test/prod)"
-        echo "   - Use for: Environment-specific config (different per env)"
-        echo "   - Examples: REDIS_HOST (dev vs test), API_KEYS, DB credentials"
-        echo ""
-        echo "Environment URLs:"
-        echo "  - Dev:  https://github.com/${{ github.repository }}/settings/environments/7906991569/edit"
-        echo "  - Test: https://github.com/${{ github.repository }}/settings/environments/7846231462/edit"
-    
-    - name: Pre-Migration State Cleanup
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
-          target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
-          vnet_name: ${{ vars.VNET_NAME }}
-          api_image: "ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
-          orchestrator_agent_image: "ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
-          conversation_agent_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
-          formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-          # api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
-          stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          repo_name: ${{ github.event.repository.name }}
-          app_env: ${{ inputs.app_env }}
-          branch_slug: ${{ inputs.branch_slug }}
-          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
-          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-          deployment_type: ${{ inputs.deployment_type }}
-          # Azure OpenAI Configuration
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-          # Azure Search Configuration
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
-          AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
-          # Azure Document Intelligence Configuration
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
-          AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
-          # Azure Storage Configuration
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          # Azure Blob Storage Configuration
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
-          # Redis Configuration
-          REDIS_HOST: ${{ vars.REDIS_HOST }}
-          REDIS_PORT: ${{ vars.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_SSL: ${{ vars.REDIS_SSL }}
-          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
-      run: bash ${{ github.workspace }}/scripts/state-prep.sh
-
-    - name: Image Tags
-      id: image-tags
-      shell: bash
-      run: |
-        # Build full registry URLs for agent images
-        ORCHESTRATOR_AGENT_IMAGE="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
-        CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
-        FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-        # API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
-        # API_BACKEND_IMAGE="ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
-
-        echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
-        # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
-
-    - name: Safety Plan Check
-      if: inputs.prevent_destroy == true && inputs.command == 'apply'
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
-          target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
-          vnet_name: ${{ vars.VNET_NAME }}
-          api_image: ${{ steps.image-tags.outputs.api-image }}
-          orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
-          conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
-          formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
-          # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
-          stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          repo_name: ${{ github.event.repository.name }}
-          app_env: ${{ inputs.app_env }}
-          branch_slug: ${{ inputs.branch_slug }}
-          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
-          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-          deployment_type: ${{ inputs.deployment_type }}
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
-          AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
-          AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
-          # Redis Configuration
-          REDIS_HOST: ${{ vars.REDIS_HOST }}
-          REDIS_PORT: ${{ vars.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_SSL: ${{ vars.REDIS_SSL }}
-          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
-      run: |
-          echo "Running plan to check for resource destructions..."
-          terragrunt run-all plan --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }} 2>&1 | tee /tmp/tfplan_output.txt
-
-          if grep -E "(will be destroyed|must be replaced)" /tmp/tfplan_output.txt; then
-            echo "::error::Plan contains resource destructions or replacements. Aborting to protect the ${{ inputs.environment_name }} environment."
-            echo "Review the plan output above. If the destruction is intentional, use a destroy workflow instead."
-            exit 1
-          fi
-          echo "Safety check passed: no resource destructions detected."
-
-    - name: Terragrunt ${{inputs.command}}
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
-          target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
-          vnet_name: ${{ vars.VNET_NAME }}
-          api_image: ${{ steps.image-tags.outputs.api-image }}
-          orchestrator_agent_image: ${{ steps.image-tags.outputs.orchestrator-agent-image }}
-          conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
-          formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
-          # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
-          stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          repo_name: ${{ github.event.repository.name }}
-          app_env: ${{ inputs.app_env }}
-          branch_slug: ${{ inputs.branch_slug }}
-          storage_account_name: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
-          vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
-          deployment_type: ${{ inputs.deployment_type }}
-          # Azure OpenAI Configuration
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-          # Azure Search Configuration
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
-          AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
-          # Azure Document Intelligence Configuration
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
-          AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
-          # Azure Storage Configuration
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          # Azure Blob Storage Configuration
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ vars.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER }}
           # Redis Configuration
           REDIS_HOST: ${{ vars.REDIS_HOST }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
