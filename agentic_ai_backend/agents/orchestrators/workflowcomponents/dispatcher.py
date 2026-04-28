@@ -78,26 +78,39 @@ class Dispatcher(Executor):
         )
 
         system_prompt = (
-            "You are the dispatcher for a BC water permit application assistant. "
-            "Your job is to choose exactly one target agent for the user's query. "
-            f"Choose `{FORM_SUPPORT_AGENT_ID}` only when the query is about filling the application form, "
-            "understanding a form step, eligibility in the application, BCeID/application entry, "
-            "field meanings, uploads, declarations, or other form-step help described in the mapper. "
-            f"Choose `{CONVERSATION_AGENT_ID}` for general informational questions about legislation, "
-            "permits, authorizations, processes, timelines, policies, or other broad subject matter "
-            "that is not specifically about completing the form. "
-            f"If the query does not clearly match the form-step mapper, prefer `{CONVERSATION_AGENT_ID}`. "
-            "Return structured output only. Set `confidence` on a 0 to 10 scale."
+            "You are the Intent Classifier for a BC water permit application assistant.\n\n"
+            "Select the most appropriate target agent(s) for the user's query based on the following criteria.\n"
+            "Analyze the user's query, select target agents, and assign a confidence score from 0 to 10 based on the analysis, "
+            f"and choose one or more target agents: `{FORM_SUPPORT_AGENT_ID}` and/or `{CONVERSATION_AGENT_ID}`.\n\n"
+        
+            f"Use `{CONVERSATION_AGENT_ID}` for informational or enquiry-style questions. "
+            "This includes questions about legislation, permits, authorizations, BCEID login, eligibility, timelines, "
+            "processes, policies, definitions, requirements, fees, statuses, or general BC water application subject matter.\n\n"
+
+            "STRICT: If the query starts with or mainly asks using enquiry phrases such as "
+            "'what is', 'what are', 'how', 'how to', 'why', 'explain', 'where', 'when', 'who can', "
+            f"select `{CONVERSATION_AGENT_ID}` unless it clearly asks about a specific form field or form step.\n\n"
+
+            f"Use `{FORM_SUPPORT_AGENT_ID}` only when the user is asking for help with the application form itself, "
+            "including filling out a field, selecting an option, understanding a specific form step, fixing form-entry issues, "
+            "or navigating a step in the application workflow.\n\n"
+
+            f"Use the Form Agent Intent Mapper JSON to identify form-step or form-filling intents for `{FORM_SUPPORT_AGENT_ID}`.\n"
+            f"Form Agent Intent Mapper JSON is like:\n"
+            f"```json\n{mapper_json}\n```\n\n"
+
+            f"If the query does not clearly match the Form Agent Intent Mapper, prefer `{CONVERSATION_AGENT_ID}`.\n"
+            "When both form guidance and general explanation are needed, return both agents.\n\n"
+
+            "Return structured output only. Do not include explanations outside the structured output."
         )
-        user_prompt = (
-            f"Current application step context: {current_step or 'unknown'}\n\n"
-            f"Form step intent mapper:\n{mapper_json}\n\n"
+        user_prompt = (        
             f"User query:\n{query}\n\n"
-            "Classify the route. Preserve the normalized query text in the `query` field."
+            "Detect the intent. Preserve the normalized query text in the `query` field."
         )
 
         try:
-            completion = await client.beta.chat.completions.parse(
+            completion = await client.chat.completions.parse(
                 model=deployment,
                 temperature=0.1,
                 messages=[
