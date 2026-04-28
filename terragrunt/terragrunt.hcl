@@ -49,8 +49,8 @@ locals {
   azure_storage_container_name = get_env("AZURE_STORAGE_CONTAINER_NAME")
 
   # Azure Blob Storage Configuration
-  azure_blobstorage_connectionstring = get_env("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
-  azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER")
+  azure_blobstorage_connectionstring = get_env("AZURE_BLOBSTORAGE_CONNECTIONSTRING", "")
+  azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER", "")
 
   # Redis Configuration
   redis_host     = get_env("REDIS_HOST", "")
