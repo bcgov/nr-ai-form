@@ -36,8 +36,13 @@ CA_ENV_ID="${RG_ID}/providers/Microsoft.App/managedEnvironments/${CA_ENV_NAME}"
 echo "==> Initializing Terragrunt..."
 terragrunt init -upgrade
 
+echo "==> Validating backend connection..."
+terragrunt validate-backend || {
+  echo "WARNING: Backend validation failed, proceeding with state list attempt..."
+}
+
 echo "==> Fetching state (single remote call)..."
-STATE=$(terragrunt state list 2>/dev/null || true)
+STATE=$(terragrunt state list 2>/dev/null || echo "")
 
 # Helper: import a resource if it's absent from state and exists in Azure.
 # Usage: import_if_missing <state_address> <azure_resource_id>
@@ -47,11 +52,15 @@ import_if_missing() {
   # Escape dots for grep so module addresses match literally
   local escaped
   escaped=$(echo "$addr" | sed 's/\./\\./g')
-  if ! echo "$STATE" | grep -q "${escaped}"; then
+  
+  # Check if resource is already in state
+  if [ -z "$STATE" ] || ! echo "$STATE" | grep -q "${escaped}"; then
     echo "  Importing ${addr}..."
-    terragrunt import -lock=false "${addr}" "${id}" 2>/dev/null || {
-      echo "  Import of ${addr} skipped (resource may not exist yet)"
-    }
+    if terragrunt import -lock=false "${addr}" "${id}" 2>/dev/null; then
+      echo "  Successfully imported ${addr}"
+    else
+      echo "  Import of ${addr} skipped (resource may not exist yet or already in state)"
+    fi
   else
     echo "  ${addr} already in state"
   fi
@@ -84,7 +93,15 @@ fi
 echo "==> Importing shared infrastructure into branch state..."
 
 # 1. Resource group — root dependency of everything
-import_if_missing "azurerm_resource_group.main" "${RG_ID}"
+# First check if the RG actually exists in Azure before importing
+echo "  Checking if Resource Group exists in Azure: ${RG_NAME}..."
+RG_EXISTS=$(az group exists --name "${RG_NAME}" 2>/dev/null || echo "false")
+if [ "$RG_EXISTS" = "true" ]; then
+  echo "  Resource Group exists, proceeding with import..."
+  import_if_missing "azurerm_resource_group.main" "${RG_ID}"
+else
+  echo "  Resource Group does not exist in Azure yet, will be created by apply"
+fi
 
 # 2. Log Analytics workspace — required by container app environment
 import_if_missing \
