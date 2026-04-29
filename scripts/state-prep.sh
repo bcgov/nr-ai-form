@@ -22,6 +22,23 @@ APP_NAME="${stack_prefix}-${app_env}"
 RG_NAME="${repo_name}-${app_env}"
 SUB="subscriptions/${azure_subscription_id}"
 
+# Validate required environment variables before proceeding
+echo "==> Validating required environment variables..."
+REQUIRED_VARS=("stack_prefix" "app_env" "repo_name" "azure_subscription_id")
+for var in "${REQUIRED_VARS[@]}"; do
+  if [ -z "${!var:-}" ]; then
+    echo "✗ ERROR: Required environment variable '$var' is not set"
+    echo "Expected vars: ${REQUIRED_VARS[*]}"
+    exit 1
+  fi
+done
+echo "✓ All required variables present"
+echo "  stack_prefix: $stack_prefix"
+echo "  app_env: $app_env"
+echo "  repo_name: $repo_name"
+echo "  azure_subscription_id: $azure_subscription_id"
+echo ""
+
 # ─── Resource IDs for all shared resources ────────────────────────────────────
 RG_ID="/${SUB}/resourceGroups/${RG_NAME}"
 LAW_ID="${RG_ID}/providers/Microsoft.OperationalInsights/workspaces/${APP_NAME}-log-analytics-workspace"
@@ -34,15 +51,33 @@ CA_ENV_ID="${RG_ID}/providers/Microsoft.App/managedEnvironments/${CA_ENV_NAME}"
 
 # ─── Init + single remote state fetch ────────────────────────────────────────
 echo "==> Initializing Terragrunt..."
-terragrunt init -upgrade
+if ! terragrunt init -upgrade 2>&1; then
+  echo "✗ FAILED: Terragrunt init failed"
+  echo "  This usually means:"
+  echo "    - Backend storage account doesn't exist"
+  echo "    - Azure authentication failed"
+  echo "    - Credentials don't have sufficient permissions"
+  exit 1
+fi
+echo "✓ Terragrunt initialization successful"
+echo ""
 
 echo "==> Validating backend connection..."
-terragrunt validate-backend || {
-  echo "WARNING: Backend validation failed, proceeding with state list attempt..."
-}
+if ! terragrunt validate-backend 2>&1; then
+  echo "⚠ WARNING: Backend validation failed, but continuing (may be first deployment)..."
+else
+  echo "✓ Backend connection validated"
+fi
+echo ""
 
 echo "==> Fetching state (single remote call)..."
-STATE=$(terragrunt state list 2>/dev/null || echo "")
+if STATE=$(terragrunt state list 2>/dev/null); then
+  echo "✓ Successfully fetched state list"
+else
+  STATE=""
+  echo "⚠ WARNING: Could not fetch state list (may be empty)"
+fi
+echo ""
 
 # Helper: import a resource if it's absent from state and exists in Azure.
 # Usage: import_if_missing <state_address> <azure_resource_id>
@@ -97,8 +132,22 @@ echo "==> Importing shared infrastructure into branch state..."
 echo "  Checking if Resource Group exists in Azure: ${RG_NAME}..."
 RG_EXISTS=$(az group exists --name "${RG_NAME}" 2>/dev/null || echo "false")
 if [ "$RG_EXISTS" = "true" ]; then
-  echo "  Resource Group exists, proceeding with import..."
-  import_if_missing "azurerm_resource_group.main" "${RG_ID}"
+  echo "  Resource Group exists in Azure, checking if it's in Terraform state..."
+  
+  # Check if already in state
+  if echo "$STATE" | grep -q "azurerm_resource_group\.main"; then
+    echo "  Resource Group already in Terraform state"
+  else
+    echo "  Resource Group NOT in state, importing now..."
+    # Import with explicit error handling
+    if terragrunt import -lock=false "azurerm_resource_group.main" "${RG_ID}" 2>&1; then
+      echo "  ✓ Successfully imported Resource Group into state"
+    else
+      echo "  ✗ FAILED to import Resource Group. This resource must be in state before apply."
+      echo "  Resource ID: ${RG_ID}"
+      exit 1
+    fi
+  fi
 else
   echo "  Resource Group does not exist in Azure yet, will be created by apply"
 fi
@@ -159,6 +208,37 @@ else
   echo "  module.container_apps.azurerm_container_app_environment.main already in state"
 fi
 
+# 8. Backend Container App — the actual application running in the environment
+#    Only import if it's NOT already in state and does exist in Azure
+#    The backend ACA is named using the APP_NAME (stack prefix + environment)
+if ! echo "$STATE" | grep -q 'module\.container_apps\.azurerm_container_app\.backend'; then
+  echo "  Checking Azure for Backend Container App: ${APP_NAME}-api..."
+  EXISTING_CA=$(az containerapp show \
+    --name "${APP_NAME}-api" \
+    --resource-group "${RG_NAME}" \
+    --query id -o tsv 2>/dev/null || true)
+  if [ -n "$EXISTING_CA" ]; then
+    # Azure CLI returns ID with lowercase "containerapps", but Terraform expects camelCase "containerApps"
+    # Fix the casing so Terraform can parse the ID correctly
+    EXISTING_CA_FIXED=$(echo "$EXISTING_CA" | sed 's|/containerapps/|/containerApps/|g')
+    
+    echo "  Importing Backend Container App (${APP_NAME}-api)..."
+    if terragrunt import -lock=false \
+      "module.container_apps.azurerm_container_app.backend" \
+      "${EXISTING_CA_FIXED}" 2>&1; then
+      echo "  ✓ Successfully imported Backend Container App"
+    else
+      echo "  ✗ FAILED to import Backend Container App"
+      echo "  Resource ID: ${EXISTING_CA_FIXED}"
+      exit 1
+    fi
+  else
+    echo "  Backend Container App not yet in Azure — will be created by apply"
+  fi
+else
+  echo "  module.container_apps.azurerm_container_app.backend already in state"
+fi
+
 # ─── Non-dev: subnet import ───────────────────────────────────────────────────
 # In dev the subnet is pre-existing and NOT managed by Terraform.
 # In test/prod it is created by the network module.
@@ -168,6 +248,24 @@ if [ "${app_env}" != "dev" ]; then
   import_if_missing \
     "module.network.azapi_resource.container_apps_subnet[0]" \
     "${SUBNET_ID}"
+fi
+
+# ─── NSG imports (non-dev only — test/prod create NSGs) ──────────────────────
+# Network Security Groups are created in the vnet_resource_group_name (networking RG)
+if [ "${app_env}" != "dev" ]; then
+  echo "==> Checking Network Security Group imports (non-dev)..."
+  
+  # Private Endpoints NSG
+  PE_NSG_ID="/${SUB}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/networkSecurityGroups/${APP_NAME}-pe-nsg"
+  import_if_missing \
+    "module.network.azurerm_network_security_group.privateendpoints[0]" \
+    "${PE_NSG_ID}"
+  
+  # Container Apps NSG
+  CA_NSG_ID="/${SUB}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/networkSecurityGroups/${APP_NAME}-ca-nsg"
+  import_if_missing \
+    "module.network.azurerm_network_security_group.container_apps[0]" \
+    "${CA_NSG_ID}"
 fi
 
 # ─── Front Door imports (test/prod only — dev has enable_front_door=false) ───
@@ -200,4 +298,20 @@ if ! echo "$STATE" | grep -q 'module\.container_apps\.azurerm_monitor_diagnostic
   fi
 fi
 
-echo "==> State prep complete"
+# ─── Final verification ───────────────────────────────────────────────────────
+echo "==> Verifying critical resources are in state..."
+
+# Refresh state to get latest
+STATE=$(terragrunt state list 2>/dev/null || echo "")
+
+# Check resource group
+if echo "$STATE" | grep -q "azurerm_resource_group\.main"; then
+  echo "✓ Resource Group is in state"
+else
+  echo "✗ ERROR: Resource Group NOT in state after import attempt"
+  echo "  This means Terraform will try to CREATE the resource group, but it already exists in Azure"
+  echo "  Manual recovery needed: terragrunt import azurerm_resource_group.main ${RG_ID}"
+  exit 1
+fi
+
+echo "==> State prep complete - all critical resources verified in state"

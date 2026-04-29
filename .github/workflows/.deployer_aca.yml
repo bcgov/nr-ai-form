@@ -92,8 +92,8 @@ jobs:
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: "ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
@@ -159,8 +159,8 @@ jobs:
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: ${{ steps.image-tags.outputs.api-image }}
@@ -211,8 +211,8 @@ jobs:
       working-directory: terragrunt/${{ inputs.environment_name }}
       env:
           target_env: ${{ inputs.environment_name }}
-          azure_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_name: ${{ vars.VNET_NAME }}
           api_image: ${{ steps.image-tags.outputs.api-image }}
