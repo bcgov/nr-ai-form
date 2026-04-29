@@ -288,6 +288,16 @@ import_if_missing \
   'module.frontdoor[0].azurerm_cdn_frontdoor_firewall_policy.frontend_firewall_policy' \
   "${RG_ID}/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/${STRIPPED}frontendfirewall"
 
+# Front Door endpoint (api_fd_endpoint) — only if Front Door profile exists
+import_if_missing \
+  'module.container_apps.azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0]' \
+  "${RG_ID}/providers/Microsoft.Cdn/profiles/${APP_NAME}-frontend-frontdoor/afdEndpoints/${repo_name}-${app_env}-api-fd"
+
+# Front Door origin group (api_origin_group)
+import_if_missing \
+  'module.container_apps.azurerm_cdn_frontdoor_origin_group.api_origin_group[0]' \
+  "${RG_ID}/providers/Microsoft.Cdn/profiles/${APP_NAME}-frontend-frontdoor/originGroups/${repo_name}-${app_env}-api-origin-group"
+
 # ─── Diagnostic setting imports ───────────────────────────────────────────────
 echo "==> Checking diagnostic setting imports..."
 import_if_missing \
