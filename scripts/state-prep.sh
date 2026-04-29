@@ -173,6 +173,33 @@ else
   echo "  module.container_apps.azurerm_container_app_environment.main already in state"
 fi
 
+# 8. Backend Container App — the actual application running in the environment
+#    Only import if it's NOT already in state and does exist in Azure
+#    The backend ACA is named using the APP_NAME (stack prefix + environment)
+if ! echo "$STATE" | grep -q 'module\.container_apps\.azurerm_container_app\.backend'; then
+  echo "  Checking Azure for Backend Container App: ${APP_NAME}-api..."
+  EXISTING_CA=$(az containerapp show \
+    --name "${APP_NAME}-api" \
+    --resource-group "${RG_NAME}" \
+    --query id -o tsv 2>/dev/null || true)
+  if [ -n "$EXISTING_CA" ]; then
+    echo "  Importing Backend Container App (${APP_NAME}-api)..."
+    if terragrunt import -lock=false \
+      "module.container_apps.azurerm_container_app.backend" \
+      "${EXISTING_CA}" 2>&1; then
+      echo "  ✓ Successfully imported Backend Container App"
+    else
+      echo "  ✗ FAILED to import Backend Container App"
+      echo "  Resource ID: ${EXISTING_CA}"
+      exit 1
+    fi
+  else
+    echo "  Backend Container App not yet in Azure — will be created by apply"
+  fi
+else
+  echo "  module.container_apps.azurerm_container_app.backend already in state"
+fi
+
 # ─── Non-dev: subnet import ───────────────────────────────────────────────────
 # In dev the subnet is pre-existing and NOT managed by Terraform.
 # In test/prod it is created by the network module.
