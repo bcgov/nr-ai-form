@@ -22,6 +22,23 @@ APP_NAME="${stack_prefix}-${app_env}"
 RG_NAME="${repo_name}-${app_env}"
 SUB="subscriptions/${azure_subscription_id}"
 
+# Validate required environment variables before proceeding
+echo "==> Validating required environment variables..."
+REQUIRED_VARS=("stack_prefix" "app_env" "repo_name" "azure_subscription_id")
+for var in "${REQUIRED_VARS[@]}"; do
+  if [ -z "${!var:-}" ]; then
+    echo "✗ ERROR: Required environment variable '$var' is not set"
+    echo "Expected vars: ${REQUIRED_VARS[*]}"
+    exit 1
+  fi
+done
+echo "✓ All required variables present"
+echo "  stack_prefix: $stack_prefix"
+echo "  app_env: $app_env"
+echo "  repo_name: $repo_name"
+echo "  azure_subscription_id: $azure_subscription_id"
+echo ""
+
 # ─── Resource IDs for all shared resources ────────────────────────────────────
 RG_ID="/${SUB}/resourceGroups/${RG_NAME}"
 LAW_ID="${RG_ID}/providers/Microsoft.OperationalInsights/workspaces/${APP_NAME}-log-analytics-workspace"
@@ -34,15 +51,33 @@ CA_ENV_ID="${RG_ID}/providers/Microsoft.App/managedEnvironments/${CA_ENV_NAME}"
 
 # ─── Init + single remote state fetch ────────────────────────────────────────
 echo "==> Initializing Terragrunt..."
-terragrunt init -upgrade
+if ! terragrunt init -upgrade 2>&1; then
+  echo "✗ FAILED: Terragrunt init failed"
+  echo "  This usually means:"
+  echo "    - Backend storage account doesn't exist"
+  echo "    - Azure authentication failed"
+  echo "    - Credentials don't have sufficient permissions"
+  exit 1
+fi
+echo "✓ Terragrunt initialization successful"
+echo ""
 
 echo "==> Validating backend connection..."
-terragrunt validate-backend || {
-  echo "WARNING: Backend validation failed, but continuing (may be first deployment)..."
-}
+if ! terragrunt validate-backend 2>&1; then
+  echo "⚠ WARNING: Backend validation failed, but continuing (may be first deployment)..."
+else
+  echo "✓ Backend connection validated"
+fi
+echo ""
 
 echo "==> Fetching state (single remote call)..."
-STATE=$(terragrunt state list 2>/dev/null || echo "")
+if STATE=$(terragrunt state list 2>/dev/null); then
+  echo "✓ Successfully fetched state list"
+else
+  STATE=""
+  echo "⚠ WARNING: Could not fetch state list (may be empty)"
+fi
+echo ""
 
 # Helper: import a resource if it's absent from state and exists in Azure.
 # Usage: import_if_missing <state_address> <azure_resource_id>
