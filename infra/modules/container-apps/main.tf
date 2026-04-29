@@ -42,6 +42,7 @@ resource "azurerm_container_app_environment" "main" {
       # Changing these forces delete-and-recreate; ignore so existing envs are never accidentally replaced
       infrastructure_subnet_id,
       infrastructure_resource_group_name,
+      internal_load_balancer_enabled,  # Conditionally set based on subnet presence, prevent recreation
     ]
     # The environment is shared across all branch deployments — never let a branch destroy destroy it
     prevent_destroy = true
