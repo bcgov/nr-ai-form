@@ -183,14 +183,18 @@ if ! echo "$STATE" | grep -q 'module\.container_apps\.azurerm_container_app\.bac
     --resource-group "${RG_NAME}" \
     --query id -o tsv 2>/dev/null || true)
   if [ -n "$EXISTING_CA" ]; then
+    # Azure CLI returns ID with lowercase "containerapps", but Terraform expects camelCase "containerApps"
+    # Fix the casing so Terraform can parse the ID correctly
+    EXISTING_CA_FIXED=$(echo "$EXISTING_CA" | sed 's|/containerapps/|/containerApps/|g')
+    
     echo "  Importing Backend Container App (${APP_NAME}-api)..."
     if terragrunt import -lock=false \
       "module.container_apps.azurerm_container_app.backend" \
-      "${EXISTING_CA}" 2>&1; then
+      "${EXISTING_CA_FIXED}" 2>&1; then
       echo "  ✓ Successfully imported Backend Container App"
     else
       echo "  ✗ FAILED to import Backend Container App"
-      echo "  Resource ID: ${EXISTING_CA}"
+      echo "  Resource ID: ${EXISTING_CA_FIXED}"
       exit 1
     fi
   else
