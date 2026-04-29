@@ -250,6 +250,24 @@ if [ "${app_env}" != "dev" ]; then
     "${SUBNET_ID}"
 fi
 
+# ─── NSG imports (non-dev only — test/prod create NSGs) ──────────────────────
+# Network Security Groups are created in the vnet_resource_group_name (networking RG)
+if [ "${app_env}" != "dev" ]; then
+  echo "==> Checking Network Security Group imports (non-dev)..."
+  
+  # Private Endpoints NSG
+  PE_NSG_ID="/${SUB}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/networkSecurityGroups/${APP_NAME}-pe-nsg"
+  import_if_missing \
+    "module.network.azurerm_network_security_group.privateendpoints[0]" \
+    "${PE_NSG_ID}"
+  
+  # Container Apps NSG
+  CA_NSG_ID="/${SUB}/resourceGroups/${vnet_resource_group_name}/providers/Microsoft.Network/networkSecurityGroups/${APP_NAME}-ca-nsg"
+  import_if_missing \
+    "module.network.azurerm_network_security_group.container_apps[0]" \
+    "${CA_NSG_ID}"
+fi
+
 # ─── Front Door imports (test/prod only — dev has enable_front_door=false) ───
 echo "==> Checking Front Door imports..."
 STRIPPED=$(echo "$APP_NAME" | tr -cd 'a-zA-Z0-9')
