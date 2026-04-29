@@ -308,6 +308,11 @@ import_if_missing \
   'module.container_apps.azurerm_cdn_frontdoor_origin.api_container_app_origin[0]' \
   "${RG_ID}/providers/Microsoft.Cdn/profiles/${APP_NAME}-frontend-frontdoor/originGroups/${repo_name}-${app_env}-api-origin-group/origins/${repo_name}-${app_env}-api-origin"
 
+# Front Door route (api_route)
+import_if_missing \
+  'module.container_apps.azurerm_cdn_frontdoor_route.api_route[0]' \
+  "${RG_ID}/providers/Microsoft.Cdn/profiles/${APP_NAME}-frontend-frontdoor/afdEndpoints/${repo_name}-${app_env}-api-fd/routes/${repo_name}-${app_env}-api-fd"
+
 # ─── Diagnostic setting imports ───────────────────────────────────────────────
 echo "==> Checking diagnostic setting imports..."
 import_if_missing \
