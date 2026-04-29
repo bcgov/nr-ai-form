@@ -38,7 +38,7 @@ terragrunt init -upgrade
 
 echo "==> Validating backend connection..."
 terragrunt validate-backend || {
-  echo "WARNING: Backend validation failed, proceeding with state list attempt..."
+  echo "WARNING: Backend validation failed, but continuing (may be first deployment)..."
 }
 
 echo "==> Fetching state (single remote call)..."
@@ -97,8 +97,22 @@ echo "==> Importing shared infrastructure into branch state..."
 echo "  Checking if Resource Group exists in Azure: ${RG_NAME}..."
 RG_EXISTS=$(az group exists --name "${RG_NAME}" 2>/dev/null || echo "false")
 if [ "$RG_EXISTS" = "true" ]; then
-  echo "  Resource Group exists, proceeding with import..."
-  import_if_missing "azurerm_resource_group.main" "${RG_ID}"
+  echo "  Resource Group exists in Azure, checking if it's in Terraform state..."
+  
+  # Check if already in state
+  if echo "$STATE" | grep -q "azurerm_resource_group\.main"; then
+    echo "  Resource Group already in Terraform state"
+  else
+    echo "  Resource Group NOT in state, importing now..."
+    # Import with explicit error handling
+    if terragrunt import -lock=false "azurerm_resource_group.main" "${RG_ID}" 2>&1; then
+      echo "  ✓ Successfully imported Resource Group into state"
+    else
+      echo "  ✗ FAILED to import Resource Group. This resource must be in state before apply."
+      echo "  Resource ID: ${RG_ID}"
+      exit 1
+    fi
+  fi
 else
   echo "  Resource Group does not exist in Azure yet, will be created by apply"
 fi
@@ -200,4 +214,20 @@ if ! echo "$STATE" | grep -q 'module\.container_apps\.azurerm_monitor_diagnostic
   fi
 fi
 
-echo "==> State prep complete"
+# ─── Final verification ───────────────────────────────────────────────────────
+echo "==> Verifying critical resources are in state..."
+
+# Refresh state to get latest
+STATE=$(terragrunt state list 2>/dev/null || echo "")
+
+# Check resource group
+if echo "$STATE" | grep -q "azurerm_resource_group\.main"; then
+  echo "✓ Resource Group is in state"
+else
+  echo "✗ ERROR: Resource Group NOT in state after import attempt"
+  echo "  This means Terraform will try to CREATE the resource group, but it already exists in Azure"
+  echo "  Manual recovery needed: terragrunt import azurerm_resource_group.main ${RG_ID}"
+  exit 1
+fi
+
+echo "==> State prep complete - all critical resources verified in state"
