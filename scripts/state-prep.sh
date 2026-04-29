@@ -298,6 +298,16 @@ import_if_missing \
   'module.container_apps.azurerm_cdn_frontdoor_origin_group.api_origin_group[0]' \
   "${RG_ID}/providers/Microsoft.Cdn/profiles/${APP_NAME}-frontend-frontdoor/originGroups/${repo_name}-${app_env}-api-origin-group"
 
+# Front Door security policy (WAF) — security policy attached to endpoint
+import_if_missing \
+  'module.container_apps.azurerm_cdn_frontdoor_security_policy.frontend_fd_security_policy[0]' \
+  "${RG_ID}/providers/Microsoft.Cdn/profiles/${APP_NAME}-frontend-frontdoor/securityPolicies/${APP_NAME}-api-fd-waf-security-policy"
+
+# Front Door origin (the origin entry inside the origin group)
+import_if_missing \
+  'module.container_apps.azurerm_cdn_frontdoor_origin.api_container_app_origin[0]' \
+  "${RG_ID}/providers/Microsoft.Cdn/profiles/${APP_NAME}-frontend-frontdoor/originGroups/${repo_name}-${app_env}-api-origin-group/origins/${repo_name}-${app_env}-api-origin"
+
 # ─── Diagnostic setting imports ───────────────────────────────────────────────
 echo "==> Checking diagnostic setting imports..."
 import_if_missing \
