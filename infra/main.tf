@@ -169,6 +169,8 @@ module "container_apps" {
   redis_ssl      = var.redis_ssl
   redis_ttl_days = var.redis_ttl_days
 
+  cors_allow_origins = var.cors_allow_origins
+  
   depends_on = [module.network, module.cosmos, module.monitoring]
 }
 

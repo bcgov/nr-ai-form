@@ -429,3 +429,8 @@ variable "container_registry_password" {
   sensitive   = true
 }
 
+variable "cors_allow_origins" {
+  description = "List of allowed origins for CORS (e.g., ['https://example.com'])."
+  type        = list(string)
+  default     = []
+}

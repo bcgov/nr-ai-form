@@ -261,6 +261,13 @@ variable "redis_ttl_days" {
   nullable    = false
 }
 
+variable "cors_allow_origins" {
+  description = "List of allowed origins for CORS (e.g., ['https://example.com'])."
+  type        = list(string)
+  default     = []  
+  
+}
+
 variable "backend_image" {
   description = "Container image for the backend API (deprecated - use orchestrator_agent_image)"
   type        = string

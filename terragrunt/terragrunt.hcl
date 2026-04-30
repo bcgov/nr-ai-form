@@ -68,6 +68,9 @@ locals {
   orchestrator_agent_port  = get_env("ORCHESTRATOR_AGENT_PORT", "8002")
   conversation_agent_port  = get_env("CONVERSATION_AGENT_PORT", "8000")
   formsupport_agent_port   = get_env("FORMSUPPORT_AGENT_PORT", "8001")
+
+  # CORS
+  cors_allow_origins = split(",", get_env("CORS_ALLOW_ORIGINS", ""))
 }
 
 # Remote Azure Storage backend for Terraform
@@ -152,6 +155,9 @@ container_registry_password = "${local.container_registry_password}"
 orchestrator_agent_port = "${local.orchestrator_agent_port}"
 conversation_agent_port = "${local.conversation_agent_port}"
 formsupport_agent_port  = "${local.formsupport_agent_port}"
+
+# CORS Configuration
+cors_allow_origins = ${jsonencode(local.cors_allow_origins)}
 
 common_tags = {
   "Environment" = "${local.target_env}"
