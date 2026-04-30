@@ -382,7 +382,7 @@ resource "azurerm_container_app" "backend" {
 
       env {
         name  = "CORS_ALLOW_ORIGINS"
-        value = tostring(vars.cors_allow_origins)
+        value = tostring(var.cors_allow_origins)
       }
     }
 
