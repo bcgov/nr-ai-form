@@ -430,7 +430,7 @@ variable "container_registry_password" {
 }
 
 variable "cors_allow_origins" {
-  description = "List of allowed origins for CORS (e.g., ['https://example.com'])."
-  type        = list(string)
-  default     = []
+  description = "Comma-separated list of allowed origins for CORS (e.g., 'http://localhost:3000,https://example.gov.bc.ca')."
+  type        = string
+  default     = ""
 }

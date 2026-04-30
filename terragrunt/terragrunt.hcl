@@ -70,7 +70,7 @@ locals {
   formsupport_agent_port   = get_env("FORMSUPPORT_AGENT_PORT", "8001")
 
   # CORS
-  cors_allow_origins = split(",", get_env("CORS_ALLOW_ORIGINS", ""))
+  cors_allow_origins = get_env("CORS_ALLOW_ORIGINS", "")
 }
 
 # Remote Azure Storage backend for Terraform
@@ -157,7 +157,7 @@ conversation_agent_port = "${local.conversation_agent_port}"
 formsupport_agent_port  = "${local.formsupport_agent_port}"
 
 # CORS Configuration
-cors_allow_origins = ${jsonencode(local.cors_allow_origins)}
+cors_allow_origins = ${local.cors_allow_origins}
 
 common_tags = {
   "Environment" = "${local.target_env}"
