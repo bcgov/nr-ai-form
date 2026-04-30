@@ -20,7 +20,6 @@ from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExe
 from workflowcomponents.formsupportagentexecutor import FormSupportAgentA2AExecutor
 from workflowcomponents.dispatcher import Dispatcher
 from workflowcomponents.aggregator import Aggregator
-from workflowcomponents.routing import select_subagents
 
 load_dotenv()
 
@@ -32,6 +31,75 @@ def get_redis_utils():
     if _redis_utils_instance is None:
         _redis_utils_instance = redisdbutils()
     return _redis_utils_instance
+
+
+def _parse_workflow_result_text(result_text: str) -> list[dict]:
+    """Normalize workflow text output into a list of payload dicts."""
+    if not result_text:
+        return []
+
+    try:
+        parsed = ast.literal_eval(result_text)
+        if isinstance(parsed, list):
+            return parsed
+        if isinstance(parsed, dict):
+            return [parsed]
+        return [parsed]
+    except (SyntaxError, ValueError):
+        parsed_items = [
+            ast.literal_eval(literal_text)
+            for literal_text in _split_top_level_literals(result_text)
+        ]
+
+        normalized_items: list[dict] = []
+        for item in parsed_items:
+            if isinstance(item, list):
+                normalized_items.extend(item)
+            else:
+                normalized_items.append(item)
+
+        return normalized_items
+
+
+def _split_top_level_literals(result_text: str) -> list[str]:
+    literals: list[str] = []
+    start_index: int | None = None
+    depth = 0
+    in_string = False
+    quote_char = ""
+    escape_next = False
+
+    for index, char in enumerate(result_text):
+        if start_index is None:
+            if char.isspace():
+                continue
+            start_index = index
+
+        if in_string:
+            if escape_next:
+                escape_next = False
+            elif char == "\\":
+                escape_next = True
+            elif char == quote_char:
+                in_string = False
+            continue
+
+        if char in {"'", '"'}:
+            in_string = True
+            quote_char = char
+            continue
+
+        if char in "{[(":
+            depth += 1
+            continue
+
+        if char in "}])":
+            depth -= 1
+            if depth == 0 and start_index is not None:
+                literals.append(result_text[start_index : index + 1].strip())
+                start_index = None
+
+    return literals
 
 async def orchestrate_a2a(query: str, 
                           conversation_agent_url: str = "http://localhost:8000",
@@ -78,14 +146,12 @@ async def orchestrate_a2a(query: str,
         instructions="You are an aggregator that aggregates the results from the different executors. In this case the conversation agent and the form support agent."
     )
 
-    # Conditional fan-out selects one or both executors based on dispatcher confidence.
-    # The aggregator collects the direct executor outputs and finalizes once the expected
-    # number of results has arrived for the current route.
+    # Broadcast the dispatcher result to both executors so they can independently
+    # decide whether to handle or skip, then fan the outputs back into the aggregator.
     workflow = (
         WorkflowBuilder(start_executor=dispatcher)
-        .add_multi_selection_edge_group(dispatcher, executors, selection_func=select_subagents)
-        .add_edge(conversation_executor, aggregator)
-        .add_edge(form_support_executor, aggregator)
+        .add_fan_out_edges(dispatcher, executors)
+        .add_fan_in_edges(executors, aggregator)
         .build()
     )
 
@@ -112,9 +178,7 @@ async def orchestrate_a2a(query: str,
 
         result = await agent.run(input_messages, session=session)
         print(f"Raw result from agent: {result}")
-        final_data = ast.literal_eval(result.text) if result.text else None
-        if isinstance(final_data, dict):
-            final_data = [final_data]
+        final_data = _parse_workflow_result_text(result.text) if result.text else None
 
         # Save updated session state to Redis
         if session:
