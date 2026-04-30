@@ -429,3 +429,8 @@ variable "container_registry_password" {
   sensitive   = true
 }
 
+variable "cors_allow_origins" {
+  description = "Comma-separated list of allowed origins for CORS (e.g., 'http://localhost:3000,https://example.gov.bc.ca')."
+  type        = string
+  default     = ""
+}

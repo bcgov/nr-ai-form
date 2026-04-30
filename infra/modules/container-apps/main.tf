@@ -379,6 +379,11 @@ resource "azurerm_container_app" "backend" {
         name  = "REDIS_TTL_DAYS"
         value = tostring(var.redis_ttl_days)
       }
+
+      env {
+        name  = "CORS_ALLOW_ORIGINS"
+        value = tostring(var.cors_allow_origins)
+      }
     }
 
     # Conversation Agent Container - Sidecar 1
@@ -611,6 +616,11 @@ resource "azurerm_container_app" "backend" {
         name  = "REDIS_TTL_DAYS"
         value = tostring(var.redis_ttl_days)
       }
+
+      env {
+        name = "CORS_ALLOW_ORIGINS"
+        value = tostring(var.cors_allow_origins)
+      }
     }
 
     # Form Support Agent Container - Sidecar 2
@@ -842,6 +852,11 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "REDIS_TTL_DAYS"
         value = tostring(var.redis_ttl_days)
+      }
+
+      env {
+        name = "CORS_ALLOW_ORIGINS"
+        value = tostring(var.cors_allow_origins)
       }
     }
     /*
