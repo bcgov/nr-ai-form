@@ -22,7 +22,7 @@ class Dispatcher(Executor):
     """
 
     @handler
-    async def handle(self, conversation: list[Any], ctx: WorkflowContext[IntentModel]):
+    async def handle(self, conversation: list[Any], ctx: WorkflowContext[IntentListModel]):
         #TODOL:ABIN, need to sanitize the PII from the user query
         if not conversation:
             raise RuntimeError("Input conversation must not be empty.")
@@ -61,7 +61,7 @@ class Dispatcher(Executor):
         normalized_query = match.group(2).strip()
         return step_identifier, normalized_query or userquery.strip()
 
-    async def _classify_with_llm(self, query: str, mapper_json: str, current_step: str | None) -> IntentModel:
+    async def _classify_with_llm(self, query: str, mapper_json: str, current_step: str | None) -> IntentListModel:
         api_key = os.getenv("AZURE_OPENAI_API_KEY")
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
@@ -95,14 +95,15 @@ class Dispatcher(Executor):
             "including filling out a field, selecting an option, understanding a specific form step, fixing form-entry issues, "
             "or navigating a step in the application workflow.\n\n"
 
-            f"Use the Form Agent Intent Mapper JSON to identify form-step or form-filling intents for `{FORM_SUPPORT_AGENT_ID}`.\n"
-            f"Form Agent Intent Mapper JSON is like:\n"
+            f"Analyze the Form Agent Intent Mapper JSON's (shortDescription, intentTags) with user query to identify form-step or form-filling intent for `{FORM_SUPPORT_AGENT_ID}`.\n"
+            f"Important : Form Agent Intent Mapper JSON is below:\n"
             f"```json\n{mapper_json}\n```\n\n"
 
             f"If the user query does not clearly match the Form Agent Intent Mapper, prefer `{CONVERSATION_AGENT_ID}`.\n"
+            
             "When both form guidance and general explanation are needed, return both agents.\n\n"
 
-            f"if the user's query has a statement followed by a question then response should have both agents with confidence score of 7 or higher. For example, 'I am farm owner, Am I eligible?'. This should return both agents because it has a statement and then a question.\n\n"
+            f"if the user's query has a statement followed by a question then Intent List Object(IntentListModel) should have both target agents with confidence score of 7 or higher. For example, 'I am farm owner, Am I eligible?'. This should return both agents because it has a statement and then a question.\n\n"
 
             "Return structured output only. Do not include explanations outside the structured output. "
             "Return object or objects with an `intents` field that contains the routing decisions."
@@ -132,12 +133,12 @@ class Dispatcher(Executor):
                 intent.confidence = max(0.0, min(10.0, intent.confidence))
                 print(f"Intent: {intent.confidence}, Agent: {intent.targetagent}, Query: {intent.query}")
 
-            return max(parsed.intents, key=lambda intent: intent.confidence)
+            return parsed
         except Exception as exc:
             print(f"Dispatcher LLM classification failed: {exc}")
             return self._fallback_classification(query)
 
-    def _fallback_classification(self, query: str) -> IntentModel:
+    def _fallback_classification(self, query: str) -> IntentListModel:
         lowered_query = query.lower()
 
         strong_form_terms = (
@@ -159,16 +160,24 @@ class Dispatcher(Executor):
         )
 
         if any(term in lowered_query for term in strong_form_terms):
-            return IntentModel(
-                confidence=6.5,
-                targetagent=FORM_SUPPORT_AGENT_ID,
-                query=query,
+            return IntentListModel(
+                intents=[
+                    IntentModel(
+                        confidence=6.5,
+                        targetagent=FORM_SUPPORT_AGENT_ID,
+                        query=query,
+                    )
+                ]
             )
 
-        return IntentModel(
-            confidence=4.0,
-            targetagent=CONVERSATION_AGENT_ID,
-            query=query,
+        return IntentListModel(
+            intents=[
+                IntentModel(
+                    confidence=4.0,
+                    targetagent=CONVERSATION_AGENT_ID,
+                    query=query,
+                )
+            ]
         )
 
 
