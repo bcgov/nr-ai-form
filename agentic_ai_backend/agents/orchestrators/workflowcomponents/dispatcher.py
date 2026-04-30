@@ -8,7 +8,7 @@ from typing import Any
 from agent_framework import Executor, WorkflowContext, handler
 from openai import AsyncAzureOpenAI
 
-from models.intentmodel import IntentModel
+from models.intentmodel import IntentListModel, IntentModel
 
 FORM_SUPPORT_AGENT_ID = "FormSupportAgentA2A"
 CONVERSATION_AGENT_ID = "ConversationAgentA2A"
@@ -99,10 +99,13 @@ class Dispatcher(Executor):
             f"Form Agent Intent Mapper JSON is like:\n"
             f"```json\n{mapper_json}\n```\n\n"
 
-            f"If the query does not clearly match the Form Agent Intent Mapper, prefer `{CONVERSATION_AGENT_ID}`.\n"
+            f"If the user query does not clearly match the Form Agent Intent Mapper, prefer `{CONVERSATION_AGENT_ID}`.\n"
             "When both form guidance and general explanation are needed, return both agents.\n\n"
 
-            "Return structured output only. Do not include explanations outside the structured output."
+            f"if the user's query has a statement followed by a question then response should have both agents with confidence score of 7 or higher. For example, 'I am farm owner, Am I eligible?'. This should return both agents because it has a statement and then a question.\n\n"
+
+            "Return structured output only. Do not include explanations outside the structured output. "
+            "Return object or objects with an `intents` field that contains the routing decisions."
         )
         user_prompt = (        
             f"User query:\n{query}\n\n"
@@ -117,16 +120,19 @@ class Dispatcher(Executor):
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                response_format=IntentModel,
+                response_format=IntentListModel,
             )
             parsed = completion.choices[0].message.parsed
-            if parsed is None:
+
+            if parsed is None or not parsed.intents:
                 return self._fallback_classification(query)
 
-            parsed.query = query
-            parsed.confidence = max(0.0, min(10.0, parsed.confidence))
-            print(f"Dispatcher LLM classification: {parsed}")
-            return parsed
+            for intent in parsed.intents:
+                intent.query = query
+                intent.confidence = max(0.0, min(10.0, intent.confidence))
+                print(f"Intent: {intent.confidence}, Agent: {intent.targetagent}, Query: {intent.query}")
+
+            return max(parsed.intents, key=lambda intent: intent.confidence)
         except Exception as exc:
             print(f"Dispatcher LLM classification failed: {exc}")
             return self._fallback_classification(query)

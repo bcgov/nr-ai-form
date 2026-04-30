@@ -16,3 +16,10 @@ class IntentModel(BaseModel):
         min_length=1,
         description="The normalized user query without any step prefix.",
     )
+
+
+class IntentListModel(BaseModel):
+    intents: list[IntentModel] = Field(
+        min_length=1,
+        description="One or more routing decisions returned by the intent classifier.",
+    )
