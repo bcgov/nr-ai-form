@@ -31,9 +31,12 @@
   },
   {
     "stepIdentifier": "step3-AddPurpose-Consolidated",
-    "shortDescription": "Captures the requested water-use purpose, sub-purpose, seasonal use window, quantities, and purpose-specific details.",
+    "shortDescription": "Calculate with water usage / consumption for the requested water-use purpose(irrigation, industrial), sub-purpose(irrigation, livestock), seasonal use window, quantities, and purpose-specific details.",
     "intentTags": [
       "water-use-purpose",
+      "Purpose - Irrigation, Livestock",
+      "calcuate water usage", 
+      "water consumption",
       "sub-purpose",
       "seasonality",
       "water-quantity"

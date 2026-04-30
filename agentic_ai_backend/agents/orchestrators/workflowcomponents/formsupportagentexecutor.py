@@ -4,7 +4,8 @@ from typing import Any, Optional, Union
 from agent_framework import Executor, WorkflowContext, handler
 
 from a2aclients.formsupportagentclient import FormSupportAgentA2AClient
-from models.intentmodel import IntentModel
+from models.intentmodel import IntentListModel, IntentModel
+from workflowcomponents.routing import get_intent_for_agent, get_primary_intent
 
 class FormSupportAgentA2AExecutor(Executor):
     """
@@ -27,21 +28,27 @@ class FormSupportAgentA2AExecutor(Executor):
         self.session_id = session_id
         
     @handler
-    async def handle(self, intent: IntentModel, ctx: WorkflowContext[dict[str, Any]]):
+    async def handle(
+        self,
+        task: IntentListModel | IntentModel,
+        ctx: WorkflowContext[dict[str, Any]],
+    ):
         """
         Handle incoming query by forwarding to Form Support Agent via A2A.
         
         Args:
-            intent: Dispatcher output
+            task: Dispatcher output
             ctx: Workflow context for sending messages
         """
-        if intent.targetagent != self.id:
+        intent = get_intent_for_agent(task, self.id)
+        if intent is None:
+            primary_intent = get_primary_intent(task)
             await ctx.send_message(
                 {
                     "source": self.id,
                     "skipped": True,
-                    "targetagent": intent.targetagent,
-                    "confidence": intent.confidence,
+                    "targetagent": primary_intent.targetagent,
+                    "confidence": primary_intent.confidence,
                     "step_number": self.step_number,
                 }
             )
