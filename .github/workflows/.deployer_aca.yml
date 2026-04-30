@@ -130,6 +130,7 @@ jobs:
           AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER || '' }}
           # Redis Configuration
           REDIS_HOST: ${{ vars.REDIS_HOST }}
+          CORS_ALLOW_ORIGINS: ${{ vars.CORS_ALLOW_ORIGINS }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_SSL: ${{ vars.REDIS_SSL }}
@@ -192,6 +193,7 @@ jobs:
           AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER || '' }}
           # Redis Configuration
           REDIS_HOST: ${{ vars.REDIS_HOST }}
+          CORS_ALLOW_ORIGINS: ${{ vars.CORS_ALLOW_ORIGINS }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_SSL: ${{ vars.REDIS_SSL }}
@@ -249,6 +251,7 @@ jobs:
           AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER || '' }}
           # Redis Configuration
           REDIS_HOST: ${{ vars.REDIS_HOST }}
+          CORS_ALLOW_ORIGINS: ${{ vars.CORS_ALLOW_ORIGINS }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_SSL: ${{ vars.REDIS_SSL }}
