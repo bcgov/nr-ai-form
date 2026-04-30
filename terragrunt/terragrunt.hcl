@@ -69,8 +69,8 @@ locals {
   conversation_agent_port  = get_env("CONVERSATION_AGENT_PORT", "8000")
   formsupport_agent_port   = get_env("FORMSUPPORT_AGENT_PORT", "8001")
 
-  # CORS - parse comma-separated env into a list and filter empty entries
-  cors_allow_origins = [for o in split(",", get_env("CORS_ALLOW_ORIGINS", "")) : trim(o) if trim(o) != ""]
+  # CORS - pass through as a single comma-separated string
+  cors_allow_origins = get_env("CORS_ALLOW_ORIGINS", "")
 }
 
 # Remote Azure Storage backend for Terraform
@@ -157,8 +157,7 @@ conversation_agent_port = "${local.conversation_agent_port}"
 formsupport_agent_port  = "${local.formsupport_agent_port}"
 
 # CORS Configuration
-# Emit a proper HCL list literal (jsonencode) so TF gets a list(string)
-cors_allow_origins = ${jsonencode(local.cors_allow_origins)}
+cors_allow_origins = "${local.cors_allow_origins}"
 
 common_tags = {
   "Environment" = "${local.target_env}"
