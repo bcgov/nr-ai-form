@@ -1,4 +1,5 @@
 
+import json
 from typing import Any, Optional, Union
 
 from agent_framework import Executor, WorkflowContext, handler
@@ -6,6 +7,19 @@ from agent_framework import Executor, WorkflowContext, handler
 from a2aclients.formsupportagentclient import FormSupportAgentA2AClient
 from models.intentmodel import IntentListModel, IntentModel
 from workflowcomponents.routing import get_intent_for_agent, get_primary_intent
+
+
+def _parse_json_response(response: Any) -> Any:
+    """Return the parsed JSON object if `response` is a JSON string, else the original value."""
+    if not isinstance(response, str):
+        return response
+    stripped = response.strip()
+    if not stripped or stripped[0] not in "{[":
+        return response
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        return response
 
 class FormSupportAgentA2AExecutor(Executor):
     """
@@ -62,11 +76,12 @@ class FormSupportAgentA2AExecutor(Executor):
                 step_number=self.step_number,
             )
             
-            # Send the response with source information
-            # Wrap it in a dict so we can track the source
+            # The form support agent emits raw JSON per its prompt template; parse it
+            # so downstream consumers (aggregator + final orchestrator output) get a
+            # nested object instead of a string with escaped quotes.
             response_with_source = {
                 "source": self.id,
-                "response": response,
+                "response": _parse_json_response(response),
                 "step_number": self.step_number,
                 "confidence": intent.confidence,
             }

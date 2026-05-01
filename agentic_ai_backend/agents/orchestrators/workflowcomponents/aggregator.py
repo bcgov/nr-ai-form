@@ -1,6 +1,7 @@
 from agent_framework import Executor, WorkflowContext, handler
 from typing import Any
 from typing_extensions import Never
+import json
 import os
 from openai import AsyncAzureOpenAI
 
@@ -57,7 +58,12 @@ class Aggregator(Executor):
                             conversation_text = res.get("response", "")
                             print("Conversation Text: ", conversation_text)
                         elif "FormSupport" in source:
-                            form_text = res.get("response", "")
+                            raw_form = res.get("response", "")
+                            form_text = (
+                                json.dumps(raw_form)
+                                if isinstance(raw_form, (dict, list))
+                                else raw_form
+                            )
                             print("Form Text: ", form_text)
                             form_step = res.get("step_number", "")
                 
