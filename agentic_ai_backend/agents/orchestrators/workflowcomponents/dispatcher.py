@@ -3,43 +3,24 @@ import re
 from typing import Any
 
 from agent_framework import Executor, WorkflowContext, handler
-from agent_framework.openai import OpenAIChatCompletionClient
+from openai import AsyncAzureOpenAI
 
 from models.intentmodel import IntentListModel, IntentModel
 from workflowcomponents.skillsregistry import (
     CONVERSATION_AGENT_ID,
     DISPATCHER_INTENT_SKILL,
     FORM_SUPPORT_AGENT_ID,
-    skills_provider,
 )
 
-
-class AzureGatewayChatCompletionClient(OpenAIChatCompletionClient):
-    """Compatibility wrapper for Azure gateways that reject empty assistant content with tool_calls."""
-
-    def _prepare_message_for_openai(self, message):
-        prepared_messages = super()._prepare_message_for_openai(message)
-        for prepared_message in prepared_messages:
-            if prepared_message.get("role") == "assistant" and "tool_calls" in prepared_message:
-                prepared_message.setdefault("content", " ")
-        return prepared_messages
+_dispatcher_client: AsyncAzureOpenAI | None = None
+_dispatcher_deployment: str | None = None
 
 
-_DISPATCHER_AGENT_INSTRUCTIONS = (
-    "You are the BC water permit orchestrator's intent classifier. "
-    f"Always begin by calling the `load_skill` tool with skill_name='{DISPATCHER_INTENT_SKILL.name}' "
-    "to retrieve the full classification rules, then return a structured response matching IntentListModel "
-    "with one IntentModel per target agent."
-)
-
-_dispatcher_agent: Any = None
-
-
-def _get_dispatcher_agent():
-    """Build the intent-classifier agent on demand. Returns ``None`` when Azure creds are missing."""
-    global _dispatcher_agent
-    if _dispatcher_agent is not None:
-        return _dispatcher_agent
+def _get_dispatcher_client() -> tuple[AsyncAzureOpenAI, str] | tuple[None, None]:
+    """Lazily build the Azure OpenAI client. Returns (None, None) when creds are missing."""
+    global _dispatcher_client, _dispatcher_deployment
+    if _dispatcher_client is not None and _dispatcher_deployment is not None:
+        return _dispatcher_client, _dispatcher_deployment
 
     api_key = os.getenv("AZURE_OPENAI_API_KEY")
     endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
@@ -47,24 +28,16 @@ def _get_dispatcher_agent():
     api_version = os.getenv("AZURE_OPENAI_API_VERSION")
 
     if not (api_key and endpoint and deployment and api_version):
-        return None
+        return None, None
 
-    client = AzureGatewayChatCompletionClient(
-        model=deployment,
+    _dispatcher_client = AsyncAzureOpenAI(
         api_key=api_key,
-        azure_endpoint=endpoint,
         api_version=api_version,
+        azure_endpoint=endpoint,
+        azure_deployment=deployment,
     )
-    _dispatcher_agent = client.as_agent(
-        name="DispatcherIntentAgent",
-        instructions=_DISPATCHER_AGENT_INSTRUCTIONS,
-        context_providers=[skills_provider],
-        default_options={
-            "temperature": 0.1,
-            "response_format": IntentListModel,
-        },
-    )
-    return _dispatcher_agent
+    _dispatcher_deployment = deployment
+    return _dispatcher_client, _dispatcher_deployment
 
 
 class Dispatcher(Executor):
@@ -107,13 +80,22 @@ class Dispatcher(Executor):
         return step_identifier, normalized_query or userquery.strip()
 
     async def _classify(self, query: str) -> IntentListModel:
-        agent = _get_dispatcher_agent()
-        if agent is None:
+        client, deployment = _get_dispatcher_client()
+        if client is None:
             return self._fallback_classification(query)
 
         try:
-            response = await agent.run(query)
-            parsed = response.value
+            completion = await client.chat.completions.parse(
+                model=deployment,
+                temperature=0.1,
+                messages=[
+                    {"role": "system", "content": DISPATCHER_INTENT_SKILL.content},
+                    {"role": "user", "content": query},
+                ],
+                response_format=IntentListModel,
+            )
+            parsed = completion.choices[0].message.parsed
+
             if parsed is None or not parsed.intents:
                 return self._fallback_classification(query)
 
@@ -124,7 +106,7 @@ class Dispatcher(Executor):
 
             return parsed
         except Exception as exc:
-            print(f"Dispatcher agent classification failed: {exc}")
+            print(f"Dispatcher LLM classification failed: {exc}")
             return self._fallback_classification(query)
 
     def _fallback_classification(self, query: str) -> IntentListModel:
