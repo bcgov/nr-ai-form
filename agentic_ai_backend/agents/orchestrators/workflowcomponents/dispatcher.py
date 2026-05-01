@@ -1,18 +1,70 @@
-import json
 import os
 import re
-from functools import lru_cache
-from pathlib import Path
 from typing import Any
 
 from agent_framework import Executor, WorkflowContext, handler
-from openai import AsyncAzureOpenAI
+from agent_framework.openai import OpenAIChatCompletionClient
 
 from models.intentmodel import IntentListModel, IntentModel
+from workflowcomponents.skillsregistry import (
+    CONVERSATION_AGENT_ID,
+    DISPATCHER_INTENT_SKILL,
+    FORM_SUPPORT_AGENT_ID,
+    skills_provider,
+)
 
-FORM_SUPPORT_AGENT_ID = "FormSupportAgentA2A"
-CONVERSATION_AGENT_ID = "ConversationAgentA2A"
 
+class AzureGatewayChatCompletionClient(OpenAIChatCompletionClient):
+    """Compatibility wrapper for Azure gateways that reject empty assistant content with tool_calls."""
+
+    def _prepare_message_for_openai(self, message):
+        prepared_messages = super()._prepare_message_for_openai(message)
+        for prepared_message in prepared_messages:
+            if prepared_message.get("role") == "assistant" and "tool_calls" in prepared_message:
+                prepared_message.setdefault("content", " ")
+        return prepared_messages
+
+
+_DISPATCHER_AGENT_INSTRUCTIONS = (
+    "You are the BC water permit orchestrator's intent classifier. "
+    f"Always begin by calling the `load_skill` tool with skill_name='{DISPATCHER_INTENT_SKILL.name}' "
+    "to retrieve the full classification rules, then return a structured response matching IntentListModel "
+    "with one IntentModel per target agent."
+)
+
+_dispatcher_agent: Any = None
+
+
+def _get_dispatcher_agent():
+    """Build the intent-classifier agent on demand. Returns ``None`` when Azure creds are missing."""
+    global _dispatcher_agent
+    if _dispatcher_agent is not None:
+        return _dispatcher_agent
+
+    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
+    api_version = os.getenv("AZURE_OPENAI_API_VERSION")
+
+    if not (api_key and endpoint and deployment and api_version):
+        return None
+
+    client = AzureGatewayChatCompletionClient(
+        model=deployment,
+        api_key=api_key,
+        azure_endpoint=endpoint,
+        api_version=api_version,
+    )
+    _dispatcher_agent = client.as_agent(
+        name="DispatcherIntentAgent",
+        instructions=_DISPATCHER_AGENT_INSTRUCTIONS,
+        context_providers=[skills_provider],
+        default_options={
+            "temperature": 0.1,
+            "response_format": IntentListModel,
+        },
+    )
+    return _dispatcher_agent
 
 
 class Dispatcher(Executor):
@@ -28,8 +80,7 @@ class Dispatcher(Executor):
             raise RuntimeError("Input conversation must not be empty.")
 
         last_message = conversation[-1]
-        
-        # Determine how to get text based on message type
+
         userquery = ""
         if hasattr(last_message, 'text'):
             userquery = last_message.text
@@ -41,15 +92,9 @@ class Dispatcher(Executor):
         if not userquery:
             raise RuntimeError("Input must not be empty.")
 
-        current_step, normalized_query = self._extract_step_context(userquery)
-        mapper_json = json.dumps(load_form_step_intent_mapper(), indent=2)
+        _, normalized_query = self._extract_step_context(userquery)
 
-        intent = await self._classify_with_llm(
-            query=normalized_query,
-            mapper_json=mapper_json,
-            current_step=current_step,
-        )
-
+        intent = await self._classify(normalized_query)
         await ctx.send_message(intent)
 
     def _extract_step_context(self, userquery: str) -> tuple[str | None, str]:
@@ -61,70 +106,14 @@ class Dispatcher(Executor):
         normalized_query = match.group(2).strip()
         return step_identifier, normalized_query or userquery.strip()
 
-    async def _classify_with_llm(self, query: str, mapper_json: str, current_step: str | None) -> IntentListModel:
-        api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION")
-
-        if not (api_key and endpoint and deployment and api_version):
+    async def _classify(self, query: str) -> IntentListModel:
+        agent = _get_dispatcher_agent()
+        if agent is None:
             return self._fallback_classification(query)
 
-        client = AsyncAzureOpenAI(
-            api_key=api_key,
-            api_version=api_version,
-            azure_endpoint=endpoint,
-            azure_deployment=deployment,
-        )
-
-        system_prompt = (
-            "You are the Intent Classifier for a BC water permit application assistant.\n\n"
-            "Select the most appropriate target agent(s) for the user's query based on the following criteria.\n"
-            "Analyze the user's query, select target agents, and assign a confidence score from 0 to 10 based on the analysis, "
-            f"and choose one or more target agents: `{FORM_SUPPORT_AGENT_ID}` and/or `{CONVERSATION_AGENT_ID}`.\n\n"
-        
-            f"Use `{CONVERSATION_AGENT_ID}` for informational or enquiry-style questions. "
-            "This includes questions about legislation, permits, authorizations, BCEID login, eligibility, timelines, "
-            "processes, policies, definitions, requirements, fees, statuses, or general BC water application subject matter.\n\n"
-
-            "STRICT: If the query starts with or mainly asks using enquiry phrases such as "
-            "'what is', 'what are', 'how', 'how to', 'why', 'explain', 'where', 'when', 'who can', "
-            f"select `{CONVERSATION_AGENT_ID}` unless it clearly asks about a specific form field or form step.\n\n"
-
-            f"Use `{FORM_SUPPORT_AGENT_ID}` only when the user is asking for help with the application form itself, "
-            "including filling out a field, selecting an option, understanding a specific form step, fixing form-entry issues, "
-            "or navigating a step in the application workflow.\n\n"
-
-            f"Analyze the Form Agent Intent Mapper JSON's (shortDescription, intentTags) with user query to identify form-step or form-filling intent for `{FORM_SUPPORT_AGENT_ID}`.\n"
-            f"Important : Form Agent Intent Mapper JSON is below:\n"
-            f"```json\n{mapper_json}\n```\n\n"
-
-            f"If the user query does not clearly match the Form Agent Intent Mapper, prefer `{CONVERSATION_AGENT_ID}`.\n"
-            
-            "When both form guidance and general explanation are needed, return both agents.\n\n"
-
-            f"if the user's query has a statement followed by a question then Intent List Object(IntentListModel) should have both target agents with confidence score of 7 or higher. For example, 'I am farm owner, Am I eligible?'. This should return both agents because it has a statement and then a question.\n\n"
-
-            "Return structured output only. Do not include explanations outside the structured output. "
-            "Return object or objects with an `intents` field that contains the routing decisions."
-        )
-        user_prompt = (        
-            f"User query:\n{query}\n\n"
-            "Detect the intent. Preserve the normalized query text in the `query` field."
-        )
-
         try:
-            completion = await client.chat.completions.parse(
-                model=deployment,
-                temperature=0.1,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                response_format=IntentListModel,
-            )
-            parsed = completion.choices[0].message.parsed
-
+            response = await agent.run(query)
+            parsed = response.value
             if parsed is None or not parsed.intents:
                 return self._fallback_classification(query)
 
@@ -135,7 +124,7 @@ class Dispatcher(Executor):
 
             return parsed
         except Exception as exc:
-            print(f"Dispatcher LLM classification failed: {exc}")
+            print(f"Dispatcher agent classification failed: {exc}")
             return self._fallback_classification(query)
 
     def _fallback_classification(self, query: str) -> IntentListModel:
@@ -179,10 +168,3 @@ class Dispatcher(Executor):
                 )
             ]
         )
-
-
-@lru_cache(maxsize=1)
-def load_form_step_intent_mapper() -> list[dict[str, Any]]:
-    mapper_path = Path(__file__).with_name("formstepsintendmapper.json")
-    with mapper_path.open("r", encoding="utf-8") as mapper_file:
-        return json.load(mapper_file)
