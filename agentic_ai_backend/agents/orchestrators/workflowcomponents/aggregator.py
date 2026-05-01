@@ -5,18 +5,56 @@ import json
 import os
 from openai import AsyncAzureOpenAI
 
+from models.intentmodel import IntentListModel
+from workflowcomponents.routing import get_primary_intent, select_subagents
+
+
 class Aggregator(Executor):
-    """Aggregate the results from the different tasks and yield the final output."""
+    """Collect sub-agent results and curate a single user-facing response.
+
+    Two inbound message types:
+      * `IntentListModel` from the dispatcher — resets state and tells the
+        aggregator how many executor results to expect on this turn.
+      * `dict` from each selected sub-agent executor — buffered until the
+        expected count is reached, then merged via the LLM.
+
+    Also supports a legacy `list[Any]` path (fan-in) for tests / older callers.
+    """
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._expected_count: int = 0
+        self._buffered: list[Any] = []
 
     @handler
-    async def handle(self, results: Any, ctx: WorkflowContext[Never, list[Any]]):
-        """Receive the results from the source executors.
+    async def handle_intent(self, task: IntentListModel, ctx: WorkflowContext[Never, list[Any]]) -> None:
+        """Reset state for a new turn and learn how many executor results to wait for."""
+        high_conf = select_subagents(task)
+        if high_conf:
+            wanted = {intent.targetagent for intent in high_conf}
+        else:
+            wanted = {get_primary_intent(task).targetagent}
 
-        Args:
-            results: Execution result(s) from upstream executors. Depending on
-                the workflow wiring this can be a single dict or a list of dicts.
-            ctx (WorkflowContext[Never, list[Any]]): A workflow context that can yield the final output.
-        """
+        self._expected_count = len(wanted)
+        self._buffered = []
+        print(f"Aggregator: expecting {self._expected_count} result(s) for agents {wanted}")
+
+    @handler
+    async def handle_result(self, result: dict[str, Any], ctx: WorkflowContext[Never, list[Any]]) -> None:
+        """Buffer a single executor result; aggregate once the expected count is reached."""
+        self._buffered.append(result)
+        if self._expected_count and len(self._buffered) >= self._expected_count:
+            buffered = self._buffered
+            self._buffered = []
+            self._expected_count = 0
+            await self._aggregate(buffered, ctx)
+
+    @handler
+    async def handle_fan_in(self, results: list[Any], ctx: WorkflowContext[Never, list[Any]]) -> None:
+        """Legacy fan-in entry point (used by older tests)."""
+        await self._aggregate(results, ctx)
+
+    async def _aggregate(self, results: list[Any], ctx: WorkflowContext[Never, list[Any]]) -> None:
         normalized_results = self._normalize_results(results)
         print("Aggregator received results: ", normalized_results)
 
@@ -31,7 +69,6 @@ class Aggregator(Executor):
 
         active_results = filtered_results
 
-        # Check if we have OpenAI config
         api_key = os.getenv("AZURE_OPENAI_API_KEY")
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
@@ -45,12 +82,11 @@ class Aggregator(Executor):
                     azure_endpoint=endpoint,
                     azure_deployment=deployment,
                 )
-                
-                # Extract information from results
+
                 conversation_text = ""
                 form_text = ""
                 form_step = ""
-                
+
                 for res in active_results:
                     if isinstance(res, dict):
                         source = res.get("source", "")
@@ -66,29 +102,28 @@ class Aggregator(Executor):
                             )
                             print("Form Text: ", form_text)
                             form_step = res.get("step_number", "")
-                
-               
+
                 system_prompt = (
                     "You are a helpful assistant for the applicants of BC Permit Application. "
                     "Your goal is to curate the responses from Form Support Agent and Conversation Agent and provide a single response to the user. "
                     "When including URLs or web links in your response, never append punctuation (such as a period, comma, or parenthesis) immediately after the URL. "
                     "Always ensure the URL is the last character before a space or end of line. For example, write 'visit www.bceid.ca/aboutbceid for more info' not 'visit www.bceid.ca/aboutbceid. for more info'."
                 )
-                
-                #TODO: ABIN, need to pull from Blob Store for more flexible prompts??? 
+
+                #TODO: ABIN, need to pull from Blob Store for more flexible prompts???
                 user_prompt = f"""
                 You have received information from two sub agents:
-                
-                1. Conversation Agent (General Info comes from Azure AI Search): 
+
+                1. Conversation Agent (General Info comes from Azure AI Search):
                 {conversation_text}
-                
-                2. Form Support Agent (Form Specific Info for step '{form_step}'): 
+
+                2. Form Support Agent (Form Specific Info for step '{form_step}'):
                 {form_text}
-                
+
                 Your task:
-                - Synthesize a single, natural, and helpful response for the user. 
+                - Synthesize a single, natural, and helpful response for the user.
                 - Synthesized response content of Conversation Agent will come first, then the response content of Form Support Agent.
-                - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.                
+                - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.
                   I'll guide you step by step and let you know when something from the Act is relevant, so you can focus on completing the application without needing to interpret the legislation on your own" **. Do NOT tell the user to read any documents, and do NOT mention you do not have any information.
                 - If the Form Support Agent suggests a specific action, YOU MUST PRIORITIZE this action in your response. Guide the user to take that action.
                 - For e.g. if the `type` is "button" and `title` is "Apply without BCeID", then you must guide the user "If you'd like to proceed without a BCeID, please click the "Apply without BCeID" button on the form to start your application".
@@ -96,13 +131,13 @@ class Aggregator(Executor):
                 - *Strict*: if the suggestion from Form Support Agent has `type` is "radio" or `type` is "select" then the response should indicate like "AI Assistant has selected the option for you."
                 - *Strict*: if the suggestion from Form Support Agent has `type` is "string" then the response should acknowledge that the information has been filled in for the user (e.g., "AI Assistant has filled in your supporting information details for you.")
                 - If the Form Support Agent says "no match" or implies no specific form action is needed right now, rely primarily on the Conversation Agent's information if there are any response from Conversation Agent.
-                - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").                
+                - Do not mention "Conversation Agent" or "Form Support Agent" by name. Speak as a single entity ("I" or "we").
                 - Do not send a JSON in the aggregated response; Only the original results can contain the respective responses from Conversation Agent and Form Support Agent.
                 - *Strict*: if the conversation agent's response is NOT FOUND, and there is valid 'suggestedvalue' in JSON response from Form Support agent, then response should indicate the action taken by AI Bot's suggestion, rather than directing the user to take action.
                 - *Strict*: Preserve all Markdown links exactly as they appear in the sub-agent responses. If a sub-agent provides a link in the format [text](url), you MUST keep it in that exact format in your response. Never convert a Markdown link into a bare URL. If you introduce any new URLs yourself, also format them as Markdown links using [descriptive text](url).
                 - **Strict*: If the user queries like "Does the water sustainability act apply to me ?" or "applicability of water sustainability act with the application", IGNORE responses from Conversation Agent(ConversationAgentA2A)  and Form Support Agent(FormSupportAgentA2A) , ** AI Assistant SHOULD ALWAYS answer like "For the purposes of your application, you don't need to review the entire Water Sustainability Act right now. As you move through the application, AI Assistant automatically consider any relevant impacts, implications, or interactions with the water sustainility act that apply to your situation.
                 """
-                
+
                 completion = await client.chat.completions.create(
                     model=deployment,
                     temperature=0.1,
@@ -111,10 +146,9 @@ class Aggregator(Executor):
                         {"role": "user", "content": user_prompt}
                     ],
                 )
-                
+
                 final_text = completion.choices[0].message.content
-                
-                
+
                 aggregated_result = {
                     "source": "Aggregator",
                     "response": final_text,
@@ -122,17 +156,15 @@ class Aggregator(Executor):
                 }
 
                 print("Aggregated Result: ", aggregated_result)
-                
-                
+
                 await ctx.yield_output([aggregated_result])
                 return
 
             except Exception as e:
                 print(f"Error in Aggregator LLM call: {e}")
-                # Fallback to returning original results if LLM fails/errors
         else:
             print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, DEPLOYMENT, or API_VERSION). Returning raw results.")
-        
+
         print("Aggregator: Yielding raw results.")
         await ctx.yield_output(active_results)
 

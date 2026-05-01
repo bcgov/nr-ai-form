@@ -8,7 +8,7 @@ import asyncio
 import ast
 from agent_framework import WorkflowBuilder
 from agent_framework._workflows._message_utils import normalize_messages_input
-from typing import Union, Optional
+from typing import Any, Union, Optional
 from dotenv import load_dotenv
 import uuid
 
@@ -20,6 +20,28 @@ from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExe
 from workflowcomponents.formsupportagentexecutor import FormSupportAgentA2AExecutor
 from workflowcomponents.dispatcher import Dispatcher
 from workflowcomponents.aggregator import Aggregator
+from workflowcomponents.routing import get_primary_intent, select_subagents
+from models.intentmodel import IntentListModel
+
+
+def _select_target_executors(intent_list: Any, target_ids: list[str]) -> list[str]:
+    """Pick which sub-agent executors should run for a given dispatcher classification.
+
+    - If any intent is at or above the high-confidence threshold, route only to those
+      agents (one or both, depending on the IntentListModel).
+    - If nothing crosses the threshold, fall back to the single highest-confidence
+      agent so the workflow always produces an answer.
+    """
+    if not isinstance(intent_list, IntentListModel):
+        return list(target_ids)
+
+    high_conf = select_subagents(intent_list)
+    if high_conf:
+        wanted = {intent.targetagent for intent in high_conf}
+    else:
+        wanted = {get_primary_intent(intent_list).targetagent}
+
+    return [tid for tid in target_ids if tid in wanted]
 
 load_dotenv()
 
@@ -146,12 +168,17 @@ async def orchestrate_a2a(query: str,
         instructions="You are an aggregator that aggregates the results from the different executors. In this case the conversation agent and the form support agent."
     )
 
-    # Broadcast the dispatcher result to both executors so they can independently
-    # decide whether to handle or skip, then fan the outputs back into the aggregator.
+    # Conditional dispatch: the dispatcher's IntentListModel decides which sub-agent
+    # executor(s) actually run (one or both). The same IntentListModel is also routed
+    # to the aggregator so it knows how many results to wait for. Each executor's
+    # output flows directly to the aggregator (no fan-in barrier — selected executors
+    # may number 1 or 2 per turn).
     workflow = (
         WorkflowBuilder(start_executor=dispatcher)
-        .add_fan_out_edges(dispatcher, executors)
-        .add_fan_in_edges(executors, aggregator)
+        .add_multi_selection_edge_group(dispatcher, executors, _select_target_executors)
+        .add_edge(dispatcher, aggregator)
+        .add_edge(conversation_executor, aggregator)
+        .add_edge(form_support_executor, aggregator)
         .build()
     )
 

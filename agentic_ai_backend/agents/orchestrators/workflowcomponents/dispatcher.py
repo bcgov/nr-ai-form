@@ -65,9 +65,9 @@ class Dispatcher(Executor):
         if not userquery:
             raise RuntimeError("Input must not be empty.")
 
-        _, normalized_query = self._extract_step_context(userquery)
+        step, normalized_query = self._extract_step_context(userquery)
 
-        intent = await self._classify(normalized_query)
+        intent = await self._classify(normalized_query, step)
         await ctx.send_message(intent)
 
     def _extract_step_context(self, userquery: str) -> tuple[str | None, str]:
@@ -79,18 +79,19 @@ class Dispatcher(Executor):
         normalized_query = match.group(2).strip()
         return step_identifier, normalized_query or userquery.strip()
 
-    async def _classify(self, query: str) -> IntentListModel:
+    async def _classify(self, query: str, step: str | None) -> IntentListModel:
         client, deployment = _get_dispatcher_client()
         if client is None:
             return self._fallback_classification(query)
 
         try:
+            print(f"Classifying query with dispatcher LLM: {query} for step: {step}")
             completion = await client.chat.completions.parse(
                 model=deployment,
                 temperature=0.1,
                 messages=[
                     {"role": "system", "content": DISPATCHER_INTENT_SKILL.content},
-                    {"role": "user", "content": query},
+                    {"role": "user", "content": {"query": query, "step": step}},
                 ],
                 response_format=IntentListModel,
             )
