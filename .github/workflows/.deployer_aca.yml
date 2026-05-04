@@ -134,6 +134,8 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_SSL: ${{ vars.REDIS_SSL }}
           REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
+          # Application Insights Configuration
+          APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
       run: bash ${{ github.workspace }}/scripts/state-prep.sh
 
 
