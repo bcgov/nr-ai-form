@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from typing import Any
@@ -91,7 +92,7 @@ class Dispatcher(Executor):
                 temperature=0.1,
                 messages=[
                     {"role": "system", "content": DISPATCHER_INTENT_SKILL.content},
-                    {"role": "user", "content": {"query": query, "step": step}},
+                    {"role": "user", "content": json.dumps({"query": query, "step": step})},
                 ],
                 response_format=IntentListModel,
             )
