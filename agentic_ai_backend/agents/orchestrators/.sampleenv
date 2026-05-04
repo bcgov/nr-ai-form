@@ -26,3 +26,6 @@ REDIS_PASSWORD=
 REDIS_SSL=False
 
 CORS_ALLOW_ORIGINS="http://localhost,https://domainname.gov.bc.ca"
+
+# Azure Application Insights
+APPLICATIONINSIGHTS_CONNECTION_STRING=
