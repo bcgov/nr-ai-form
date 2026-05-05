@@ -105,7 +105,8 @@ const FormSteps = {
     STEP7_INDIVIDUAL: "step7-Individual",
     STEP7_REFERRAL: "step7-Referral",
     STEP9_DECLARATIONS: "step9-Declarations",
-    STEP7_CONTACT_INFORMATION: "step7-Contact-Information"
+    STEP7_CONTACT_INFORMATION: "step7-Contact-Information",
+    STEP8_REVIEW: "step8-Review"
 };
 //-------------------------- Steppers Ends ---------------------------//
 
@@ -285,7 +286,8 @@ function getCurrentFormStepFromPaneHeaders() {
         addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
         step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
         step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
-        step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION
+        step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION,
+        step7review: FormSteps.STEP8_REVIEW
     };
     return paneHeaderStepMap[paneHeaderText] || null;
 }
