@@ -170,3 +170,14 @@ dmypy.json
 .ipynb_checkpoints/
 uv.lock
 docs/*
+*.zip
+*.env
+
+# Claude Code — keep .claude/settings.json and .claude/commands committed,
+# but ignore per-developer local overrides
+.claude/settings.local.json
+.claude/.cache/
+.claude/logs/
+
+agentic_ai_backend/agents/orchestrators/dev.1env
+agentic_ai_backend/automationtests/responses/*.txt

@@ -1,0 +1,14 @@
+queries,step
+What should I do here,step0-Bot
+Does water sustainability act applies to me ?,step1-Introduction
+I am a farmer with 200 cows, step1-Introduction
+What is BCeID ? Do I need One?,step1-Introduction
+What will happen if I don’t Login?,step1-Introduction
+I am a first nation farm owner - Am I eligible ?,step2-Eligibility
+Do I need a licence for a hobby farm?,step2-Eligibility
+What is North coast Transmission line ?,step2-Eligibility
+I am not sure about other options here,step2-Eligibility
+Will I get fee exemption I belong to first nation communituy in Northern BC ?,step3-Technical-Information-Fee-Exemption-Request
+I am using a water from a near by stream,step3-Technical-Information-Water-Diversion
+Where do I find my client number ?,step3-Technical-Information-Water-Diversion
+How do I calculate watering for 200 cows ?,step3-AddPurpose-Consolidated
