@@ -287,7 +287,9 @@ function getCurrentFormStepFromPaneHeaders() {
         step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
         step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
         step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION,
-        step7review: FormSteps.STEP8_REVIEW
+        step7review: FormSteps.STEP8_REVIEW,
+        step7referrals: FormSteps.STEP7_REFERRALS,
+        step9declarations: FormSteps.STEP9_DECLARATIONS
     };
     return paneHeaderStepMap[paneHeaderText] || null;
 }
