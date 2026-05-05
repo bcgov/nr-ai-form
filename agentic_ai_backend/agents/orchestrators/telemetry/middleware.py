@@ -46,7 +46,7 @@ def create_telemetry_middleware(telemetry: OpenTelemetryAzureMonitorTelemetry):
                 attributes={
                     "http.status_code": response.status_code,
                     "http.server.duration_ms": duration_ms,
-                    "invoke.payload": payload[5000:],
+                    "invoke.payload": payload[:5000],
                     "request.body.bytes": len(request_body),
                     "response.body.bytes": len(response_body),
                 },
