@@ -186,3 +186,7 @@ docs/*
 
 agentic_ai_backend/agents/orchestrators/dev.1env
 agentic_ai_backend/automationtests/responses/*.txt
+
+
+.kiro
+.kiro/*

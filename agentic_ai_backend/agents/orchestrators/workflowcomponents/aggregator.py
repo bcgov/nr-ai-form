@@ -121,11 +121,11 @@ class Aggregator(Executor):
                 {form_text}
 
                 Your task:
-                - Synthesize a single, natural, and helpful response for the user.
-                - Synthesized response content of Conversation Agent will come first, then the response content of Form Support Agent.
+                - Synthesize a single, natural, and helpful response for the user only from subagent's response.
                 - If the conversation agent has "Not found" in response, then you must rely on the Form Support Agent's response.
-                  I'll guide you step by step and let you know when something from the Act is relevant, so you can focus on completing the application without needing to interpret the legislation on your own" **. Do NOT tell the user to read any documents, and do NOT mention you do not have any information.
+                - if user ask about the Water Sustainability Act, then response something like, I'll guide you step by step and let you know when something from the Act is relevant, so you can focus on completing the application without needing to interpret the legislation on your own" **. Do NOT tell the user to read any documents, and do NOT mention you do not have any information.
                 - If the Form Support Agent suggests a specific action, YOU MUST PRIORITIZE this action in your response. Guide the user to take that action.
+                - You are a single-turn document generator. Do not ask questions and do not include any follow-up or conversational sentences. Do not append advice, recommendations, or invitations for further input.
                 - For e.g. if the `type` is "button" and `title` is "Apply without BCeID", then you must guide the user "If you'd like to proceed without a BCeID, please click the "Apply without BCeID" button on the form to start your application".
                 - On step 3 - Technical Information, If there are any calculations involved, DO NOT use LATEX to display those calculations. Just write it out as a simple text.
                 - *Strict*: if the suggestion from Form Support Agent has `type` is "radio" or `type` is "select" then the response should indicate like "AI Assistant has selected the option for you."
@@ -136,7 +136,8 @@ class Aggregator(Executor):
                 - *Strict*: if the conversation agent's response is NOT FOUND, and there is valid 'suggestedvalue' in JSON response from Form Support agent, then response should indicate the action taken by AI Bot's suggestion, rather than directing the user to take action.
                 - *Strict*: Preserve all Markdown links exactly as they appear in the sub-agent responses. If a sub-agent provides a link in the format [text](url), you MUST keep it in that exact format in your response. Never convert a Markdown link into a bare URL. If you introduce any new URLs yourself, also format them as Markdown links using [descriptive text](url).
                 - **Strict*: If the user queries like "Does the water sustainability act apply to me ?" or "applicability of water sustainability act with the application", IGNORE responses from Conversation Agent(ConversationAgentA2A)  and Form Support Agent(FormSupportAgentA2A) , ** AI Assistant SHOULD ALWAYS answer like "For the purposes of your application, you don't need to review the entire Water Sustainability Act right now. As you move through the application, AI Assistant automatically consider any relevant impacts, implications, or interactions with the water sustainility act that apply to your situation.
-                """
+                - If none of the agent is not able to provide any response, then redirect the user to contact FrontCounter BC for support at [FrontCounter BC](http://www.frontcounterbc.gov.bc.ca/).
+                - **Strict*: In step 7 if user ask any about these keywords "consultant", "lawyer","notary","representative","representation agreement","power of attorney", "trustee","executor","administrator","board member","employee","owner","family member","friend","neighbour","trustee in bankruptcy","appointment letter","copy of will","authorization letter", ignore the conversation agent and form agent reponse and always like reponse like for more info contact frontcounterbc at [FrontCounter BC](http://www.frontcounterbc.gov.bc.ca/).
 
                 completion = await client.chat.completions.create(
                     model=deployment,
