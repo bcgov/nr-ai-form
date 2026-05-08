@@ -2,18 +2,27 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Attach to .NET Functions",
-      "type": "coreclr",
-      "request": "attach",
-      "processId": "${command:azureFunctions.pickProcess}"
+      "name": "Python Debugger: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "args": [
+        "What is BCeiD?"
+      ]
     },
     {
-      "name": "Attach to Node Functions",
-      "type": "node",
-      "request": "attach",
-      "restart": true,
-      "port": 9229,
-      "preLaunchTask": "func: host start"
+      "name": "Launch Conversation Agent",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "conversationagent",
+      "envFile": "${workspaceFolder}/.env",
+      "args": [
+        "What is BCeiD?"
+      ],
+      "cwd": "${workspaceFolder}/agentic_ai_backend/agents/conversationagent",
+      "console": "integratedTerminal",
+      "justMyCode": false
     }
   ]
 }

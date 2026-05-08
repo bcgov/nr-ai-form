@@ -1,126 +1,136 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 3 - Technical Information - Other Authorizations",
-    "properties": {
-        "V1CutTimberCrownLand": {
+    "formName": "Step 3 - Technical Information (Other Authorizations)",
+    "formDescription": "This section identifies if additional permits or authorizations are required for activities related to the project, such as timber cutting, open burning, supplying potable water, affecting fish/wildlife habitat, mineral exploration, or using forest/public roads.",
+    "formfields": {
+        "Answer_TimberCrownLand": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549753",
+            "id": "Answer_TimberCrownLand",
             "title": "Are you planning to cut timber on Crown Land?",
+            "description": "Cutting timber on Crown land may require an Occupant Licence to Cut from the relevant forest district.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "To cut timber on the Crown Land you may require an Occupant Licence to Cut. For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) nearest your application location."
+            "default": "Yes",
+            "required": true
         },
-        "V1OpenFireBurnTimber": {
+        "Answer_OpenFire": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549755",
+            "id": "Answer_OpenFire",
             "title": "Are you planning to use an open fire to burn timber or other materials?",
+            "description": "Open burning responsibilities are managed by the Wildfire Management Branch; Category 3 fires require a registration number.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "Review the Open fire and safe burning (https://www2.gov.bc.ca/gov/content?id=28DB52BC27B94C01B98E246B2DE423DB) website to learn more about your responsibilities and determine the appropriate fire category. A Category 3 fire must obtain a burn registration number by calling 1 888 797-1717."
+            "default": "Yes",
+            "required": true
         },
-        "V1PotableWaterSupply": {
+        "Answer_PotableWater": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549757",
+            "id": "Answer_PotableWater",
             "title": "Are you supplying potable water to consumers?",
+            "description": "Supplying potable water involves responsibilities under the Drinking Water Protection Act, including disinfection and emergency planning.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "Water suppliers are responsible for delivering safe drinking water that meets the requirements of the Drinking Water Protection Act and Drinking Water Protection Regulation, as well as the conditions set on your operating permits. These requirements include treating the water, if necessary, and ensuring water quality through monitoring. More information can be found on the Drinking Water Quality (https://www2.gov.bc.ca/gov/content?id=2890C295ACC74344A677CC5EC97B7DE5) website."
+            "default": "Yes",
+            "required": true
         },
-        "V1FishWildlifeHabitatAffected": {
+        "Answer_FishWildlifeHabitat": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549759",
+            "id": "Answer_FishWildlifeHabitat",
             "title": "Will fish or wildlife habitat be affected?",
+            "description": "Impacts on habitat are managed by the Ecosystems Section of the Ministry of Forests, Lands and Natural Resource Operations.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "Your application may be referred to other agencies for review and comment. Visit ecosystems (https://www2.gov.bc.ca/gov/content?id=D2AEA65E1B0995C028F5415CDA3491DD) to learn more about the plant and animal species living in a diversity of habitats and ecosystems in BC."
+            "default": "Yes",
+            "required": true
         },
-        "V1MineralExploration": {
+        "Answer_MineralExploration": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549761",
+            "id": "Answer_MineralExploration",
             "title": "Are you planning to undertake mineral exploration?",
+            "description": "Mineral exploration may require a separate Notice of Work application.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "If you are planning to undertake mineral exploration (https://www2.gov.bc.ca/gov/content?id=E2389D4562AD4A1DAE773A45370D2B36), a Notice of Work application may be required."
+            "default": "Yes",
+            "required": true
         },
-        "V1ConstructRoadToDam": {
+        "Answer_RoadToDam": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549763",
+            "id": "Answer_RoadToDam",
             "title": "Do you need to construct a road to the dam (if there are no existing roads)?",
+            "description": "Building a road on Crown land requires authorization under the Land Act.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "Land Act authorization is required to build a road on Crown Land for private and public use. Review Land Use - Roadways (https://www2.gov.bc.ca/gov/content?id=D1069DAFCFDD4685885AFD876380B6C8) for more information and how to apply."
+            "default": "Yes",
+            "required": true
         },
-        "V1WorksExistingForestRoad": {
+        "Answer_WorksInForest": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549765",
+            "id": "Answer_WorksInForest",
             "title": "Do you want to construct works within an existing forest road right-of-way on Crown land?",
+            "description": "Requires a Works Permit or a Maintenance Agreement with existing permit holders.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "Forest Service Roads and Resource Roads may require permits (https://www2.gov.bc.ca/gov/content?id=0A48B7366232463E98005309EEFD3680) or you may need to negotiate maintenance agreements with an existing permit holder. For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) nearest your application location."
+            "default": "Yes",
+            "required": true
         },
-        "V1TransportHeavyEquipment": {
+        "Answer_TransportEquipment": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549767",
+            "id": "Answer_TransportEquipment",
             "title": "Do you want to transport heavy equipment or materials on an existing forest road?",
+            "description": "Requires a Road Use Permit or a Maintenance Agreement with existing permit holders.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "Forest Service Roads and Resource Roads may require permits (https://www2.gov.bc.ca/gov/content?id=0A48B7366232463E98005309EEFD3680) or you may need to negotiate maintenance agreements with an existing permit holder. For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) nearest your application location."
+            "default": "Yes",
+            "required": true
         },
-        "V1LivestockWateringCrownLand": {
+        "Answer_WaterForLivestock": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549769",
+            "id": "Answer_WaterForLivestock",
             "title": "Do you want to use the water for livestock watering on Crown land?",
+            "description": "May require a Grazing Permit for livestock on Crown Land.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "You must have an authorization that allows livestock grazing on Crown Land. For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) nearest your application location."
+            "default": "Yes",
+            "required": true
         },
-        "V1WorkPublicRoadAllowance": {
+        "Answer_PublicRoadAllowance": {
             "type": "radio",
-            "id": "Answer_100536368_100534881_185549771",
+            "id": "Answer_PublicRoadAllowance",
             "title": "Does any work occur within the public road allowance or has to cross a public road?",
+            "description": "Work within public road allowances may require additional approvals from relevant agencies.",
             "enum": [
                 "Yes",
                 "No",
                 "Unknown"
             ],
-            "required": true,
-            "notice": "Be advised that additional permits may be required including Resource and Forest Service Roads (https://www2.gov.bc.ca/gov/content?id=0A48B7366232463E98005309EEFD3680) and Provincial Highways (https://www2.gov.bc.ca/gov/content?id=3D337385B8D74451BD118FE8BC53F3B8). For more information, contact the Natural Resource District Office (https://www2.gov.bc.ca/gov/content?id=D49E6A6A67C944AC80A9F5B5686543F1) and Development Services Office (https://twm.th.gov.bc.ca/?c=DAGoffices&lon=-115.02108119567546&lat=54.49097007244484&z=5&sb=1&) nearest your application location."
+            "default": "Yes",
+            "required": true
         }
     }
 }

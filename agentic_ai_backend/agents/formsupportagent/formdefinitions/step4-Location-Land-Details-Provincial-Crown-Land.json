@@ -1,60 +1,59 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 4 - Land Information",
-    "properties": {
+    "formName": "Step 4 - Location and Land Details for Provincial Crown Land",
+    "formDescription": "This section collects comprehensive details regarding the crown land where the water works are located or used. It covers the ownership category, legal descriptions, and specific identifiers for unsurveyed land, mineral tenures, or other provincial land files.",
+    "formfields": {
         "LandOwnershipCategory": {
             "type": "radio",
-            "id": "LandOwnershipCategory_100374140_N0",
+            "id": "LandOwnershipCategory",
             "title": "What is the category of land ownership?",
+            "description": "Classification of the land: Private, Provincial Crown, or Other.",
             "enum": [
                 "Private Land",
                 "Provincial Crown Land",
                 "Other"
             ],
-            "required": true,
-            "default": "Provincial Crown Land"
+            "default": "Provincial Crown Land",
+            "required": true
         },
         "LegalDescription": {
-            "type": "string",
-            "id": "LegalDescription_100382209_N0",
+            "type": "textarea",
+            "id": "LegalDescription",
             "title": "Legal Description:",
-            "required": false,
-            "maxLength": 4000,
-            "rows": 3,
-            "help": "Text_2_100382209_N0"
+            "description": "The official legal description of the land parcel as recorded in the land title system.",
+            "default": "",
+            "required": true
         },
         "MetesAndBounds": {
-            "type": "string",
-            "id": "MetesAndBounds_100375576_N0",
+            "type": "textarea",
+            "id": "MetesAndBounds",
             "title": "Metes and Bounds (description of unsurveyed land):",
-            "required": false,
-            "rows": 3,
-            "maxLength": 4000,
-            "help": "Text_2_100375576_N0"
+            "description": "A detailed description of the boundaries of land that has not been officially surveyed.",
+            "default": "",
+            "required": false
         },
         "MineralTenureNumber": {
-            "type": "string",
-            "id": "MineralTenureNumber_100559844_N0",
+            "type": "text",
+            "id": "MineralTenureNumber",
             "title": "Mineral Tenure Number:",
-            "required": false,
-            "maxLength": 20,
-            "help": "Text_2_100559844_N0"
+            "description": "The identification number associated with mineral rights or tenure on the property.",
+            "default": "",
+            "required": false
         },
         "LandTenureNumber": {
-            "type": "string",
-            "id": "LandTenureNumber_100559440_N0",
+            "type": "text",
+            "id": "LandTenureNumber",
             "title": "Lands File Number:",
-            "required": false,
-            "maxLength": 20,
-            "help": "Text_2_100559440_N0"
+            "description": "The provincial file number associated with the land tenure.",
+            "default": "",
+            "required": false
         },
         "OtherPermits": {
-            "type": "string",
-            "id": "OtherPermits_100560087_N0",
+            "type": "text",
+            "id": "OtherPermits",
             "title": "Other Permits (Provide Type & Number):",
-            "required": false,
-            "maxLength": 200,
-            "help": "Text_2_100560087_N0"
+            "description": "Information regarding any other relevant provincial or local permits for the land.",
+            "default": "",
+            "required": false
         }
     }
 }

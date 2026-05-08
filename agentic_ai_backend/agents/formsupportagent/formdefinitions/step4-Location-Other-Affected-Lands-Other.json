@@ -1,35 +1,51 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 4 - Location - Other Lands Physically Affected - Other",
-    "properties": {
+    "formName": "Land Information - Affected Land Description",
+    "formDescription": "This section is used to provide details about land parcels affected by the proposed works. It captures the category of ownership, the name of the land owner, and various ways to describe the location, including formal legal descriptions or metes and bounds.",
+    "formfields": {
         "LandOwnershipCategory": {
             "type": "radio",
-            "id": "LandOwnershipCategory_100374140_N0",
+            "id": "LandOwnershipCategory",
             "title": "What is the category of land ownership?",
+            "description": "Classification of the land being described (Private, Provincial Crown, or Other).",
             "enum": [
                 "Private Land",
                 "Provincial Crown Land",
                 "Other"
             ],
-            "required": true,
-            "default": "Other"
+            "default": "Other",
+            "required": true
         },
         "LandOwnerAffected": {
-            "type": "string",
-            "id": "LandOwnerAffected_100802011_N0",
+            "type": "text",
+            "id": "LandOwnerAffected",
             "title": "Name of owner of land that is affected by your works:",
-            "required": true,
-            "maxLength": 4000,
-            "help": "Text_2_100802011_N0"
+            "description": "Full legal name of the individual or entity that owns the parcel.",
+            "default": "",
+            "required": false
         },
         "LocationDescription": {
-            "type": "string",
-            "id": "LocationDescription_100802149_N0",
+            "type": "textarea",
+            "id": "LocationDescription",
             "title": "Location description of land (e.g. address, legal description, metes and bounds or other):",
-            "required": true,
-            "rows": 3,
-            "maxLength": 4000,
-            "help": "Text_2_100802149_N0"
+            "description": "A general description of where the land is located.",
+            "default": "",
+            "required": false
+        },
+        "LegalDescription": {
+            "type": "textarea",
+            "id": "LegalDescription",
+            "title": "Legal Description:",
+            "description": "The formal legal description of the property as recorded in the Land Title system.",
+            "default": "",
+            "required": true
+        },
+        "MetesAndBounds": {
+            "type": "textarea",
+            "id": "MetesAndBounds",
+            "title": "Metes and Bounds (description of unsurveyed land):",
+            "description": "Technical boundary descriptions for parcels that do not have a formal survey.",
+            "default": "",
+            "required": false
         }
     }
 }

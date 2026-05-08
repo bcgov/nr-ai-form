@@ -1,47 +1,43 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 4 - Land Information",
-    "properties": {
+    "formName": "Step 4 - Private Land Information for Water Licence Application",
+    "formDescription": "This section collects land Details Where Water Will Be Used. It requires specifying the ownership category, legal description, and parcel identification.",
+    "formfields": {
         "LandOwnershipCategory": {
             "type": "radio",
-            "id": "LandOwnershipCategory_100374140_N0",
+            "id": "LandOwnershipCategory",
             "title": "What is the category of land ownership?",
+            "description": "Select the category that best describes the ownership of the land (Private, Provincial Crown, or Other).",
             "enum": [
                 "Private Land",
                 "Provincial Crown Land",
                 "Other"
             ],
-            "required": true,
-            "default": "Private Land"
+            "default": "Private Land",
+            "required": true
         },
         "ParcelIdentifierPID": {
-            "type": "string",
-            "id": "ParcelIdentifierPID_100383613_N0",
+            "type": "text",
+            "id": "ParcelIdentifierPID",
             "title": "Parcel Identifier (PID):",
-            "required": true,
-            "maxLength": 4000,
-            "help": "Text_2_100383613_N0"
+            "description": "The nine-digit number used to identify a parcel of land in the BC Land Title Register.",
+            "default": "",
+            "required": true
         },
         "LegalDescription": {
-            "type": "string",
-            "id": "LegalDescription_100382209_N0",
+            "type": "textarea",
+            "id": "LegalDescription",
             "title": "Legal Description:",
-            "required": true,
-            "maxLength": 4000,
-            "rows": 3,
-            "help": "Text_2_100382209_N0"
+            "description": "The full legal description of the property as found on the State of Title Certificate.",
+            "default": "",
+            "required": true
         },
         "CertificateOfTitleNo": {
-            "type": "string",
-            "id": "CertificateOfTitleNo_100379395_N0",
+            "type": "text",
+            "id": "CertificateOfTitleNo",
             "title": "Certificate of Title No:",
-            "maxLength": 30
-        },
-        "UploadCertificate": {
-            "type": "button",
-            "id": "Upload_1_100380352_N0",
-            "title": "Upload Certificate",
-            "description": "Upload a Certificate of Title"
+            "description": "The identification number of the Certificate of Title for the property.",
+            "default": "",
+            "required": false
         }
     }
 }

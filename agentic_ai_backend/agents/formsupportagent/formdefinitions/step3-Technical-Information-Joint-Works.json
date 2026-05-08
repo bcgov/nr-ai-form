@@ -1,358 +1,213 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 3 - Technical Information - Joint Works",
-    "properties": {
-        "WSLICAreThereJointWorks": {
-            "type": "radio",
-            "id": "WSLICAreThereJointWorks_100826666_185549741",
-            "title": "Are any of your works joint with another person's or group's works?",
-            "enum": [
-                "Yes",
-                "No"
-            ],
-            "required": true
-        },
-        "GWNAWaterSuppliedByUsersCommun": {
-            "type": "radio",
-            "id": "GWNAWaterSuppliedByUsersCommun_100826798_185549741",
-            "title": "Will the water be supplied by a Water Users' Community?",
-            "enum": [
-                "Yes",
-                "No"
-            ],
-            "required": true
-        },
-        "GWNANameOfWaterUsersCommunity": {
-            "type": "select",
-            "id": "GWNANameOfWaterUsersCommunity_100826797_185549741",
-            "title": "Name of Water Users' Community:",
-            "options": [
-                {
-                    "label": "(select)"
-                },
-                {
-                    "label": "Allendale WUC (37964)"
-                },
-                {
-                    "label": "Baerg Creek Dam WUC (8350)"
-                },
-                {
-                    "label": "Bagley Creek WUC (149260)"
-                },
-                {
-                    "label": "Beasley WUC (8346)"
-                },
-                {
-                    "label": "Beaton Creek WUC (57719)"
-                },
-                {
-                    "label": "Benvoulin WUC (8384)"
-                },
-                {
-                    "label": "Blenkinsop Lake WUC (8386)"
-                },
-                {
-                    "label": "Boat Harbour WUC (8387)"
-                },
-                {
-                    "label": "Bonaparte Dam WUC (33010)"
-                },
-                {
-                    "label": "Braeloch WUC (8388)"
-                },
-                {
-                    "label": "Brookmere WUC (8389)"
-                },
-                {
-                    "label": "Campbell Creek WUC (40018)"
-                },
-                {
-                    "label": "Cedar Creek WUC (8391)"
-                },
-                {
-                    "label": "China Creek WUC (8342)"
-                },
-                {
-                    "label": "Clayton Brook WUC (50137)"
-                },
-                {
-                    "label": "Crystal Springs WUC (52160)"
-                },
-                {
-                    "label": "Currie Brook WUC (39388)"
-                },
-                {
-                    "label": "Deer Park WUC (8344)"
-                },
-                {
-                    "label": "Denham Brook WUC (8397)"
-                },
-                {
-                    "label": "Dog Creek WUC (46391)"
-                },
-                {
-                    "label": "Dry Gulch WUC (8338)"
-                },
-                {
-                    "label": "Dungate Drive WUC (8401)"
-                },
-                {
-                    "label": "Durand Creek WUC (8402)"
-                },
-                {
-                    "label": "Eagle Creek WUC (8335)"
-                },
-                {
-                    "label": "Ed Hill WUC (48366)"
-                },
-                {
-                    "label": "Farleigh Lake WUC (39441)"
-                },
-                {
-                    "label": "Farrer Cove WUC (118696)"
-                },
-                {
-                    "label": "Fife WUC (8404)"
-                },
-                {
-                    "label": "Florence Lake WUC (44775)"
-                },
-                {
-                    "label": "Foster Creek WUC (8333)"
-                },
-                {
-                    "label": "Foursome Lake WUC (8343)"
-                },
-                {
-                    "label": "Gander Creek WUC (3893)"
-                },
-                {
-                    "label": "Gibson McNeil WUC (8408)"
-                },
-                {
-                    "label": "Guichon Creek WUC (32111)"
-                },
-                {
-                    "label": "Hallisey Creek WUC (8412)"
-                },
-                {
-                    "label": "Hatzic Prairie WUC (8414)"
-                },
-                {
-                    "label": "Hoggan Springs WUC (78942)"
-                },
-                {
-                    "label": "Honeymoon Creek WUC (25127)"
-                },
-                {
-                    "label": "Humming Bird Cove WUC (55216)"
-                },
-                {
-                    "label": "Jarvis Creek WUC (8340)"
-                },
-                {
-                    "label": "Kearsley Springs WUC (8418)"
-                },
-                {
-                    "label": "Kelowna View WUC (8419)"
-                },
-                {
-                    "label": "Kirby Lake WUC (53349)"
-                },
-                {
-                    "label": "Klim Brook WUC (8422)"
-                },
-                {
-                    "label": "Kootenay Bay WUC (114854)"
-                },
-                {
-                    "label": "Lakeview WUC (8423)"
-                },
-                {
-                    "label": "Larch Hill WUC (8425)"
-                },
-                {
-                    "label": "Little Goose WUC (50233)"
-                },
-                {
-                    "label": "Longbeach WUC (8352)"
-                },
-                {
-                    "label": "Longueval Creek WUC (40652)"
-                },
-                {
-                    "label": "Lookout Road WUC (8426)"
-                },
-                {
-                    "label": "Lucille Mountain WUC (8427)"
-                },
-                {
-                    "label": "Mallandaine WUC (6863)"
-                },
-                {
-                    "label": "Mckinney Road WUC (8428)"
-                },
-                {
-                    "label": "Meighan Creek WUC (8429)"
-                },
-                {
-                    "label": "Michael Creek WUC (62057)"
-                },
-                {
-                    "label": "Mirror Lake WUC (8329)"
-                },
-                {
-                    "label": "Mission Creek WUC (8430)"
-                },
-                {
-                    "label": "Monte Lake WUC (8431)"
-                },
-                {
-                    "label": "Morley Spring WUC (8336)"
-                },
-                {
-                    "label": "Mountain View WUC (27068)"
-                },
-                {
-                    "label": "Mt Gardner WUC (138436)"
-                },
-                {
-                    "label": "North Beach Heights WUC (47389)"
-                },
-                {
-                    "label": "North Boswell WUC (8351)"
-                },
-                {
-                    "label": "Oasis WUC (8348)"
-                },
-                {
-                    "label": "Peterson Creek WUC (8439)"
-                },
-                {
-                    "label": "Procter Spring WUC (8330)"
-                },
-                {
-                    "label": "Proctor Lake WUC (38864)"
-                },
-                {
-                    "label": "Prospect Lake & Tod Creek WUC (79298)"
-                },
-                {
-                    "label": "Puntledge Townsite WUC (8442)"
-                },
-                {
-                    "label": "Rainbow Creek WUC (67166)"
-                },
-                {
-                    "label": "Sandy Creek-Granite Road WUC (8345)"
-                },
-                {
-                    "label": "Seymour Arm WUC (8446)"
-                },
-                {
-                    "label": "Seymour Lake WUC (8447)"
-                },
-                {
-                    "label": "Silver Creek WUC (8448)"
-                },
-                {
-                    "label": "Sinclair Mills WUC (8449)"
-                },
-                {
-                    "label": "Sinmax Creek WUC (8450)"
-                },
-                {
-                    "label": "Six Mile WUC (8339)"
-                },
-                {
-                    "label": "South Kelowna WUC (8452)"
-                },
-                {
-                    "label": "Southbright WUC (8451)"
-                },
-                {
-                    "label": "Southside WUC (54279)"
-                },
-                {
-                    "label": "Spud Hill WUC (8354)"
-                },
-                {
-                    "label": "Sunset Beach WUC (71530)"
-                },
-                {
-                    "label": "Taghill WUC (8455)"
-                },
-                {
-                    "label": "Taghum Spring WUC (8337)"
-                },
-                {
-                    "label": "Tete Jaune WUC (8456)"
-                },
-                {
-                    "label": "Thomas Brook WUC (8457)"
-                },
-                {
-                    "label": "Thunderbird WUC (22498)"
-                },
-                {
-                    "label": "Tranquille Valley WUC (8460)"
-                },
-                {
-                    "label": "Trepanier Ditch WUC (8461)"
-                },
-                {
-                    "label": "Trisha Spring WUC (60605)"
-                },
-                {
-                    "label": "Tronson WUC (8462)"
-                },
-                {
-                    "label": "Twin Bays WUC (8331)"
-                },
-                {
-                    "label": "Upper Pass Creek WUC (8347)"
-                },
-                {
-                    "label": "Urmston Creek WUC (8332)"
-                },
-                {
-                    "label": "Vaseux Creek WUC (8464)",
-                    "selected": true
-                },
-                {
-                    "label": "Vaucroft WUC (8465)"
-                },
-                {
-                    "label": "West Brilliant WUC (8334)"
-                },
-                {
-                    "label": "Westwold Salmon River WUC (27564)"
-                },
-                {
-                    "label": "White Lake/White Creek WUC (49864)"
-                }
-            ],
-            "required": true
-        },
-        "V1PCLStatement1": {
-            "type": "radio",
-            "id": "V1PCLStatement1_100826604_185549741",
-            "title": "Does your application involve any works on or crossing Crown land, a well located on Crown land, or the proposed flooding of Crown land?",
-            "enum": [
-                "Yes",
-                "No"
-            ],
-            "required": false
-        },
-        "V1PCLStatement2": {
-            "type": "radio",
-            "id": "V1PCLStatement2_100826911_185549741",
-            "title": "Does the proposed use of Crown land involve a water use purpose of \u2018Power Commercial\u2019 or \u2018Power General,\u2019 any major works, a dam over 9\u202fmetres or storage over 1,000,000\u202fm\u00b3, or works including a permanent access road, power house, or transmission lines?",
-            "enum": [
-                "Yes",
-                "No"
-            ],
-            "required": false
-        }
+  "formName": "Step 3 - Technical Information (Joint Works & Crown Land)",
+  "formDescription": "This section determines if works are shared with other parties, involves a Water Users’ Community, or requires permission to occupy/flood Crown Land (Permit Over Crown Land - PCL).",
+  "formfields": {
+    "WSLICAreThereJointWorks": {
+      "type": "radio",
+      "id": "WSLICAreThereJointWorks",
+      "title": "Are any of your works joint with another person's or group's works?",
+      "description": "Indicates if the works are connected to or shared with another person or group. A Joint Works Agreement is recommended if 'Yes'.",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "GWNAWaterSuppliedByUsersCommun": {
+      "type": "radio",
+      "id": "GWNAWaterSuppliedByUsersCommun",
+      "title": "Will the water be supplied by a Water Users' Community?",
+      "description": "A Water Users’ Community is a group of 6 or more licensees incorporated under the Water Users' Communities Act.",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "GWNANameOfWaterUsersCommunity": {
+      "type": "dropdown",
+      "id": "GWNANameOfWaterUsersCommunity",
+      "title": "Name of Water Users' Community:",
+      "description": "Select the specific incorporated Water Users' Community from the provincial list.",
+      "enum": [
+        "Allendale WUC (37964)",
+        "Baerg Creek Dam WUC (8350)",
+        "Bagley Creek WUC (149260)",
+        "Beasley WUC (8346)",
+        "Beaton Creek WUC (57719)",
+        "Benvoulin WUC (8384)",
+        "Blenkinsop Lake WUC (8386)",
+        "Boat Harbour WUC (8387)",
+        "Bonaparte Dam WUC (33010)",
+        "Braeloch WUC (8388)",
+        "Brookmere WUC (8389)",
+        "Campbell Creek WUC (40018)",
+        "Cedar Creek WUC (8391)",
+        "China Creek WUC (8342)",
+        "Clayton Brook WUC (50137)",
+        "Crystal Springs WUC (52160)",
+        "Currie Brook WUC (39388)",
+        "Deer Park WUC (8344)",
+        "Denham Brook WUC (8397)",
+        "Dog Creek WUC (46391)",
+        "Dry Gulch WUC (8338)",
+        "Dungate Drive WUC (8401)",
+        "Durand Creek WUC (8402)",
+        "Eagle Creek WUC (8335)",
+        "Ed Hill WUC (48366)",
+        "Farleigh Lake WUC (39441)",
+        "Farrer Cove WUC (118696)",
+        "Fife WUC (8404)",
+        "Florence Lake WUC (44775)",
+        "Foster Creek WUC (8333)",
+        "Foursome Lake WUC (8343)",
+        "Gander Creek WUC (3893)",
+        "Gibson McNeil WUC (8408)",
+        "Guichon Creek WUC (32111)",
+        "Hallisey Creek WUC (8412)",
+        "Hatzic Prairie WUC (8414)",
+        "Hoggan Springs WUC (78942)",
+        "Honeymoon Creek WUC (25127)",
+        "Humming Bird Cove WUC (55216)",
+        "Jarvis Creek WUC (8340)",
+        "Kearsley Springs WUC (8418)",
+        "Kelowna View WUC (8419)",
+        "Kirby Lake WUC (53349)",
+        "Klim Brook WUC (8422)",
+        "Kootenay Bay WUC (114854)",
+        "Lakeview WUC (8423)",
+        "Larch Hill WUC (8425)",
+        "Little Goose WUC (50233)",
+        "Longbeach WUC (8352)",
+        "Longueval Creek WUC (40652)",
+        "Lookout Road WUC (8426)",
+        "Lucille Mountain WUC (8427)",
+        "Mallandaine WUC (6863)",
+        "Mckinney Road WUC (8428)",
+        "Meighan Creek WUC (8429)",
+        "Michael Creek WUC (62057)",
+        "Mirror Lake WUC (8329)",
+        "Mission Creek WUC (8430)",
+        "Monte Lake WUC (8431)",
+        "Morley Spring WUC (8336)",
+        "Mountain View WUC (27068)",
+        "Mt Gardner WUC (138436)",
+        "North Beach Heights WUC (47389)",
+        "North Boswell WUC (8351)",
+        "Oasis WUC (8348)",
+        "Peterson Creek WUC (8439)",
+        "Procter Spring WUC (8330)",
+        "Proctor Lake WUC (38864)",
+        "Prospect Lake & Tod Creek WUC (79298)",
+        "Puntledge Townsite WUC (8442)",
+        "Rainbow Creek WUC (67166)",
+        "Sandy Creek-Granite Road WUC (8345)",
+        "Seymour Arm WUC (8446)",
+        "Seymour Lake WUC (8447)",
+        "Sharon's Test WUC (181353)",
+        "Silver Creek WUC (8448)",
+        "Sinclair Mills WUC (8449)",
+        "Sinmax Creek WUC (8450)",
+        "Six Mile WUC (8339)",
+        "South Kelowna WUC (8452)",
+        "Southbright WUC (8451)",
+        "Southside WUC (54279)",
+        "Spud Hill WUC (8354)",
+        "Sunset Beach WUC (71530)",
+        "Taghill WUC (8455)",
+        "Taghum Spring WUC (8337)",
+        "Tete Jaune WUC (8456)",
+        "Thomas Brook WUC (8457)",
+        "Thunderbird WUC (22498)",
+        "Tranquille Valley WUC (8460)",
+        "Trepanier Ditch WUC (8461)",
+        "Trisha Spring WUC (60605)",
+        "Tronson WUC (8462)",
+        "Twin Bays WUC (8331)",
+        "Upper Pass Creek WUC (8347)",
+        "Urmston Creek WUC (8332)",
+        "Vaseux Creek WUC (8464)",
+        "Vaucroft WUC (8465)",
+        "West Brilliant WUC (8334)",
+        "Westwold Salmon River WUC (27564)",
+        "White Lake/White Creek WUC (49864)"
+      ],
+      "default": "",
+      "required": true
+    },
+    "V1PCLStatement1": {
+      "type": "radio",
+      "id": "V1PCLStatement1",
+      "title": "Do any of the Crown Land occupation criteria apply?",
+      "description": "Criteria include: works located on/crossing Crown land, well located on Crown land, or proposed flooding of Crown land.",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": false
+    },
+    "V1PCLStatement2": {
+      "type": "radio",
+      "id": "V1PCLStatement2",
+      "title": "Do any Land Act tenure criteria apply?",
+      "description": "Criteria include: Power purposes, major works (conveyance > 0.01 m3/s), dams > 9m, storage > 1,000,000 m3, or permanent roads/transmission lines.",
+      "enum": ["Yes", "No"],
+      "default": "No",
+      "required": false
+    },
+    "V1PCLExistingCrownLandTenure": {
+      "type": "radio",
+      "id": "V1PCLExistingCrownLandTenure",
+      "title": "Do you have an existing Crown Land Tenure, Permit over Crown Land or Mines Lease that covers the affected Crown Land?",
+      "description": "Check if there is already an existing authorization covering the area in question.",
+      "enum": ["Yes", "No"],
+      "default": "No",
+      "required": false
+    },
+    "V1PCLFloodingCrownLand": {
+      "type": "radio",
+      "id": "V1PCLFloodingCrownLand",
+      "title": "Are you flooding Crown land?",
+      "description": "Indicates if the operation will cause Crown land to be submerged.",
+      "enum": ["Yes", "No"],
+      "default": "No",
+      "required": false
+    },
+    "V1PCLWorksCrossCrownLand": {
+      "type": "radio",
+      "id": "V1PCLWorksCrossCrownLand",
+      "title": "Are any of the works, excluding the well(s), on Crown land?",
+      "description": "Specifies if infrastructure like pipes or roads (excluding the well head) occupy Crown land.",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": false
+    },
+    "V1PCLLengthOfWorksOnCrownLand": {
+      "type": "text",
+      "id": "V1PCLLengthOfWorksOnCrownLand",
+      "title": "Total length of works on Crown land:",
+      "description": "Measured in metres.",
+      "default": "100.00",
+      "required": false
+    },
+    "V1PCLWidthOfWorksOnCrownLand5m": {
+      "type": "text",
+      "id": "V1PCLWidthOfWorksOnCrownLand5m",
+      "title": "Width of works on Crown land (minimum 5.0m):",
+      "description": "The width of the area used by the works on Crown land.",
+      "default": "20.00",
+      "required": false
+    },
+    "V1PCLNewIntakePipe": {
+      "type": "radio",
+      "id": "V1PCLNewIntakePipe",
+      "title": "Are you proposing a new intake pipe?",
+      "description": "Indicates if a new pipe will be installed into the water source.",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": false
+    },
+    "V1PCLLengthOfIntakePipe": {
+      "type": "text",
+      "id": "V1PCLLengthOfIntakePipe",
+      "title": "Length of pipe from high water mark into water source:",
+      "description": "Required if the pipe extends more than 15 metres from the high water mark.",
+      "default": "",
+      "required": true
     }
+  }
 }

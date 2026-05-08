@@ -1,69 +1,61 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 3 - Technical Information - Surface Water Source",
-    "properties": {
+    "formName": "Step 3 - Technical Information (Surface Water Source Details)",
+    "formDescription": "This section identifies the source of surface water for the application, including its name, where it flows, and physical characteristics at the proposed point of diversion or storage.",
+    "formfields": {
         "NameOfSource": {
-            "type": "string",
-            "id": "NameOfSource_100827062_N0",
+            "type": "text",
+            "id": "NameOfSource",
             "title": "Name of source:",
-            "description": "The name of the source of surface water",
-            "maxLength": 4000,
+            "description": "The name of the source of surface water (e.g., a specific stream or lake).",
+            "default": "",
             "required": true
         },
         "NameUnknown": {
-            "type": "boolean",
-            "id": "NameUnknown_100827062_N0",
+            "type": "checkbox",
+            "id": "NameUnknown",
             "title": "Name unknown",
-            "description": "Whether the name of the source of surface water is unknown"
-        },
-        "DescribeWaterSource": {
-            "type": "string",
-            "id": "DescribeWaterSource_100826661_N0",
-            "title": "Describe the characteristics of source (source of water, seasonal or year round, quantity or estimate of flow, etc.):",
-            "description": "The characteristics of the source of surface water",
-            "maxLength": 4000,
+            "description": "Indicates if the official name of the water source is unknown.",
+            "default": "N",
             "required": false
         },
         "SourceFlowsInto": {
-            "type": "string",
-            "id": "SourceFlowsInto_100827253_N0",
+            "type": "text",
+            "id": "SourceFlowsInto",
             "title": "Source flows into:",
-            "description": "The body of water the source flows into",
-            "maxLength": 4000,
+            "description": "The name of the larger body of water that this source flows into.",
+            "default": "",
             "required": true
         },
         "DescribeDiversionPointLocation": {
-            "type": "string",
-            "id": "DescribeDiversionPointLocation_100827253_N0",
+            "type": "textarea",
+            "id": "DescribeDiversionPointLocation",
             "title": "Describe the location of the proposed point of diversion or storage on stream:",
-            "description": "A description of the diversion point",
-            "maxLength": 4000,
+            "description": "A physical description of the specific location where water will be taken or stored.",
+            "default": "",
             "required": false
         },
         "LandmarkReferences": {
-            "type": "string",
-            "id": "LandmarkReferences_100827253_N0",
+            "type": "textarea",
+            "id": "LandmarkReferences",
             "title": "Landmark references:",
-            "description": "How this body of water is related to nearby landmarks",
-            "maxLength": 4000,
+            "description": "Describes how the body of water is related to nearby prominent landmarks.",
+            "default": "",
             "required": false
         },
         "EstimatedWidthOfSourceAtDivers": {
-            "type": "number",
-            "id": "EstimatedWidthOfSourceAtDivers_100827253_N0",
-            "title": "Estimated width of source at diversion point:",
-            "description": "The estimated width of the source in metres at the diversion point",
-            "unit": "metres",
-            "maxLength": 16,
+            "type": "text",
+            "id": "EstimatedWidthOfSourceAtDivers",
+            "title": "Estimated width of source at diversion point (metres):",
+            "description": "The approximate width of the water source at the point of diversion.",
+            "default": "",
             "required": false
         },
         "EstimatedDepthOfSourceAtDivers": {
-            "type": "number",
-            "id": "EstimatedDepthOfSourceAtDivers_100827253_N0",
-            "title": "Estimated depth of source at diversion point:",
-            "description": "The estimated depth of the source in metres at the diversion point",
-            "unit": "metres",
-            "maxLength": 16,
+            "type": "text",
+            "id": "EstimatedDepthOfSourceAtDivers",
+            "title": "Estimated depth of source at diversion point (metres):",
+            "description": "The approximate depth of the water source at the point of diversion.",
+            "default": "",
             "required": false
         }
     }

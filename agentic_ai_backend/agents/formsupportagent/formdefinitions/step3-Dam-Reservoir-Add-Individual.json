@@ -1,128 +1,70 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 3 - Dam/Reservoir - Add Individual",
-    "properties": {
+    "formName": "Step 3 - Dam Safety - Contact Individual - Water Licence Application",
+    "formDescription": "This section identifies all relevant consultants, professional engineers, and other personnel involved in the design, supervision, construction, or maintenance of the dam or reservoir. It collects their full legal names, contact phone numbers, and primary mailing addresses.",
+    "formfields": {
         "LastName": {
-            "type": "string",
-            "id": "LastName_100376607_N0",
+            "type": "text",
+            "id": "LastName",
             "title": "Last Name:",
-            "maxLength": 60,
+            "description": "The legal last name of the consultant or professional engineer.",
+            "default": "",
             "required": true
         },
         "FirstName": {
-            "type": "string",
-            "id": "FirstName_100376607_N0",
+            "type": "text",
+            "id": "FirstName",
             "title": "First Name:",
-            "maxLength": 60,
+            "description": "The legal first name of the consultant or professional engineer.",
+            "default": "",
             "required": true
         },
         "MiddleName": {
-            "type": "string",
-            "id": "MiddleName_100376607_N0",
+            "type": "text",
+            "id": "MiddleName",
             "title": "Middle Name:",
-            "maxLength": 60,
+            "description": "The legal middle name(s) of the consultant or professional engineer.",
+            "default": "",
             "required": false
         },
         "PhoneNumber": {
             "type": "phone",
-            "id": "PhoneNumber_100376607_N0",
+            "id": "PhoneNumber",
             "title": "Phone:",
-            "parts": [
-                {
-                    "id": "PhoneNumber_100376607_N0_1",
-                    "name": "area",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "PhoneNumber_100376607_N0_2",
-                    "name": "first",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "PhoneNumber_100376607_N0_3",
-                    "name": "last",
-                    "maxLength": 4,
-                    "size": 4
-                }
-            ],
-            "format": "(###) ###-####",
+            "description": "Primary telephone number for the professional contact.",
+            "default": "",
             "required": false
         },
         "DaytimePhoneNumber": {
             "type": "phone",
-            "id": "DaytimePhoneNumber_100376607_N0",
+            "id": "DaytimePhoneNumber",
             "title": "Daytime Phone:",
-            "parts": [
-                {
-                    "id": "DaytimePhoneNumber_100376607_N0_1",
-                    "name": "area",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "DaytimePhoneNumber_100376607_N0_2",
-                    "name": "first",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "DaytimePhoneNumber_100376607_N0_3",
-                    "name": "last",
-                    "maxLength": 4,
-                    "size": 4
-                }
-            ],
-            "format": "(###) ###-####",
+            "description": "Direct business line or daytime contact number.",
+            "default": "",
             "required": false
         },
         "DaytimePhoneNumberExtension": {
-            "type": "number",
-            "id": "DaytimePhoneNumberExtension_100376607_N0",
+            "type": "text",
+            "id": "DaytimePhoneNumberExtension",
             "title": "Ext:",
-            "maxLength": 4,
-            "size": 5,
+            "description": "Internal extension number for the daytime phone line.",
+            "default": "",
             "required": false
         },
         "FaxNumber": {
             "type": "phone",
-            "id": "FaxNumber_100376607_N0",
+            "id": "FaxNumber",
             "title": "Fax:",
-            "parts": [
-                {
-                    "id": "FaxNumber_100376607_N0_1",
-                    "name": "area",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "FaxNumber_100376607_N0_2",
-                    "name": "first",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "FaxNumber_100376607_N0_3",
-                    "name": "last",
-                    "maxLength": 4,
-                    "size": 4
-                }
-            ],
-            "format": "(###) ###-####",
+            "description": "Facsimile number for transmitting documents.",
+            "default": "",
             "required": false
         },
         "Email": {
-            "type": "string",
-            "id": "Email_100376607_N0",
+            "type": "text",
+            "id": "Email",
             "title": "Email:",
-            "maxLength": 60,
+            "description": "Professional email address for correspondence.",
+            "default": "",
             "required": false
-        },
-        "AddAddress_RT": {
-            "type": "button",
-            "id": "AddAddress_RT_100375683_N0",
-            "title": "Add Address"
         }
     }
 }

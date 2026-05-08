@@ -14,3 +14,6 @@ dependencies = [
     "uvicorn==0.44.0",
 ]
 
+[tool.uv.sources]
+utils = { path = "../../utils" }
+

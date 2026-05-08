@@ -1,36 +1,35 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 4 - Land Information",
-    "properties": {
+    "formName": "Step 4 - Location and Land Details for Other Land",
+    "formDescription": "This section collects details about land ownership categories, providing fields for legal descriptions and metes and bounds for land that hasn't been formally surveyed.",
+    "formfields": {
         "LandOwnershipCategory": {
             "type": "radio",
-            "id": "LandOwnershipCategory_100374140_N0",
+            "id": "LandOwnershipCategory",
             "title": "What is the category of land ownership?",
+            "description": "Identifies the classification of the land as Private, Provincial Crown, or Other.",
             "enum": [
                 "Private Land",
                 "Provincial Crown Land",
                 "Other"
             ],
-            "required": true,
-            "default": "Other"
+            "default": "Other",
+            "required": true
         },
         "LegalDescription": {
-            "type": "string",
-            "id": "LegalDescription_100382209_N0",
+            "type": "textarea",
+            "id": "LegalDescription",
             "title": "Legal Description:",
-            "required": false,
-            "maxLength": 4000,
-            "rows": 3,
-            "help": "Text_2_100382209_N0"
+            "description": "The official legal description of the property parcel.",
+            "default": "",
+            "required": true
         },
         "MetesAndBounds": {
-            "type": "string",
-            "id": "MetesAndBounds_100375576_N0",
+            "type": "textarea",
+            "id": "MetesAndBounds",
             "title": "Metes and Bounds (description of unsurveyed land):",
-            "required": false,
-            "rows": 3,
-            "maxLength": 4000,
-            "help": "Text_2_100375576_N0"
+            "description": "A technical description of the boundaries for land that has not been formally surveyed.",
+            "default": "",
+            "required": false
         }
     }
 }

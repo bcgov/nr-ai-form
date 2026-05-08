@@ -1,0 +1,18 @@
+{
+    "formName": "Step 3 - Technical Information (Crown Land Tenure Option)",
+    "formDescription": "This section explains the difference between a Permit Over Crown Land (PCL) and a Land Act tenure. It allows the applicant to choose between minimal, non-exclusive rights (PCL) or greater rights including exclusive use (Land Act tenure).",
+    "formfields": {
+        "V1PCLChangePCLToCLT": {
+            "type": "radio",
+            "id": "V1PCLChangePCLToCLT",
+            "title": "Do you want to change from a Permit Over Crown Land to a Land Act tenure application?",
+            "description": "Permit Over Crown Land provides minimal, non-exclusive rights. Land Act tenure provides greater rights including exclusive use. If 'Yes' is selected, a separate Land Act application and fees are required at the same time as this water application.",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "Yes",
+            "required": true
+        }
+    }
+}
