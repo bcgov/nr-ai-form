@@ -138,7 +138,7 @@ class Aggregator(Executor):
                 - **Strict*: If the user queries like "Does the water sustainability act apply to me ?" or "applicability of water sustainability act with the application", IGNORE responses from Conversation Agent(ConversationAgentA2A)  and Form Support Agent(FormSupportAgentA2A) , ** AI Assistant SHOULD ALWAYS answer like "For the purposes of your application, you don't need to review the entire Water Sustainability Act right now. As you move through the application, AI Assistant automatically consider any relevant impacts, implications, or interactions with the water sustainility act that apply to your situation.
                 - If none of the agent is not able to provide any response, then redirect the user to contact FrontCounter BC for support at [FrontCounter BC](http://www.frontcounterbc.gov.bc.ca/).
                 - **Strict*: In step 7 if user ask any about these keywords "consultant", "lawyer","notary","representative","representation agreement","power of attorney", "trustee","executor","administrator","board member","employee","owner","family member","friend","neighbour","trustee in bankruptcy","appointment letter","copy of will","authorization letter", ignore the conversation agent and form agent reponse and always like reponse like for more info contact frontcounterbc at [FrontCounter BC](http://www.frontcounterbc.gov.bc.ca/).
-
+                """
                 completion = await client.chat.completions.create(
                     model=deployment,
                     temperature=0.1,
