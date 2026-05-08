@@ -202,20 +202,38 @@ resource "azurerm_container_app" "backend" {
         secret_name = "appinsights-instrumentation-key"
       }
 
-      # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
+      # Cosmos DB Configuration (only set when value provided)
+      dynamic "env" {
+        for_each = var.cosmosdb_endpoint != "" ? [var.cosmosdb_endpoint] : []
+        content {
+          name  = "COSMOS_DB_ENDPOINT"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
+      dynamic "env" {
+        for_each = var.cosmosdb_db_name != "" ? [var.cosmosdb_db_name] : []
+        content {
+          name  = "COSMOS_DB_DATABASE_NAME"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
+      dynamic "env" {
+        for_each = var.cosmosdb_container_name != "" ? [var.cosmosdb_container_name] : []
+        content {
+          name  = "COSMOS_DB_CONTAINER_NAME"
+          value = env.value
+        }
+      }
+
+      # Inject additional orchestrator-specific env vars from a map
+      dynamic "env" {
+        for_each = var.orchestrator_env
+        content {
+          name  = env.key
+          value = env.value
+        }
       }
 
       # Azure OpenAI Configuration
@@ -224,25 +242,37 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-openai-api-key"
       }
 
-      env {
-        name  = "AZURE_OPENAI_ENDPOINT"
-        value = var.azure_openai_endpoint
+      dynamic "env" {
+        for_each = var.azure_openai_endpoint != "" ? [var.azure_openai_endpoint] : []
+        content {
+          name  = "AZURE_OPENAI_ENDPOINT"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "AZURE_OPENAI_API_VERSION"
-        value = var.azure_openai_api_version
+      dynamic "env" {
+        for_each = var.azure_openai_api_version != "" ? [var.azure_openai_api_version] : []
+        content {
+          name  = "AZURE_OPENAI_API_VERSION"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
-        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+      dynamic "env" {
+        for_each = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME != "" ? [var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME] : []
+        content {
+          name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+          value = env.value
+        }
       }
 
       # Azure Search Configuration
-      env {
-        name  = "AZURE_SEARCH_ENDPOINT"
-        value = var.azure_search_endpoint
+      dynamic "env" {
+        for_each = var.azure_search_endpoint != "" ? [var.azure_search_endpoint] : []
+        content {
+          name  = "AZURE_SEARCH_ENDPOINT"
+          value = env.value
+        }
       }
 
       env {
@@ -250,9 +280,12 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-search-api-key"
       }
 
-      env {
-        name  = "AZURE_SEARCH_INDEX_NAME"
-        value = var.azure_search_index_name
+      dynamic "env" {
+        for_each = var.azure_search_index_name != "" ? [var.azure_search_index_name] : []
+        content {
+          name  = "AZURE_SEARCH_INDEX_NAME"
+          value = env.value
+        }
       }
 
       env {
@@ -317,9 +350,12 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
+      dynamic "env" {
+        for_each = var.azure_document_intelligence_endpoint != "" ? [var.azure_document_intelligence_endpoint] : []
+        content {
+          name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+          value = env.value
+        }
       }
 
       env {
@@ -328,9 +364,12 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
+      dynamic "env" {
+        for_each = var.azure_storage_account_name != "" ? [var.azure_storage_account_name] : []
+        content {
+          name  = "AZURE_STORAGE_ACCOUNT_NAME"
+          value = env.value
+        }
       }
 
       env {
@@ -349,9 +388,12 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-blobstorage-connectionstring"
       }
 
-      env {
-        name  = "AZURE_BLOBSTORAGE_CONTAINER"
-        value = var.azure_blobstorage_container
+      dynamic "env" {
+        for_each = var.azure_blobstorage_container != "" ? [var.azure_blobstorage_container] : []
+        content {
+          name  = "AZURE_BLOBSTORAGE_CONTAINER"
+          value = env.value
+        }
       }
 
       # Redis Configuration
@@ -439,20 +481,29 @@ resource "azurerm_container_app" "backend" {
         secret_name = "appinsights-instrumentation-key"
       }
 
-      # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
+      # Cosmos DB Configuration (only set when value provided)
+      dynamic "env" {
+        for_each = var.cosmosdb_endpoint != "" ? [var.cosmosdb_endpoint] : []
+        content {
+          name  = "COSMOS_DB_ENDPOINT"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
+      dynamic "env" {
+        for_each = var.cosmosdb_db_name != "" ? [var.cosmosdb_db_name] : []
+        content {
+          name  = "COSMOS_DB_DATABASE_NAME"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
+      dynamic "env" {
+        for_each = var.cosmosdb_container_name != "" ? [var.cosmosdb_container_name] : []
+        content {
+          name  = "COSMOS_DB_CONTAINER_NAME"
+          value = env.value
+        }
       }
 
       # Azure OpenAI Configuration
@@ -461,25 +512,37 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-openai-api-key"
       }
 
-      env {
-        name  = "AZURE_OPENAI_ENDPOINT"
-        value = var.azure_openai_endpoint
+      dynamic "env" {
+        for_each = var.azure_openai_endpoint != "" ? [var.azure_openai_endpoint] : []
+        content {
+          name  = "AZURE_OPENAI_ENDPOINT"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "AZURE_OPENAI_API_VERSION"
-        value = var.azure_openai_api_version
+      dynamic "env" {
+        for_each = var.azure_openai_api_version != "" ? [var.azure_openai_api_version] : []
+        content {
+          name  = "AZURE_OPENAI_API_VERSION"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
-        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+      dynamic "env" {
+        for_each = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME != "" ? [var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME] : []
+        content {
+          name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+          value = env.value
+        }
       }
 
       # Azure Search Configuration
-      env {
-        name  = "AZURE_SEARCH_ENDPOINT"
-        value = var.azure_search_endpoint
+      dynamic "env" {
+        for_each = var.azure_search_endpoint != "" ? [var.azure_search_endpoint] : []
+        content {
+          name  = "AZURE_SEARCH_ENDPOINT"
+          value = env.value
+        }
       }
 
       env {
@@ -487,9 +550,12 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-search-api-key"
       }
 
-      env {
-        name  = "AZURE_SEARCH_INDEX_NAME"
-        value = var.azure_search_index_name
+      dynamic "env" {
+        for_each = var.azure_search_index_name != "" ? [var.azure_search_index_name] : []
+        content {
+          name  = "AZURE_SEARCH_INDEX_NAME"
+          value = env.value
+        }
       }
 
       env {
@@ -554,9 +620,12 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
+      dynamic "env" {
+        for_each = var.azure_document_intelligence_endpoint != "" ? [var.azure_document_intelligence_endpoint] : []
+        content {
+          name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+          value = env.value
+        }
       }
 
       env {
@@ -565,9 +634,12 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
+      dynamic "env" {
+        for_each = var.azure_storage_account_name != "" ? [var.azure_storage_account_name] : []
+        content {
+          name  = "AZURE_STORAGE_ACCOUNT_NAME"
+          value = env.value
+        }
       }
 
       env {
@@ -575,9 +647,12 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-storage-account-key"
       }
 
-      env {
-        name  = "AZURE_STORAGE_CONTAINER_NAME"
-        value = var.azure_storage_container_name
+      dynamic "env" {
+        for_each = var.azure_storage_container_name != "" ? [var.azure_storage_container_name] : []
+        content {
+          name  = "AZURE_STORAGE_CONTAINER_NAME"
+          value = env.value
+        }
       }
 
       # Azure Blob Storage Configuration
@@ -586,9 +661,12 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-blobstorage-connectionstring"
       }
 
-      env {
-        name  = "AZURE_BLOBSTORAGE_CONTAINER"
-        value = var.azure_blobstorage_container
+      dynamic "env" {
+        for_each = var.azure_blobstorage_container != "" ? [var.azure_blobstorage_container] : []
+        content {
+          name  = "AZURE_BLOBSTORAGE_CONTAINER"
+          value = env.value
+        }
       }
 
       # Redis Configuration
@@ -620,6 +698,14 @@ resource "azurerm_container_app" "backend" {
       env {
         name = "CORS_ALLOW_ORIGINS"
         value = tostring(var.cors_allow_origins)
+      }
+      # Inject additional conversation-specific env vars from a map
+      dynamic "env" {
+        for_each = var.conversation_env
+        content {
+          name  = env.key
+          value = env.value
+        }
       }
     }
 
@@ -676,20 +762,29 @@ resource "azurerm_container_app" "backend" {
         secret_name = "appinsights-instrumentation-key"
       }
 
-      # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
+      # Cosmos DB Configuration (only set when value provided)
+      dynamic "env" {
+        for_each = var.cosmosdb_endpoint != "" ? [var.cosmosdb_endpoint] : []
+        content {
+          name  = "COSMOS_DB_ENDPOINT"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
+      dynamic "env" {
+        for_each = var.cosmosdb_db_name != "" ? [var.cosmosdb_db_name] : []
+        content {
+          name  = "COSMOS_DB_DATABASE_NAME"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
+      dynamic "env" {
+        for_each = var.cosmosdb_container_name != "" ? [var.cosmosdb_container_name] : []
+        content {
+          name  = "COSMOS_DB_CONTAINER_NAME"
+          value = env.value
+        }
       }
 
       # Azure OpenAI Configuration
@@ -698,25 +793,37 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-openai-api-key"
       }
 
-      env {
-        name  = "AZURE_OPENAI_ENDPOINT"
-        value = var.azure_openai_endpoint
+      dynamic "env" {
+        for_each = var.azure_openai_endpoint != "" ? [var.azure_openai_endpoint] : []
+        content {
+          name  = "AZURE_OPENAI_ENDPOINT"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "AZURE_OPENAI_API_VERSION"
-        value = var.azure_openai_api_version
+      dynamic "env" {
+        for_each = var.azure_openai_api_version != "" ? [var.azure_openai_api_version] : []
+        content {
+          name  = "AZURE_OPENAI_API_VERSION"
+          value = env.value
+        }
       }
 
-      env {
-        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
-        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+      dynamic "env" {
+        for_each = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME != "" ? [var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME] : []
+        content {
+          name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+          value = env.value
+        }
       }
 
       # Azure Search Configuration
-      env {
-        name  = "AZURE_SEARCH_ENDPOINT"
-        value = var.azure_search_endpoint
+      dynamic "env" {
+        for_each = var.azure_search_endpoint != "" ? [var.azure_search_endpoint] : []
+        content {
+          name  = "AZURE_SEARCH_ENDPOINT"
+          value = env.value
+        }
       }
 
       env {
@@ -724,9 +831,12 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-search-api-key"
       }
 
-      env {
-        name  = "AZURE_SEARCH_INDEX_NAME"
-        value = var.azure_search_index_name
+      dynamic "env" {
+        for_each = var.azure_search_index_name != "" ? [var.azure_search_index_name] : []
+        content {
+          name  = "AZURE_SEARCH_INDEX_NAME"
+          value = env.value
+        }
       }
 
       env {
@@ -791,9 +901,12 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
+      dynamic "env" {
+        for_each = var.azure_document_intelligence_endpoint != "" ? [var.azure_document_intelligence_endpoint] : []
+        content {
+          name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+          value = env.value
+        }
       }
 
       env {
@@ -802,9 +915,12 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
+      dynamic "env" {
+        for_each = var.azure_storage_account_name != "" ? [var.azure_storage_account_name] : []
+        content {
+          name  = "AZURE_STORAGE_ACCOUNT_NAME"
+          value = env.value
+        }
       }
 
       env {
@@ -812,9 +928,12 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-storage-account-key"
       }
 
-      env {
-        name  = "AZURE_STORAGE_CONTAINER_NAME"
-        value = var.azure_storage_container_name
+      dynamic "env" {
+        for_each = var.azure_storage_container_name != "" ? [var.azure_storage_container_name] : []
+        content {
+          name  = "AZURE_STORAGE_CONTAINER_NAME"
+          value = env.value
+        }
       }
 
       # Azure Blob Storage Configuration
@@ -823,9 +942,12 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-blobstorage-connectionstring"
       }
 
-      env {
-        name  = "AZURE_BLOBSTORAGE_CONTAINER"
-        value = var.azure_blobstorage_container
+      dynamic "env" {
+        for_each = var.azure_blobstorage_container != "" ? [var.azure_blobstorage_container] : []
+        content {
+          name  = "AZURE_BLOBSTORAGE_CONTAINER"
+          value = env.value
+        }
       }
 
       # Redis Configuration
@@ -857,6 +979,14 @@ resource "azurerm_container_app" "backend" {
       env {
         name = "CORS_ALLOW_ORIGINS"
         value = tostring(var.cors_allow_origins)
+      }
+      # Inject additional formsupport-specific env vars from a map
+      dynamic "env" {
+        for_each = var.formsupport_env
+        content {
+          name  = env.key
+          value = env.value
+        }
       }
     }
     /*

@@ -261,6 +261,28 @@ variable "redis_ttl_days" {
   nullable    = false
 }
 
+# Per-container environment maps. These allow the pipeline/workflow to pass only
+# the environment variables intended for a specific agent container. Keys are
+# environment variable names and values are the string values. When empty the
+# module will not inject any extra env vars.
+variable "orchestrator_env" {
+  description = "Map of additional env vars to inject into orchestrator container"
+  type        = map(string)
+  default     = {}
+}
+
+variable "conversation_env" {
+  description = "Map of additional env vars to inject into conversation container"
+  type        = map(string)
+  default     = {}
+}
+
+variable "formsupport_env" {
+  description = "Map of additional env vars to inject into formsupport container"
+  type        = map(string)
+  default     = {}
+}
+
 variable "cors_allow_origins" {
   description = "Comma-separated list of allowed origins for CORS (e.g., 'http://localhost:3000,https://example.gov.bc.ca')."
   type        = string
