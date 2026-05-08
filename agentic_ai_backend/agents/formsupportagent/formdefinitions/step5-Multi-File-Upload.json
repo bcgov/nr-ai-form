@@ -1,0 +1,42 @@
+{
+    "formName": "Step 5 - Multi-File Upload for Water Licence Application",
+    "formDescription": "This step allows applicants to upload supporting documents for the Water Licence Application. Files are added to an upload queue and submitted using the Start Upload button. Each file in the queue displays its filename, status, size, and an optional description text field. ZIP files are not accepted and each file must be under 50MB.",
+    "formfields": {
+        "uploader_browse": {
+            "type": "button",
+            "id": "uploader_browse",
+            "title": "Add files",
+            "description": "Opens a file picker to select one or more files to add to the upload queue.",
+            "required": false
+        },
+        "uploader_start": {
+            "type": "button",
+            "id": "uploader_start",
+            "title": "Start upload",
+            "description": "Starts uploading all files currently in the upload queue.",
+            "required": false
+        },
+        "plupload_file_name": {
+            "type": "string",
+            "id": "plupload_file_name",
+            "title": "Filename",
+            "description": "The name of the file added to the upload queue.",
+            "required": false
+        },
+        "plupload_file_description": {
+            "type": "text",
+            "id": "plupload_file_description",
+            "title": "Description",
+            "description": "An optional text field to enter a description for each file in the upload queue.",
+            "required": false
+        },
+        "html5_file_input": {
+            "type": "file",
+            "id": "p1jo2038ch4m410p74aj9cp19mc0_html5",
+            "title": "File Input",
+            "description": "The underlying HTML file input that accepts multiple file selections. Does not accept ZIP files. Maximum file size is 50MB per file.",
+            "multiple": true,
+            "required": false
+        }
+    }
+}

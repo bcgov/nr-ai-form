@@ -1,41 +1,42 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 7 - Individual Coapplicant Address",
-    "properties": {
+    "_comment": "TODO: this definition and corresponding prompt file can be used for all mailing address in the step 7",
+    "formName": "Step 7 - Mailing Address",
+    "formDescription": "Step 7 -Mailing Address form for the Water Licence Application. Supports AddressComplete auto-population. An asterisk (*) indicates a required field. Tips: Click in 'Line 1' to change the Country using the drop-down menu. When you begin typing, AddressComplete will suggest addresses. For USA residents entering manually, provide your 9-digit ZIP Code. Province/state must be spelled out in full — abbreviations are not accepted.",
+    "formfields": {
         "Line1": {
-            "type": "string",
+            "type": "text",
             "id": "Line1",
             "title": "Line 1",
-            "required": true,
-            "maxLength": 4000
+            "description": "Street address line 1. Required. Supports AddressComplete auto-population.",
+            "required": true
         },
         "Line2": {
-            "type": "string",
+            "type": "text",
             "id": "Line2",
             "title": "Line 2",
-            "required": false,
-            "maxLength": 60
+            "description": "Additional address information (e.g. suite, unit, apartment number). Optional.",
+            "required": false
         },
         "CityorTown": {
-            "type": "string",
+            "type": "text",
             "id": "CityorTown",
             "title": "Municipality",
-            "required": true,
-            "maxLength": 100
+            "description": "The city or town of the address. Required.",
+            "required": true
         },
         "Province": {
-            "type": "string",
+            "type": "text",
             "id": "Province",
             "title": "Province / State",
-            "required": false,
-            "maxLength": 4000
+            "description": "The province or state of the address. Must be spelled out in full — abbreviations are not accepted. Optional.",
+            "required": false
         },
         "Country": {
-            "type": "string",
+            "type": "select",
             "id": "Country",
             "title": "Country",
+            "description": "The country of the address. Required. Defaults to Canada.",
             "required": true,
-            "default": "Canada",
             "enum": [
                 "",
                 "Afghanistan",
@@ -96,7 +97,7 @@
                 "Costa Rica",
                 "Croatia",
                 "Cuba",
-                "Curacao",
+                "Cura\u00e7ao",
                 "Cyprus",
                 "Czechia",
                 "Denmark",
@@ -220,7 +221,7 @@
                 "Portugal",
                 "Puerto Rico",
                 "Qatar",
-                "Reunion",
+                "R\u00e9union",
                 "Romania",
                 "Russia",
                 "Rwanda",
@@ -244,7 +245,7 @@
                 "South Sudan",
                 "Spain",
                 "Sri Lanka",
-                "St Barthelemy",
+                "St Barth\u00e9lemy",
                 "St Helena, Ascension and Tristan da Cunha",
                 "St Kitts and Nevis",
                 "St Lucia",
@@ -290,11 +291,11 @@
             ]
         },
         "PostalCode": {
-            "type": "string",
+            "type": "text",
             "id": "PostalCode",
             "title": "Postal / Zip Code",
-            "required": false,
-            "maxLength": 10
+            "description": "The postal or zip code of the address. For USA residents, provide the full 9-digit ZIP Code. Optional.",
+            "required": false
         }
     }
 }

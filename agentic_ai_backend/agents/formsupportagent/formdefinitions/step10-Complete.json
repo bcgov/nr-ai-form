@@ -6,9 +6,7 @@
             "type": "string",
             "id": "V1OtherInformation_100741582_185549445",
             "title": "Is there any other information you would like us to know (where possible, do not include personal information)",
-            "required": false,
-            "maxLength": 4000,
-            "multiline": true
+            "required": false
         },
         "Step12PaymentMethod_100559849_185549445": {
             "type": "string",
@@ -52,16 +50,13 @@
             "type": "string",
             "id": "NameOfProject_100480147_185549445",
             "title": "What is the name of your project?",
-            "required": false,
-            "maxLength": 150
+            "required": false
         },
         "RelatedAppNumbersDescription_100480147_185549445": {
             "type": "string",
             "id": "RelatedAppNumbersDescription_100480147_185549445",
             "title": "Reference / project / tracking numbers or other descriptive information to group related applications",
-            "required": true,
-            "maxLength": 4000,
-            "multiline": true
+            "required": true
         },
         "VFCBCOffice_100480203_185549445": {
             "type": "string",
