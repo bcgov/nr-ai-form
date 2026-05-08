@@ -58,24 +58,31 @@ permissions:
   contents: write # This is required for actions/checkout
 jobs:
  infra:
-  environment: ${{ inputs.environment_name }}
   name: Terragrunt ${{inputs.command}} ACA ${{ inputs.environment_name }}
   runs-on: ubuntu-24.04
+  environment: ${{ inputs.environment_name }}
   steps:
+    
     - name: Checkout
       uses: actions/checkout@v4
     
     - name: Azure CLI Login
       uses: azure/login@v2
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }} 
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     
+    # Using commit SHA instead of version tag for reproducibility and security.
+    # SHA is immutable - guarantees exact same code runs every deployment.
+    # Version tags can be updated by maintainers, risking unexpected breaking changes.
     - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
       with:
         terraform_version: ${{ env.TF_VERSION }}
     
+    # Using commit SHA instead of version tag for reproducibility and security.
+    # SHA is immutable - guarantees exact same code runs every deployment.
+    # Version tags can be updated by maintainers, risking unexpected breaking changes.
     - name: Setup Terragrunt
       uses: autero1/action-terragrunt@aefb0a43c4f5503a91fefb307745c4d51c26ed0e # v3
       with:
@@ -95,7 +102,7 @@ jobs:
           formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
           # api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
           stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           branch_slug: ${{ inputs.branch_slug }}
@@ -104,23 +111,32 @@ jobs:
           deployment_type: ${{ inputs.deployment_type }}
           # Azure OpenAI Configuration
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
+          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ vars.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
           # Azure Search Configuration
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_SEARCH_ENDPOINT: ${{ vars.AZURE_SEARCH_ENDPOINT }}
           AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
+          AZURE_SEARCH_INDEX_NAME: ${{ vars.AZURE_SEARCH_INDEX_NAME }}
           # Azure Document Intelligence Configuration
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ vars.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
           AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
           # Azure Storage Configuration
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_CONTAINER_NAME }}
           # Azure Blob Storage Configuration
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ vars.AZURE_BLOBSTORAGE_CONNECTIONSTRING || '' }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER || '' }}
+          # Redis Configuration
+          REDIS_HOST: ${{ vars.REDIS_HOST }}
+          CORS_ALLOW_ORIGINS: ${{ vars.CORS_ALLOW_ORIGINS }}
+          REDIS_PORT: ${{ vars.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_SSL: ${{ vars.REDIS_SSL }}
+          REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
+          # Application Insights Configuration
+          APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
       run: bash ${{ github.workspace }}/scripts/state-prep.sh
 
 
@@ -140,7 +156,7 @@ jobs:
         echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
         # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
         # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
-    
+
     - name: Safety Plan Check
       if: inputs.prevent_destroy == true && inputs.command == 'apply'
       working-directory: terragrunt/${{ inputs.environment_name }}
@@ -156,7 +172,7 @@ jobs:
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           branch_slug: ${{ inputs.branch_slug }}
@@ -164,21 +180,22 @@ jobs:
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           deployment_type: ${{ inputs.deployment_type }}
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ vars.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
+          AZURE_SEARCH_ENDPOINT: ${{ vars.AZURE_SEARCH_ENDPOINT }}
           AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+          AZURE_SEARCH_INDEX_NAME: ${{ vars.AZURE_SEARCH_INDEX_NAME }}
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ vars.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
           AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_CONTAINER_NAME }}
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ vars.AZURE_BLOBSTORAGE_CONNECTIONSTRING || '' }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER || '' }}
           # Redis Configuration
           REDIS_HOST: ${{ vars.REDIS_HOST }}
+          CORS_ALLOW_ORIGINS: ${{ vars.CORS_ALLOW_ORIGINS }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_SSL: ${{ vars.REDIS_SSL }}
@@ -208,7 +225,7 @@ jobs:
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
           stack_prefix: ${{ inputs.stack_prefix }}
-          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
           branch_slug: ${{ inputs.branch_slug }}
@@ -217,25 +234,26 @@ jobs:
           deployment_type: ${{ inputs.deployment_type }}
           # Azure OpenAI Configuration
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_API_VERSION: ${{ vars.AZURE_OPENAI_API_VERSION }}
-          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
+          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ vars.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
           # Azure Search Configuration
-          AZURE_SEARCH_ENDPOINT: ${{ secrets.AZURE_SEARCH_ENDPOINT }}
+          AZURE_SEARCH_ENDPOINT: ${{ vars.AZURE_SEARCH_ENDPOINT }}
           AZURE_SEARCH_API_KEY: ${{ secrets.AZURE_SEARCH_API_KEY }}
-          AZURE_SEARCH_INDEX_NAME: ${{ secrets.AZURE_SEARCH_INDEX_NAME }}
+          AZURE_SEARCH_INDEX_NAME: ${{ vars.AZURE_SEARCH_INDEX_NAME }}
           # Azure Document Intelligence Configuration
-          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ vars.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
           AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
           # Azure Storage Configuration
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          AZURE_STORAGE_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_CONTAINER_NAME }}
           # Azure Blob Storage Configuration
-          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
-          AZURE_BLOBSTORAGE_CONTAINER: ${{ secrets.AZURE_BLOBSTORAGE_CONTAINER }}
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ vars.AZURE_BLOBSTORAGE_CONNECTIONSTRING || '' }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER || '' }}
           # Redis Configuration
           REDIS_HOST: ${{ vars.REDIS_HOST }}
+          CORS_ALLOW_ORIGINS: ${{ vars.CORS_ALLOW_ORIGINS }}
           REDIS_PORT: ${{ vars.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_SSL: ${{ vars.REDIS_SSL }}
@@ -243,4 +261,3 @@ jobs:
       run: |
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
-    

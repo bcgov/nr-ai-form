@@ -49,8 +49,8 @@ locals {
   azure_storage_container_name = get_env("AZURE_STORAGE_CONTAINER_NAME")
 
   # Azure Blob Storage Configuration
-  azure_blobstorage_connectionstring = get_env("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
-  azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER")
+  azure_blobstorage_connectionstring = get_env("AZURE_BLOBSTORAGE_CONNECTIONSTRING", "")
+  azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER", "")
 
   # Redis Configuration
   redis_host     = get_env("REDIS_HOST", "")
@@ -68,6 +68,9 @@ locals {
   orchestrator_agent_port  = get_env("ORCHESTRATOR_AGENT_PORT", "8002")
   conversation_agent_port  = get_env("CONVERSATION_AGENT_PORT", "8000")
   formsupport_agent_port   = get_env("FORMSUPPORT_AGENT_PORT", "8001")
+
+  # CORS - pass through as a single comma-separated string
+  cors_allow_origins = get_env("CORS_ALLOW_ORIGINS", "")
 }
 
 # Remote Azure Storage backend for Terraform
@@ -140,7 +143,7 @@ azure_blobstorage_container         = "${local.azure_blobstorage_container}"
 redis_host     = "${local.redis_host}"
 redis_port     = "${local.redis_port != "" ? local.redis_port : "10000"}"
 redis_password = "${local.redis_password}"
-redis_ssl      = "${local.redis_ssl != "" ? local.redis_ssl : "true"}"
+redis_ssl      = ${local.redis_ssl != "" ? (lower(local.redis_ssl) == "true") : true}
 redis_ttl_days = "${local.redis_ttl_days != "" ? local.redis_ttl_days : "14"}"
 
 # Container Registry Configuration
@@ -152,6 +155,9 @@ container_registry_password = "${local.container_registry_password}"
 orchestrator_agent_port = "${local.orchestrator_agent_port}"
 conversation_agent_port = "${local.conversation_agent_port}"
 formsupport_agent_port  = "${local.formsupport_agent_port}"
+
+# CORS Configuration
+cors_allow_origins = "${local.cors_allow_origins}"
 
 common_tags = {
   "Environment" = "${local.target_env}"

@@ -7,8 +7,8 @@ import uvicorn
 import uuid
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
-from typing import Any, List, Optional
 from orchestratoragent import orchestrate_a2a
+from telemetry import OpenTelemetryAzureMonitorTelemetry, create_telemetry_middleware
 
 load_dotenv()
 
@@ -20,9 +20,20 @@ app = FastAPI(
     version="1.0.0"
 )
 
-from fastapi.middleware.cors import CORSMiddleware
+# ---- Configure telemetry for the Orchestrator Agent API
+telemetry = OpenTelemetryAzureMonitorTelemetry(service_name="orchestrator-agent")
+telemetry.configure()
+telemetry.set_common_context(
+    service_name="orchestrator-agent",
+    service_version=app.version,
+    environment=os.getenv("APP_ENVIRONMENT"),
+    cloud_role="orchestrator-agent",
+)
+# Add telemetry middleware to trace incoming HTTP requests and exceptions
+app.middleware("telemetry")(create_telemetry_middleware(telemetry))
 
-# Get CORS origins from environment variable
+# ---- Add CORS middleware to allow cross-origin requests (if needed)
+from fastapi.middleware.cors import CORSMiddleware
 cors_origins_str = os.getenv("CORS_ALLOW_ORIGINS", "*")
 cors_origins = [origin.strip() for origin in cors_origins_str.split(",")]
 

@@ -13,11 +13,11 @@ on:
 
   # Also trigger on any PR merge (regardless of target branch).
   # We destroy the SOURCE branch's ACA (github.head_ref), never the target branch's.
+  # Only trigger when agentic_ai_backend code changes
   pull_request:
     types: [closed]
     paths:
       - 'agentic_ai_backend/**'
-      - '.github/workflows/destroy-aca-dev-branch.yml'
 
   # Manual fallback: destroy any branch by name
   workflow_dispatch:
@@ -83,6 +83,7 @@ jobs:
         shell: bash
         env:
           BRANCH_NAME: ${{ steps.check.outputs.branch_name }}
+          PROTECTED_ACA: 'nraif-671b-dev-api'
         run: |
           # Compute branch slug to match ACA naming convention
           branch="${BRANCH_NAME}"
@@ -91,15 +92,20 @@ jobs:
           slug="${slug:0:15}"
           slug=$(echo "$slug" | sed 's/-$//')
           
-          echo "Checking for ACA with slug: $slug"
+          # Compute expected ACA name: nraif-{slug}-dev-api
+          computed_aca_name="nraif-${slug}-dev-api"
           
-          # Check if branch modified agentic_ai_backend code
-          if git diff origin/master..HEAD --quiet -- 'agentic_ai_backend/' '.github/workflows/destroy-aca-dev-branch.yml'; then
+          echo "Branch: $branch"
+          echo "Computed ACA name: $computed_aca_name"
+          echo "Protected ACA: $PROTECTED_ACA"
+          
+          # Protect the main shared dev ACA - never destroy it
+          if [ "$computed_aca_name" == "$PROTECTED_ACA" ]; then
             echo "aca_exists=false" >> $GITHUB_OUTPUT
-            echo "No agentic_ai_backend changes detected. Skipping ACA destroy."
+            echo "⚠️  PROTECTED: Will not destroy shared ACA '$PROTECTED_ACA'"
           else
             echo "aca_exists=true" >> $GITHUB_OUTPUT
-            echo "agentic_ai_backend changes detected. ACA destroy will proceed."
+            echo "✓ ACA '$computed_aca_name' can be safely destroyed"
           fi
 
   branch-slug:
