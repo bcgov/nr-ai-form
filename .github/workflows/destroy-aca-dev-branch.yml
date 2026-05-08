@@ -45,11 +45,20 @@ jobs:
         id: check
         shell: bash
         run: |
+          # For auto triggers (delete and pull_request merged) we skip the protected
+          # "dev" branch. Manual workflow_dispatch can still target dev explicitly.
           if [ "${{ github.event_name }}" == "delete" ]; then
             # Only act on branch deletions, not tags
             if [ "${{ github.event.ref_type }}" == "branch" ]; then
-              echo "should_destroy=true" >> $GITHUB_OUTPUT
-              echo "branch_name=${{ github.event.ref }}" >> $GITHUB_OUTPUT
+              branch="${{ github.event.ref }}"
+              if [ "$branch" == "dev" ]; then
+                echo "should_destroy=false" >> $GITHUB_OUTPUT
+                echo "branch_name=" >> $GITHUB_OUTPUT
+                echo "Skipping auto-destroy for protected branch '$branch'" >&2
+              else
+                echo "should_destroy=true" >> $GITHUB_OUTPUT
+                echo "branch_name=$branch" >> $GITHUB_OUTPUT
+              fi
             else
               echo "should_destroy=false" >> $GITHUB_OUTPUT
               echo "branch_name=" >> $GITHUB_OUTPUT
@@ -57,13 +66,22 @@ jobs:
           elif [ "${{ github.event_name }}" == "pull_request" ]; then
             # Only destroy when the PR was actually merged (not just closed)
             if [ "${{ github.event.pull_request.merged }}" == "true" ]; then
-              echo "should_destroy=true" >> $GITHUB_OUTPUT
-              echo "branch_name=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+              branch="${{ github.head_ref }}"
+              if [ "$branch" == "dev" ]; then
+                # Don't auto-destroy when the source branch is the shared 'dev' branch
+                echo "should_destroy=false" >> $GITHUB_OUTPUT
+                echo "branch_name=" >> $GITHUB_OUTPUT
+                echo "Skipping auto-destroy for protected branch '$branch' from PR merge" >&2
+              else
+                echo "should_destroy=true" >> $GITHUB_OUTPUT
+                echo "branch_name=$branch" >> $GITHUB_OUTPUT
+              fi
             else
               echo "should_destroy=false" >> $GITHUB_OUTPUT
               echo "branch_name=" >> $GITHUB_OUTPUT
             fi
           elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Manual runs may target any branch including 'dev'
             echo "should_destroy=true" >> $GITHUB_OUTPUT
             echo "branch_name=${{ inputs.branch_name }}" >> $GITHUB_OUTPUT
           else
@@ -102,7 +120,7 @@ jobs:
           # Protect the main shared dev ACA - never destroy it
           if [ "$computed_aca_name" == "$PROTECTED_ACA" ]; then
             echo "aca_exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️  PROTECTED: Will not destroy shared ACA '$PROTECTED_ACA'"
+            echo "PROTECTED: Will not destroy shared ACA '$PROTECTED_ACA'"
           else
             echo "aca_exists=true" >> $GITHUB_OUTPUT
             echo "✓ ACA '$computed_aca_name' can be safely destroyed"
