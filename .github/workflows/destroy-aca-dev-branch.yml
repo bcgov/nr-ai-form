@@ -1,0 +1,86 @@
+name: Destroy ACA (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch name whose ACA should be destroyed (e.g. feature/my-branch)'
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  compute-prefix:
+    name: Compute Stack Prefix
+    uses: ./.github/workflows/.stack-prefix.yml
+
+  compute-slug:
+    name: Compute Branch Slug
+    needs: compute-prefix
+    runs-on: ubuntu-24.04
+    outputs:
+      branch_slug: ${{ steps.slug.outputs.branch_slug }}
+    steps:
+      - name: Compute slug
+        id: slug
+        shell: bash
+        run: |
+          branch="${{ github.event.inputs.branch_name }}"
+          slug=$(echo "$branch" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g' | \
+                 sed 's/[^a-z0-9-]/-/g' | sed 's/-\{2,\}/-/g' | sed 's/^-//;s/-$//')
+          slug="${slug:0:15}"
+          slug=$(echo "$slug" | sed 's/-$//')
+          echo "branch_slug=$slug" >> $GITHUB_OUTPUT
+          echo "Computed slug: $slug"
+
+  safety:
+    name: Safety check before destroy
+    needs: [compute-prefix, compute-slug]
+    runs-on: ubuntu-24.04
+    outputs:
+      safe_to_destroy: ${{ steps.verify.outputs.safe_to_destroy }}
+    steps:
+      - name: Verify final ACA
+        id: verify
+        shell: bash
+        env:
+          STACK_PREFIX: ${{ needs.compute-prefix.outputs.STACK_PREFIX }}
+          BRANCH_SLUG: ${{ needs.compute-slug.outputs.branch_slug }}
+          PROTECTED_ACA: 'nraif-671b-dev-api'
+        run: |
+          stack_prefix="${STACK_PREFIX}"
+          branch_slug="${BRANCH_SLUG}"
+
+          if [ -z "$branch_slug" ]; then
+            echo "safe_to_destroy=false" >> $GITHUB_OUTPUT
+            echo "Detected empty branch slug — would target shared dev ACA. Aborting." >&2
+            exit 0
+          fi
+
+          final_name="${stack_prefix}-${branch_slug}-dev-api"
+          echo "Computed final ACA name: $final_name"
+
+          if [ "$final_name" == "$PROTECTED_ACA" ]; then
+            echo "safe_to_destroy=false" >> $GITHUB_OUTPUT
+            echo "Final ACA matches protected ACA — aborting." >&2
+          else
+            echo "safe_to_destroy=true" >> $GITHUB_OUTPUT
+          fi
+
+  destroy:
+    name: Destroy ACA
+    needs: [safety, compute-prefix, compute-slug]
+    if: needs.safety.outputs.safe_to_destroy == 'true'
+    uses: ./.github/workflows/.deployer_aca.yml
+    with:
+      environment_name: dev
+      command: destroy
+      stack_prefix: ${{ needs.compute-prefix.outputs.STACK_PREFIX }}
+      app_env: dev
+      deployment_type: container_apps
+      branch_slug: ${{ needs.compute-slug.outputs.branch_slug }}
+      target_modules: '-target=module.container_apps.azurerm_container_app.backend'
+    secrets: inherit
