@@ -169,10 +169,10 @@ resource "azurerm_container_app" "backend" {
         value = tostring(var.orchestrator_agent_port)
       }
 
-      env {
-        name  = "LOG_LEVEL"
-        value = var.log_level
-      }
+      # env {
+      #   name  = "LOG_LEVEL"
+      #   value = var.log_level
+      # }
 
       # A2A URLs - use localhost since all containers are in the same pod
       env {
@@ -202,22 +202,6 @@ resource "azurerm_container_app" "backend" {
         secret_name = "appinsights-instrumentation-key"
       }
 
-      # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
-      }
-
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
-      }
-
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
-      }
-
       # Azure OpenAI Configuration
       env {
         name        = "AZURE_OPENAI_API_KEY"
@@ -239,120 +223,120 @@ resource "azurerm_container_app" "backend" {
         value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
-      # Azure Search Configuration
-      env {
-        name  = "AZURE_SEARCH_ENDPOINT"
-        value = var.azure_search_endpoint
-      }
+      # # Azure Search Configuration
+      # env {
+      #   name  = "AZURE_SEARCH_ENDPOINT"
+      #   value = var.azure_search_endpoint
+      # }
 
-      env {
-        name        = "AZURE_SEARCH_API_KEY"
-        secret_name = "azure-search-api-key"
-      }
+      # env {
+      #   name        = "AZURE_SEARCH_API_KEY"
+      #   secret_name = "azure-search-api-key"
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_INDEX_NAME"
-        value = var.azure_search_index_name
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_INDEX_NAME"
+      #   value = var.azure_search_index_name
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_TOP"
-        value = tostring(var.azure_search_top)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_TOP"
+      #   value = tostring(var.azure_search_top)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_TRIM_LENGTH"
-        value = tostring(var.azure_search_trim_length)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_TRIM_LENGTH"
+      #   value = tostring(var.azure_search_trim_length)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
-        value = tostring(var.azure_search_enable_trimming)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_ENABLE_TRIMMING"
+      #   value = tostring(var.azure_search_enable_trimming)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
-        value = tostring(var.azure_search_include_total_count)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
+      #   value = tostring(var.azure_search_include_total_count)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_TYPE"
-        value = var.azure_search_query_type
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_TYPE"
+      #   value = var.azure_search_query_type
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
-        value = var.azure_search_semantic_configuration
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
+      #   value = var.azure_search_semantic_configuration
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_CAPTION"
-        value = var.azure_search_query_caption
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_CAPTION"
+      #   value = var.azure_search_query_caption
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER"
-        value = var.azure_search_query_answer
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_ANSWER"
+      #   value = var.azure_search_query_answer
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
-        value = tostring(var.azure_search_query_answer_count)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
+      #   value = tostring(var.azure_search_query_answer_count)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
-        value = var.azure_search_query_language
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_LANGUAGE"
+      #   value = var.azure_search_query_language
+      # }
 
       # Agent Configuration
-      env {
-        name  = "AGENT_TEMPERATURE"
-        value = tostring(var.agent_temperature)
-      }
+      # env {
+      #   name  = "AGENT_TEMPERATURE"
+      #   value = tostring(var.agent_temperature)
+      # }
 
-      env {
-        name  = "AGENT_MAX_TOKENS"
-        value = tostring(var.agent_max_tokens)
-      }
+      # env {
+      #   name  = "AGENT_MAX_TOKENS"
+      #   value = tostring(var.agent_max_tokens)
+      # }
 
       # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
-      }
+      # env {
+      #   name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+      #   value = var.azure_document_intelligence_endpoint
+      # }
 
-      env {
-        name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-        secret_name = "azure-document-intelligence-key"
-      }
+      # env {
+      #   name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
+      #   secret_name = "azure-document-intelligence-key"
+      # }
 
       # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
-      }
+      # env {
+      #   name  = "AZURE_STORAGE_ACCOUNT_NAME"
+      #   value = var.azure_storage_account_name
+      # }
 
-      env {
-        name        = "AZURE_STORAGE_ACCOUNT_KEY"
-        secret_name = "azure-storage-account-key"
-      }
+      # env {
+      #   name        = "AZURE_STORAGE_ACCOUNT_KEY"
+      #   secret_name = "azure-storage-account-key"
+      # }
 
-      env {
-        name  = "AZURE_STORAGE_CONTAINER_NAME"
-        value = var.azure_storage_container_name
-      }
+      # env {
+      #   name  = "AZURE_STORAGE_CONTAINER_NAME"
+      #   value = var.azure_storage_container_name
+      # }
 
       # Azure Blob Storage Configuration
-      env {
-        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
-        secret_name = "azure-blobstorage-connectionstring"
-      }
+      # env {
+      #   name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+      #   secret_name = "azure-blobstorage-connectionstring"
+      # }
 
-      env {
-        name  = "AZURE_BLOBSTORAGE_CONTAINER"
-        value = var.azure_blobstorage_container
-      }
+      # env {
+      #   name  = "AZURE_BLOBSTORAGE_CONTAINER"
+      #   value = var.azure_blobstorage_container
+      # }
 
       # Redis Configuration
       env {
@@ -423,10 +407,10 @@ resource "azurerm_container_app" "backend" {
         value = tostring(var.conversation_agent_port)
       }
 
-      env {
-        name  = "LOG_LEVEL"
-        value = var.log_level
-      }
+      # env {
+      #   name  = "LOG_LEVEL"
+      #   value = var.log_level
+      # }
 
       # Application Insights
       env {
@@ -440,20 +424,20 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
-      }
+      # env {
+      #   name  = "COSMOS_DB_ENDPOINT"
+      #   value = var.cosmosdb_endpoint
+      # }
 
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
-      }
+      # env {
+      #   name  = "COSMOS_DB_DATABASE_NAME"
+      #   value = var.cosmosdb_db_name
+      # }
 
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
-      }
+      # env {
+      #   name  = "COSMOS_DB_CONTAINER_NAME"
+      #   value = var.cosmosdb_container_name
+      # }
 
       # Azure OpenAI Configuration
       env {
@@ -492,20 +476,20 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_search_index_name
       }
 
-      env {
-        name  = "AZURE_SEARCH_TOP"
-        value = tostring(var.azure_search_top)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_TOP"
+      #   value = tostring(var.azure_search_top)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_TRIM_LENGTH"
-        value = tostring(var.azure_search_trim_length)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_TRIM_LENGTH"
+      #   value = tostring(var.azure_search_trim_length)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
-        value = tostring(var.azure_search_enable_trimming)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_ENABLE_TRIMMING"
+      #   value = tostring(var.azure_search_enable_trimming)
+      # }
 
       env {
         name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
@@ -554,73 +538,73 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
-      }
+      # env {
+      #   name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+      #   value = var.azure_document_intelligence_endpoint
+      # }
 
-      env {
-        name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-        secret_name = "azure-document-intelligence-key"
-      }
+      # env {
+      #   name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
+      #   secret_name = "azure-document-intelligence-key"
+      # }
 
       # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
-      }
+      # env {
+      #   name  = "AZURE_STORAGE_ACCOUNT_NAME"
+      #   value = var.azure_storage_account_name
+      # }
 
-      env {
-        name        = "AZURE_STORAGE_ACCOUNT_KEY"
-        secret_name = "azure-storage-account-key"
-      }
+      # env {
+      #   name        = "AZURE_STORAGE_ACCOUNT_KEY"
+      #   secret_name = "azure-storage-account-key"
+      # }
 
-      env {
-        name  = "AZURE_STORAGE_CONTAINER_NAME"
-        value = var.azure_storage_container_name
-      }
+      # env {
+      #   name  = "AZURE_STORAGE_CONTAINER_NAME"
+      #   value = var.azure_storage_container_name
+      # }
 
-      # Azure Blob Storage Configuration
-      env {
-        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
-        secret_name = "azure-blobstorage-connectionstring"
-      }
+      # # Azure Blob Storage Configuration
+      # env {
+      #   name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+      #   secret_name = "azure-blobstorage-connectionstring"
+      # }
 
-      env {
-        name  = "AZURE_BLOBSTORAGE_CONTAINER"
-        value = var.azure_blobstorage_container
-      }
+      # env {
+      #   name  = "AZURE_BLOBSTORAGE_CONTAINER"
+      #   value = var.azure_blobstorage_container
+      # }
 
       # Redis Configuration
-      env {
-        name  = "REDIS_HOST"
-        value = var.redis_host
-      }
+      # env {
+      #   name  = "REDIS_HOST"
+      #   value = var.redis_host
+      # }
 
-      env {
-        name  = "REDIS_PORT"
-        value = tostring(var.redis_port)
-      }
+      # env {
+      #   name  = "REDIS_PORT"
+      #   value = tostring(var.redis_port)
+      # }
 
-      env {
-        name        = "REDIS_PASSWORD"
-        secret_name = "redis-password"
-      }
+      # env {
+      #   name        = "REDIS_PASSWORD"
+      #   secret_name = "redis-password"
+      # }
 
-      env {
-        name  = "REDIS_SSL"
-        value = tostring(var.redis_ssl)
-      }
+      # env {
+      #   name  = "REDIS_SSL"
+      #   value = tostring(var.redis_ssl)
+      # }
 
-      env {
-        name  = "REDIS_TTL_DAYS"
-        value = tostring(var.redis_ttl_days)
-      }
+      # env {
+      #   name  = "REDIS_TTL_DAYS"
+      #   value = tostring(var.redis_ttl_days)
+      # }
 
-      env {
-        name = "CORS_ALLOW_ORIGINS"
-        value = tostring(var.cors_allow_origins)
-      }
+      # env {
+      #   name = "CORS_ALLOW_ORIGINS"
+      #   value = tostring(var.cors_allow_origins)
+      # }
     }
 
     # Form Support Agent Container - Sidecar 2
@@ -660,10 +644,10 @@ resource "azurerm_container_app" "backend" {
         value = tostring(var.formsupport_agent_port)
       }
 
-      env {
-        name  = "LOG_LEVEL"
-        value = var.log_level
-      }
+      # env {
+      #   name  = "LOG_LEVEL"
+      #   value = var.log_level
+      # }
 
       # Application Insights
       env {
@@ -677,20 +661,20 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
-      }
+      # env {
+      #   name  = "COSMOS_DB_ENDPOINT"
+      #   value = var.cosmosdb_endpoint
+      # }
 
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
-      }
+      # env {
+      #   name  = "COSMOS_DB_DATABASE_NAME"
+      #   value = var.cosmosdb_db_name
+      # }
 
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
-      }
+      # env {
+      #   name  = "COSMOS_DB_CONTAINER_NAME"
+      #   value = var.cosmosdb_container_name
+      # }
 
       # Azure OpenAI Configuration
       env {
@@ -714,108 +698,108 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Search Configuration
-      env {
-        name  = "AZURE_SEARCH_ENDPOINT"
-        value = var.azure_search_endpoint
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_ENDPOINT"
+      #   value = var.azure_search_endpoint
+      # }
 
-      env {
-        name        = "AZURE_SEARCH_API_KEY"
-        secret_name = "azure-search-api-key"
-      }
+      # env {
+      #   name        = "AZURE_SEARCH_API_KEY"
+      #   secret_name = "azure-search-api-key"
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_INDEX_NAME"
-        value = var.azure_search_index_name
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_INDEX_NAME"
+      #   value = var.azure_search_index_name
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_TOP"
-        value = tostring(var.azure_search_top)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_TOP"
+      #   value = tostring(var.azure_search_top)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_TRIM_LENGTH"
-        value = tostring(var.azure_search_trim_length)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_TRIM_LENGTH"
+      #   value = tostring(var.azure_search_trim_length)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
-        value = tostring(var.azure_search_enable_trimming)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_ENABLE_TRIMMING"
+      #   value = tostring(var.azure_search_enable_trimming)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
-        value = tostring(var.azure_search_include_total_count)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
+      #   value = tostring(var.azure_search_include_total_count)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_TYPE"
-        value = var.azure_search_query_type
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_TYPE"
+      #   value = var.azure_search_query_type
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
-        value = var.azure_search_semantic_configuration
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
+      #   value = var.azure_search_semantic_configuration
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_CAPTION"
-        value = var.azure_search_query_caption
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_CAPTION"
+      #   value = var.azure_search_query_caption
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER"
-        value = var.azure_search_query_answer
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_ANSWER"
+      #   value = var.azure_search_query_answer
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
-        value = tostring(var.azure_search_query_answer_count)
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
+      #   value = tostring(var.azure_search_query_answer_count)
+      # }
 
-      env {
-        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
-        value = var.azure_search_query_language
-      }
+      # env {
+      #   name  = "AZURE_SEARCH_QUERY_LANGUAGE"
+      #   value = var.azure_search_query_language
+      # }
 
-      # Agent Configuration
-      env {
-        name  = "AGENT_TEMPERATURE"
-        value = tostring(var.agent_temperature)
-      }
+      # # Agent Configuration
+      # env {
+      #   name  = "AGENT_TEMPERATURE"
+      #   value = tostring(var.agent_temperature)
+      # }
 
-      env {
-        name  = "AGENT_MAX_TOKENS"
-        value = tostring(var.agent_max_tokens)
-      }
+      # env {
+      #   name  = "AGENT_MAX_TOKENS"
+      #   value = tostring(var.agent_max_tokens)
+      # }
 
       # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
-      }
+      # env {
+      #   name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+      #   value = var.azure_document_intelligence_endpoint
+      # }
 
-      env {
-        name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-        secret_name = "azure-document-intelligence-key"
-      }
+      # env {
+      #   name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
+      #   secret_name = "azure-document-intelligence-key"
+      # }
 
       # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
-      }
+      # env {
+      #   name  = "AZURE_STORAGE_ACCOUNT_NAME"
+      #   value = var.azure_storage_account_name
+      # }
 
-      env {
-        name        = "AZURE_STORAGE_ACCOUNT_KEY"
-        secret_name = "azure-storage-account-key"
-      }
+      # env {
+      #   name        = "AZURE_STORAGE_ACCOUNT_KEY"
+      #   secret_name = "azure-storage-account-key"
+      # }
 
-      env {
-        name  = "AZURE_STORAGE_CONTAINER_NAME"
-        value = var.azure_storage_container_name
-      }
+      # env {
+      #   name  = "AZURE_STORAGE_CONTAINER_NAME"
+      #   value = var.azure_storage_container_name
+      # }
 
       # Azure Blob Storage Configuration
       env {
@@ -829,35 +813,35 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Redis Configuration
-      env {
-        name  = "REDIS_HOST"
-        value = var.redis_host
-      }
+      # env {
+      #   name  = "REDIS_HOST"
+      #   value = var.redis_host
+      # }
 
-      env {
-        name  = "REDIS_PORT"
-        value = tostring(var.redis_port)
-      }
+      # env {
+      #   name  = "REDIS_PORT"
+      #   value = tostring(var.redis_port)
+      # }
 
-      env {
-        name        = "REDIS_PASSWORD"
-        secret_name = "redis-password"
-      }
+      # env {
+      #   name        = "REDIS_PASSWORD"
+      #   secret_name = "redis-password"
+      # }
 
-      env {
-        name  = "REDIS_SSL"
-        value = tostring(var.redis_ssl)
-      }
+      # env {
+      #   name  = "REDIS_SSL"
+      #   value = tostring(var.redis_ssl)
+      # }
 
-      env {
-        name  = "REDIS_TTL_DAYS"
-        value = tostring(var.redis_ttl_days)
-      }
+      # env {
+      #   name  = "REDIS_TTL_DAYS"
+      #   value = tostring(var.redis_ttl_days)
+      # }
 
-      env {
-        name = "CORS_ALLOW_ORIGINS"
-        value = tostring(var.cors_allow_origins)
-      }
+      # env {
+      #   name = "CORS_ALLOW_ORIGINS"
+      #   value = tostring(var.cors_allow_origins)
+      # }
     }
     /*
     # API Backend Container - Public-facing WebSocket gateway to orchestrator
