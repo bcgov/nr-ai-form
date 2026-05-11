@@ -1,7 +1,7 @@
 {
     "formName": "Water Licence Application",
     "formDescription": "Step 4 - Location - Spatial Files - Multi-File Upload",
-    "properties": {
+    "formFields": {
         "Uploader": {
             "type": "multifileupload",
             "id": "uploader",
