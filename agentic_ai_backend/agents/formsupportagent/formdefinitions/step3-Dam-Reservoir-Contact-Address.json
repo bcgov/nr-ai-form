@@ -1,6 +1,6 @@
 {
-  "formName": "Step 3 - Dam Safety - Contact Individual - Water Licence Application",
-  "formDescription": "This section allows for the entry of a mailing address for a professional contact. It features AddressComplete integration for auto-population. Manual entries require the full name of the province or state, and USA residents must provide a 9-digit ZIP code.",
+  "formName": "Step 3 - Dam Safety - Contact Individual or Organization - Water Licence Application",
+  "formDescription": "This section allows for the entry of a mailing address for a professional contact (an individual or organization). It features AddressComplete integration for auto-population. Manual entries require the full name of the province or state, and USA residents must provide a 9-digit ZIP code.",
   "formfields": {
     "Line1": {
       "type": "text",

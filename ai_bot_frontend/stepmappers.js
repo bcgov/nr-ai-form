@@ -24,7 +24,7 @@ const FormSteps = {
     STEP4_LOCATION_OTHER_AFFECTED_LANDS_PROVINCIAL_CROWN_LAND: "step4-Location-Other-Affected-Lands-Provincial-Crown-Land",
     STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD: "step4-Location-Spatial-Files-Multi-File-Upload",
     STEP4_LOCATION: "step4-Location",
-    STEP4_LOCATION_CONSOLIDATED: "step4-Location_consolidated",
+    STEP4_LOCATION_CONSOLIDATED: "step4-Location-Location-Details",
     STEP5_FILE_UPLOAD: "step5-File-Upload",
     STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
     STEP7_BUSINESS_COAPPLICANT: "step7-Business-Coapplicant",

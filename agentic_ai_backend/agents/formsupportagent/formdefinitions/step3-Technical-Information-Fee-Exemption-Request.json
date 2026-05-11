@@ -1,7 +1,7 @@
 {
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Technical Information - Government and First Nation Fee Exemption Request",
-    "properties": {
+    "formfields": {
         "IsEligibleForFeeExemption": {
             "type": "radio",
             "enum": [

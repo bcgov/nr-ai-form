@@ -1,0 +1,105 @@
+{
+    "formName": "Step 4 - Location and Land Details for Water Licence Application",
+    "formDescription": "This section collects comprehensive land details where water will be used. Fields will dynamically adjust based on whether the land is Private, Provincial Crown, or Other.",
+    "formfields": {
+        "LandOwnershipCategory": {
+            "type": "radio",
+            "id": "LandOwnershipCategory",
+            "title": "What is the category of land ownership?",
+            "description": "Select the category that best describes the ownership of the land (Private, Provincial Crown, or Other).",
+            "enum": [
+                "Private Land",
+                "Provincial Crown Land",
+                "Other"
+            ],
+            "default": "Private Land",
+            "required": true
+        },
+        "LegalDescription": {
+            "type": "textarea",
+            "id": "LegalDescription",
+            "title": "Legal Description:",
+            "description": "The official full legal description of the property parcel as recorded in the land title system.",
+            "default": "",
+            "required": true
+        },
+        "ParcelIdentifierPID": {
+            "type": "text",
+            "id": "ParcelIdentifierPID",
+            "title": "Parcel Identifier (PID):",
+            "description": "The nine-digit number used to identify a parcel of land in the BC Land Title Register.",
+            "default": "",
+            "required": true,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "equals",
+                "value": "Private Land"
+            }
+        },
+        "CertificateOfTitleNo": {
+            "type": "text",
+            "id": "CertificateOfTitleNo",
+            "title": "Certificate of Title No:",
+            "description": "The identification number of the Certificate of Title for the property.",
+            "default": "",
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "equals",
+                "value": "Private Land"
+            }
+        },
+        "MetesAndBounds": {
+            "type": "textarea",
+            "id": "MetesAndBounds",
+            "title": "Metes and Bounds (description of unsurveyed land):",
+            "description": "A detailed technical description of the boundaries for land that has not been officially surveyed.",
+            "default": "",
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "in",
+                "value": ["Provincial Crown Land", "Other"]
+            }
+        },
+        "MineralTenureNumber": {
+            "type": "text",
+            "id": "MineralTenureNumber",
+            "title": "Mineral Tenure Number:",
+            "description": "The identification number associated with mineral rights or tenure on the property.",
+            "default": "",
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "equals",
+                "value": "Provincial Crown Land"
+            }
+        },
+        "LandTenureNumber": {
+            "type": "text",
+            "id": "LandTenureNumber",
+            "title": "Lands File Number:",
+            "description": "The provincial file number associated with the land tenure.",
+            "default": "",
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "equals",
+                "value": "Provincial Crown Land"
+            }
+        },
+        "OtherPermits": {
+            "type": "text",
+            "id": "OtherPermits",
+            "title": "Other Permits (Provide Type & Number):",
+            "description": "Information regarding any other relevant provincial or local permits for the land.",
+            "default": "",
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "equals",
+                "value": "Provincial Crown Land"
+            }
+        }
+    }
+}

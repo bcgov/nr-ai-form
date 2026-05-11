@@ -1,25 +1,25 @@
 {
-    "formName": "Land Information - Provincial Crown Affected Land Details",
-    "formDescription": "This section is used to provide details about land parcels categorized as 'Provincial Crown' that are physically affected by the works. It collects ownership information, physical location descriptions, and formal legal identifiers.",
+    "formName": "Land Information - Affected Land Description",
+    "formDescription": "This section collects details for land that is physically affected by the project works. Fields adapt dynamically based on the selected category of land ownership.",
     "formfields": {
         "LandOwnershipCategory": {
             "type": "radio",
             "id": "LandOwnershipCategory",
             "title": "What is the category of land ownership?",
-            "description": "Classification of the land ownership (Private, Provincial Crown, or Other).",
+            "description": "Classification of the land being described (Private, Provincial Crown, or Other).",
             "enum": [
                 "Private Land",
                 "Provincial Crown Land",
                 "Other"
             ],
-            "default": "Other",
+            "default": "Private Land",
             "required": true
         },
         "LandOwnerAffected": {
             "type": "text",
             "id": "LandOwnerAffected",
             "title": "Name of owner of land that is affected by your works:",
-            "description": "Full legal name of the owner of the affected land parcel.",
+            "description": "Full legal name of the individual or entity that owns the affected land parcel.",
             "default": "",
             "required": false
         },
@@ -27,7 +27,7 @@
             "type": "textarea",
             "id": "CivicAddressOther",
             "title": "Civic address or other location description of affected land:",
-            "description": "The street address or physical description identifying the location of the land.",
+            "description": "The street address, physical description, or general location of the affected property.",
             "default": "",
             "required": false
         },
@@ -35,7 +35,7 @@
             "type": "textarea",
             "id": "LegalDescription",
             "title": "Legal Description:",
-            "description": "The formal legal description of the property as it appears on the Land Title.",
+            "description": "The formal legal description of the property as recorded in the Land Title system.",
             "default": "",
             "required": true
         },
@@ -51,9 +51,17 @@
             "type": "text",
             "id": "CertificateOfTitleNo",
             "title": "Certificate of Title No:",
-            "description": "The unique number identifying the Certificate of Title for this parcel.",
+            "description": "The registration number of the Certificate of Title for the affected property.",
             "default": "",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "in",
+                "value": [
+                    "Private Land",
+                    "Provincial Crown Land"
+                ]
+            }
         }
     }
 }
