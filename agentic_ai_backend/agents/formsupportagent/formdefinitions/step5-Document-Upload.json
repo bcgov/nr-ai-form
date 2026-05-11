@@ -1,7 +1,7 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 5 - File Upload",
-    "properties": {
+    "formName": "Step 5 - File Upload for Water Licence Application",
+    "formDescription": "This page is the document upload step of a Water Licence Application. It lets you attach required supporting files, such as a 'Drawing to Scale', 'Copy of Private Lease', 'Joint Works Agreement' or 'Other'. You must upload files individually (no ZIP files) and ensure each file is under 50MB. The page shows uploaded files and allows you to add or delete them before completing the application.",
+    "formfields": {
         "DocumentTypeObjectId_100376180_100383475_185549540": {
             "type": "string",
             "enum": [
@@ -26,8 +26,7 @@
             "type": "string",
             "id": "Description_100376180_100383475_185549540",
             "title": "Description",
-            "required": true,
-            "maxLength": 500
+            "required": true
         }
     }
 }

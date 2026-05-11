@@ -170,6 +170,11 @@ dmypy.json
 .ipynb_checkpoints/
 uv.lock
 docs/*
+
+.kiro/*
+
+.vscode/*
+.vscode
 *.zip
 *.env
 
@@ -181,3 +186,7 @@ docs/*
 
 agentic_ai_backend/agents/orchestrators/dev.1env
 agentic_ai_backend/automationtests/responses/*.txt
+
+
+.kiro
+.kiro/*

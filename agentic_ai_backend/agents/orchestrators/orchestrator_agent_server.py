@@ -91,8 +91,9 @@ async def invoke_agent(request: InvokeRequest):
         if output_event:
              # The result from orchestrate_a2a is a WorkflowOutputEvent object
              # We want to return something serializable. data is typically a list of messages.
+             output = output_event if isinstance(output_event, list) else ([output_event] if output_event is not None else [])
              return InvokeResponse(
-                 response=output_event,
+                 response=output,
                  session_id=effective_session_id
              )
         else:
