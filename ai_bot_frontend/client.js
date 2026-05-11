@@ -120,10 +120,10 @@ const FormSteps = {
     step2eligibility: "step2-Eligibility",
     STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
     STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
-    STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS: "step3-Dam-Reservoir-Add-Individual-Mailing-Address",
+    STEP3_DAM_RESERVOIR_CONTACT_ADDRESS: "step3-Dam-Reservoir-Contact-Address",
     STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL: "step3-Dam-Reservoir-Add-Individual",
-    STEP3_DAM_RESERVOIR_ADD_ORGANIZATION_MAILING_ADDRESS: "step3-Dam-Reservoir-Add-Organization-Mailing-Address",
     STEP3_DAM_RESERVOIR_ADD_ORGANIZATION: "step3-Dam-Reservoir-Add-Organization",
+    STEP3_TECHNICAL_INFORMATION_ADD_WELL: "step3-Technical-Information-Add-Well",
     STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR: "step3-Technical-Information-Dam-Reservoir",
     STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST: "step3-Technical-Information-Fee-Exemption-Request",
     STEP3_TECHNICAL_INFORMATION_JOINT_WORKS: "step3-Technical-Information-Joint-Works",
@@ -296,7 +296,13 @@ function getStep3SubstepFromPaneHeader() {
 
     const step3PaneHeaderMap = {
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+        step3jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+        step3damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+        step3landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+        step3otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+        step3soureofwater: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
     };
 
     return step3PaneHeaderMap[paneHeaderText] || null;
@@ -325,6 +331,20 @@ function getCurrentFormStepFromPaneHeaders() {
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
         waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
         addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
+        step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+        step3soureofwater: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+        step3addsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+        step3jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+        step3damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+        step3damreservoircontactindividual: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+        step3damreservoircontactindividualmailingaddress: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS,
+        step3damreservoircontactorganization: FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
+        step3addwell: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+        step3landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+        step3otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+        step4location: FormSteps.STEP4_LOCATION,
+        step4locationlanddetails: FormSteps.STEP4_LOCATION_LAND_DETAILS,
+        step4locationotheraffectedlands: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
         step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
         step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
         step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION,
