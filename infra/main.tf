@@ -54,18 +54,19 @@ module "frontdoor" {
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
-module "cosmos" {
-  source = "./modules/cosmos"
-
-  app_name                   = var.app_name
-  common_tags                = var.common_tags
-  location                   = var.location
-  resource_group_name        = azurerm_resource_group.main.name
-  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
-  log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
-
-  depends_on = [azurerm_resource_group.main, module.network]
-}
+## Cosmos DB module disabled
+#module "cosmos" {
+#  source = "./modules/cosmos"
+#
+#  app_name                   = var.app_name
+#  common_tags                = var.common_tags
+#  location                   = var.location
+#  resource_group_name        = azurerm_resource_group.main.name
+#  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
+#  log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
+#
+#  depends_on = [azurerm_resource_group.main, module.network]
+#}
 
 # Container Apps Deployment (only deployment type supported)
 module "container_apps" {
@@ -107,9 +108,14 @@ module "container_apps" {
   container_registry_url  = var.container_registry_url
 
   # CosmosDB
-  cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
-  cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
-  cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
+  # Original CosmosDB inputs (commented out)
+  #  cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
+  #  cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
+  #  cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
+  # CosmosDB (disabled for now)
+  cosmosdb_endpoint       = ""
+  cosmosdb_db_name        = ""
+  cosmosdb_container_name = ""
 
   # Monitoring
   log_analytics_workspace_id      = module.monitoring.log_analytics_workspace_id
@@ -171,17 +177,19 @@ module "container_apps" {
 
   cors_allow_origins = var.cors_allow_origins
   
-  depends_on = [module.network, module.cosmos, module.monitoring]
+  # Original dependency included Cosmos module (commented out)
+  #  depends_on = [module.network, module.cosmos, module.monitoring]
+  depends_on = [module.network, module.monitoring]
 }
 
 
 
 
 # Assign the Container App's managed identity to the Cosmos DB SQL Database with Data Contributor role
-resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_container_app_data_contributor" {
-  resource_group_name = var.resource_group_name
-  account_name        = module.cosmos.account_name
-  role_definition_id  = "${module.cosmos.account_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
-  principal_id        = module.container_apps.backend_managed_identity_principal_id
-  scope               = module.cosmos.account_id
-}
+#resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_role_assignment_container_app_data_contributor" {
+#  resource_group_name = var.resource_group_name
+#  account_name        = module.cosmos.account_name
+#  role_definition_id  = "${module.cosmos.account_id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002"
+#  principal_id        = module.container_apps.backend_managed_identity_principal_id
+#  scope               = module.cosmos.account_id
+#}
