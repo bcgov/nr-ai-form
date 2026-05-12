@@ -1,7 +1,7 @@
 {
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Add Purpose - Consolidated (Domestic, Industrial, Irrigation, Livestock)",
-    "properties": {
+    "formfields": {
         "PurposeUseSector": {
             "type": "select",
             "id": "PurposeUseSector",
