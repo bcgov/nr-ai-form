@@ -2,9 +2,7 @@
 FastAPI A2A Wrapper for Conversation Agent
 This is a standalone wrapper that imports and exposes the ConversationAgent via HTTP
 """
-import asyncio
 import os
-import sys
 from fastapi import FastAPI, HTTPException
 from agent_framework import AgentSession
 from dotenv import load_dotenv
@@ -31,13 +29,7 @@ def get_agent():
     """Get or create the agent instance"""
     agent_instance = None
     try:            
-        endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
-        api_key = os.environ["AZURE_OPENAI_API_KEY"]
-        deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
-        api_version = os.environ["AZURE_OPENAI_API_VERSION"]
-        max_tokens = int(os.getenv("AGENT_MAX_TOKENS", "800"))
-        temperature = float(os.getenv("AGENT_TEMPERATURE", "0.1"))
-        agent_instance = ConversationAgent(endpoint, api_key, deployment_name, api_version,max_tokens, temperature)
+        agent_instance = ConversationAgent()
     except Exception as e:
         raise RuntimeError(f"Failed to initialize agent: {str(e)}")
     
