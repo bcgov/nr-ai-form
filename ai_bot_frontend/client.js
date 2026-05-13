@@ -62,7 +62,11 @@ const GUIDED_QUESTIONS_ENABLED = false;
 
 
 //-------------------------- Services Starts ---------------------------//
-const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+// TEST URL
+// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+
+// DEV URL
+const ORCHESTRATOR_API_URL = "https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/invoke";
 // const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 // Guided questions live on the same backend host as the chat/orchestrator API.
 
