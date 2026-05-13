@@ -1557,8 +1557,8 @@ function initBot() {
 
 const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
 // TODO: Remove once delivery contains the necessary subheaders and ai-mode flags.
-const isInternalTesting = localStorage.getItem('aot-internal') === 'true';
-if (isAIAssistantEnabled || isInternalTesting) {
+// const isInternalTesting = localStorage.getItem('aot-internal') === 'true';
+if (isAIAssistantEnabled) {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initBot);
     } else {
