@@ -297,12 +297,18 @@ function getStep3SubstepFromPaneHeader() {
     const step3PaneHeaderMap = {
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
         waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
-        step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
-        step3jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
-        step3damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-        step3landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
-        step3otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
-        step3soureofwater: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+        works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+        jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+        damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+        landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+        otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+        // Add Well Popup
+        well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+        // Add Surface Water Source Popup
+        surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+        
+        // On the main form window; Not to be confused with the popup.
+        sourceofwaterforapplication: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
     };
 
     return step3PaneHeaderMap[paneHeaderText] || null;
@@ -527,9 +533,9 @@ function applySuggestionToElements(suggestion, elements) {
     const type = String(suggestion.type || '').toLowerCase();
     const first = elements[0];
 
-    const radioOrCheckboxElements = elements.filter((el) => el.type === 'radio' || el.type === 'checkbox');
-    if (type === 'radio' || type === 'checkbox' || radioOrCheckboxElements.length > 0) {
-        const target = (radioOrCheckboxElements.length > 0 ? radioOrCheckboxElements : elements).find((el) => {
+    const radioElements = elements.filter((el) => el.type === 'radio');
+    if (type === 'radio' || radioElements.length > 0) {
+        const target = (radioElements.length > 0 ? radioElements : elements).find((el) => {
             const byValue = normalizeComparableValue(el.value);
             const byLabel = normalizeComparableValue(getAssociatedLabelText(el));
             return byValue === expected || byLabel === expected;
@@ -541,6 +547,30 @@ function applySuggestionToElements(suggestion, elements) {
             target.dispatchEvent(new Event('change', { bubbles: true }));
             return true;
         }
+        return false;
+    }
+    const checkboxElements = elements.filter((el) => el.type === 'checkbox');
+    if (type === 'checkbox' || checkboxElements.length > 0) {
+        const truthyValues = ['y', 'yes', 'true', '1', 'on', 'checked'];
+        const falsyValues = ['n', 'no', 'false', '0', 'off', 'unchecked'];
+        let targetState = null;
+        if (truthyValues.includes(expected)) targetState = true;
+        if (falsyValues.includes(expected)) targetState = false;
+        if (targetState === null) {
+            console.warn(`Unable to determine target state for checkbox suggestion with value "${suggestion.suggestedvalue}". Expected values: ${truthyValues.concat(falsyValues).join(', ')}`);
+            return false;
+        }
+        const target = checkboxElements.find((el) => {
+            return el.getAttribute('data-id') === suggestion.id || el.id === suggestion.id;
+        });
+
+        if (target) {
+            target.checked = targetState;
+            target.dispatchEvent(new Event('click', { bubbles: true }));
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+        }
+        console.warn(`Checkbox element for suggestion with id "${suggestion.id}" was not found.`);
         return false;
     }
 
@@ -1526,7 +1556,9 @@ function initBot() {
 }
 
 const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
-if (isAIAssistantEnabled) {
+// TODO: Remove once delivery contains the necessary subheaders and ai-mode flags.
+const isInternalTesting = localStorage.getItem('aot-internal') === 'true';
+if (isAIAssistantEnabled || isInternalTesting) {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initBot);
     } else {
