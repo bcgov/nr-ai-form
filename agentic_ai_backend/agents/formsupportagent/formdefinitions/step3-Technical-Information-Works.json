@@ -1,6 +1,6 @@
 {
     "formName": "Step 3 - Technical Information - Works information for Water Licence Application",
-    "formDescription": "Works are the physical equipment used to move the water from its source to where it will be used. This step requires selecting the major components of your works (e.g., pumps, pipelines, dugouts) and indicating their current construction status.",
+    "formDescription": "Works are the physical equipment used to move the water from its source to where it will be used. This step requires selecting the major components of your works (e.g., pumps, pipelines, dugouts) and indicating their current construction status. There is also a field to provide additional details that may be relevant to the application, such as dimensions of dugouts or reservoirs, or specific information about the water system.",
     "formfields": {
         "Selected_Access_Road": {
             "type": "checkbox",

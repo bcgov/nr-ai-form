@@ -1,6 +1,6 @@
 {
     "formName": "Step 3 - Dam Safety - Contact Individual - Water Licence Application",
-    "formDescription": "This section identifies all relevant consultants, professional engineers, and other personnel involved in the design, supervision, construction, or maintenance of the dam or reservoir. It collects their full legal names, contact phone numbers, and primary mailing addresses.",
+    "formDescription": "This section identifies all individual consultants, professional engineers, and other personnel involved in the design, supervision, construction, or maintenance of the dam or reservoir. It collects their full legal names, contact phone numbers, and primary mailing addresses.",
     "formfields": {
         "LastName": {
             "type": "text",

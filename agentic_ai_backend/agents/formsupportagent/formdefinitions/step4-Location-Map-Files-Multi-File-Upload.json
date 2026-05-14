@@ -1,6 +1,6 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 4 - Location - Map Files - Multi-File Upload",
+    "formName": "tep 4 - Location - Map Files - Multi-File Upload for Water Licence Application",
+    "formDescription": "This form contains the multi-file upload component for uploading map files related to the location of the water use. Applicants can add multiple files, provide descriptions for each file, and start the upload process. The form displays the filename, upload status, size, and description for each file in the queue.",
     "formFields": {
         "Uploader": {
             "type": "multifileupload",
