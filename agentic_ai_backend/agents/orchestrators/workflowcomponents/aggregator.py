@@ -189,13 +189,20 @@ class Aggregator(Executor):
                 - **Strict*: In step 7 if user ask any about these keywords "consultant", "lawyer","notary","representative","representation agreement","power of attorney", "trustee","executor","administrator","board member","employee","owner","family member","friend","neighbour","trustee in bankruptcy","appointment letter","copy of will","authorization letter", ignore the conversation agent and form agent reponse and always like reponse like for more info contact frontcounterbc at [FrontCounter BC](http://www.frontcounterbc.gov.bc.ca/).
                 """
 
+                try:
+                    max_completion_tokens = int(
+                        os.getenv("AZURE_OPENAI_AGGREGATOR_MAX_COMPLETION_TOKENS", "600")
+                    )
+                except ValueError:
+                    max_completion_tokens = 600
+
                 request_kwargs: dict[str, Any] = {
                     "model": aggregator_deployment,
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt},
                     ],
-                    "max_completion_tokens": 600,
+                    "max_completion_tokens": max_completion_tokens,
                 }
                 if "gpt-5" in aggregator_deployment.lower():
                     request_kwargs["reasoning_effort"] = "minimal"
