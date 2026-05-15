@@ -1569,6 +1569,27 @@ if (isAIAssistantEnabled) {
         initBot();
     }
 }
+    // Clear chat-related storage on window close/unload.
+    function clearChatStorageOnClose(event) {
+        event.preventDefault();
+        try { sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY); } catch (e) {}
+        try {
+            localStorage.removeItem(THREAD_ID_STORAGE_KEY);
+            const historyPrefix = CHAT_HISTORY_STORAGE_PREFIX + ':';
+            const scrollPrefix = CHAT_SCROLL_STORAGE_PREFIX + ':';
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                if (key === THREAD_ID_STORAGE_KEY || key.startsWith(historyPrefix) || key.startsWith(scrollPrefix)) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach((k) => localStorage.removeItem(k));
+        } catch (e) {}
+    }
+    window.addEventListener('beforeunload', clearChatStorageOnClose);
+    window.addEventListener('unload', clearChatStorageOnClose);
     }
     )();
 
