@@ -5,7 +5,8 @@ from typing import Dict, Any, Optional
 from utils.blobservice import BlobService
 
 class FormDefinitionService:
-    def __init__(self, blob_service: BlobService, container_name: str, directory_path: str = "formdefinitions"):
+    # todo: derive directory_path for current client config
+    def __init__(self, blob_service: BlobService, container_name: str, directory_path: str = "tenants/water/formdefinitions"):
         self.blob_service = blob_service
         self.container_name = container_name
         self.directory_path = directory_path

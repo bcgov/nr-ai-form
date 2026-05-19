@@ -4,7 +4,7 @@ from typing import Optional
 from utils.blobservice import BlobService
 
 class PromptTemplateService:
-    def __init__(self, blob_service: BlobService, container_name: str, directory_path: str = "prompttemplates"):
+    def __init__(self, blob_service: BlobService, container_name: str, directory_path: str = "tenants/water/prompttemplates"):
         self.blob_service = blob_service
         self.container_name = container_name
         self.directory_path = directory_path

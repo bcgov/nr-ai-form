@@ -3,7 +3,7 @@
     "identity": {
         "name": "FormSupportAgent",
         "author": "BC Government",
-        "description": "A form support agent for BC Government's Permit Application forms that uses Azure AI Search tool.",
+        "description": "A form support agent for BC Government.",
         "avatarUrl": "",
         "version": "1.0.0",
         "license": "MIT"
@@ -11,8 +11,8 @@
     "capabilities": [
         {
             "id": "form_support_skill",
-            "name": "BC Government Permit application Form Support",
-            "description": "Answers questions about BC Government's Permit Application forms using Azure AI Search.",
+            "name": "BC Government Form Support",
+            "description": "Answers questions about BC Government's forms using Azure AI Search.",
             "tags": [
                 "form-support",
                 "permit",
