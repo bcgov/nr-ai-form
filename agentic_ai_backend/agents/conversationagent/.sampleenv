@@ -1,9 +1,18 @@
-# Legacy Azure OpenAI configuration
-# The direct Knowledge Base retrieval flow no longer uses these values.
+# ConversationAgent mode:
+#   knowledgebase (default) -> direct Azure AI Search Knowledge Base retrieval
+#   legacy                  -> Azure OpenAI chat + azure_ai_search tool calling
+CONVERSATION_AGENT_MODE=knowledgebase
+
+# Azure OpenAI configuration
+# Required when CONVERSATION_AGENT_MODE=legacy; unused by the knowledgebase flow.
 AZURE_OPENAI_API_KEY=
 AZURE_OPENAI_ENDPOINT=
 AZURE_OPENAI_CHAT_DEPLOYMENT_NAME="gpt-4o-mini"
 AZURE_OPENAI_API_VERSION="2024-10-21"
+AGENT_MAX_TOKENS=800
+AGENT_TEMPERATURE=0.1
+# Required when CONVERSATION_AGENT_MODE=legacy; the azure_ai_search tool reads it.
+AZURE_SEARCH_INDEX_NAME=
 
 # Azure AI Search Knowledge Base Configuration
 # Use your native Search endpoint, for example:
