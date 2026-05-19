@@ -11,6 +11,12 @@ from azure.search.documents.knowledgebases.models import (
     KnowledgeBaseRetrievalRequest,
     KnowledgeRetrievalSemanticIntent,
 )
+from agent_framework.openai import OpenAIChatCompletionClient
+
+# Add parent directory to path to allow importing 'tools' (llm mode only).
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from tools.azure_ai_search import azure_ai_search
 
 
 load_dotenv()
@@ -26,6 +32,14 @@ DEFAULT_KB_REASONING_EFFORT = "low"
 SUPPORTED_KB_REQUEST_MODES = {"messages", "intents"}
 SUPPORTED_KB_OUTPUT_MODES = {"answerSynthesis", "extractiveData"}
 SUPPORTED_KB_REASONING_EFFORTS = {"minimal", "low", "medium"}
+
+CONVERSATION_AGENT_MODE_KNOWLEDGEBASE = "knowledgebase"
+CONVERSATION_AGENT_MODE_LLM = "llm"
+SUPPORTED_CONVERSATION_AGENT_MODES = {
+    CONVERSATION_AGENT_MODE_KNOWLEDGEBASE,
+    CONVERSATION_AGENT_MODE_LLM,
+}
+DEFAULT_CONVERSATION_AGENT_MODE = CONVERSATION_AGENT_MODE_KNOWLEDGEBASE
 
 
 def _get_choice_env(name: str, default: str, allowed: set[str]) -> str:
@@ -70,9 +84,32 @@ def _get_kb_max_output_size() -> int:
     return max_output_size
 
 
+class AzureGatewayChatCompletionClient(OpenAIChatCompletionClient):
+    """Compatibility wrapper for gateways that reject null assistant tool-call content."""
+
+    def _prepare_message_for_openai(self, message):
+        prepared_messages = super()._prepare_message_for_openai(message)
+        for prepared_message in prepared_messages:
+            if prepared_message.get("role") == "assistant" and "tool_calls" in prepared_message:
+                # Some OpenAI-compatible gateways reject null/empty assistant content when tool_calls are present.
+                prepared_message.setdefault("content", " ")
+        return prepared_messages
+
+
+# Backward-compatible alias for older patches/tests that referenced the beta client name.
+AzureOpenAIChatClient = AzureGatewayChatCompletionClient
+
+
 class ConversationAgent:
-    """Answers user queries directly from an Azure AI Search Knowledge Base
-    (agentic retrieval), bypassing any LLM-based reasoning in this service."""
+    """Answers user queries against Azure AI Search.
+
+    Two modes selected by ``CONVERSATION_AGENT_MODE``:
+
+    - ``knowledgebase`` (default): direct Azure AI Search Knowledge Base
+      retrieval (agentic), no LLM in this service.
+    - ``llm``: Azure OpenAI chat completion driving the ``azure_ai_search``
+      tool — the older flow preserved here for fallback.
+    """
 
     class _SessionShim:
         # KB retrieval is stateless per call; the A2A server still calls
@@ -83,7 +120,20 @@ class ConversationAgent:
 
     def __init__(self, endpoint=None, api_key=None, deployment_name=None,
                  api_version=None, max_tokens=None, temperature=None):
-        # Azure OpenAI args are accepted for caller compatibility but no longer used.
+        self._mode = _get_choice_env(
+            "CONVERSATION_AGENT_MODE",
+            DEFAULT_CONVERSATION_AGENT_MODE,
+            SUPPORTED_CONVERSATION_AGENT_MODES,
+        )
+        if self._mode == CONVERSATION_AGENT_MODE_LLM:
+            self._init_llmlogic(
+                endpoint, api_key, deployment_name, api_version,
+                max_tokens, temperature,
+            )
+        else:
+            self._init_knowledgebase()
+
+    def _init_knowledgebase(self):
         search_endpoint = os.environ["AZURE_SEARCH_ENDPOINT"]
         search_api_key = os.environ["AZURE_SEARCH_API_KEY"]
         knowledge_base_name = os.environ["AZURE_SEARCH_KNOWLEDGE_AGENT_NAME"]
@@ -130,7 +180,58 @@ class ConversationAgent:
         )
         self.agent = self._SessionShim()
 
+    def _init_llmlogic(self, endpoint, api_key, deployment_name, api_version,
+                     max_tokens, temperature):
+        endpoint = endpoint or os.environ["AZURE_OPENAI_ENDPOINT"]
+        api_key = api_key or os.environ["AZURE_OPENAI_API_KEY"]
+        deployment_name = deployment_name or os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
+        api_version = api_version or os.environ["AZURE_OPENAI_API_VERSION"]
+        if max_tokens is None:
+            max_tokens = int(os.getenv("AGENT_MAX_TOKENS", "800"))
+        if temperature is None:
+            temperature = float(os.getenv("AGENT_TEMPERATURE", "0.1"))
+
+        client = AzureOpenAIChatClient(
+            model=deployment_name,
+            api_key=api_key,
+            azure_endpoint=endpoint,
+            api_version=api_version,
+        )
+        agent_kwargs = {
+            "instructions": """
+                You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.
+
+                STRICT RULES:
+                1. You must ONLY use the information provided by the azure_ai_search tool.
+                2. If the azure_ai_search tool returns "No results found" or an empty result, return "Not found" immediately.
+                3. Always include the metadata (Source and Processed with) from the azure_ai_search and all the azure_ai_search for the information you provide in your response.
+                4. Format your response clearly, citing the source and processed with and all the azure_ai_search results at the end.
+                6. Whenever you include a URL or web link in your response, always format it as a Markdown link using the syntax [descriptive text](url). Use meaningful link text that describes the destination. If no descriptive text is available, use [here](url).
+            """,
+            "tools": [azure_ai_search],
+            "name": "ConversationAgent",
+        }
+        self.agent = client.as_agent(
+            **agent_kwargs,
+            default_options={
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "tool_choice": "required",
+            },
+        )
+
     async def run(self, userquery, session=None, thread=None):
+        if self._mode == CONVERSATION_AGENT_MODE_LLM:
+            return await self._run_llmlogic(userquery)
+        return await self._run_knowledgebase(userquery, session, thread)
+
+    async def _run_llmlogic(self, userquery):
+        # Mirrors prior behavior: session/thread is intentionally not threaded
+        # into the underlying agent call.
+        result = await self.agent.run(userquery)
+        return result.text
+
+    async def _run_knowledgebase(self, userquery, session=None, thread=None):
         session_state = self._get_session_state(session, thread)
         request, user_message = self._build_request(userquery, session_state)
         try:
@@ -211,7 +312,7 @@ class ConversationAgent:
                 "message-based agentic retrieval. Use "
                 f"AZURE_SEARCH_KNOWLEDGE_AGENT_API_VERSION={DEFAULT_KB_API_VERSION} "
                 "with an Azure AI Search knowledge base endpoint, or set "
-                "AZURE_SEARCH_KNOWLEDGE_AGENT_REQUEST_MODE=intents for legacy "
+                "AZURE_SEARCH_KNOWLEDGE_AGENT_REQUEST_MODE=intents for llm "
                 f"compatibility. Current endpoint: {self._search_endpoint}; current "
                 f"api version: {self._kb_api_version}."
             )
