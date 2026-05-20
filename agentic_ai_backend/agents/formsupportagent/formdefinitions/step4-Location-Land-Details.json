@@ -1,6 +1,6 @@
 {
     "formName": "Step 4 - Location and Land Details for Water Licence Application",
-    "formDescription": "This section collects comprehensive land details where water will be used. Fields will dynamically adjust based on whether the land is Private, Provincial Crown, or Other.",
+    "formDescription": "This section collects comprehensive land details where water will be used. Details such as the legal description, parcel identifier, and tenure information are to be provided. These fields will dynamically adjust based on whether the land is Private, Provincial Crown, or Other.",
     "formfields": {
         "LandOwnershipCategory": {
             "type": "radio",

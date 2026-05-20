@@ -1,6 +1,6 @@
 {
     "formName": "Land Information - Affected Land Description",
-    "formDescription": "This section collects details for land that is physically affected by the project works. Fields adapt dynamically based on the selected category of land ownership.",
+    "formDescription": "This section collects details for other land that is physically affected by the project works. The details to be collected include the land owner's name, civic address, and legal description of the property, boundaries, and certificate of title (if a private or crown land is affected). Fields adapt dynamically based on the selected category of land ownership.",
     "formfields": {
         "LandOwnershipCategory": {
             "type": "radio",
