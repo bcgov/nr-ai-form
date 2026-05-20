@@ -62,7 +62,11 @@ const GUIDED_QUESTIONS_ENABLED = false;
 
 
 //-------------------------- Services Starts ---------------------------//
+// TEST URL
 const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+
+// DEV URL
+// const ORCHESTRATOR_API_URL = "https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/invoke";
 // const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 // Guided questions live on the same backend host as the chat/orchestrator API.
 
@@ -120,27 +124,23 @@ const FormSteps = {
     step2eligibility: "step2-Eligibility",
     STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
     STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
-    STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS: "step3-Dam-Reservoir-Add-Individual-Mailing-Address",
+    STEP3_DAM_RESERVOIR_CONTACT_ADDRESS: "step3-Dam-Reservoir-Contact-Address",
     STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL: "step3-Dam-Reservoir-Add-Individual",
-    STEP3_DAM_RESERVOIR_ADD_ORGANIZATION_MAILING_ADDRESS: "step3-Dam-Reservoir-Add-Organization-Mailing-Address",
     STEP3_DAM_RESERVOIR_ADD_ORGANIZATION: "step3-Dam-Reservoir-Add-Organization",
+    STEP3_TECHNICAL_INFORMATION_ADD_WELL: "step3-Technical-Information-Add-Well",
     STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR: "step3-Technical-Information-Dam-Reservoir",
     STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST: "step3-Technical-Information-Fee-Exemption-Request",
     STEP3_TECHNICAL_INFORMATION_JOINT_WORKS: "step3-Technical-Information-Joint-Works",
+    STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION: "step3-Technical-Information-Land-Tenure-Option",
     STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS: "step3-Technical-Information-Other-Authorizations",
     STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION: "step3-Technical-Information-Source-of-Water-for-Application",
     STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION: "step3-Technical-Information-Water-Diversion",
     STEP3_TECHNICAL_INFORMATION_WORKS: "step3-Technical-Information-Works",
-    STEP4_LOCATION_LAND_DETAILS_OTHER: "step4-Location-Land-Details-Other",
-    STEP4_LOCATION_LAND_DETAILS_PRIVATE_LAND: "step4-Location-Land-Details-Private-Land",
-    STEP4_LOCATION_LAND_DETAILS_PROVINCIAL_CROWN_LAND: "step4-Location-Land-Details-Provincial-Crown-Land",
+    STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
     STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD: "step4-Location-Map-Files-Multi-File-Upload",
-    STEP4_LOCATION_OTHER_AFFECTED_LANDS_OTHER: "step4-Location-Other-Affected-Lands-Other",
-    STEP4_LOCATION_OTHER_AFFECTED_LANDS_PRIVATE_LAND: "step4-Location-Other-Affected-Lands-Private-Land",
-    STEP4_LOCATION_OTHER_AFFECTED_LANDS_PROVINCIAL_CROWN_LAND: "step4-Location-Other-Affected-Lands-Provincial-Crown-Land",
+    STEP4_LOCATION_OTHER_AFFECTED_LANDS: "step4-Location-Other-Affected-Lands",
     STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD: "step4-Location-Spatial-Files-Multi-File-Upload",
     STEP4_LOCATION: "step4-Location",
-    STEP4_LOCATION_CONSOLIDATED: "step4-Location_consolidated",
     STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
     STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
     STEP7_BUSINESS_COAPPLICANT: "step7-Business-Coapplicant",
@@ -178,8 +178,17 @@ function saveThreadId(threadId) {
     if (!threadId) return;
     try {
         localStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
+        // We must save to sessionStorage as well because we need to distinguish between
+        // a new session (where we should clear old localStorage data) 
+        // vs 
+        // an existing session reload (where we should keep the localStorage data).
+        //
+        // NOTE: sessionStorage is inherited on a popup, so sessionStorage on the popup
+        // will have the same THREAD_ID_STORAGE_KEY value as the main window that created it, 
+        // allowing the popup to access the correct chat history.
+        sessionStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
     } catch (error) {
-        console.error("Unable to save thread ID to localStorage:", error);
+        console.error("Unable to save thread ID to localStorage and sessionStorage:", error);
     }
 }
 
@@ -300,7 +309,19 @@ function getStep3SubstepFromPaneHeader() {
 
     const step3PaneHeaderMap = {
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION
+        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+        jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+        damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+        landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+        otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+        // Add Well Popup
+        well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+        // Add Surface Water Source Popup
+        surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+        
+        // On the main form window; Not to be confused with the popup.
+        sourceofwaterforapplication: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
     };
 
     return step3PaneHeaderMap[paneHeaderText] || null;
@@ -329,6 +350,20 @@ function getCurrentFormStepFromPaneHeaders() {
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
         waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
         addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
+        step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+        step3soureofwater: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+        step3addsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+        step3jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+        step3damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+        step3damreservoircontactindividual: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+        step3damreservoircontactindividualmailingaddress: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS,
+        step3damreservoircontactorganization: FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
+        step3addwell: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+        step3landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+        step3otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+        step4location: FormSteps.STEP4_LOCATION,
+        step4locationlanddetails: FormSteps.STEP4_LOCATION_LAND_DETAILS,
+        step4locationotheraffectedlands: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
         step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
         step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
         step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION,
@@ -511,9 +546,9 @@ function applySuggestionToElements(suggestion, elements) {
     const type = String(suggestion.type || '').toLowerCase();
     const first = elements[0];
 
-    const radioOrCheckboxElements = elements.filter((el) => el.type === 'radio' || el.type === 'checkbox');
-    if (type === 'radio' || type === 'checkbox' || radioOrCheckboxElements.length > 0) {
-        const target = (radioOrCheckboxElements.length > 0 ? radioOrCheckboxElements : elements).find((el) => {
+    const radioElements = elements.filter((el) => el.type === 'radio');
+    if (type === 'radio' || radioElements.length > 0) {
+        const target = (radioElements.length > 0 ? radioElements : elements).find((el) => {
             const byValue = normalizeComparableValue(el.value);
             const byLabel = normalizeComparableValue(getAssociatedLabelText(el));
             return byValue === expected || byLabel === expected;
@@ -525,6 +560,30 @@ function applySuggestionToElements(suggestion, elements) {
             target.dispatchEvent(new Event('change', { bubbles: true }));
             return true;
         }
+        return false;
+    }
+    const checkboxElements = elements.filter((el) => el.type === 'checkbox');
+    if (type === 'checkbox' || checkboxElements.length > 0) {
+        const truthyValues = ['y', 'yes', 'true', '1', 'on', 'checked'];
+        const falsyValues = ['n', 'no', 'false', '0', 'off', 'unchecked'];
+        let targetState = null;
+        if (truthyValues.includes(expected)) targetState = true;
+        if (falsyValues.includes(expected)) targetState = false;
+        if (targetState === null) {
+            console.warn(`Unable to determine target state for checkbox suggestion with value "${suggestion.suggestedvalue}". Expected values: ${truthyValues.concat(falsyValues).join(', ')}`);
+            return false;
+        }
+        const target = checkboxElements.find((el) => {
+            return el.getAttribute('data-id') === suggestion.id || el.id === suggestion.id;
+        });
+
+        if (target) {
+            target.checked = targetState;
+            target.dispatchEvent(new Event('click', { bubbles: true }));
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+        }
+        console.warn(`Checkbox element for suggestion with id "${suggestion.id}" was not found.`);
         return false;
     }
 
@@ -1511,12 +1570,36 @@ function initBot() {
 
 const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
 if (isAIAssistantEnabled) {
+    if (!sessionStorage.getItem(THREAD_ID_STORAGE_KEY)) {
+        // This is a brand new session; Remove any localStorage items that 
+        // might be lingering from a previous session, and start fresh.
+        clearChatStorage();
+    }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initBot);
     } else {
         initBot();
     }
 }
+    // Clears chat-related storage from sessionStorage and localStorage.
+    function clearChatStorage() {
+        clearPendingSuggestions();
+        try {
+            localStorage.removeItem(THREAD_ID_STORAGE_KEY);
+            sessionStorage.removeItem(THREAD_ID_STORAGE_KEY);
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                if (key === THREAD_ID_STORAGE_KEY || key.startsWith(CHAT_HISTORY_STORAGE_PREFIX) || key.startsWith(CHAT_SCROLL_STORAGE_PREFIX)) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach((k) => localStorage.removeItem(k));
+        } catch (e) {
+            console.error('Error clearing chat storage:', e);
+        }
+    }
     }
     )();
 
