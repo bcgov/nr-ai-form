@@ -9,3 +9,8 @@ PORT="8001"
 
 AZURE_BLOBSTORAGE_CONNECTIONSTRING=
 AZURE_BLOBSTORAGE_CONTAINER=
+
+# Asset source switch
+# true: use local formdefinitions/ and prompttemplates/ when developing (requires local files, but faster for development)
+# false: use Azure Blob storage services when configured (default behavior)
+USE_LOCAL_FORM_ASSETS=false

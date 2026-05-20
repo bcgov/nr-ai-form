@@ -3,7 +3,6 @@ FastAPI A2A Wrapper for Form Support Agent
 This is a standalone wrapper that imports and exposes the FormSupportAgent via HTTP
 """
 import asyncio
-import json
 import os
 import sys
 from fastapi import FastAPI, HTTPException
@@ -16,7 +15,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from agents.formsupportagent.formsupportagent import (
     FormSupportAgent, 
     extract_step_from_query, 
-    resolve_agent_assets
+    resolve_agent_assets,
+    should_use_local_form_assets,
 )
 from agents.formsupportagent.models.formsupportmodel import InvokeRequest, InvokeResponse
 from utils.formutils import get_form_context
@@ -34,13 +34,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Initialize Blob Services
 blob_connection_string = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
 blob_container = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
 form_def_service = None
 prompt_temp_service = None
+use_local_assets = should_use_local_form_assets()
 
-if blob_connection_string and blob_container:
+# Initialize Blob Services (when not using local assets)
+if not use_local_assets and blob_connection_string and blob_container:
     try:
         blob_service = BlobService(blob_connection_string)
         form_def_service = FormDefinitionService(blob_service, blob_container)
@@ -48,6 +49,8 @@ if blob_connection_string and blob_container:
         print(f"Initialized Blob Services for container: {blob_container}")
     except Exception as e:
         print(f"Failed to initialize Blob Services: {e}")
+elif not use_local_assets:
+    print("USE_LOCAL_FORM_ASSETS is false but blob storage settings are missing. Falling back to local assets.")
 
 # Cache of agent instances per step number (step_number -> agent_instance)
 # _agent_cache = {}
@@ -79,7 +82,7 @@ def get_agent(step_identifier: Union[int, str]):
         deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
         api_version = os.environ["AZURE_OPENAI_API_VERSION"]
         
-        # Load assets from Azure Blob Storage using shared utility
+        # Load assets using shared utility
         form_definition, custom_instructions, step_key = resolve_agent_assets(
             step_identifier,
             form_definition_service=form_def_service,
@@ -90,8 +93,7 @@ def get_agent(step_identifier: Union[int, str]):
             raise FileNotFoundError(f"Form definition not found for identifier: {step_key}")
 
         
-        #form_context_str = get_form_context(form_definition)
-        form_context_str = json.dumps(form_definition)
+        form_context_str = get_form_context(form_definition)
         
         if not custom_instructions:
             raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
