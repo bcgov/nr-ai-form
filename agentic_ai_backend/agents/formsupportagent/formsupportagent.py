@@ -57,25 +57,17 @@ def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_t
     """
     print(f"Resolving assets for step: {step_identifier}")
     step_key = str(step_identifier)
+    if not form_definition_service or not prompt_template_service:
+        print("Azure Blob Storage asset services are unavailable; cannot resolve form assets.")
+        return None, None, step_key
+
+    json_filename = f"{step_key}.json"
+    md_filename = f"{step_key}.md"
     
-    # 1. Cloud/Service Path
-    if form_definition_service and prompt_template_service:
-        json_filename = f"{step_key}.json"
-        md_filename = f"{step_key}.md"
-        
-        form_definition = form_definition_service.fetch_form_definition(json_filename)
-        prompt_template = prompt_template_service.fetch_prompt_template(md_filename)
-        
-        return form_definition, prompt_template, step_key
+    form_definition = form_definition_service.fetch_form_definition(json_filename)
+    prompt_template = prompt_template_service.fetch_prompt_template(md_filename)
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.join(base_dir, "formdefinitions", f"{step_key}.json")
-    prompt_path = os.path.join(base_dir, "prompttemplates", f"{step_key}.md")
-
-    resolved_json = json_path if os.path.exists(json_path) else None
-    resolved_prompt = prompt_path if os.path.exists(prompt_path) else None
-
-    return resolved_json, resolved_prompt, step_key
+    return form_definition, prompt_template, step_key
 
 
 
@@ -170,13 +162,11 @@ async def dryrun(query):
         print("WARNING: Step identifier is required. Please use the format 'step-name: query'")
         return
 
-    step_form_definition, custom_instructions, step_key = resolve_agent_assets(step_identifier)
-    if (not step_form_definition or not custom_instructions) and form_def_service and prompt_service:
-        step_form_definition, custom_instructions, step_key = resolve_agent_assets(
-            step_identifier,
-            form_definition_service=form_def_service,
-            prompt_template_service=prompt_service,
-        )
+    step_form_definition, custom_instructions, step_key = resolve_agent_assets(
+        step_identifier,
+        form_definition_service=form_def_service,
+        prompt_template_service=prompt_service,
+    )
 
     if not step_form_definition:
         print(f"Form definition file not found for identifier: {step_key}")
