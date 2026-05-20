@@ -178,8 +178,17 @@ function saveThreadId(threadId) {
     if (!threadId) return;
     try {
         localStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
+        // We must save to sessionStorage as well because we need to distinguish between
+        // a new session (where we should clear old localStorage data) 
+        // vs 
+        // an existing session reload (where we should keep the localStorage data).
+        //
+        // NOTE: sessionStorage is inherited on a popup, so sessionStorage on the popup
+        // will have the same THREAD_ID_STORAGE_KEY value as the main window that created it, 
+        // allowing the popup to access the correct chat history.
+        sessionStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
     } catch (error) {
-        console.error("Unable to save thread ID to localStorage:", error);
+        console.error("Unable to save thread ID to localStorage and sessionStorage:", error);
     }
 }
 
@@ -1563,6 +1572,11 @@ const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
 // TODO: Remove once delivery contains the necessary subheaders and ai-mode flags.
 // const isInternalTesting = localStorage.getItem('aot-internal') === 'true';
 if (isAIAssistantEnabled) {
+    if (sessionStorage.getItem(THREAD_ID_STORAGE_KEY) !== null) {
+        // This is a brand new session; Remove any localStorage items that 
+        // might be lingering from a previous session, and start fresh.
+        clearChatStorage();
+    }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initBot);
     } else {
@@ -1570,9 +1584,9 @@ if (isAIAssistantEnabled) {
     }
 }
     // Clear chat-related storage on window close/unload.
-    function clearChatStorageOnClose(event) {
-        event.preventDefault();
-        try { sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY); } catch (e) {}
+    function clearChatStorage() {
+        // event.preventDefault();
+        clearPendingSuggestions();
         try {
             localStorage.removeItem(THREAD_ID_STORAGE_KEY);
             const historyPrefix = CHAT_HISTORY_STORAGE_PREFIX + ':';
@@ -1588,8 +1602,8 @@ if (isAIAssistantEnabled) {
             keysToRemove.forEach((k) => localStorage.removeItem(k));
         } catch (e) {}
     }
-    window.addEventListener('beforeunload', clearChatStorageOnClose);
-    window.addEventListener('unload', clearChatStorageOnClose);
+    window.addEventListener('beforeunload', clearChatStorage);
+    window.addEventListener('unload', clearChatStorage);
     }
     )();
 
