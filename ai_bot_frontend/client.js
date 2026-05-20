@@ -1583,25 +1583,24 @@ if (isAIAssistantEnabled) {
         initBot();
     }
 }
-    // Clear chat-related storage on window close/unload.
+    // Clears chat-related storage from sessionStorage and localStorage.
     function clearChatStorage() {
-        // event.preventDefault();
         clearPendingSuggestions();
         try {
             localStorage.removeItem(THREAD_ID_STORAGE_KEY);
             sessionStorage.removeItem(THREAD_ID_STORAGE_KEY);
-            const historyPrefix = CHAT_HISTORY_STORAGE_PREFIX + ':';
-            const scrollPrefix = CHAT_SCROLL_STORAGE_PREFIX + ':';
             const keysToRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (!key) continue;
-                if (key === THREAD_ID_STORAGE_KEY || key.startsWith(historyPrefix) || key.startsWith(scrollPrefix)) {
+                if (key === THREAD_ID_STORAGE_KEY || key.startsWith(CHAT_HISTORY_STORAGE_PREFIX) || key.startsWith(CHAT_SCROLL_STORAGE_PREFIX)) {
                     keysToRemove.push(key);
                 }
             }
             keysToRemove.forEach((k) => localStorage.removeItem(k));
-        } catch (e) {}
+        } catch (e) {
+            console.error('Error clearing chat storage:', e);
+        }
     }
     }
     )();
