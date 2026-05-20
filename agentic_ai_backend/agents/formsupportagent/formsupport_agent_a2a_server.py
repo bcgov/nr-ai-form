@@ -79,14 +79,12 @@ def get_agent(step_identifier: Union[int, str]):
         deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
         api_version = os.environ["AZURE_OPENAI_API_VERSION"]
         
-        # Load assets using shared utility
-        form_definition, custom_instructions, step_key = resolve_agent_assets(step_identifier)
-        if (not form_definition or not custom_instructions) and form_def_service and prompt_temp_service:
-            form_definition, custom_instructions, step_key = resolve_agent_assets(
-                step_identifier,
-                form_definition_service=form_def_service,
-                prompt_template_service=prompt_temp_service,
-            )
+        # Load assets from Azure Blob Storage using shared utility
+        form_definition, custom_instructions, step_key = resolve_agent_assets(
+            step_identifier,
+            form_definition_service=form_def_service,
+            prompt_template_service=prompt_temp_service,
+        )
         
         if not form_definition:
             raise FileNotFoundError(f"Form definition not found for identifier: {step_key}")
