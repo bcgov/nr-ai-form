@@ -1572,7 +1572,7 @@ const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
 // TODO: Remove once delivery contains the necessary subheaders and ai-mode flags.
 // const isInternalTesting = localStorage.getItem('aot-internal') === 'true';
 if (isAIAssistantEnabled) {
-    if (sessionStorage.getItem(THREAD_ID_STORAGE_KEY) !== null) {
+    if (!sessionStorage.getItem(THREAD_ID_STORAGE_KEY)) {
         // This is a brand new session; Remove any localStorage items that 
         // might be lingering from a previous session, and start fresh.
         clearChatStorage();
@@ -1589,6 +1589,7 @@ if (isAIAssistantEnabled) {
         clearPendingSuggestions();
         try {
             localStorage.removeItem(THREAD_ID_STORAGE_KEY);
+            sessionStorage.removeItem(THREAD_ID_STORAGE_KEY);
             const historyPrefix = CHAT_HISTORY_STORAGE_PREFIX + ':';
             const scrollPrefix = CHAT_SCROLL_STORAGE_PREFIX + ':';
             const keysToRemove = [];
@@ -1602,8 +1603,6 @@ if (isAIAssistantEnabled) {
             keysToRemove.forEach((k) => localStorage.removeItem(k));
         } catch (e) {}
     }
-    window.addEventListener('beforeunload', clearChatStorage);
-    window.addEventListener('unload', clearChatStorage);
     }
     )();
 
