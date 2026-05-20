@@ -16,7 +16,7 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
  * if the browser's local storage has an item 'clientInstance': 'ms'
  * javascript in remote file (see `url`) will be loaded instead  
  */
-let clientInstance = sessionStorage.getItem('clientInstance');
+let clientInstance = localStorage.getItem('clientInstance');
 if (clientInstance === 'ms') {
     var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
     var script = document.createElement("script");
@@ -168,7 +168,7 @@ function createFallbackThreadId() {
 
 function getStoredThreadId() {
     try {
-        return sessionStorage.getItem(THREAD_ID_STORAGE_KEY) || createFallbackThreadId();
+        return localStorage.getItem(THREAD_ID_STORAGE_KEY) || createFallbackThreadId();
     } catch {
         return createFallbackThreadId();
     }
@@ -177,9 +177,9 @@ function getStoredThreadId() {
 function saveThreadId(threadId) {
     if (!threadId) return;
     try {
-        sessionStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
+        localStorage.setItem(THREAD_ID_STORAGE_KEY, threadId);
     } catch (error) {
-        console.error("Unable to save thread ID to sessionStorage:", error);
+        console.error("Unable to save thread ID to localStorage:", error);
     }
 }
 
@@ -193,7 +193,7 @@ function getScrollStorageKey(threadId) {
 
 function loadChatHistory(threadId) {
     try {
-        const raw = sessionStorage.getItem(getHistoryStorageKey(threadId));
+        const raw = localStorage.getItem(getHistoryStorageKey(threadId));
         const parsed = raw ? JSON.parse(raw) : [];
         return Array.isArray(parsed) ? parsed : [];
     } catch {
@@ -205,7 +205,7 @@ function appendChatHistory(threadId, role, text) {
     try {
         const history = loadChatHistory(threadId);
         history.push({ role, text });
-        sessionStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
+        localStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
     } catch (error) {
         console.error("Error appending chat history:", error);
     }
@@ -213,7 +213,7 @@ function appendChatHistory(threadId, role, text) {
 
 function loadChatScrollPosition(threadId) {
     try {
-        const raw = sessionStorage.getItem(getScrollStorageKey(threadId));
+        const raw = localStorage.getItem(getScrollStorageKey(threadId));
         const parsed = Number(raw);
         return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
     } catch {
@@ -224,7 +224,7 @@ function loadChatScrollPosition(threadId) {
 function saveChatScrollPosition(threadId, scrollTop) {
     if (!threadId) return;
     try {
-        sessionStorage.setItem(getScrollStorageKey(threadId), String(Math.max(0, scrollTop || 0)));
+        localStorage.setItem(getScrollStorageKey(threadId), String(Math.max(0, scrollTop || 0)));
     } catch (error) {
         console.error("Error saving chat scroll position:", error);
     }
@@ -235,10 +235,10 @@ function migrateChatHistory(oldThreadId, newThreadId) {
     try {
         const oldKey = getHistoryStorageKey(oldThreadId);
         const newKey = getHistoryStorageKey(newThreadId);
-        if (!sessionStorage.getItem(newKey)) {
-            const oldData = sessionStorage.getItem(oldKey);
+        if (!localStorage.getItem(newKey)) {
+            const oldData = localStorage.getItem(oldKey);
             if (oldData) {
-                sessionStorage.setItem(newKey, oldData);
+                localStorage.setItem(newKey, oldData);
             }
         }
     } catch (error) {
@@ -251,10 +251,10 @@ function migrateChatScrollPosition(oldThreadId, newThreadId) {
     try {
         const oldKey = getScrollStorageKey(oldThreadId);
         const newKey = getScrollStorageKey(newThreadId);
-        if (!sessionStorage.getItem(newKey)) {
-            const oldData = sessionStorage.getItem(oldKey);
+        if (!localStorage.getItem(newKey)) {
+            const oldData = localStorage.getItem(oldKey);
             if (oldData !== null) {
-                sessionStorage.setItem(newKey, oldData);
+                localStorage.setItem(newKey, oldData);
             }
         }
     } catch (error) {
@@ -1307,7 +1307,7 @@ function initBot() {
     *
     * What this does:
     * 1. Detect the current step from the page DOM.
-    * 2. Read answered guided-question IDs for the current thread + step from sessionStorage.
+    * 2. Read answered guided-question IDs for the current thread + step from localStorage.
     * 3. Fetch the available questions for this step from the guided-question service.
     * 4. Ignore stale async results if another refresh started after this one.
     * 5. Filter out questions that were already successfully answered in this thread/step.
@@ -1561,7 +1561,7 @@ function initBot() {
 
 const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
 // TODO: Remove once delivery contains the necessary subheaders and ai-mode flags.
-// const isInternalTesting = sessionStorage.getItem('aot-internal') === 'true';
+// const isInternalTesting = localStorage.getItem('aot-internal') === 'true';
 if (isAIAssistantEnabled) {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initBot);
@@ -1570,22 +1570,26 @@ if (isAIAssistantEnabled) {
     }
 }
     // Clear chat-related storage on window close/unload.
-    // function clearChatStorageOnClose() {
-    //     try { sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY); } catch (e) {}
-    //     try {
-    //         sessionStorage.removeItem(THREAD_ID_STORAGE_KEY);
-    //         sessionStorage.removeItem('clientInstance');
-
-    //         const keysToRemove = [];
-    //         Object.keys(sessionStorage).forEach((key) => {
-    //             if (key.startsWith(CHAT_HISTORY_STORAGE_PREFIX) || key.startsWith(CHAT_SCROLL_STORAGE_PREFIX)) {
-    //                 sessionStorage.removeItem(key);
-    //             }            
-    //         });
-    //     } catch (e) {}
-    // }
-    // window.addEventListener('beforeunload', clearChatStorageOnClose);
-    // window.addEventListener('unload', clearChatStorageOnClose);
+    function clearChatStorageOnClose(event) {
+        event.preventDefault();
+        try { sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY); } catch (e) {}
+        try {
+            localStorage.removeItem(THREAD_ID_STORAGE_KEY);
+            const historyPrefix = CHAT_HISTORY_STORAGE_PREFIX + ':';
+            const scrollPrefix = CHAT_SCROLL_STORAGE_PREFIX + ':';
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                if (key === THREAD_ID_STORAGE_KEY || key.startsWith(historyPrefix) || key.startsWith(scrollPrefix)) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach((k) => localStorage.removeItem(k));
+        } catch (e) {}
+    }
+    window.addEventListener('beforeunload', clearChatStorageOnClose);
+    window.addEventListener('unload', clearChatStorageOnClose);
     }
     )();
 
