@@ -5,3 +5,5 @@ ORCHESTRATOR_AGENT_WS_URL=ws://orchestrator-agent:8002/ws
 CONVERSATION_AGENT_URL=http://conversation-agent:8000
 FORM_SUPPORT_AGENT_URL=http://formsupport-agent:8001
 UPSTREAM_TIMEOUT_SECONDS=90
+API_BASIC_AUTH_USERNAME=change-me
+API_BASIC_AUTH_PASSWORD=change-me

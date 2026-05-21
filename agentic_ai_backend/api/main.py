@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 import websockets
+from auth_middleware import is_authorized_basic_auth, register_invoke_basic_auth_middleware
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
@@ -46,6 +47,9 @@ async def startup_event() -> None:
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     await app.state.http.aclose()
+
+
+register_invoke_basic_auth_middleware(app)
 
 
 async def _forward_post(url: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -96,6 +100,7 @@ async def health() -> dict[str, Any]:
     }
 
 # regular POST endpoint to invoke the orchestrator agent
+@app.post("/invoke", response_model=InvokeResponse)
 async def invoke_orchestrator(request: InvokeRequest) -> dict[str, Any]:
     payload = request.model_dump(exclude_none=True)
     return await _forward_post(f"{ORCHESTRATOR_URL}/invoke", payload)
@@ -103,6 +108,11 @@ async def invoke_orchestrator(request: InvokeRequest) -> dict[str, Any]:
 # websocket proxy endpoint for real-time interactions
 @app.websocket("/ws")
 async def websocket_orchestrator_proxy(client_ws: WebSocket):
+    auth_header = client_ws.headers.get("authorization")
+    if not is_authorized_basic_auth(auth_header):
+        await client_ws.close(code=1008)
+        return
+
     await client_ws.accept()
 
     try:
