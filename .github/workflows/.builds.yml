@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       tags:
-        description: 'Tags to apply to the built containers multiline, separated by newlines'
+        description: "Tags to apply to the built containers multiline, separated by newlines"
         required: true
         type: string
 permissions:

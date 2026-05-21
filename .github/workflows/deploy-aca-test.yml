@@ -18,44 +18,18 @@ jobs:
       tags: |
         latest
         test-aca-${{ github.run_number }}
-  
+
   lint:
-    name: Lint
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - uses: actions/cache@v4
-        name: Cache plugin dir
-        with:
-          path: ~/.tflint.d/plugins
-          key: ubuntu-tflint-${{ hashFiles('.tflint.hcl') }}
-      
-      - uses: terraform-linters/setup-tflint@v4
-        name: Setup TFLint
-        with:
-          tflint_version: v0.52.0
-      
-      - name: Show version
-        run: tflint --version
+    uses: ./.github/workflows/.lint.yml
 
-      - name: Init TFLint
-        run: tflint --init
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Run TFLint
-        run: tflint -f compact
-
-  deploy-aca-test: 
+  deploy-aca-test:
     name: Deploy Azure Container Apps to Test
-    needs: builds
-    if: github.event_name == 'workflow_dispatch'    
+    needs: [builds, lint]
+    if: github.event_name == 'workflow_dispatch'
     concurrency:
       group: deploy-aca-test-${{ github.run_id }}
       cancel-in-progress: false
-    uses: ./.github/workflows/.deploy_aca_stack.yml
+    uses: ./.github/workflows/.deployer_aca.yml
     with:
       command: apply
       tag: test-aca-${{ github.run_number }}

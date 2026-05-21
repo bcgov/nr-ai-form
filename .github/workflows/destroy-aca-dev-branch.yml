@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       branch_name:
-        description: 'Branch name whose ACA should be destroyed (e.g. feature/my-branch)'
+        description: "Branch name whose ACA should be destroyed (e.g. feature/my-branch)"
         required: true
         type: string
 
@@ -15,11 +15,28 @@ permissions:
 jobs:
   compute-prefix:
     name: Compute Stack Prefix
-    uses: ./.github/workflows/.stack-prefix.yml
+    runs-on: ubuntu-24.04
+    outputs:
+      STACK_PREFIX: ${{ steps.stack-prefix.outputs.STACK_PREFIX }}
+    steps:
+      - name: Generate Stack Prefix
+        id: stack-prefix
+        shell: bash
+        run: |
+          repo_name="${{ github.event.repository.name }}"
+          cleaned_name=$(echo "$repo_name" | tr '[:upper:]' '[:lower:]' | \
+                              sed 's/[^a-z0-9-]/-/g' | sed 's/-\{2,\}/-/g' | \
+                              sed 's/^-//;s/-$//')
+          prefix_len=5
+          continuous_name=$(echo "$cleaned_name" | sed 's/-//g')
+          prefix_part="${continuous_name:0:$prefix_len}"
+          hash_suffix=$(echo -n "$repo_name" | md5sum | head -c 4)
+          final_name="${prefix_part}-${hash_suffix}"
+          echo "STACK_PREFIX=$final_name" >> $GITHUB_OUTPUT
+          echo "Generated prefix: $final_name"
 
   compute-slug:
     name: Compute Branch Slug
-    needs: compute-prefix
     runs-on: ubuntu-24.04
     outputs:
       branch_slug: ${{ steps.slug.outputs.branch_slug }}
@@ -49,7 +66,7 @@ jobs:
         env:
           STACK_PREFIX: ${{ needs.compute-prefix.outputs.STACK_PREFIX }}
           BRANCH_SLUG: ${{ needs.compute-slug.outputs.branch_slug }}
-          PROTECTED_ACA: 'nraif-671b-dev-api'
+          PROTECTED_ACA: "nraif-671b-dev-api"
         run: |
           stack_prefix="${STACK_PREFIX}"
           branch_slug="${BRANCH_SLUG}"
@@ -72,15 +89,14 @@ jobs:
 
   destroy:
     name: Destroy ACA
-    needs: [safety, compute-prefix, compute-slug]
+    needs: [safety, compute-slug]
     if: needs.safety.outputs.safe_to_destroy == 'true'
     uses: ./.github/workflows/.deployer_aca.yml
     with:
       environment_name: dev
       command: destroy
-      stack_prefix: ${{ needs.compute-prefix.outputs.STACK_PREFIX }}
       app_env: dev
       deployment_type: container_apps
       branch_slug: ${{ needs.compute-slug.outputs.branch_slug }}
-      target_modules: '-target=module.container_apps.azurerm_container_app.backend'
+      target_modules: "-target=module.container_apps.azurerm_container_app.backend"
     secrets: inherit

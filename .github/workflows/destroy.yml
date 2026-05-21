@@ -1,0 +1,45 @@
+name: Destroy Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to destroy"
+        required: true
+        type: choice
+        options:
+          - test
+      deployment_type:
+        description: "Deployment type to destroy"
+        required: false
+        default: "container_apps"
+        type: choice
+        options:
+          - container_apps
+          - app_service
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  destroy-aca:
+    name: Destroy ACA Environment
+    if: inputs.deployment_type == 'container_apps'
+    uses: ./.github/workflows/.deployer_aca.yml
+    with:
+      environment_name: ${{ inputs.environment }}
+      command: destroy
+      app_env: ${{ inputs.environment }}
+      deployment_type: container_apps
+    secrets: inherit
+
+  destroy-app-service:
+    name: Destroy App Service Environment
+    if: inputs.deployment_type == 'app_service'
+    uses: ./.github/workflows/.deployer.yml
+    with:
+      environment_name: ${{ inputs.environment }}
+      command: destroy
+      app_env: ${{ inputs.environment }}
+    secrets: inherit

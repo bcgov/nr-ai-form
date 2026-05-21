@@ -5,92 +5,110 @@ on:
     inputs:
       ### Required
       environment_name:
-        description: 'The name of the environment to deploy to'
+        description: "The name of the environment to deploy to"
         required: true
-        default: 'dev'
+        default: "dev"
         type: string
       command:
-        description: 'The terragrunt command to run'
+        description: "The terragrunt command to run"
         required: true
-        default: 'apply'
+        default: "apply"
         type: string
       tag:
-        description: 'The tag of the containers to deploy'
-        default: 'latest'
+        description: "The tag of the containers to deploy"
+        default: "latest"
         type: string
         required: false
       app_env:
         required: false
         type: string
-        description: 'The APP env separates between Azure ENV and Actual APP, since Azure dev is where PR, and TEST is deployed'
-      stack_prefix:
-        required: true
-        type: string
-        description: 'The stack prefix to use for the resources'
+        description: "The APP env separates between Azure ENV and Actual APP, since Azure dev is where PR, and TEST is deployed"
       deployment_type:
         required: false
         type: string
-        default: 'container_apps'
-        description: 'The deployment type: container_apps (App Service deployment is no longer supported)'
+        default: "container_apps"
+        description: "The deployment type: container_apps (App Service deployment is no longer supported)"
       prevent_destroy:
         required: false
         type: boolean
         default: false
-        description: 'When true, runs a plan before apply and aborts if any resources would be destroyed or replaced'
+        description: "When true, runs a plan before apply and aborts if any resources would be destroyed or replaced"
       target_modules:
         required: false
         type: string
-        default: ''
+        default: ""
         description: 'Space-separated list of -target=<module> flags to scope the Terraform operation (e.g. "-target=module.container_apps")'
       branch_slug:
         required: false
         type: string
-        default: 'master'
-        description: 'URL-safe slug of the deploying branch; appended to the ACA Container App name (dev only)'
+        default: "master"
+        description: "URL-safe slug of the deploying branch; appended to the ACA Container App name (dev only)"
 
 env:
-    TG_VERSION: 0.63.6
-    TF_VERSION: 1.12.2
-    TF_LOG: ERROR
-    AZURE_REGION: Canada Central
+  TG_VERSION: 0.63.6
+  TF_VERSION: 1.12.2
+  TF_LOG: ERROR
+  AZURE_REGION: Canada Central
 permissions:
   id-token: write # This is required for requesting the JWT
   contents: write # This is required for actions/checkout
 jobs:
- infra:
-  name: Terragrunt ${{inputs.command}} ACA ${{ inputs.environment_name }}
-  runs-on: ubuntu-24.04
-  environment: ${{ inputs.environment_name }}
-  steps:
-    
-    - name: Checkout
-      uses: actions/checkout@v4
-    
-    - name: Azure CLI Login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }} 
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    
-    # Using commit SHA instead of version tag for reproducibility and security.
-    # SHA is immutable - guarantees exact same code runs every deployment.
-    # Version tags can be updated by maintainers, risking unexpected breaking changes.
-    - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-    
-    # Using commit SHA instead of version tag for reproducibility and security.
-    # SHA is immutable - guarantees exact same code runs every deployment.
-    # Version tags can be updated by maintainers, risking unexpected breaking changes.
-    - name: Setup Terragrunt
-      uses: autero1/action-terragrunt@aefb0a43c4f5503a91fefb307745c4d51c26ed0e # v3
-      with:
-        terragrunt-version: ${{ env.TG_VERSION }}
-    
-    - name: Pre-Migration State Cleanup
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
+  stack-prefix:
+    name: Stack Prefix
+    runs-on: ubuntu-24.04
+    outputs:
+      STACK_PREFIX: ${{ steps.stack-prefix.outputs.STACK_PREFIX }}
+    steps:
+      - name: Generate Stack Prefix
+        id: stack-prefix
+        shell: bash
+        run: |
+          repo_name="${{ github.event.repository.name }}"
+          cleaned_name=$(echo "$repo_name" | tr '[:upper:]' '[:lower:]' | \
+                              sed 's/[^a-z0-9-]/-/g' | sed 's/-\{2,\}/-/g' | \
+                              sed 's/^-//;s/-$//')
+          prefix_len=5
+          continuous_name=$(echo "$cleaned_name" | sed 's/-//g')
+          prefix_part="${continuous_name:0:$prefix_len}"
+          hash_suffix=$(echo -n "$repo_name" | md5sum | head -c 4)
+          final_name="${prefix_part}-${hash_suffix}"
+          echo "STACK_PREFIX=$final_name" >> $GITHUB_OUTPUT
+          echo "Generated prefix: $final_name"
+
+  infra:
+    name: Terragrunt ${{ inputs.command }} ACA ${{ inputs.environment_name }}
+    needs: [stack-prefix]
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure CLI Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Using commit SHA instead of version tag for reproducibility and security.
+      # SHA is immutable - guarantees exact same code runs every deployment.
+      # Version tags can be updated by maintainers, risking unexpected breaking changes.
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # Using commit SHA instead of version tag for reproducibility and security.
+      # SHA is immutable - guarantees exact same code runs every deployment.
+      # Version tags can be updated by maintainers, risking unexpected breaking changes.
+      - name: Setup Terragrunt
+        uses: autero1/action-terragrunt@aefb0a43c4f5503a91fefb307745c4d51c26ed0e # v3
+        with:
+          terragrunt-version: ${{ env.TG_VERSION }}
+
+      - name: Pre-Migration State Cleanup
+        working-directory: terragrunt/${{ inputs.environment_name }}
+        env:
           target_env: ${{ inputs.environment_name }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
@@ -101,7 +119,7 @@ jobs:
           conversation_agent_image: "ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
           formsupport_agent_image: "ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
           # api_backend_image: "ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
-          stack_prefix: ${{ inputs.stack_prefix }}
+          stack_prefix: ${{ needs.stack-prefix.outputs.STACK_PREFIX }}
           azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
@@ -137,30 +155,29 @@ jobs:
           REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
           # Application Insights Configuration
           APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
-      run: bash ${{ github.workspace }}/scripts/state-prep.sh
+        run: bash ${{ github.workspace }}/scripts/state-prep.sh
 
+      - name: Image Tags
+        id: image-tags
+        shell: bash
+        run: |
+          # Build full registry URLs for agent images
+          ORCHESTRATOR_AGENT_IMAGE="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
+          CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
+          FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
+          # API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
+          # API_BACKEND_IMAGE="ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
 
-    - name: Image Tags
-      id: image-tags
-      shell: bash
-      run: |
-        # Build full registry URLs for agent images
-        ORCHESTRATOR_AGENT_IMAGE="ghcr.io/${{ github.repository }}/orchestrator_agent:${{ inputs.tag }}"
-        CONVERSATION_AGENT_IMAGE="ghcr.io/${{ github.repository }}/conversation_agent:${{ inputs.tag }}"
-        FORMSUPPORT_AGENT_IMAGE="ghcr.io/${{ github.repository }}/formsupport_agent:${{ inputs.tag }}"
-        # API_IMAGE="ghcr.io/${{ github.repository }}/agentic_ai_backend:${{ inputs.tag }}"
-        # API_BACKEND_IMAGE="ghcr.io/${{ github.repository }}/api_backend:${{ inputs.tag }}"
+          echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
+          echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
+          echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
+          # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
+          # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
 
-        echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
-        # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
-
-    - name: Safety Plan Check
-      if: inputs.prevent_destroy == true && inputs.command == 'apply'
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
+      - name: Safety Plan Check
+        if: inputs.prevent_destroy == true && inputs.command == 'apply'
+        working-directory: terragrunt/${{ inputs.environment_name }}
+        env:
           target_env: ${{ inputs.environment_name }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
@@ -171,7 +188,7 @@ jobs:
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
-          stack_prefix: ${{ inputs.stack_prefix }}
+          stack_prefix: ${{ needs.stack-prefix.outputs.STACK_PREFIX }}
           azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
@@ -200,7 +217,7 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_SSL: ${{ vars.REDIS_SSL }}
           REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
-      run: |
+        run: |
           echo "Running plan to check for resource destructions..."
           terragrunt run-all plan --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }} 2>&1 | tee /tmp/tfplan_output.txt
 
@@ -211,9 +228,9 @@ jobs:
           fi
           echo "Safety check passed: no resource destructions detected."
 
-    - name: Terragrunt ${{inputs.command}}
-      working-directory: terragrunt/${{ inputs.environment_name }}
-      env:
+      - name: Terragrunt ${{ inputs.command }}
+        working-directory: terragrunt/${{ inputs.environment_name }}
+        env:
           target_env: ${{ inputs.environment_name }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
@@ -224,7 +241,7 @@ jobs:
           conversation_agent_image: ${{ steps.image-tags.outputs.conversation-agent-image }}
           formsupport_agent_image: ${{ steps.image-tags.outputs.formsupport-agent-image }}
           # api_backend_image: ${{ steps.image-tags.outputs.api-backend-image }}
-          stack_prefix: ${{ inputs.stack_prefix }}
+          stack_prefix: ${{ needs.stack-prefix.outputs.STACK_PREFIX }}
           azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
           repo_name: ${{ github.event.repository.name }}
           app_env: ${{ inputs.app_env }}
@@ -258,6 +275,6 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_SSL: ${{ vars.REDIS_SSL }}
           REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
-      run: |
+        run: |
           # Run terraform with lock=false to avoid state lock issues
-          terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
+          terragrunt run-all ${{ inputs.command }} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}

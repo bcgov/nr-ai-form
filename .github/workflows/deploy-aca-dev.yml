@@ -6,7 +6,7 @@ on:
       command:
         description: 'Run "plan" to preview changes safely, then re-run with "apply" to deploy'
         required: false
-        default: 'plan'
+        default: "plan"
         type: choice
         options:
           - plan
@@ -51,45 +51,18 @@ jobs:
         latest
         dev-aca-${{ github.run_number }}
 
-
   lint:
-    name: Lint
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        name: Cache plugin dir
-        with:
-          path: ~/.tflint.d/plugins
-          key: ubuntu-tflint-${{ hashFiles('.tflint.hcl') }}
-
-      - uses: terraform-linters/setup-tflint@v4
-        name: Setup TFLint
-        with:
-          tflint_version: v0.52.0
-
-      - name: Show version
-        run: tflint --version
-
-      - name: Init TFLint
-        run: tflint --init
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Run TFLint
-        run: tflint -f compact
+    uses: ./.github/workflows/.lint.yml
 
   deploy-aca-dev:
     name: ${{ inputs.command == 'plan' && 'Plan' || 'Deploy' }} Azure Container Apps to Dev (${{ needs.branch-slug.outputs.branch_slug }})
-    needs: [builds, branch-slug]
+    needs: [builds, branch-slug, lint]
     # Run even when builds was skipped (plan path) but not when builds failed
-    if: always() && (needs.builds.result == 'success' || needs.builds.result == 'skipped')
+    if: always() && (needs.builds.result == 'success' || needs.builds.result == 'skipped') && needs.lint.result == 'success'
     concurrency:
       group: deploy-aca-dev-${{ needs.branch-slug.outputs.branch_slug }}-${{ github.run_id }}
       cancel-in-progress: false
-    uses: ./.github/workflows/.deploy_aca_stack.yml
+    uses: ./.github/workflows/.deployer_aca.yml
     with:
       command: ${{ inputs.command }}
       tag: dev-aca-${{ github.run_number }}
@@ -97,6 +70,6 @@ jobs:
       environment_name: dev
       deployment_type: container_apps
       prevent_destroy: true
-      target_modules: '-target=module.container_apps'
+      target_modules: "-target=module.container_apps"
       branch_slug: ${{ needs.branch-slug.outputs.branch_slug }}
     secrets: inherit

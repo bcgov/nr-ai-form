@@ -5,28 +5,28 @@ on:
     branches:
       - master
     paths:
-      - 'infra/**'
-      - '.github/workflows/deploy-chisel.yml'
+      - "infra/**"
+      - ".github/workflows/deploy-chisel.yml"
   pull_request:
     branches:
       - master
     paths:
-      - 'infra/**'
+      - "infra/**"
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Deployment environment'
+        description: "Deployment environment"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
           - staging
           - prod
       terraform_action:
-        description: 'Terraform action to perform'
+        description: "Terraform action to perform"
         required: true
-        default: 'plan'
+        default: "plan"
         type: choice
         options:
           - plan
@@ -193,18 +193,18 @@ jobs:
         run: |
           cat > deployment_summary.txt << 'EOF'
           ## ✅ Chisel Proxy Deployed to App Service Successfully
-          
+
           **Deployment Details:**
           - URL: ${{ steps.outputs.outputs.chisel_url }}
           - FQDN: ${{ steps.outputs.outputs.chisel_fqdn }}
           - Region: ${{ secrets.AZURE_REGION }}
           - Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          
+
           **Next Steps:**
           1. Test connectivity: curl -v ${{ steps.outputs.outputs.chisel_url }}/
           2. View logs: az webapp log tail --name chisel-proxy --resource-group <rg-name>
           3. Connect clients: docker run jpillora/chisel:latest client --auth "tunnel:PASSWORD" https://${{ steps.outputs.outputs.chisel_fqdn }} DATABASE_HOST:5432
-          
+
           **Monitoring:**
           - Real-time logs: az webapp log tail --name chisel-proxy --resource-group <rg-name> -f
           - Metrics: az monitor metrics list --resource <app-id> --metric CpuPercentage,MemoryPercentage

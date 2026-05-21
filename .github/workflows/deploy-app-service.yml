@@ -1,0 +1,46 @@
+name: Deploy App Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  builds:
+    concurrency:
+      group: builds-app-service-${{ inputs.environment }}-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/.builds.yml
+    with:
+      tags: |
+        latest
+        ${{ inputs.environment }}
+
+  lint:
+    uses: ./.github/workflows/.lint.yml
+
+  deploy:
+    name: Deploy App Service to ${{ inputs.environment }}
+    needs: [builds, lint]
+    concurrency:
+      group: deploy-app-service-${{ inputs.environment }}-${{ github.run_id }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/.deployer.yml
+    with:
+      command: apply
+      tag: ${{ inputs.environment }}
+      app_env: ${{ inputs.environment }}
+      environment_name: ${{ inputs.environment }}
+    secrets: inherit
