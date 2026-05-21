@@ -5,7 +5,7 @@ FastAPI A2A Wrapper for Orchestrator Agent
 import os
 import uvicorn
 import uuid
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
 from orchestratoragent import orchestrate_a2a
 from telemetry import OpenTelemetryAzureMonitorTelemetry, create_telemetry_middleware
@@ -13,8 +13,6 @@ from telemetry import OpenTelemetryAzureMonitorTelemetry, create_telemetry_middl
 load_dotenv()
 
 from models.orchestratormodel import InvokeRequest, InvokeResponse
-
-#TODO ABIN: This is a temporary A2A enoiinbt for testing and invoke, later on we will use PUB-SUB mechanism from a Queue to use that.
 
 app = FastAPI(
     version="1.0.0"
@@ -54,6 +52,7 @@ async def root():
         "endpoints": {
             "manifest": "/.well-known/agent.json",
             "invoke": "/invoke",
+            "websocket": "/ws",
             "health": "/health",
             "docs": "/docs"
         }
@@ -69,41 +68,62 @@ async def agent_manifest():
     with open(manifest, "r") as f:
         return json.load(f)
 
+# regular POST endpoint to invoke the orchestrator agent
 @app.post("/invoke", response_model=InvokeResponse)
 async def invoke_agent(request: InvokeRequest):
 
     try:
-        # Get A2A URLs from environment
-        conversation_url = os.getenv("CONVERSATION_AGENT_A2A_URL", "http://localhost:8000")
-        form_support_url = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
-        step_number = request.step_number or os.getenv("FORM_STEP_NUMBER", "step2-Eligibility")
-        effective_session_id = request.session_id or str(uuid.uuid4())
-
-        # Run the orchestrator logic
-        output_event = await orchestrate_a2a(
-            query=request.query, 
-            conversation_agent_url=conversation_url, 
-            form_support_agent_url=form_support_url,
-            step_number=step_number,
-            session_id=effective_session_id
-        )
-        
-        if output_event:
-             # The result from orchestrate_a2a is a WorkflowOutputEvent object
-             # We want to return something serializable. data is typically a list of messages.
-             output = output_event if isinstance(output_event, list) else ([output_event] if output_event is not None else [])
-             return InvokeResponse(
-                 response=output,
-                 session_id=effective_session_id
-             )
-        else:
-             return InvokeResponse(
-                 response="No response from orchestrator.",
-                 session_id=effective_session_id
-             )
+        return await _execute_invoke(request)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+
+# Websocket endpoint for real-time interactions with the orchestrator agent.
+@app.websocket("/ws")
+async def websocket_invoke(websocket: WebSocket):
+    await websocket.accept()
+
+    try:
+        while True:
+            payload = await websocket.receive_json()
+            try:
+                request = InvokeRequest(**payload)
+                result = await _execute_invoke(request)
+                await websocket.send_json(result.model_dump())
+            except Exception as exc:
+                await websocket.send_json({"error": str(exc)})
+    except WebSocketDisconnect:
+        return
+
+async def _execute_invoke(request: InvokeRequest) -> InvokeResponse:
+    # Get A2A URLs from environment
+    conversation_url = os.getenv("CONVERSATION_AGENT_A2A_URL", "http://localhost:8000")
+    form_support_url = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
+    step_number = request.step_number or os.getenv("FORM_STEP_NUMBER", "step2-Eligibility")
+    effective_session_id = request.session_id or str(uuid.uuid4())
+
+    # Run the orchestrator logic
+    output_event = await orchestrate_a2a(
+        query=request.query,
+        conversation_agent_url=conversation_url,
+        form_support_agent_url=form_support_url,
+        step_number=step_number,
+        session_id=effective_session_id,
+    )
+
+    if output_event:
+        # The result from orchestrate_a2a is a WorkflowOutputEvent object
+        # We want to return something serializable. data is typically a list of messages.
+        output = output_event if isinstance(output_event, list) else ([output_event] if output_event is not None else [])
+        return InvokeResponse(
+            response=output,
+            session_id=effective_session_id,
+        )
+
+    return InvokeResponse(
+        response="No response from orchestrator.",
+        session_id=effective_session_id,
+    )
 
 @app.get("/health")
 async def health_check():

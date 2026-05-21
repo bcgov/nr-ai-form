@@ -6,8 +6,9 @@ import os
 from typing import Any
 
 import httpx
+import websockets
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 load_dotenv()
@@ -25,6 +26,7 @@ class InvokeResponse(BaseModel):
 
 
 ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_AGENT_URL", "http://orchestrator-agent:8002")
+ORCHESTRATOR_WS_URL = os.getenv("ORCHESTRATOR_AGENT_WS_URL", "ws://orchestrator-agent:8002/ws")
 CONVERSATION_URL = os.getenv("CONVERSATION_AGENT_URL", "http://conversation-agent:8000")
 FORM_SUPPORT_URL = os.getenv("FORM_SUPPORT_AGENT_URL", "http://formsupport-agent:8001")
 UPSTREAM_TIMEOUT_SECONDS = float(os.getenv("UPSTREAM_TIMEOUT_SECONDS", "90"))
@@ -73,8 +75,7 @@ async def root() -> dict[str, Any]:
         "version": app.version,
         "endpoints": {
             "invoke": "/invoke",
-            "invoke_conversation": "/invoke/conversation",
-            "invoke_formsupport": "/invoke/formsupport",
+            "websocket": "/ws",
             "health": "/health",
             "docs": "/docs",
         },
@@ -88,16 +89,40 @@ async def health() -> dict[str, Any]:
         "service": "api-gateway",
         "upstreams": {
             "orchestrator": ORCHESTRATOR_URL,
+            "orchestrator_ws": ORCHESTRATOR_WS_URL,
             "conversation": CONVERSATION_URL,
             "formsupport": FORM_SUPPORT_URL,
         },
     }
 
-
-@app.post("/invoke", response_model=InvokeResponse)
+# regular POST endpoint to invoke the orchestrator agent
 async def invoke_orchestrator(request: InvokeRequest) -> dict[str, Any]:
     payload = request.model_dump(exclude_none=True)
     return await _forward_post(f"{ORCHESTRATOR_URL}/invoke", payload)
+
+# websocket proxy endpoint for real-time interactions
+@app.websocket("/ws")
+async def websocket_orchestrator_proxy(client_ws: WebSocket):
+    await client_ws.accept()
+
+    try:
+        async with websockets.connect(ORCHESTRATOR_WS_URL) as upstream_ws:
+            while True:
+                try:
+                    message = await client_ws.receive_text()
+                except WebSocketDisconnect:
+                    break
+
+                await upstream_ws.send(message)
+                upstream_response = await upstream_ws.recv()
+
+                if isinstance(upstream_response, bytes):
+                    await client_ws.send_bytes(upstream_response)
+                else:
+                    await client_ws.send_text(upstream_response)
+    except Exception as exc:
+        await client_ws.send_json({"error": f"WebSocket proxy error: {exc}"})
+        await client_ws.close(code=1011)
 
 
 if __name__ == "__main__":
