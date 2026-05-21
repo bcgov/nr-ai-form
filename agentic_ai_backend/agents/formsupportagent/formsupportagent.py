@@ -53,23 +53,48 @@ from local_mcp.livestock.inprocess_client import (
 def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_template_service=None):
     """
     Resolves form definition JSON and prompt template for a given step identifier.
-    Returns (form_definition_dict, prompt_template_str, step_identifier)
+    Uses local assets when USE_LOCAL_FORM_ASSETS=true.
+    Uses blob services when USE_LOCAL_FORM_ASSETS=false and services are available.
+    Returns (form_definition, prompt_template, step_identifier).
     """
     print(f"Resolving assets for step: {step_identifier}")
     step_key = str(step_identifier)
-    if not form_definition_service or not prompt_template_service:
-        print("Azure Blob Storage asset services are unavailable; cannot resolve form assets.")
-        return None, None, step_key
+    use_local_assets = should_use_local_form_assets()
 
+    # Use local assets if USE_LOCAL_FORM_ASSETS=true
+    if use_local_assets:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        form_definitions_dir = os.path.join(base_dir, "formdefinitions")
+        prompt_templates_dir = os.path.join(base_dir, "prompttemplates")
+
+        local_json_path = os.path.join(form_definitions_dir, f"{step_key}.json")
+        local_prompt_path = os.path.join(prompt_templates_dir, f"{step_key}.md")
+        resolved_json = local_json_path if os.path.exists(local_json_path) else None
+        resolved_prompt = local_prompt_path if os.path.exists(local_prompt_path) else None
+        return resolved_json, resolved_prompt, step_key
+    
+    # else get assets from Azure Blob Storage
     json_filename = f"{step_key}.json"
     md_filename = f"{step_key}.md"
-    
-    form_definition = form_definition_service.fetch_form_definition(json_filename)
-    prompt_template = prompt_template_service.fetch_prompt_template(md_filename)
+    resolved_json = None
+    resolved_prompt = None
+    if form_definition_service:
+        resolved_json = form_definition_service.fetch_form_definition(json_filename)
+    if prompt_template_service:
+        resolved_prompt = prompt_template_service.fetch_prompt_template(md_filename)
+    return resolved_json, resolved_prompt, step_key
 
-    return form_definition, prompt_template, step_key
 
+def _is_truthy(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
+def should_use_local_form_assets() -> bool:
+    """Return true when local form assets should be used instead of blob storage."""
+    local_assets_switch = os.getenv("USE_LOCAL_FORM_ASSETS")
+    if local_assets_switch is not None:
+        return _is_truthy(local_assets_switch)
+    # Default to local to avoid requiring blob configuration unless explicitly requested.
+    return True
 
 class FormSupportAgent():
     def __init__(self, endpoint, api_key, deployment_name, api_version, form_context_str, instructions):
@@ -146,7 +171,7 @@ async def dryrun(query):
     form_def_service = None
     prompt_service = None
     
-    if connection_string and container_name:
+    if not should_use_local_form_assets() and connection_string and container_name:
         try:
             blob_service = BlobService(connection_string)
             form_def_service = FormDefinitionService(blob_service, container_name)

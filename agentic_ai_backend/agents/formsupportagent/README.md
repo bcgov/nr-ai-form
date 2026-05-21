@@ -51,6 +51,9 @@ AZURE_OPENAI_ENDPOINT=https://your-openai-resource.openai.azure.com/
 AZURE_OPENAI_API_KEY=your-api-key-here
 AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=your-deployment-name
 AZURE_OPENAI_API_VERSION=2024-10-21
+
+# Asset source switch
+USE_LOCAL_FORM_ASSETS=true
 ```
 
 ### Environment Variables
@@ -61,6 +64,7 @@ AZURE_OPENAI_API_VERSION=2024-10-21
 | `AZURE_OPENAI_API_KEY` | API key for Azure OpenAI authentication |
 | `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` | Name of your deployed chat model |
 | `AZURE_OPENAI_API_VERSION` | Azure OpenAI API version for chat completions. Use a version supported by your endpoint or gateway. |
+| `USE_LOCAL_FORM_ASSETS` | Controls where form definitions and prompt templates are loaded from. `true` uses local files under `formdefinitions/` and `prompttemplates/`; `false` enables Azure Blob service usage when blob settings are configured. |
 
 ## Usage
 
