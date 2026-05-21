@@ -1,9 +1,18 @@
 HOST=0.0.0.0
 PORT=8080
+
 ORCHESTRATOR_AGENT_URL=http://orchestrator-agent:8002
 ORCHESTRATOR_AGENT_WS_URL=ws://orchestrator-agent:8002/ws
 CONVERSATION_AGENT_URL=http://conversation-agent:8000
 FORM_SUPPORT_AGENT_URL=http://formsupport-agent:8001
 UPSTREAM_TIMEOUT_SECONDS=90
-API_BASIC_AUTH_USERNAME=change-me
-API_BASIC_AUTH_PASSWORD=change-me
+
+API_AUTH_REDIS_HOST=redis
+API_AUTH_REDIS_PORT=6379
+API_AUTH_REDIS_PASSWORD=
+API_AUTH_REDIS_DB=1
+API_AUTH_REDIS_KEY_PREFIX=client_config:
+
+# Redis client config hash format (logical DB above):
+# key: client_config:<username>
+# fields: password=<plain-text-or-prehashed-password>, enabled=true

@@ -7,6 +7,7 @@ dependencies = [
   "fastapi==0.135.3",
   "httpx==0.28.1",
   "python-dotenv==1.2.2",
+  "redis==7.1.0",
   "uvicorn==0.44.0",
   "websockets<16",
 ]

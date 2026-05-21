@@ -1,13 +1,25 @@
-"""FastAPI gateway that fronts the agent containers."""
+"""FastAPI API gateway for HTTP and WebSocket access to backend agents.
+
+This service is the public entrypoint for clients and is responsible for:
+- validating client auth (middleware registered from auth_middleware),
+- proxying POST /invoke to the orchestrator agent,
+- proxying WS /ws traffic to the orchestrator WebSocket endpoint,
+- exposing health and service metadata endpoints.
+"""
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 import os
 from typing import Any
 
 import httpx
 import websockets
-from auth_middleware import is_authorized_basic_auth, register_invoke_basic_auth_middleware
+from auth_middleware import (
+    close_redis_client,
+    is_authorized_basic_auth,
+    register_invoke_basic_auth_middleware,
+)
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
@@ -16,43 +28,52 @@ load_dotenv()
 
 
 class InvokeRequest(BaseModel):
+    """Incoming invoke payload accepted by the gateway."""
     query: str
     session_id: str | None = None
     step_number: int | str | None = None
 
 
 class InvokeResponse(BaseModel):
+    """Gateway response wrapper returned to clients."""
     response: Any
     session_id: str | None = None
 
 
+# Upstream service locations and gateway runtime settings.
 ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_AGENT_URL", "http://orchestrator-agent:8002")
 ORCHESTRATOR_WS_URL = os.getenv("ORCHESTRATOR_AGENT_WS_URL", "ws://orchestrator-agent:8002/ws")
 CONVERSATION_URL = os.getenv("CONVERSATION_AGENT_URL", "http://conversation-agent:8000")
 FORM_SUPPORT_URL = os.getenv("FORM_SUPPORT_AGENT_URL", "http://formsupport-agent:8001")
 UPSTREAM_TIMEOUT_SECONDS = float(os.getenv("UPSTREAM_TIMEOUT_SECONDS", "90"))
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage shared gateway resources during app startup and shutdown."""
+    # Create a shared async HTTP client for upstream proxy calls.
+    app.state.http = httpx.AsyncClient(timeout=UPSTREAM_TIMEOUT_SECONDS)
+    try:
+        yield
+    finally:
+        # Release shared clients on shutdown.
+        await app.state.http.aclose()
+        await close_redis_client()
+
 app = FastAPI(
     title="Agent API Gateway",
     description="Single FastAPI entrypoint that proxies requests to agent containers",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 
-@app.on_event("startup")
-async def startup_event() -> None:
-    app.state.http = httpx.AsyncClient(timeout=UPSTREAM_TIMEOUT_SECONDS)
-
-
-@app.on_event("shutdown")
-async def shutdown_event() -> None:
-    await app.state.http.aclose()
-
-
+# Register HTTP middleware that enforces Basic Auth on POST /invoke.
 register_invoke_basic_auth_middleware(app)
 
 
 async def _forward_post(url: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Forward a JSON POST request to an upstream endpoint with consistent errors."""
     try:
         response = await app.state.http.post(url, json=payload)
     except httpx.HTTPError as exc:
@@ -74,6 +95,7 @@ async def _forward_post(url: str, payload: dict[str, Any]) -> dict[str, Any]:
 
 @app.get("/")
 async def root() -> dict[str, Any]:
+    """Describe available gateway endpoints for quick discovery."""
     return {
         "name": "Agent API Gateway",
         "version": app.version,
@@ -88,6 +110,7 @@ async def root() -> dict[str, Any]:
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
+    """Simple health status plus configured upstream targets."""
     return {
         "status": "healthy",
         "service": "api-gateway",
@@ -99,17 +122,18 @@ async def health() -> dict[str, Any]:
         },
     }
 
-# regular POST endpoint to invoke the orchestrator agent
+# HTTP invoke endpoint that proxies requests to orchestrator /invoke.
 @app.post("/invoke", response_model=InvokeResponse)
 async def invoke_orchestrator(request: InvokeRequest) -> dict[str, Any]:
     payload = request.model_dump(exclude_none=True)
     return await _forward_post(f"{ORCHESTRATOR_URL}/invoke", payload)
 
-# websocket proxy endpoint for real-time interactions
+# WebSocket proxy endpoint for real-time client <-> orchestrator interaction.
 @app.websocket("/ws")
 async def websocket_orchestrator_proxy(client_ws: WebSocket):
+    """Authorize client and relay WebSocket messages to/from orchestrator."""
     auth_header = client_ws.headers.get("authorization")
-    if not is_authorized_basic_auth(auth_header):
+    if not await is_authorized_basic_auth(auth_header):
         await client_ws.close(code=1008)
         return
 
