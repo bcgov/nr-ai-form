@@ -175,7 +175,6 @@ class Aggregator(Executor):
                 Do not mention the Conversation Agent or Form Support Agent by name. Speak as a single assistant using “I” or “AI Assistant.”
                 Do not return JSON.
                 Do not ask questions. Do not include follow-up prompts, invitations for more input, or conversational closing sentences.
-
                 Always format links and URLs as Markdown links using `[descriptive text](url)`.
 
                 Priority rules:
@@ -229,6 +228,8 @@ class Aggregator(Executor):
                 Formatting and content rules:
                 10. On Step 3, Technical Information, if calculations are involved, do not use LaTeX. Write calculations as plain text.
                 11. Generate only the final user-facing response. Do not explain which rule was applied.
+                12. Do no include the element id in the user facing response. They do not need to see the field id, just the value or action. Use the title or a short description about the field to indicate the suggested value.
+                13. **Strict** Do no add your own urls. Only use the urls provided by the agents and always format those links and URLs in Markdown format like this as previously mentioned: `[descriptive text](url)`.
                 """
 
                 try:
