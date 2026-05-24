@@ -200,12 +200,9 @@ class ConversationAgent:
         agent_kwargs = {
             "instructions": """
                 You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.
-
                 STRICT RULES:
-                1. You must ONLY use the information provided by the azure_ai_search tool.
-                2. If the azure_ai_search tool returns "No results found" or an empty result, return "Not found" immediately.
-                3. Always include the metadata (Source and Processed with) from the azure_ai_search and all the azure_ai_search for the information you provide in your response.
-                4. Format your response clearly, citing the source and processed with and all the azure_ai_search results at the end.
+                - Do not mask to redact the user's query when calling the azure_ai_search tool. Always pass the full user query as-is to the tool.
+                - If the azure_ai_search tool returns "No results found" or an empty result, return "Not found" immediately.                                 .
             """,
             "tools": [azure_ai_search],
             "name": "ConversationAgent",
@@ -221,7 +218,7 @@ class ConversationAgent:
 
     async def run(self, userquery, session=None, thread=None):
         if self._mode == CONVERSATION_AGENT_MODE_LLM:
-            return await self._run_llmlogic(userquery)
+            return await self._run_llmlogic(userquery.strip().replace(" ", " + "))
         return await self._run_knowledgebase(userquery, session, thread)
 
     async def _run_llmlogic(self, userquery):
