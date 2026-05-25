@@ -48,6 +48,8 @@ def azure_ai_search(query: str) -> str:
         if "query_language" in inspect.signature(client.search).parameters:
             search_kwargs["query_language"] = query_language
 
+        query = query.strip().replace(" + ", " ")
+        print(f"Executing Azure AI Search with query: '{query}' ")
         results = client.search(
             search_text=query,
             **search_kwargs,
@@ -81,7 +83,7 @@ def azure_ai_search(query: str) -> str:
                 output.append(f"Content: {str(content)[:trim_length]}...")
             else:
                 output.append(f"Content: {str(content)}")
-        
+        print(f"Azure AI Search Tool results: {output}")
         return "\n\n".join(output) if output else "No results found."
     except Exception as e:
         print(f"Error executing search: {e}")
