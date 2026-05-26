@@ -172,7 +172,7 @@ class Aggregator(Executor):
                     "If a sub-agent did not provide a URL, do not invent one. "
                     "Never emit a bare URL, never wrap a URL in asterisks or backticks, never obscure or mask a URL, "
                     "and never append a trailing period, comma, or extra parenthesis immediately after the closing `)` of a Markdown link. "
-                    "Example: `visit [BCeID information](https://www.bceid.ca/aboutbceid/) for more info`."
+                    "Example: `visit BCeID information at https://www.bceid.ca/aboutbceid/ for more info`."
                 )
 
 
