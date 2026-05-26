@@ -1377,6 +1377,11 @@ function initBot() {
     }
 
     function formatMessage(text) {
+        // Replace any special aggregator placeholder with the FrontCounter BC link before rendering.
+        const FRONTCOUNTER_PLACEHOLDER = '-FRONTCOUNTER-BC-';
+        const FRONTCOUNTER_LINK = '[FrontCounter BC](https://www2.gov.bc.ca/gov/content/industry/natural-resource-use/natural-resource-permits#:~:text=gov.bc.ca-,Contact%20information,-FrontCounter%20BC)';
+        const normalizedText = String(text).replaceAll(FRONTCOUNTER_PLACEHOLDER, FRONTCOUNTER_LINK);
+
         // Step 1: Extract Markdown links [text](url) before escaping so URLs are preserved intact.
         // Replace them with placeholders to protect them from HTML escaping and plain-URL detection.
         const mdLinkPlaceholders = [];
