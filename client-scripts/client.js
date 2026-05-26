@@ -1385,7 +1385,7 @@ function initBot() {
         // Step 1: Extract Markdown links [text](url) before escaping so URLs are preserved intact.
         // Replace them with placeholders to protect them from HTML escaping and plain-URL detection.
         const mdLinkPlaceholders = [];
-        let processed = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, linkText, url) => {
+        let processed = normalizedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, linkText, url) => {
             const idx = mdLinkPlaceholders.length;
             mdLinkPlaceholders.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`);
             return `\x00MDLINK${idx}\x00`;
