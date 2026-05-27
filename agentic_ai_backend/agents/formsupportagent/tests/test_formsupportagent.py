@@ -166,5 +166,35 @@ async def test_dryrun_no_assets(mock_resolve, capsys):
     await dryrun("step3: hello")
     # Read captured output
     captured = capsys.readouterr()
-    # Verify the error message indicating the missing form definition
-    assert "Form definition file not found for identifier: step3" in captured.out
+    # Verify the error message indicating the missing prompt template
+    assert "No prompt template" in captured.out
+
+
+@patch("formsupportagent.FormSupportAgent")
+@patch("formsupportagent.resolve_agent_assets")
+@patch.dict(os.environ, {
+    "AZURE_OPENAI_ENDPOINT": "http://mock-endpoint",
+    "AZURE_OPENAI_API_KEY": "mock-key",
+    "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME": "mock-deployment",
+    "AZURE_OPENAI_API_VERSION": "mock-version",
+    "AZURE_BLOBSTORAGE_CONNECTIONSTRING": "",
+    "AZURE_BLOBSTORAGE_CONTAINER": ""
+})
+@pytest.mark.asyncio
+async def test_dryrun_prompt_only_step(mock_resolve, mock_agent_class, capsys):
+    mock_resolve.return_value = (None, "/path/to/step3.md", "step3")
+    mock_agent_instance = MagicMock()
+    mock_agent_instance.run = AsyncMock(return_value="AI Response")
+    mock_agent_class.return_value = mock_agent_instance
+
+    with patch("builtins.open", mock_open(read_data="Mock Instructions")):
+        with patch("builtins.print"):
+            await dryrun("step3: hello")
+
+    mock_resolve.assert_called_once_with(
+        "step3",
+        form_definition_service=None,
+        prompt_template_service=None,
+    )
+    mock_agent_class.assert_called_once()
+    mock_agent_instance.run.assert_called_once_with("hello")

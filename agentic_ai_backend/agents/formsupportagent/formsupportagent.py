@@ -169,11 +169,11 @@ async def dryrun(query):
     )
 
     if not step_form_definition:
-        print(f"Form definition file not found for identifier: {step_key}")
-        return        
-
-    print(f"Using form schema: {step_key}.json")
-    form_context_str = get_form_context(step_form_definition)  
+        print(f"No form definition for {step_key}; proceeding as prompt-only step.")
+        form_context_str = ""
+    else:
+        print(f"Using form schema: {step_key}.json")
+        form_context_str = get_form_context(step_form_definition)
 
     if not custom_instructions:
         print(f"WARNING: No prompt template (.md) found for step: {step_identifier}. Step is required to have a specialized prompt.")

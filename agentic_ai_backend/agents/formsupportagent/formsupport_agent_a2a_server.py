@@ -87,12 +87,12 @@ def get_agent(step_identifier: Union[int, str]):
         )
         
         if not form_definition:
-            raise FileNotFoundError(f"Form definition not found for identifier: {step_key}")
+            print(f"No form definition for {step_key}; proceeding as prompt-only step.")
+            form_context_str = ""
+        else:
+            #form_context_str = get_form_context(form_definition)
+            form_context_str = json.dumps(form_definition)
 
-        
-        #form_context_str = get_form_context(form_definition)
-        form_context_str = json.dumps(form_definition)
-        
         if not custom_instructions:
             raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
         

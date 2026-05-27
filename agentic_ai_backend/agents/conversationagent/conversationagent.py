@@ -202,7 +202,10 @@ class ConversationAgent:
                 You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.
                 STRICT RULES:
                 - Do not mask to redact the user's query when calling the azure_ai_search tool. Always pass the full user query as-is to the tool.
-                - If the azure_ai_search tool returns "No results found" or an empty result, return "Not found" immediately.                                 .
+                - If the azure_ai_search tool returns "No results found" or an empty result, return "Not found" immediately.
+                - Do not treat this as a multi-turn conversation.
+                - Do not ask follow-up questions, request more details, or offer additional help beyond the single response.
+                - Do not offer to draft templates or letters, including co-applicant approval letters.
             """,
             "tools": [azure_ai_search],
             "name": "ConversationAgent",
