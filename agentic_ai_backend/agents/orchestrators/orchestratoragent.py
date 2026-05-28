@@ -21,6 +21,7 @@ from workflowcomponents.formsupportagentexecutor import FormSupportAgentA2AExecu
 from workflowcomponents.dispatcher import Dispatcher
 from workflowcomponents.aggregator import Aggregator
 from workflowcomponents.routing import get_primary_intent, select_subagents
+from workflowcomponents.step_interceptor import find_step_interceptor
 from models.intentmodel import IntentListModel
 
 
@@ -140,6 +141,17 @@ async def orchestrate_a2a(query: str,
     """
     
     effective_session_id = session_id or str(uuid.uuid4())
+
+    interceptor_rule = find_step_interceptor(step_number, query)
+    if interceptor_rule and interceptor_rule.get("skip_agents"):
+        placeholder_response = [
+            {
+                "source": interceptor_rule.get("response_source", "Aggregator"),
+                "response": interceptor_rule.get("response", ""),
+            },
+            {"thread_id": effective_session_id},
+        ]
+        return placeholder_response
 
     # Create A2A executors
     conversation_executor = ConversationAgentA2AExecutor(

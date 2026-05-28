@@ -1,0 +1,32 @@
+[
+  {
+    "id": "out-of-scope-keywords",
+    "step_ids": ["step7-Contact-Information"],
+    "match_terms": [
+      "consultant",
+      "lawyer",
+      "notary",
+      "representative",
+      "representation agreement",
+      "power of attorney",
+      "trustee",
+      "executor",
+      "administrator",
+      "board member",
+      "employee",
+      "owner",
+      "family member",
+      "friend",
+      "neighbour",
+      "trustee in bankruptcy",
+      "appointment letter",
+      "copy of will",
+      "authorization letter",
+      "letter of authorization",
+      "letter of authority"
+    ],
+    "skip_agents": true,
+    "response_source": "Aggregator",
+    "response": "Please reframe your question or contact -FRONTCOUNTER-BC- for further assistance."
+  }
+]
