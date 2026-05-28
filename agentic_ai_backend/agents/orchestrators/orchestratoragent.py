@@ -142,7 +142,7 @@ async def orchestrate_a2a(query: str,
     
     effective_session_id = session_id or str(uuid.uuid4())
 
-    interceptor_rule = find_step_interceptor(query)
+    interceptor_rule = find_step_interceptor(step_number, query)
     if interceptor_rule and interceptor_rule.get("skip_agents"):
         placeholder_response = [
             {

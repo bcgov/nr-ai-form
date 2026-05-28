@@ -16,6 +16,7 @@ This is useful for:
 Each rule in `step_interceptor_rules.json` is a standard JSON object with these fields:
 
 - `id`: unique rule name
+- `step_ids` (optional): array of form step identifiers; when present, the rule only applies when `step_number` exactly matches one of these ids (case-insensitive, trimmed). Omit for global rules that apply on any step.
 - `match_terms`: array of case-insensitive phrases to search for in the user query
 - `skip_agents`: `true` means the orchestrator returns the rule response and does not call sub-agents
 - `response_source`: metadata used in the returned payload, e.g. `Aggregator`
@@ -23,6 +24,7 @@ Each rule in `step_interceptor_rules.json` is a standard JSON object with these 
 
 ### Matching behavior
 
+- When `step_ids` is set, the current form step must exactly match one of the listed ids (case-insensitive, trimmed). Rules without `step_ids` apply on every step.
 - `match_terms` are matched as case-insensitive substrings in the user query.
 - The first rule with a matching term is returned.
 - The orchestrator only intercepts when `skip_agents` is `true`.
@@ -36,6 +38,7 @@ To add more trigger phrases, update the `match_terms` array in any rule.
 ```json
 {
   "id": "out-of-scope-keywords",
+  "step_ids": ["step7-Contact-Information"],
   "match_terms": [
     "consultant",
     "lawyer",
@@ -57,6 +60,7 @@ To add more trigger phrases, update the `match_terms` array in any rule.
 ```json
 {
   "id": "out-of-scope-keywords",
+  "step_ids": ["step7-Contact-Information"],
   "match_terms": [
     "keyword1",
     "keyword2"

@@ -19,28 +19,40 @@ def _load_step_interceptor_rules() -> list[dict[str, Any]]:
         return []
 
 
-def find_step_interceptor(query: str) -> dict[str, Any] | None:
+def find_step_interceptor(step_number: Any, query: str) -> dict[str, Any] | None:
     """
-    Check if a user query matches any interceptor rule.
-    
-    Compares the query against configured match terms and returns the first
-    matching rule or None if no match is found.
-    
+    Check if a user query matches any interceptor rule for the given form step.
+
+    Matching logic:
+    - If a rule declares `step_ids`, the step_number must exactly match one
+      of those ids (case-insensitive, trimmed) for the rule to be considered.
+    - If a rule does not declare `step_ids`, it is considered global and
+      can match regardless of the step_number.
+    - A match occurs when any of the rule's `match_terms` appears as a
+      case-insensitive substring in the query.
+
     Args:
+        step_number: Form step identifier, e.g. "step7-Contact-Information"
         query: User query text to check for trigger terms
-        
+
     Returns:
         Rule dict if a match is found, None otherwise.
     """
     if not query:
         return None
 
-    # Normalize query for case-insensitive comparison
+    normalized_step = str(step_number).strip().lower() if step_number is not None else ""
     normalized_query = query.lower()
 
-    # Load rules and check for matches
     for rule in _load_step_interceptor_rules():
-        # Check if any match term appears in the query
+        step_ids = rule.get("step_ids")
+        # If step_ids are provided, only consider the rule when the step matches exactly
+        if step_ids:
+            if isinstance(step_ids, str):
+                step_ids = [step_ids]
+            if not any(normalized_step == str(s).strip().lower() for s in step_ids):
+                continue
+
         terms = rule.get("match_terms", [])
         if any(term and term.lower() in normalized_query for term in terms):
             return rule

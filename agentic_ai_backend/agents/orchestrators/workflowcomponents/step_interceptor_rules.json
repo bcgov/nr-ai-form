@@ -1,6 +1,7 @@
 [
   {
     "id": "out-of-scope-keywords",
+    "step_ids": ["step7-Contact-Information"],
     "match_terms": [
       "consultant",
       "lawyer",
