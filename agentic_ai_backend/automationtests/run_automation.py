@@ -29,6 +29,7 @@ from urllib import request as urllib_request
 
 SEPARATOR = "=" * 80
 DEFAULT_URL = "http://localhost:8002/invoke"
+# DEFAULT_URL = "https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/invoke"
 HERE = Path(__file__).parent
 
 
