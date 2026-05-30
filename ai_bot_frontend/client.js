@@ -158,6 +158,8 @@ const FormSteps = {
 const THREAD_ID_STORAGE_KEY = 'nrAiForm_threadId';
 const CHAT_HISTORY_STORAGE_PREFIX = 'nrAiForm_chatHistory';
 const CHAT_SCROLL_STORAGE_PREFIX = 'nrAiForm_chatScroll';
+const CHAT_OPEN_STORAGE_KEY = 'nrAiForm_chatOpen';
+const POPUP_INITIALIZED_STORAGE_KEY = 'nrAiForm_popupInitialized';
 
 function createFallbackThreadId() {
     const randomBytes = new Uint8Array(16);
@@ -1234,28 +1236,61 @@ function initBot() {
 
     requestAnimationFrame(restoreChatScrollPosition);
 
+    function openChatbot() {
+      // Opening the chat does a few UI-sync steps together:
+      // 1. show the modal,
+      // 2. hide the floating launcher button,
+      // 3. restore the last saved scroll position on the next paint,
+      // 4. refresh guided questions for the current step,
+      // 5. move keyboard focus into the input so the user can type immediately.
+      chatModal.classList.add("open");
+      chatButton.style.display = "none";
+      requestAnimationFrame(restoreChatScrollPosition);
+      refreshGuidedQuestions();
+      chatInput.focus();
+
+      // Set a flag in sessionStorage so if the page reloads, 
+      // we can restore the open state of the chat. This is cleared when the chat is closed.
+      sessionStorage.setItem(CHAT_OPEN_STORAGE_KEY, "true");
+    }
+
+    function closeChatbot() {
+      chatModal.classList.remove("open");
+      chatButton.style.display = "flex";
+      // Clear the open state flag from sessionStorage 
+      // so we don't reopen the chat on reload after it's been closed.
+      sessionStorage.removeItem(CHAT_OPEN_STORAGE_KEY);
+    }
+
     function toggleChat() {
-        const isOpen = chatModal.classList.contains('open');
-        if (!isOpen) {
-            // Opening the chat does a few UI-sync steps together:
-            // 1. show the modal,
-            // 2. hide the floating launcher button,
-            // 3. restore the last saved scroll position on the next paint,
-            // 4. refresh guided questions for the current step,
-            // 5. move keyboard focus into the input so the user can type immediately.
-            chatModal.classList.add('open');
-            chatButton.style.display = 'none';
-            requestAnimationFrame(restoreChatScrollPosition);
-            refreshGuidedQuestions();
-            chatInput.focus();
+        const isChatOpenInStorage = sessionStorage.getItem(CHAT_OPEN_STORAGE_KEY) === 'true';
+        if (!isChatOpenInStorage) {
+            openChatbot();
         } else {
-            chatModal.classList.remove('open');
-            chatButton.style.display = 'flex';
+            closeChatbot();
         }
     }
 
     chatButton.addEventListener('click', toggleChat);
     closeBtn.addEventListener('click', toggleChat);
+
+    const isChatOpenInStorage = sessionStorage.getItem(CHAT_OPEN_STORAGE_KEY) === 'true';
+
+    const isPopup = window.opener && window.opener !== window;
+    const hasPopupPreviouslyLoaded =
+        sessionStorage.getItem(POPUP_INITIALIZED_STORAGE_KEY) === "true";
+
+    if (isChatOpenInStorage && (!isPopup || (isPopup && hasPopupPreviouslyLoaded))) {
+        openChatbot();
+    }
+
+    if (isPopup && !hasPopupPreviouslyLoaded) {
+      // This is the INITIAL load of the popup. Clean inherited parent state.
+      sessionStorage.removeItem(CHAT_OPEN_STORAGE_KEY);
+
+      // Mark this popup as initialized so reloads don't hit this block again
+      sessionStorage.setItem(POPUP_INITIALIZED_STORAGE_KEY, "true");
+    }
 
     /**
      * Handles the full "guided question clicked" path.

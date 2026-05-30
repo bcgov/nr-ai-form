@@ -35,7 +35,7 @@
             "type": "textarea",
             "id": "LegalDescription",
             "title": "Legal Description:",
-            "description": "The formal legal description of the property as recorded in the Land Title system.",
+            "description": "The formal legal description of the property as recorded in the Land Title system. The legal description of land can be found on the property tax notice.",
             "default": "",
             "required": true
         },

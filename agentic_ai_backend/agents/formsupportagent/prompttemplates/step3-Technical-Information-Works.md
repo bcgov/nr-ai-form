@@ -36,6 +36,9 @@ If the user asks a contextual or informational question about the page or sectio
 - If the user's message addresses only one field, return a single JSON object (no array brackets).
 - If the user's message addresses multiple fields, return a JSON array containing all of them.
 
+# AdditionalWorksDetails - How to fill in
+- Write a factual summary using everything related to works available in the conversation history. Include the all the works the user has spoken about, their construction status and any specific details they have provided for them. Do not include personal information like name of a person or a consultant, license holders, etc. For example, if the user says, they plan to construct an access road with asphalt that is about 250m long to get to their land, then fill it like "The applicant is planning to construct an asphalt road that is 250m long to access their land."
+
 User: "I will be installing a new pump." — only the pump selection is determinable (no status provided), return a single object:
 
 ```json
@@ -59,7 +62,7 @@ User: "I am planning a dugout that will be 15 metres long, 10 metres wide, and 3
 [
   {"id": "Selected_Dugout", "description": "A dugout is an excavation in the ground that holds water. Provide length, width and depth in the comments.", "suggestedvalue": "Y", "type": "checkbox"},
   {"id": "Status_Dugout", "description": "Construction status of the dugout.", "suggestedvalue": "Not Constructed", "type": "dropdown"},
-  {"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "15 metres long, 10 metres wide, and 3 metres deep.", "type": "textarea"}
+  {"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "The applicant is planning to construct a dugout that is 15 metres long, 10 metres wide, and 3 metres deep.", "type": "textarea"}
 ]
 ```
 
