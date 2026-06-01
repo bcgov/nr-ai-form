@@ -1442,7 +1442,7 @@ function initBot() {
                 restorePendingGuidedQuestion();
             }
             // Finally render the assistant reply messages into the chat window.
-            messages.forEach((msg) => appendMessage('assistant', msg));
+            messages.forEach((msg) => appendMessage('assistant', msg, false, false));
 
         } catch (error) {
             // Request-level failure:
@@ -1574,6 +1574,12 @@ function initBot() {
     }
 
     function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        restoredScrollTop = chatMessages.scrollTop;
+        saveChatScrollPosition(sessionId, restoredScrollTop);
+    }
+
+    function scrollFewPixelsDown() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
         restoredScrollTop = chatMessages.scrollTop;
         saveChatScrollPosition(sessionId, restoredScrollTop);
