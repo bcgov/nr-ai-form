@@ -4,23 +4,23 @@ from typing_extensions import Never
 import json
 import os
 from functools import lru_cache
-from pathlib import Path
 from string import Template
 
 from openai import AsyncAzureOpenAI
 
 from models.intentmodel import IntentListModel
+from workflowcomponents.promptsource import load_prompt
 from workflowcomponents.routing import get_primary_intent, select_subagents
-
-
-_AGGREGATOR_USER_PROMPT_PATH = (
-    Path(__file__).parent / "skills" / "aggregator" / "user.md"
-)
 
 
 @lru_cache(maxsize=1)
 def _aggregator_user_prompt_template() -> Template:
-    return Template(_AGGREGATOR_USER_PROMPT_PATH.read_text(encoding="utf-8"))
+    raw = load_prompt(
+        blob_path_env="AGENT_AGGREGATOR_PROMPTS_PATH",
+        blob_filename="user.md",
+        local_rel_path="aggregator/user.md",
+    )
+    return Template(raw)
 
 
 class Aggregator(Executor):
