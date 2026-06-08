@@ -12,5 +12,8 @@ dependencies = [
     "fastapi==0.135.3",
     "python-dotenv==1.2.2",
     "uvicorn==0.44.0",
+    "utils",
 ]
 
+[tool.uv.sources]
+utils = { path = "../../utils" }
