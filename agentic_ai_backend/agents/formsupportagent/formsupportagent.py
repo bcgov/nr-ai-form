@@ -96,19 +96,9 @@ class FormSupportAgent():
             print(f"Error processing instructions template: {e}")
         
 
-        # Append strict JSON formatting rule
-        json_enforcement_rule = (
-                "\n\nCRITICAL INSTRUCTION: Your response MUST be valid JSON only. "
-                "NEVER wrap your response in markdown code blocks like ```json ... ```. "
-                "Output raw JSON that can be parsed directly by JSON.parse()."
-            )
-        
-        final_instructions += json_enforcement_rule
-        final_instructions += (
-                "\n\n CRITICAL INSTRUCTION: If the user provides livestock type, livestock count, and a time period "
-                "(days, weeks, months, or years), use the livestock water consumption tools "
-                "to calculate water demand in cubic meters (m3) and application fees."
-            )
+        # Append shared FormSupportAgent rules (strict JSON-only output + livestock
+        # tooling), loaded from Blob Storage with a local instructions.md fallback.
+        final_instructions += self._load_common_instructions()
 
         client = AzureOpenAIChatClient(
             model=deployment_name,
@@ -124,6 +114,57 @@ class FormSupportAgent():
         self.agent = client.as_agent(
             **agent_kwargs,
             default_options={"temperature": 0.1},
+        )
+
+    def _load_common_instructions(self) -> str:
+        """Load shared FormSupportAgent rules (JSON-only output + livestock tooling).
+
+        Reads the blob at ``AGENT_FORMSUPPORTINSTRUCTION_PATH`` inside the
+        ``AZURE_BLOBSTORAGE_CONTAINER`` container, using the connection string
+        ``AZURE_BLOBSTORAGE_CONNECTIONSTRING`` (see ``.env``). Falls back to the
+        bundled local ``instructions.md`` when the blob store is not configured
+        or unreachable. The returned text is prefixed with a blank line so it can
+        be appended directly to the step instructions.
+        """
+        connection_string = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
+        container_name = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
+        blob_path = os.getenv("AGENT_FORMSUPPORTINSTRUCTION_PATH")
+
+        if connection_string and container_name and blob_path:
+            try:
+                blob_service = BlobService(connection_string)
+                instructions = blob_service.read_blob_text(container_name, blob_path)
+                if instructions.strip():
+                    print(f"Loaded FormSupportAgent common instructions from blob: {container_name}/{blob_path}")
+                    return f"\n\n{instructions}"
+                print(f"Blob {container_name}/{blob_path} is empty; falling back to local instructions.")
+            except Exception as e:
+                print(f"Failed to load common instructions from blob {container_name}/{blob_path}: {e}")
+        else:
+            print(
+                "AZURE_BLOBSTORAGE_CONNECTIONSTRING/AZURE_BLOBSTORAGE_CONTAINER/"
+                "AGENT_FORMSUPPORTINSTRUCTION_PATH not fully set; falling back to local instructions."
+            )
+
+        return self._load_local_common_instructions()
+
+    @staticmethod
+    def _load_local_common_instructions() -> str:
+        local_path = os.path.join(os.path.dirname(__file__), "instructions.md")
+        try:
+            with open(local_path, "r", encoding="utf-8") as f:
+                instructions = f.read()
+            if instructions.strip():
+                print(f"Loaded FormSupportAgent common instructions from local file: {local_path}")
+                return f"\n\n{instructions}"
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"Failed to read local common instructions {local_path}: {e}")
+        raise RuntimeError(
+            "FormSupportAgent common instructions not found. Set "
+            "AZURE_BLOBSTORAGE_CONNECTIONSTRING, AZURE_BLOBSTORAGE_CONTAINER, and "
+            f"AGENT_FORMSUPPORTINSTRUCTION_PATH, or provide a local file at {local_path}."
         )
 
     async def run(self, userquery, session=None, thread=None):
