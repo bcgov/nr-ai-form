@@ -13,10 +13,13 @@ from azure.search.documents.knowledgebases.models import (
 )
 from agent_framework.openai import OpenAIChatCompletionClient
 
-# Add parent directory to path to allow importing 'tools' (llm mode only).
+# Add parent directories to path to allow importing 'tools' and the shared 'utils'
+# package (llm mode only). 'utils' lives at agentic_ai_backend/utils.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from tools.azure_ai_search import azure_ai_search
+from utils.blobservice import BlobService
 
 
 load_dotenv()
@@ -198,12 +201,7 @@ class ConversationAgent:
             api_version=api_version,
         )
         agent_kwargs = {
-            "instructions": """
-                You are an assistant for BC Government's Permit Application. Use the azure_ai_search tool to answer user queries.
-                STRICT RULES:
-                - Do not mask to redact the user's query when calling the azure_ai_search tool. Always pass the full user query as-is to the tool.
-                - If the azure_ai_search tool returns "No results found" or an empty result, return "Not found" immediately.                                 .
-            """,
+            "instructions": self._load_instructions(),
             "tools": [azure_ai_search],
             "name": "ConversationAgent",
         }
@@ -214,6 +212,58 @@ class ConversationAgent:
                 "max_tokens": max_tokens,
                 "tool_choice": "required",
             },
+        )
+
+    def _load_instructions(self) -> str:
+        """Load the agent's instruction prompt from Azure Blob Storage.
+
+        Reads the blob at ``AGENT_CONVERSATION_PROMPTS_PATH`` inside the
+        ``AGENTPROMPTS_CONTAINER_NAME`` container, using the connection string
+        ``AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING`` (see ``.env``). Falls back
+        to the bundled local copy only when the blob store is not configured or
+        unreachable.
+        """
+        connection_string = os.getenv("AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING")
+        container_name = os.getenv("AGENTPROMPTS_CONTAINER_NAME")
+        blob_path = os.getenv("AGENT_CONVERSATION_PROMPTS_PATH")
+
+        if connection_string and container_name and blob_path:
+            try:
+                blob_service = BlobService(connection_string)
+                instructions = blob_service.read_blob_text(container_name, blob_path)
+                if instructions.strip():
+                    print(f"Loaded ConversationAgent instructions from blob: {container_name}/{blob_path}")
+                    return instructions
+                print(f"Blob {container_name}/{blob_path} is empty; falling back to local instructions.")
+            except Exception as e:
+                print(f"Failed to load instructions from blob {container_name}/{blob_path}: {e}")
+        else:
+            print(
+                "AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING/AGENTPROMPTS_CONTAINER_NAME/"
+                "AGENT_CONVERSATION_PROMPTS_PATH not fully set; falling back to local instructions."
+            )
+
+        return self._load_local_instructions()
+
+    @staticmethod
+    def _load_local_instructions() -> str:
+        local_path = os.path.join(
+            os.path.dirname(__file__), "prompttemplates", "instructions.md"
+        )
+        try:
+            with open(local_path, "r", encoding="utf-8") as f:
+                instructions = f.read()
+            if instructions.strip():
+                print(f"Loaded ConversationAgent instructions from local file: {local_path}")
+                return instructions
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"Failed to read local instructions {local_path}: {e}")
+        raise RuntimeError(
+            "ConversationAgent instructions not found. Set "
+            "AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING, AGENTPROMPTS_CONTAINER_NAME, and "
+            f"AGENT_CONVERSATION_PROMPTS_PATH, or provide a local file at {local_path}."
         )
 
     async def run(self, userquery, session=None, thread=None):

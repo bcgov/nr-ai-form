@@ -4,23 +4,32 @@ from typing_extensions import Never
 import json
 import os
 from functools import lru_cache
-from pathlib import Path
 from string import Template
 
 from openai import AsyncAzureOpenAI
 
 from models.intentmodel import IntentListModel
+from workflowcomponents.promptsource import load_prompt
 from workflowcomponents.routing import get_primary_intent, select_subagents
-
-
-_AGGREGATOR_USER_PROMPT_PATH = (
-    Path(__file__).parent / "skills" / "aggregator" / "user.md"
-)
 
 
 @lru_cache(maxsize=1)
 def _aggregator_user_prompt_template() -> Template:
-    return Template(_AGGREGATOR_USER_PROMPT_PATH.read_text(encoding="utf-8"))
+    raw = load_prompt(
+        blob_path_env="AGENT_AGGREGATOR_PROMPTS_PATH",
+        blob_filename="user.md",
+        local_rel_path="aggregator/user.md",
+    )
+    return Template(raw)
+
+
+@lru_cache(maxsize=1)
+def _aggregator_system_prompt() -> str:
+    return load_prompt(
+        blob_path_env="AGENT_AGGREGATOR_PROMPTS_PATH",
+        blob_filename="system.md",
+        local_rel_path="aggregator/system.md",
+    )
 
 
 class Aggregator(Executor):
@@ -162,19 +171,7 @@ class Aggregator(Executor):
                     api_key, endpoint, api_version, aggregator_deployment
                 )
 
-                system_prompt = (
-                    "You are a helpful assistant for applicants of the BC water permit application. "
-                    "You curate responses from two sub-agents into a single reply for the user. "
-                    "Render every URL as a Markdown link in the form `[descriptive text](url)`. "
-                    "STRICT URL FIDELITY: every URL you emit must be copied character-for-character from the sub-agent outputs. "
-                    "Do not change the host, do not shorten the path, do not drop or reorder query parameters (`?`, `&`, `=`), "
-                    "do not URL-encode or decode characters, and never substitute a URL you remember from training or general knowledge. "
-                    "If a sub-agent did not provide a URL, do not invent one. "
-                    "Never emit a bare URL, never wrap a URL in asterisks or backticks, never obscure or mask a URL, "
-                    "and never append a trailing period, comma, or extra parenthesis immediately after the closing `)` of a Markdown link. "
-                    "Example: `visit BCeID information at https://www.bceid.ca/aboutbceid/ for more info`."
-                )
-
+                system_prompt = _aggregator_system_prompt()
 
                 user_prompt = _aggregator_user_prompt_template().safe_substitute(
                     conversation_text=conversation_text,

@@ -5,10 +5,12 @@ from typing import Dict, Any, Optional
 from utils.blobservice import BlobService
 
 class FormDefinitionService:
-    def __init__(self, blob_service: BlobService, container_name: str, directory_path: str = "formdefinitions"):
+    def __init__(self, blob_service: BlobService, container_name: str, directory_path: Optional[str] = None):
         self.blob_service = blob_service
         self.container_name = container_name
-        self.directory_path = directory_path
+        # Explicit arg wins; otherwise fall back to the path configured in .env,
+        # and finally to the bundled default directory name.
+        self.directory_path = directory_path or os.getenv("AGENT_FORMDEFINITION_PATH") or "formdefinitions"
         self.cache: Dict[str, Any] = {}
 
     def fetch_form_definition(self, definition_name: str) -> Optional[Dict[str, Any]]:

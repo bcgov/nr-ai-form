@@ -4,10 +4,12 @@ from typing import Optional
 from utils.blobservice import BlobService
 
 class PromptTemplateService:
-    def __init__(self, blob_service: BlobService, container_name: str, directory_path: str = "prompttemplates"):
+    def __init__(self, blob_service: BlobService, container_name: str, directory_path: Optional[str] = None):
         self.blob_service = blob_service
         self.container_name = container_name
-        self.directory_path = directory_path
+        # Explicit arg wins; otherwise fall back to the path configured in .env,
+        # and finally to the bundled default directory name.
+        self.directory_path = directory_path or os.getenv("AGENT_PROMPT_TEMPLATE_PATH") or "prompttemplates"
         self.cache: dict[str, str] = {}
 
     def fetch_prompt_template(self, template_name: str) -> Optional[str]:
