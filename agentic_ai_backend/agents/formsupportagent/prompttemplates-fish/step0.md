@@ -21,7 +21,7 @@ User: "I was born on December 25, 1999 , resident of BC. Would like to apply for
 ```json
 [
   {"id": "dob", "description": "Angler's date of birth. Used to determine age eligibility and applicable licence rate.", "suggestedvalue": "1999-12-25", "type": "date"},
-  {"id": "residency_resident", "description": "If Residency status of the applicant is in British Columbia(BC)", "suggestedvalue": "Yes", "type": "radio"},
+  {"id": "residency_resident", "description": "If Residency status of the applicant is in British Columbia(BC)", "suggestedvalue": "resident", "type": "radio"},
   {"id": "licenceDuration", "description": "Duration of the fishing licence being requested.", "suggestedvalue": "annual", "type": "select"}, 
   {"id": "location", "description": "Fishing region where the applicant intends to fish.", "suggestedvalue": "region1", "type": "select"}  
 ]

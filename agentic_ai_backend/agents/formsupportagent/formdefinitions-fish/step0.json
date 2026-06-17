@@ -12,6 +12,7 @@
         "bc_resident_status": {
             "type": "radio",
             "id": "residency_resident",
+            "value": "resident",
             "title": "BC Residency Status",
             "description": "If Residency status of the applicant is in British Columbia(BC)",
             "required": true            
@@ -19,12 +20,14 @@
         "non_bc_resident_canadian": {
             "type": "radio",
             "id": "residency_non-resident",
+            "value": "non-resident",
             "title": "Non BC Resident - but Canadian",
             "description": "If Residency status of the applicant is out of  British Columbia(BC), but else where in Canada"
         },
         "non_resident_alien": {
             "type": "radio",
             "id": "residency_alien",
+            "value": "alien",
             "title": "Non Canadian- Non BC Resident",
             "description": "Foreigner - If Residency status of the applicant is out of British Columbia(BC) and Canada"        
         },
