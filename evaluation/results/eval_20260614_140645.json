@@ -1,0 +1,99 @@
+{
+  "run_name": "test_evaluation_run",
+  "scenario": "basic_evaluation",
+  "timestamp": "2026-06-14T14:06:45.181402+00:00",
+  "backend_url": "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke",
+  "backend_healthy": true,
+  "cases": [
+    {
+      "case": {
+        "name": "eligibility_basic",
+        "query": "Am I eligible to apply for a new water licence?",
+        "step_number": "step2-Eligibility"
+      },
+      "response": {
+        "response": [
+          {
+            "source": "Aggregator",
+            "response": "Based on BC\u2019s water licence eligibility rules, you can apply for a new water licence if you (or the person/entity you represent) meet at least one of these criteria:\n\n1. **Land or mine interest in BC**\n   - You are the **owner of land or a mine in British Columbia**, or  \n   - You are **entitled to possession** of land or a mine in BC, or  \n   - You have a **substantial interest** in land, a mine, or an undertaking in BC.\n\n2. **Utility or local government**\n   - You hold a **certificate of public convenience and necessity** under:\n     - the Public Utilities Act, or  \n     - the Utilities Commission Act, or  \n     - the Water Utility Act,  \n   - or you are a **municipality, regional district, improvement district, development district, or water users\u2019 community**.\n\n3. **Government or related body**\n   - You are representing:\n     - the **Government of British Columbia**, or  \n     - the **Government of Canada**, or  \n     - a **commission, board, or authority** responsible for Crown land, a mine, or an undertaking administered or controlled by these governments.\n\n4. **Authorized agent**\n   - You may also apply as an **authorized agent** on behalf of any person or organization that meets one of the criteria above.\n\nIf you tell me:\n- whether you own or lease land or a mine in BC,\n- or what type of organization you are (individual, company, municipality, etc.),\n\nI can help you determine more specifically whether you qualify.",
+            "original_results": [
+              {
+                "source": "ConversationAgentA2A",
+                "response": "Based on BC\u2019s water licence eligibility rules, you can apply for a new water licence if you (or the person/entity you represent) meet at least one of these criteria:\n\n1. **Land or mine interest in BC**\n   - You are the **owner of land or a mine in British Columbia**, or  \n   - You are **entitled to possession** of land or a mine in BC, or  \n   - You have a **substantial interest** in land, a mine, or an undertaking in BC.\n\n2. **Utility or local government**\n   - You hold a **certificate of public convenience and necessity** under:\n     - the Public Utilities Act, or  \n     - the Utilities Commission Act, or  \n     - the Water Utility Act,  \n   - or you are a **municipality, regional district, improvement district, development district, or water users\u2019 community**.\n\n3. **Government or related body**\n   - You are representing:\n     - the **Government of British Columbia**, or  \n     - the **Government of Canada**, or  \n     - a **commission, board, or authority** responsible for Crown land, a mine, or an undertaking administered or controlled by these governments.\n\n4. **Authorized agent**\n   - You may also apply as an **authorized agent** on behalf of any person or organization that meets one of the criteria above.\n\nIf you tell me:\n- whether you own or lease land or a mine in BC,\n- or what type of organization you are (individual, company, municipality, etc.),\n\nI can help you determine more specifically whether you qualify.",
+                "confidence": 10.0
+              }
+            ]
+          },
+          {
+            "thread_id": "f5d1ad76-0c5a-4827-ae6a-efbabc9d117a"
+          }
+        ],
+        "session_id": "f5d1ad76-0c5a-4827-ae6a-efbabc9d117a"
+      },
+      "evaluations": {
+        "groundedness": {
+          "score": 0.0,
+          "reason": "The response discusses eligibility rules for a BC water licence, which are unrelated to the provided context about application fees and costs. It does not address or align with the cost information in the context.",
+          "metadata": {
+            "threshold": 0.5,
+            "meets_threshold": false,
+            "original_metadata": {}
+          }
+        }
+      },
+      "summary": {
+        "overall_score": 0.0,
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0
+      }
+    },
+    {
+      "case": {
+        "name": "hallucinated_response_example",
+        "query": "What is the application fee for a water licence?",
+        "step_number": "step3-Requirements"
+      },
+      "response": {
+        "response": [
+          {
+            "source": "Aggregator",
+            "response": "The application fee for a water licence is a **one-time fee with a minimum of $250**.\n\n- The exact amount depends on the **type and purpose of water use**; some purposes are charged a flat rate.\n- If a licence (authorization) is issued, **annual water rentals** may also apply in addition to the application fee.\n- **No application fees or annual rentals** are required for:\n  - BC Provincial or Federal Government ministries\n  - First Nations using water on reserve land\n  - Persons or entities exempt under a First Nations treaty final agreement for that water use\n\nIf you tell me what you plan to use the water for (e.g., irrigation, industrial, domestic, power generation), I can help you interpret how the fee might apply.",
+            "original_results": [
+              {
+                "source": "ConversationAgentA2A",
+                "response": "The application fee for a water licence is a **one-time fee with a minimum of $250**.\n\n- The exact amount depends on the **type and purpose of water use**; some purposes are charged a flat rate.\n- If a licence (authorization) is issued, **annual water rentals** may also apply in addition to the application fee.\n- **No application fees or annual rentals** are required for:\n  - BC Provincial or Federal Government ministries\n  - First Nations using water on reserve land\n  - Persons or entities exempt under a First Nations treaty final agreement for that water use\n\nIf you tell me what you plan to use the water for (e.g., irrigation, industrial, domestic, power generation), I can help you interpret how the fee might apply.",
+                "confidence": 10.0
+              }
+            ]
+          },
+          {
+            "thread_id": "d615bf10-b8cd-4a2b-bf13-4e8d7d92930c"
+          }
+        ],
+        "session_id": "d615bf10-b8cd-4a2b-bf13-4e8d7d92930c"
+      },
+      "evaluations": {
+        "groundedness": {
+          "score": 0.4,
+          "reason": "The response correctly reflects several points from the context: there is a one-time application fee with a minimum of $250; fees depend on the type/purpose of water use; some purposes are charged a flat rate; and annual water rentals may apply if an authorization is issued. However, it introduces additional details not supported by the context, such as specific exemptions for BC Provincial or Federal ministries, First Nations on reserve land, and treaty-based exemptions. These exemption details are not mentioned in the provided context and therefore are ungrounded.",
+          "metadata": {
+            "threshold": 0.5,
+            "meets_threshold": false,
+            "original_metadata": {}
+          }
+        }
+      },
+      "summary": {
+        "overall_score": 0.4,
+        "count": 1,
+        "min": 0.4,
+        "max": 0.4
+      }
+    }
+  ],
+  "summary": {
+    "overall_score": 0.2,
+    "case_count": 2
+  }
+}

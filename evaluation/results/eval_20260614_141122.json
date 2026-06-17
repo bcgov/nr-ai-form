@@ -1,0 +1,56 @@
+{
+  "run_name": "test_evaluation_run",
+  "scenario": "basic_evaluation",
+  "timestamp": "2026-06-14T14:11:22.014360+00:00",
+  "backend_url": "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke",
+  "backend_healthy": true,
+  "cases": [
+    {
+      "case": {
+        "name": "hallucinated_response_example",
+        "query": "What is the application fee for a water licence?",
+        "step_number": "step3-Requirements"
+      },
+      "response": {
+        "response": [
+          {
+            "source": "Aggregator",
+            "response": "The application fee for a water licence is a **one-time fee with a minimum of $250**.\n\n- The exact amount depends on the **type and purpose of water use**; some uses are charged a flat rate.\n- If a licence (authorization) is issued, **annual water rentals** may also apply in addition to the application fee.\n- **No application fees or annual rentals** are required for:\n  - BC Provincial or Federal Government ministries\n  - First Nations using water on reserve land\n  - Persons or entities exempt under a First Nations treaty final agreement for that water use.",
+            "original_results": [
+              {
+                "source": "ConversationAgentA2A",
+                "response": "The application fee for a water licence is a **one-time fee with a minimum of $250**.\n\n- The exact amount depends on the **type and purpose of water use**; some uses are charged a flat rate.\n- If a licence (authorization) is issued, **annual water rentals** may also apply in addition to the application fee.\n- **No application fees or annual rentals** are required for:\n  - BC Provincial or Federal Government ministries\n  - First Nations using water on reserve land\n  - Persons or entities exempt under a First Nations treaty final agreement for that water use.",
+                "confidence": 10.0
+              }
+            ]
+          },
+          {
+            "thread_id": "a4aa072e-36d4-406c-a3cf-e589e2c27a30"
+          }
+        ],
+        "session_id": "a4aa072e-36d4-406c-a3cf-e589e2c27a30"
+      },
+      "evaluations": {
+        "groundedness": {
+          "score": 0.4,
+          "reason": "The response correctly states the one-time application fee with a minimum of $250, that fees depend on type/purpose of water use, that some uses are charged a flat rate, and that annual water rentals may apply if an authorization is issued. However, it adds specific exemption categories (BC/Federal ministries, First Nations, treaty-based exemptions) that are not mentioned anywhere in the provided context, making that portion ungrounded.",
+          "metadata": {
+            "threshold": 0.5,
+            "meets_threshold": false,
+            "original_metadata": {}
+          }
+        }
+      },
+      "summary": {
+        "overall_score": 0.4,
+        "count": 1,
+        "min": 0.4,
+        "max": 0.4
+      }
+    }
+  ],
+  "summary": {
+    "overall_score": 0.4,
+    "case_count": 1
+  }
+}

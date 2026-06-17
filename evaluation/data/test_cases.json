@@ -1,0 +1,9 @@
+{
+  "test_cases": [
+    {
+      "name": "hallucinated_response_example",
+      "query": "What is the application fee for a water licence?",
+      "step_number": "step3-Requirements"
+    }
+  ]
+}
