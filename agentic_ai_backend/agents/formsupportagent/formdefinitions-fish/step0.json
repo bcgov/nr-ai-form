@@ -1,0 +1,164 @@
+{
+    "formName": "BC Fishing Licence Application",
+    "formDescription": "BC Fishing Licence Application form. Information about the angler, licence type, fishing region, optional classifications, conservation surcharge stamps, and estimated licence cost will be collected in this form.",
+    "formFields": {
+        "angler_date_of_birth": {
+            "type": "date",
+            "id": "dob",
+            "title": "Date of Birth",
+            "description": "Angler's date of birth. Used to determine age eligibility and applicable licence rate.",
+            "required": true
+        },
+        "bc_resident_status": {
+            "type": "radio",
+            "id": "residency_resident",
+            "title": "BC Residency Status",
+            "description": "If Residency status of the applicant is in British Columbia(BC)",
+            "required": true            
+        },
+        "non_bc_resident_canadian": {
+            "type": "radio",
+            "id": "residency_non-resident",
+            "title": "Non BC Resident - but Canadian",
+            "description": "If Residency status of the applicant is out of  British Columbia(BC), but else where in Canada"
+        },
+        "non_resident_alien": {
+            "type": "radio",
+            "id": "residency_alien",
+            "title": "Non Canadian- Non BC Resident",
+            "description": "Foreigner - If Residency status of the applicant is out of British Columbia(BC) and Canada"        
+        },
+        "fish_and_wildlife_id": {
+            "type": "text",
+            "id": "wid",
+            "title": "Fish and Wildlife ID (FWID)",
+            "description": "Applicant's Fish and Wildlife ID. Leave blank if the applicant needs to register for a new FWID.",
+            "required": false
+        },
+        "licence_duration": {
+            "type": "select",
+            "id": "licenceDuration",
+            "title": "Duration",
+            "description": "Duration of the fishing licence being requested.",
+            "required": true,
+            "placeholder": "Please select",
+            "options": [
+                {
+                    "label": "Annual (Apr 1 - Mar 31)",
+                    "value": "annual"
+                },
+                {
+                    "label": "One-Day",
+                    "value": "one-day"
+                },
+                {
+                    "label": "Eight-Day",
+                    "value": "eight-day"
+                }
+            ]
+        },
+        "senior_resident_rate": {
+            "type": "checkbox",
+            "id": "seniorRate",
+            "title": "I am 65 or older(resident annual rate)",
+            "description": "Select this option if the applicant is 65 years of age or older and qualifies for the resident annual rate.",
+            "required": false
+        },
+        "disability_fee_reduction_eligibility": {
+            "type": "checkbox",
+            "id": "disabilityReduction",
+            "title": "I hold a Certificate of Eligibility for the fee reduction program (severe and permanent disability)",
+            "description": "Select this option if the applicant holds a Certificate of Eligibility for the fee reduction program due to severe and permanent disability.",
+            "required": false
+        },
+        "fishing_region": {
+            "type": "select",
+            "id": "location",
+            "title": "Fishing Region",
+            "description": "Fishing region where the applicant intends to fish.",
+            "required": true,            
+            "options": [
+                {
+                    "label": "Region 1 - Vancouver Island",
+                    "value": "region1"
+                },
+                {
+                    "label": "Region 2 - Lower Mainland",
+                    "value": "region2"
+                },
+                {
+                    "label": "Region 3 - Thompson-Nicola",
+                    "value": "region3"
+                },
+                {
+                    "label": "Region 4 - Kootenay",
+                    "value": "region4"
+                },
+                {
+                    "label": "Region 5 - Cariboo",
+                    "value": "region5"
+                },
+                {
+                    "label": "Region 6 - Skeena",
+                    "value": "region6"
+                },
+                {
+                    "label": "Region 7A - Omineca",
+                    "value": "region7a"
+                },
+                {
+                    "label": "Region 7B - Peace",
+                    "value": "region7b"
+                },
+                {
+                    "label": "Region 8 - Okanagan",
+                    "value": "region8"
+                }
+            ]
+        },
+        "classified_waters_licence_optional": {
+            "type": "checkbox",
+            "id": "surcharge",
+            "title": "Add a Classified Waters Licence",
+            "description": "Optional classified waters licence add-on.",
+            "required": false
+        },
+        "conservation_steelhead_stamp": {
+            "type": "checkbox",
+            "id": "surcharge_steelhead",
+            "title": "Steelhead",
+            "description": "Optional conservation surcharge stamp for Steelhead.",
+            "required": false
+        },
+        "conservation_non_tidal_salmon_stamp": {
+            "type": "checkbox",
+            "id": "surcharge_salmon",
+            "title": "Non-Tidal Salmon",
+            "description": "Optional conservation surcharge stamp for Non-Tidal Salmon.",
+            "required": false
+        },
+        "conservation_kootenay_shuswap_rainbow_trout_char_stamp": {
+            "type": "checkbox",
+            "id": "surcharge_rainbow-char",
+            "title": "Kootenay/Shuswap Rainbow Trout or Char",
+            "description": "Optional conservation surcharge stamp for Kootenay/Shuswap Rainbow Trout or Char.",
+            "required": false
+        },
+        "conservation_white_sturgeon_conservation_licence": {
+            "type": "checkbox",
+            "id": "surcharge_sturgeon",
+            "title": "White Sturgeon Conservation Licence",
+            "description": "Optional conservation surcharge licence for White Sturgeon.",
+            "required": false
+        },
+        "estimated_licence_cost": {
+            "type": "number",
+            "id": "estimatedCost",
+            "title": "Estimated Licence Cost",
+            "description": "Estimated total licence cost based on selected licence type, region, and optional surcharges.",
+            "required": false,
+            "readOnly": true,
+            "default": 0.00
+        }
+    }
+}
