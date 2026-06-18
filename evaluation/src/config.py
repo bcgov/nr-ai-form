@@ -60,6 +60,60 @@ class Settings(BaseSettings):
         validation_alias="AZURE_AI_PROJECT",
     )  # Azure AI project endpoint URL or connection string
 
+    # Azure AI Search Configuration
+    azure_search_endpoint: str = Field(
+        default="",
+        validation_alias="AZURE_SEARCH_ENDPOINT",
+    )
+    azure_search_api_key: str = Field(
+        default="",
+        validation_alias="AZURE_SEARCH_API_KEY",
+    )
+    azure_search_index_name: str = Field(
+        default="",
+        validation_alias="AZURE_SEARCH_INDEX_NAME",
+    )
+    azure_search_top: int = Field(
+        default=3,
+        validation_alias="AZURE_SEARCH_TOP",
+    )
+    azure_search_trim_length: int = Field(
+        default=500,
+        validation_alias="AZURE_SEARCH_TRIM_LENGTH",
+    )
+    azure_search_enable_trimming: bool = Field(
+        default=True,
+        validation_alias="AZURE_SEARCH_ENABLE_TRIMMING",
+    )
+    azure_search_include_total_count: bool = Field(
+        default=True,
+        validation_alias="AZURE_SEARCH_INCLUDE_TOTAL_COUNT",
+    )
+    azure_search_query_type: str = Field(
+        default="simple",
+        validation_alias="AZURE_SEARCH_QUERY_TYPE",
+    )
+    azure_search_semantic_configuration: str = Field(
+        default="default",
+        validation_alias="AZURE_SEARCH_SEMANTIC_CONFIGURATION",
+    )
+    azure_search_query_caption: str = Field(
+        default="extractive",
+        validation_alias="AZURE_SEARCH_QUERY_CAPTION",
+    )
+    azure_search_query_answer: str = Field(
+        default="extractive",
+        validation_alias="AZURE_SEARCH_QUERY_ANSWER",
+    )
+    azure_search_query_answer_count: int = Field(
+        default=3,
+        validation_alias="AZURE_SEARCH_QUERY_ANSWER_COUNT",
+    )
+    azure_search_query_language: str = Field(
+        default="en-us",
+        validation_alias="AZURE_SEARCH_QUERY_LANGUAGE",
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,
@@ -79,6 +133,14 @@ class Settings(BaseSettings):
         if not self.backend_api_url:
             raise ValueError("BACKEND_API_URL is required")
         return True
+
+    def use_azure_search(self) -> bool:
+        """Check if Azure Search is configured."""
+        return bool(
+            self.azure_search_endpoint
+            and self.azure_search_api_key
+            and self.azure_search_index_name
+        )
 
 
 # Global settings instance

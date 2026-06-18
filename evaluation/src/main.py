@@ -8,6 +8,7 @@ import structlog
 
 from src.config import settings
 from src.client import BackendClient
+from src.search_client import AzureSearchContextRetriever
 from src.evaluators import (
     AzureGroundednessEvaluatorAdapter,
 )
@@ -26,15 +27,41 @@ structlog.configure(
 
 logger = structlog.get_logger(__name__)
 
-
-def load_context(file: str = "data/context.json") -> str:
-    """Load context from JSON file."""
+# Initialize AI Search retriever if configured
+search_retriever = None
+if settings.use_azure_search():
     try:
-        path = Path(file) if Path(file).exists() else Path(__file__).parent.parent / file
-        if path.exists():
-            return json.load(open(path))["context"]
+        search_retriever = AzureSearchContextRetriever()
+        logger.info("azure_search_retriever_enabled")
     except Exception as e:
-        logger.warning("context_load_failed", error=str(e))
+        logger.warning(
+            "azure_search_retriever_init_failed",
+            error=str(e),
+        )
+
+
+def load_context(query: str = "") -> str:
+    """
+    Load context from Azure AI Search or fallback to file.
+    
+    Args:
+        query: Search query (used for AI Search)
+        file: Fallback file path for context
+        
+    Returns:
+        Context string
+    """
+    if search_retriever:
+        try:
+            context = search_retriever.retrieve_context(query or "permit application")
+            logger.info("context_retrieved_from_search")
+            return context
+        except Exception as e:
+            logger.warning(
+                "search_context_retrieval_failed",
+                error=str(e),
+            )
+    logger.warning("no_context_available")
     return ""
 
 
@@ -127,7 +154,8 @@ class EvaluationRunner:
 
     def _eval_response(self, response: str, query: str = ""):
         """Evaluate response with all evaluators."""
-        context = load_context()
+        # Load context using the query for AI Search retrieval
+        context = load_context(query=query)
         inputs = {
             "groundedness": {"response": response, "context": context},
         }
