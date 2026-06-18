@@ -1,0 +1,261 @@
+name: Terraform Plan & Apply
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform-deploy.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'infra/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+      action:
+        description: 'Terraform action'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  TERRAFORM_VERSION: 1.6.0
+  WORKING_DIRECTORY: ./infra
+
+jobs:
+  terraform-plan:
+    name: 'Terraform Plan'
+    runs-on: ubuntu-latest
+    environment: 
+      name: terraform
+    
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+    outputs:
+      plan_status: ${{ steps.plan.outcome }}
+      plan_file: ${{ steps.plan.outputs.plan_file }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file="terraform.tfvars.${{ github.event.inputs.environment || 'dev' }}" \
+            -out=tfplan \
+            -lock=false
+          echo "plan_file=tfplan" >> $GITHUB_OUTPUT
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        continue-on-error: true
+
+      - name: Publish Plan to PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('${{ env.WORKING_DIRECTORY }}/tfplan', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan\n\n\`\`\`\n${plan.substring(0, 3000)}\n${plan.length > 3000 ? '... (truncated)' : ''}\n\`\`\``
+            });
+
+      - name: Upload Plan Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ github.run_id }}
+          path: ${{ env.WORKING_DIRECTORY }}/tfplan
+          retention-days: 7
+
+      - name: Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  terraform-apply:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+    needs: terraform-plan
+    if: |
+      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+      github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+    environment: 
+      name: terraform-apply
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ github.run_id }}
+          path: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          terraform apply -auto-approve tfplan
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Terraform Output
+        id: output
+        run: |
+          terraform output -json > outputs.json
+          cat outputs.json
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        continue-on-error: true
+
+      - name: Post Apply Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'push' && always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let message = '## ✅ Terraform Apply Complete\n\n';
+            
+            try {
+              const outputs = JSON.parse(fs.readFileSync('${{ env.WORKING_DIRECTORY }}/outputs.json', 'utf8'));
+              message += '### Outputs\n\`\`\`json\n' + JSON.stringify(outputs, null, 2) + '\n\`\`\`';
+            } catch (e) {
+              message += 'No outputs available';
+            }
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚀 Deployment: Terraform Apply Complete',
+              body: message,
+              labels: ['deployment', 'terraform']
+            });
+
+      - name: Upload Terraform State
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-state-${{ github.run_id }}
+          path: |
+            ${{ env.WORKING_DIRECTORY }}/terraform.tfstate*
+            ${{ env.WORKING_DIRECTORY }}/.terraform/
+          retention-days: 30
+
+  terraform-destroy:
+    name: 'Terraform Destroy'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+    environment: 
+      name: terraform-destroy
+      # Require manual approval
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Terraform Destroy
+        run: |
+          terraform destroy \
+            -var-file="terraform.tfvars.${{ github.event.inputs.environment || 'dev' }}" \
+            -auto-approve
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Destruction Complete
+        run: echo "✅ Resources have been destroyed"
