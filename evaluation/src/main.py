@@ -12,6 +12,7 @@ from src.search_client import AzureSearchContextRetriever
 from src.evaluators import (
     AzureGroundednessEvaluatorAdapter,
 )
+from src.evaluators.code_vulnerability import AzureCodeVulnerabilityEvaluatorAdapter
 
 structlog.configure(
     processors=[
@@ -34,10 +35,7 @@ if settings.use_azure_search():
         search_retriever = AzureSearchContextRetriever()
         logger.info("azure_search_retriever_enabled")
     except Exception as e:
-        logger.warning(
-            "azure_search_retriever_init_failed",
-            error=str(e),
-        )
+        logger.warning(f"azure_search_retriever_init_failed: {str(e)}")
 
 
 def load_context(query: str = "") -> str:
@@ -57,10 +55,7 @@ def load_context(query: str = "") -> str:
             logger.info("context_retrieved_from_search")
             return context
         except Exception as e:
-            logger.warning(
-                "search_context_retrieval_failed",
-                error=str(e),
-            )
+            logger.warning(f"search_context_retrieval_failed: {str(e)}")
     logger.warning("no_context_available")
     return ""
 
@@ -97,23 +92,37 @@ class EvaluationRunner:
     """Run evaluation on backend responses."""
 
     def __init__(self):
-        all_evals = {
-            "groundedness": AzureGroundednessEvaluatorAdapter(),
-
-        }
+        all_evals = {}
+        
+        # Initialize groundedness evaluator
+        try:
+            all_evals["groundedness"] = AzureGroundednessEvaluatorAdapter()
+        except Exception as e:
+            logger.warning(f"groundedness_evaluator_failed: {e}")
+        
+        # Initialize code vulnerability evaluator (graceful if endpoint not accessible)
+        try:
+            all_evals["code_vulnerability"] = AzureCodeVulnerabilityEvaluatorAdapter()
+        except ValueError as e:
+            # Only log error for configuration issues
+            logger.warning(f"code_vulnerability_config_error: {e}")
+        except Exception as e:
+            # Log other errors but continue - evaluator will be skipped
+            logger.info(f"code_vulnerability_evaluator_unavailable: {e}")
+        
         enabled = [e.strip().lower() for e in settings.enabled_evaluators.split(",")]
         self.evaluators = {k: v for k, v in all_evals.items() if k.lower() in enabled}
-        logger.info("evaluators_init", enabled=list(self.evaluators.keys()))
+        logger.info(f"evaluators_initialized - enabled: {list(self.evaluators.keys())}")
 
     async def run(self):
         """Run evaluation."""
-        logger.info("eval_start", run=settings.evaluation_run_name)
+        logger.info(f"eval_start - run: {settings.evaluation_run_name}")
         
         try:
             async with BackendClient() as client:
                 is_healthy = await client.health_check()
                 cases = client.get_sample_cases()
-                logger.info("cases_loaded", count=len(cases))
+                logger.info(f"cases_loaded - count: {len(cases)}")
 
                 results = []
                 for case in cases:
@@ -145,7 +154,7 @@ class EvaluationRunner:
                         "case_count": len(results),
                     },
                 }
-                logger.info("eval_complete", score=overall)
+                logger.info(f"eval_complete - score: {overall}")
                 return output
                 
         except Exception as e:
@@ -158,6 +167,7 @@ class EvaluationRunner:
         context = load_context(query=query)
         inputs = {
             "groundedness": {"response": response, "context": context},
+            "code_vulnerability": {"response": response, "query": query},
         }
         
         results = {}
@@ -176,7 +186,7 @@ class EvaluationRunner:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             filepath = Path(output_dir) / f"eval_{timestamp}.json"
             json.dump(results, open(filepath, "w"), indent=2)
-            logger.info("results_saved", file=str(filepath))
+            logger.info(f"results_saved - file: {str(filepath)}")
         except Exception as e:
             logger.exception("save_failed")
 

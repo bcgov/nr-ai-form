@@ -44,9 +44,9 @@ class AzureGroundednessEvaluatorAdapter(BaseEvaluator):
         try:
             self.evaluator = self._init_evaluator()
             logger.info(
-                "groundedness_evaluator_initialized",
-                threshold=self.threshold,
-                deployment=settings.azure_openai_deployment,
+                f"groundedness_evaluator_initialized - "
+                f"threshold: {self.threshold}, "
+                f"deployment: {settings.azure_openai_deployment}"
             )
         except ValueError as e:
             logger.warning(f"groundedness_config_missing: {e}")

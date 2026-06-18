@@ -123,6 +123,11 @@ class Settings(BaseSettings):
         default=0.5,
         validation_alias="GROUNDEDNESS_THRESHOLD",
     )
+    
+    code_vulnerability_threshold: float = Field(
+        default=0.8,
+        validation_alias="CODE_VULNERABILITY_THRESHOLD",
+    )
 
     def validate_config(self) -> bool:
         """Validate required configuration"""
