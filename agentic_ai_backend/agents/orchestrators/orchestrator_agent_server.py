@@ -2,10 +2,11 @@
 """
 FastAPI A2A Wrapper for Orchestrator Agent
 """
+import json
 import os
 import uvicorn
 import uuid
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
 from orchestratoragent import orchestrate_a2a
 from telemetry import OpenTelemetryAzureMonitorTelemetry, create_telemetry_middleware
@@ -104,6 +105,47 @@ async def invoke_agent(request: InvokeRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+
+@app.websocket("/ws")    
+async def invoke_agent_ws(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            request = await websocket.receive_json()
+            print(f"Websocket request object:   {request}")
+            # request = json.loads(websocket_request)
+            # print(f"Websocket parsed request object:   {request}")
+            # Get A2A URLs from environment
+            conversation_url = os.getenv("CONVERSATION_AGENT_A2A_URL", "http://localhost:8000")
+            form_support_url = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
+            step_number = request['step_number'] or os.getenv("FORM_STEP_NUMBER", "step2-Eligibility")
+
+            # Run the orchestrator logic
+            output_event = await orchestrate_a2a(
+                query=request['query'], 
+                conversation_agent_url=conversation_url, 
+                form_support_agent_url=form_support_url,
+                step_number=step_number,
+                session_id=request['session_id']
+            )
+
+            if output_event:
+                # The result from orchestrate_a2a is a WorkflowOutputEvent object
+                # We want to return something serializable. data is typically a list of messages.
+                response = InvokeResponse(
+                    response=output_event,
+                    session_id=request['session_id']
+                )
+                await websocket.send_text(json.dumps(response.model_dump()))
+            else:
+                response = InvokeResponse(
+                    response="No response from orchestrator.",
+                    session_id=request['session_id']
+                )
+                await websocket.send_text(json.dumps(response.model_dump()))
+
+    except WebSocketDisconnect:
+        print("API Gateway disconnected from Orchestrator Websocket")
 
 @app.get("/health")
 async def health_check():

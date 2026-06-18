@@ -41,6 +41,20 @@ class RedisService:
         except Exception as e:
             print(f"Failed to load thread {thread_id} from Redis: {e}")
             return None
+    
+    async def load_conversation_history(self, thread_id: str) -> Optional[Dict[str, Any]]:
+        """Loads the thread state but in a conversation history format."""
+        try:
+            if not self.client:
+                await self.connect()
+            
+            data = await self.client.get(thread_id)
+            if data:
+                return json.loads(data)
+            return data
+        except Exception as e:
+            print(f"Failed to load thread {thread_id} from Redis: {e}")
+            return None
 
     async def save_thread(self, thread_id: str, thread_state: Dict[str, Any]):
         """Saves a thread state to Redis with optional TTL (default 1 hour)."""

@@ -6,7 +6,7 @@
             "type": "radio",
             "id": "AnswerOnJob_eligible",
             "title": "Are you eligible to apply for a water licence?",
-            "description": "Applicant is eligible to apply if has ownership or entitled to possession a land or mine in British Columbia, OR  acting as an agent for a municipality, regional district, improvement district, development district, BC Hydro or water users' community OR  a holder of a certificate of public convenience and necessity issued under the Public Utilities Act",
+            "description": "Applicant is eligible to apply if they have ownership or are entitled to possession of a land or mine in British Columbia, OR  acting as an agent for a municipality, regional district, improvement district, development district, BC Hydro or water users' community OR  a holder of a certificate of public convenience and necessity issued under the Public Utilities Act",
             "enum": [
                 "Yes",
                 "No"

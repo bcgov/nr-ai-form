@@ -7,7 +7,10 @@ requires-python = ">=3.13"
 dependencies = [
     "azure-storage-blob==12.28.0",
     "azure-cosmos==4.15.0",
-    "redis==7.4.0"
+    "redis==7.4.0",
+    "python-dotenv>=1.0.0",
+    "agent-framework-core==1.0.1",
+ "agent-framework-openai==1.0.1",
 ]
 
 [build-system]
@@ -15,5 +18,5 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["utils"]
+packages = ["utils", "utils.threadmanagement"]
 package-dir = {"utils" = "."}
