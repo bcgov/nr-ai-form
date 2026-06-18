@@ -39,12 +39,16 @@ env:
   TERRAFORM_VERSION: 1.6.0
   WORKING_DIRECTORY: ./infra
 
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
 jobs:
   terraform-plan:
     name: 'Terraform Plan'
     runs-on: ubuntu-latest
-    environment: 
-      name: terraform
+    environment: terraform
     
     permissions:
       id-token: write
@@ -64,13 +68,12 @@ jobs:
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
-      - name: Azure Login
+      - name: Azure CLI Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: false
 
       - name: Terraform Format Check
         id: fmt
@@ -134,8 +137,7 @@ jobs:
     if: |
       (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
       github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
-    environment: 
-      name: terraform-apply
+    environment: terraform-apply
     
     permissions:
       id-token: write
@@ -150,13 +152,12 @@ jobs:
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
-      - name: Azure Login
+      - name: Azure CLI Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: false
 
       - name: Download Plan Artifact
         uses: actions/download-artifact@v4
@@ -221,9 +222,7 @@ jobs:
     name: 'Terraform Destroy'
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
-    environment: 
-      name: terraform-destroy
-      # Require manual approval
+    environment: terraform-destroy
     
     permissions:
       id-token: write
@@ -238,13 +237,12 @@ jobs:
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
-      - name: Azure Login
+      - name: Azure CLI Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: false
 
       - name: Terraform Init
         run: terraform init
