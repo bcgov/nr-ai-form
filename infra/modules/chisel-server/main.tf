@@ -56,9 +56,6 @@ resource "azurerm_linux_web_app" "chisel_server" {
     "CHISEL_ENABLE_SOCKS5" = "true"
     "CHISEL_PORT"          = "80" # App Service converts to 443
     "WEBSITES_PORT"        = "80"
-
-    # Monitoring
-    "WEBSITE_HTTPLOGGING_RETENTION_DAYS" = "7"
   }
 
   tags = merge(
