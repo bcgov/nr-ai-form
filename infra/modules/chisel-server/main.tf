@@ -48,8 +48,8 @@ resource "azurerm_linux_web_app" "chisel_server" {
     container_registry_use_managed_identity = true
 
     application_stack {
-      docker_image_name        = "chisel-server:latest"
-      docker_registry_url      = "https://${azurerm_container_registry.chisel.login_server}"
+      docker_image_name   = "chisel-server:latest"
+      docker_registry_url = "https://${azurerm_container_registry.chisel.login_server}"
     }
   }
 
