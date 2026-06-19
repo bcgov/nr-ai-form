@@ -203,7 +203,10 @@ jobs:
           variable "environment" { type = string }
           variable "location" { type = string }
           variable "resource_group_name" { type = string }
-          variable "chisel_server_auth" { type = string, sensitive = true }
+          variable "chisel_server_auth" {
+            type      = string
+            sensitive = true
+          }
           variable "common_tags" { type = map(string) }
           output "chisel_server_url" { value = module.chisel_server.chisel_server_url }
           EOF
@@ -330,7 +333,10 @@ jobs:
           variable "environment" { type = string }
           variable "location" { type = string }
           variable "resource_group_name" { type = string }
-          variable "chisel_server_auth" { type = string, sensitive = true }
+          variable "chisel_server_auth" {
+            type      = string
+            sensitive = true
+          }
           variable "common_tags" { type = map(string) }
           output "chisel_server_url" { value = module.chisel_server.chisel_server_url }
           EOF
@@ -450,7 +456,10 @@ jobs:
           variable "environment" { type = string }
           variable "location" { type = string }
           variable "resource_group_name" { type = string }
-          variable "chisel_server_auth" { type = string, sensitive = true }
+          variable "chisel_server_auth" {
+            type      = string
+            sensitive = true
+          }
           variable "common_tags" { type = map(string) }
           EOF
 
