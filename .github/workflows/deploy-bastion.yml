@@ -44,7 +44,7 @@ jobs:
           app_env: ${{ inputs.environment }}
           terraform_command: ${{ inputs.terraform_command }}
 
-          backend_storage_account: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+          backend_storage_account: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
 
           # Azure OIDC identity (environment-scoped secrets)
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
