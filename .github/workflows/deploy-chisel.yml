@@ -1,17 +1,18 @@
-name: Deploy Chisel Proxy to Azure App Service
+name: Deploy Chisel Server to Azure App Service
 
 on:
   push:
     branches:
       - master
     paths:
-      - 'infra/**'
+      - 'infra/modules/chisel-server/**'
       - '.github/workflows/deploy-chisel.yml'
   pull_request:
     branches:
       - master
     paths:
-      - 'infra/**'
+      - 'infra/modules/chisel-server/**'
+      - '.github/workflows/deploy-chisel.yml'
   workflow_dispatch:
     inputs:
       environment:
@@ -34,77 +35,185 @@ on:
           - destroy
 
 env:
-  TERRAFORM_VERSION: 1.12.2
+  TF_VERSION: 1.12.2
+  WORKDIR: .ci/chisel-server
   ENVIRONMENT: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') && 'prod' || github.event.inputs.environment || 'dev' }}
-  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  AZURE_REGION: ${{ vars.AZURE_REGION || 'Canada Central' }}
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
 
 jobs:
   validate:
-    name: Validate Terraform
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    name: Validate Chisel Terraform
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Terraform format check
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive infra/modules/chisel-server -no-color
+
+      - name: Generate Terraform Root
+        shell: bash
         run: |
-          cd infra
-          terraform fmt -check -recursive -no-color || {
-            echo "❌ Terraform files not formatted. Run: terraform fmt -recursive"
-            exit 1
+          mkdir -p "${WORKDIR}"
+          cat > "${WORKDIR}/main.tf" <<'EOF'
+          terraform {
+            required_version = ">= 1.5.0"
+            required_providers {
+              azurerm = {
+                source  = "hashicorp/azurerm"
+                version = ">= 4.0.0"
+              }
+            }
+            backend "azurerm" {}
           }
 
-      - name: Terraform Init (modules only)
-        run: |
-          cd infra
-          terraform init -backend=false -no-color
+          provider "azurerm" {
+            features {}
+            subscription_id = var.subscription_id
+            tenant_id       = var.tenant_id
+            use_oidc        = true
+          }
 
-      - name: Terraform validate
-        run: |
-          cd infra
-          terraform validate -no-color
+          module "chisel_server" {
+            source = "../../infra/modules/chisel-server"
+
+            app_name            = var.app_name
+            environment         = var.environment
+            location            = var.location
+            resource_group_name = var.resource_group_name
+            chisel_server_auth  = var.chisel_server_auth
+            common_tags         = var.common_tags
+          }
+
+          variable "subscription_id" {
+            type = string
+          }
+
+          variable "tenant_id" {
+            type = string
+          }
+
+          variable "app_name" {
+            type = string
+          }
+
+          variable "environment" {
+            type = string
+          }
+
+          variable "location" {
+            type = string
+          }
+
+          variable "resource_group_name" {
+            type = string
+          }
+
+          variable "chisel_server_auth" {
+            type      = string
+            sensitive = true
+          }
+
+          variable "common_tags" {
+            type = map(string)
+          }
+
+          output "chisel_server_url" {
+            value = module.chisel_server.chisel_server_url
+          }
+          EOF
+
+      - name: Terraform Init (modules only)
+        working-directory: ${{ env.WORKDIR }}
+        run: terraform init -backend=false -no-color
+
+      - name: Terraform Validate
+        working-directory: ${{ env.WORKDIR }}
+        run: terraform validate -no-color
 
   plan:
     name: Terraform Plan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: validate
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
-    permissions:
-      id-token: write
-      contents: read
-      pull-requests: write
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Azure CLI Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ env.AZURE_TENANT_ID }}
-          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Generate Terraform Root
+        shell: bash
+        run: |
+          mkdir -p "${WORKDIR}"
+          cat > "${WORKDIR}/main.tf" <<'EOF'
+          terraform {
+            required_version = ">= 1.5.0"
+            required_providers {
+              azurerm = {
+                source  = "hashicorp/azurerm"
+                version = ">= 4.0.0"
+              }
+            }
+            backend "azurerm" {}
+          }
+
+          provider "azurerm" {
+            features {}
+            subscription_id = var.subscription_id
+            tenant_id       = var.tenant_id
+            use_oidc        = true
+          }
+
+          module "chisel_server" {
+            source = "../../infra/modules/chisel-server"
+
+            app_name            = var.app_name
+            environment         = var.environment
+            location            = var.location
+            resource_group_name = var.resource_group_name
+            chisel_server_auth  = var.chisel_server_auth
+            common_tags         = var.common_tags
+          }
+
+          variable "subscription_id" { type = string }
+          variable "tenant_id" { type = string }
+          variable "app_name" { type = string }
+          variable "environment" { type = string }
+          variable "location" { type = string }
+          variable "resource_group_name" { type = string }
+          variable "chisel_server_auth" { type = string, sensitive = true }
+          variable "common_tags" { type = map(string) }
+          output "chisel_server_url" { value = module.chisel_server.chisel_server_url }
+          EOF
 
       - name: Terraform Init
+        working-directory: ${{ env.WORKDIR }}
         run: |
-          cd infra
           terraform init \
-            -backend-config="subscription_id=${{ env.AZURE_SUBSCRIPTION_ID }}" \
-            -backend-config="tenant_id=${{ env.AZURE_TENANT_ID }}" \
+            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="resource_group_name=${{ secrets.TERRAFORM_BACKEND_RG }}" \
             -backend-config="storage_account_name=${{ secrets.TERRAFORM_BACKEND_SA }}" \
             -backend-config="container_name=${{ secrets.TERRAFORM_BACKEND_CONTAINER }}" \
@@ -113,62 +222,125 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        working-directory: ${{ env.WORKDIR }}
+        env:
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          TF_VAR_app_name: ${{ github.event.repository.name }}
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_location: ${{ env.AZURE_REGION }}
+          TF_VAR_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
+          TF_VAR_common_tags: '{"ManagedBy":"Terraform","Environment":"${{ env.ENVIRONMENT }}","Component":"chisel-server"}'
+          CHISEL_SERVER_AUTH: ${{ secrets.CHISEL_SERVER_AUTH }}
+          CHISEL_PASSWORD: ${{ secrets.CHISEL_PASSWORD }}
         run: |
-          cd infra
-          terraform plan \
-            -var-file="terraform.tfvars" \
-            -out=tfplan \
-            -no-color > plan_output.txt 2>&1 || true
+          AUTH_VALUE="${CHISEL_SERVER_AUTH}"
+          if [ -z "${AUTH_VALUE}" ]; then
+            AUTH_VALUE="${CHISEL_PASSWORD}"
+          fi
+          if [ -z "${AUTH_VALUE}" ]; then
+            echo "::error::Missing CHISEL_SERVER_AUTH or CHISEL_PASSWORD secret"
+            exit 1
+          fi
+          if [[ "${AUTH_VALUE}" != *":"* ]]; then
+            AUTH_VALUE="tunnel:${AUTH_VALUE}"
+          fi
+          export TF_VAR_chisel_server_auth="${AUTH_VALUE}"
+
+          terraform plan -out=tfplan -no-color > plan_output.txt
           cat plan_output.txt
 
       - name: Post Plan to PR
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const planOutput = fs.readFileSync('infra/plan_output.txt', 'utf8');
-            const comment = `## 🔧 Terraform Plan - Chisel App Service\n\n\`\`\`terraform\n${planOutput}\n\`\`\`\n\n**Action:** Review the plan above carefully before approving.\n\n---\n*This is an automated plan from GitHub Actions*`;
-            github.rest.issues.createComment({
+            const out = fs.readFileSync('${{ env.WORKDIR }}/plan_output.txt', 'utf8');
+            const body = `## Terraform Plan - Chisel Server\n\n\`\`\`terraform\n${out.substring(0, 60000)}\n\`\`\``;
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: comment
+              body
             });
 
   apply:
     name: Terraform Apply
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: validate
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.terraform_action == 'apply')
     environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') && 'prod' || github.event.inputs.environment || 'dev' }}
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Azure CLI Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ env.AZURE_TENANT_ID }}
-          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Generate Terraform Root
+        shell: bash
+        run: |
+          mkdir -p "${WORKDIR}"
+          cat > "${WORKDIR}/main.tf" <<'EOF'
+          terraform {
+            required_version = ">= 1.5.0"
+            required_providers {
+              azurerm = {
+                source  = "hashicorp/azurerm"
+                version = ">= 4.0.0"
+              }
+            }
+            backend "azurerm" {}
+          }
+
+          provider "azurerm" {
+            features {}
+            subscription_id = var.subscription_id
+            tenant_id       = var.tenant_id
+            use_oidc        = true
+          }
+
+          module "chisel_server" {
+            source = "../../infra/modules/chisel-server"
+
+            app_name            = var.app_name
+            environment         = var.environment
+            location            = var.location
+            resource_group_name = var.resource_group_name
+            chisel_server_auth  = var.chisel_server_auth
+            common_tags         = var.common_tags
+          }
+
+          variable "subscription_id" { type = string }
+          variable "tenant_id" { type = string }
+          variable "app_name" { type = string }
+          variable "environment" { type = string }
+          variable "location" { type = string }
+          variable "resource_group_name" { type = string }
+          variable "chisel_server_auth" { type = string, sensitive = true }
+          variable "common_tags" { type = map(string) }
+          output "chisel_server_url" { value = module.chisel_server.chisel_server_url }
+          EOF
 
       - name: Terraform Init
+        working-directory: ${{ env.WORKDIR }}
         run: |
-          cd infra
           terraform init \
-            -backend-config="subscription_id=${{ env.AZURE_SUBSCRIPTION_ID }}" \
-            -backend-config="tenant_id=${{ env.AZURE_TENANT_ID }}" \
+            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="resource_group_name=${{ secrets.TERRAFORM_BACKEND_RG }}" \
             -backend-config="storage_account_name=${{ secrets.TERRAFORM_BACKEND_SA }}" \
             -backend-config="container_name=${{ secrets.TERRAFORM_BACKEND_CONTAINER }}" \
@@ -176,101 +348,118 @@ jobs:
             -no-color
 
       - name: Terraform Plan
-        id: plan
+        working-directory: ${{ env.WORKDIR }}
+        env:
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          TF_VAR_app_name: ${{ github.event.repository.name }}
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_location: ${{ env.AZURE_REGION }}
+          TF_VAR_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
+          TF_VAR_common_tags: '{"ManagedBy":"Terraform","Environment":"${{ env.ENVIRONMENT }}","Component":"chisel-server"}'
+          CHISEL_SERVER_AUTH: ${{ secrets.CHISEL_SERVER_AUTH }}
+          CHISEL_PASSWORD: ${{ secrets.CHISEL_PASSWORD }}
         run: |
-          cd infra
-          terraform plan \
-            -var-file="terraform.tfvars" \
-            -out=tfplan \
-            -no-color
+          AUTH_VALUE="${CHISEL_SERVER_AUTH}"
+          if [ -z "${AUTH_VALUE}" ]; then
+            AUTH_VALUE="${CHISEL_PASSWORD}"
+          fi
+          if [ -z "${AUTH_VALUE}" ]; then
+            echo "::error::Missing CHISEL_SERVER_AUTH or CHISEL_PASSWORD secret"
+            exit 1
+          fi
+          if [[ "${AUTH_VALUE}" != *":"* ]]; then
+            AUTH_VALUE="tunnel:${AUTH_VALUE}"
+          fi
+          export TF_VAR_chisel_server_auth="${AUTH_VALUE}"
+
+          terraform plan -out=tfplan -no-color
 
       - name: Terraform Apply
-        id: apply
-        run: |
-          cd infra
-          terraform apply -no-color tfplan
+        working-directory: ${{ env.WORKDIR }}
+        run: terraform apply -auto-approve tfplan -no-color
 
       - name: Get Outputs
         id: outputs
-        run: |
-          cd infra
-          echo "chisel_url=$(terraform output -raw chisel_proxy_url)" >> $GITHUB_OUTPUT
-          echo "chisel_fqdn=$(terraform output -raw chisel_proxy_fqdn)" >> $GITHUB_OUTPUT
+        working-directory: ${{ env.WORKDIR }}
+        run: echo "chisel_server_url=$(terraform output -raw chisel_server_url)" >> $GITHUB_OUTPUT
 
-      - name: Create Deployment Summary
+      - name: Deployment Summary
         run: |
-          cat > deployment_summary.txt << 'EOF'
-          ## ✅ Chisel Proxy Deployed to App Service Successfully
-          
-          **Deployment Details:**
-          - URL: ${{ steps.outputs.outputs.chisel_url }}
-          - FQDN: ${{ steps.outputs.outputs.chisel_fqdn }}
-          - Region: ${{ secrets.AZURE_REGION }}
-          - Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          
-          **Next Steps:**
-          1. Test connectivity: curl -v ${{ steps.outputs.outputs.chisel_url }}/
-          2. View logs: az webapp log tail --name chisel-proxy --resource-group <rg-name>
-          3. Connect clients: docker run jpillora/chisel:latest client --auth "tunnel:PASSWORD" https://${{ steps.outputs.outputs.chisel_fqdn }} DATABASE_HOST:5432
-          
-          **Monitoring:**
-          - Real-time logs: az webapp log tail --name chisel-proxy --resource-group <rg-name> -f
-          - Metrics: az monitor metrics list --resource <app-id> --metric CpuPercentage,MemoryPercentage
-          EOF
-          cat deployment_summary.txt
-
-      - name: Notify Slack (Optional)
-        if: always() && env.SLACK_WEBHOOK_URL != ''
-        uses: slackapi/slack-github-action@v1
-        with:
-          payload: |
-            {
-              "text": "Chisel Proxy Deployment ${{ job.status }}",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Chisel Proxy Deployment* - ${{ job.status }}\n*URL:* ${{ steps.outputs.outputs.chisel_url }}\n*Branch:* master"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          echo "Chisel Server deployed: ${{ steps.outputs.outputs.chisel_server_url }}"
 
   destroy:
     name: Terraform Destroy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: validate
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terraform_action == 'destroy'
-    environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') && 'prod' || github.event.inputs.environment || 'dev' }}
-    permissions:
-      contents: read
-      id-token: write
+    environment: ${{ github.event.inputs.environment || 'dev' }}
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Azure CLI Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ env.AZURE_TENANT_ID }}
-          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Generate Terraform Root
+        shell: bash
+        run: |
+          mkdir -p "${WORKDIR}"
+          cat > "${WORKDIR}/main.tf" <<'EOF'
+          terraform {
+            required_version = ">= 1.5.0"
+            required_providers {
+              azurerm = {
+                source  = "hashicorp/azurerm"
+                version = ">= 4.0.0"
+              }
+            }
+            backend "azurerm" {}
+          }
+
+          provider "azurerm" {
+            features {}
+            subscription_id = var.subscription_id
+            tenant_id       = var.tenant_id
+            use_oidc        = true
+          }
+
+          module "chisel_server" {
+            source = "../../infra/modules/chisel-server"
+
+            app_name            = var.app_name
+            environment         = var.environment
+            location            = var.location
+            resource_group_name = var.resource_group_name
+            chisel_server_auth  = var.chisel_server_auth
+            common_tags         = var.common_tags
+          }
+
+          variable "subscription_id" { type = string }
+          variable "tenant_id" { type = string }
+          variable "app_name" { type = string }
+          variable "environment" { type = string }
+          variable "location" { type = string }
+          variable "resource_group_name" { type = string }
+          variable "chisel_server_auth" { type = string, sensitive = true }
+          variable "common_tags" { type = map(string) }
+          EOF
 
       - name: Terraform Init
+        working-directory: ${{ env.WORKDIR }}
         run: |
-          cd infra
           terraform init \
-            -backend-config="subscription_id=${{ env.AZURE_SUBSCRIPTION_ID }}" \
-            -backend-config="tenant_id=${{ env.AZURE_TENANT_ID }}" \
+            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="resource_group_name=${{ secrets.TERRAFORM_BACKEND_RG }}" \
             -backend-config="storage_account_name=${{ secrets.TERRAFORM_BACKEND_SA }}" \
             -backend-config="container_name=${{ secrets.TERRAFORM_BACKEND_CONTAINER }}" \
@@ -278,14 +467,29 @@ jobs:
             -no-color
 
       - name: Terraform Destroy
+        working-directory: ${{ env.WORKDIR }}
+        env:
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          TF_VAR_app_name: ${{ github.event.repository.name }}
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_location: ${{ env.AZURE_REGION }}
+          TF_VAR_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
+          TF_VAR_common_tags: '{"ManagedBy":"Terraform","Environment":"${{ env.ENVIRONMENT }}","Component":"chisel-server"}'
+          CHISEL_SERVER_AUTH: ${{ secrets.CHISEL_SERVER_AUTH }}
+          CHISEL_PASSWORD: ${{ secrets.CHISEL_PASSWORD }}
         run: |
-          cd infra
-          terraform destroy \
-            -var-file="terraform.tfvars" \
-            -auto-approve \
-            -no-color
+          AUTH_VALUE="${CHISEL_SERVER_AUTH}"
+          if [ -z "${AUTH_VALUE}" ]; then
+            AUTH_VALUE="${CHISEL_PASSWORD}"
+          fi
+          if [ -z "${AUTH_VALUE}" ]; then
+            echo "::error::Missing CHISEL_SERVER_AUTH or CHISEL_PASSWORD secret"
+            exit 1
+          fi
+          if [[ "${AUTH_VALUE}" != *":"* ]]; then
+            AUTH_VALUE="tunnel:${AUTH_VALUE}"
+          fi
+          export TF_VAR_chisel_server_auth="${AUTH_VALUE}"
 
-      - name: Notify Destruction
-        run: |
-          echo "⚠️  Chisel Proxy infrastructure has been destroyed"
-          echo "All Container Apps resources have been removed from Azure"
+          terraform destroy -auto-approve -no-color
