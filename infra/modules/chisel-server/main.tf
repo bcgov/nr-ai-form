@@ -44,7 +44,7 @@ resource "azurerm_linux_web_app" "chisel_server" {
 
     application_stack {
       docker_image_name        = "chisel_server:latest"
-      docker_registry_url      = azurerm_container_registry.chisel.login_server
+      docker_registry_url      = "https://${azurerm_container_registry.chisel.login_server}"
       docker_registry_username = azurerm_container_registry.chisel.admin_username
       docker_registry_password = azurerm_container_registry.chisel.admin_password
     }
