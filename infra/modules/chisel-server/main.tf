@@ -12,7 +12,7 @@ resource "azurerm_container_registry" "chisel" {
   name                = replace("${var.app_name}chiselreg${var.environment}", "-", "")
   location            = var.location
   resource_group_name = var.resource_group_name
-  admin_enabled       = true
+  admin_enabled       = false
   sku                 = "Basic"
 
   tags = var.common_tags
@@ -38,15 +38,18 @@ resource "azurerm_linux_web_app" "chisel_server" {
 
   https_only = true
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   site_config {
     always_on                               = true
-    container_registry_use_managed_identity = false
+    websockets_enabled                      = true
+    container_registry_use_managed_identity = true
 
     application_stack {
-      docker_image_name        = "chisel_server:latest"
+      docker_image_name        = "chisel-server:latest"
       docker_registry_url      = "https://${azurerm_container_registry.chisel.login_server}"
-      docker_registry_username = azurerm_container_registry.chisel.admin_username
-      docker_registry_password = azurerm_container_registry.chisel.admin_password
     }
   }
 
@@ -68,6 +71,12 @@ resource "azurerm_linux_web_app" "chisel_server" {
   lifecycle {
     ignore_changes = [app_settings["WEBSITE_HOSTNAME"]]
   }
+}
+
+resource "azurerm_role_assignment" "chisel_server_acr_pull" {
+  scope                = azurerm_container_registry.chisel.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_linux_web_app.chisel_server.identity[0].principal_id
 }
 
 # Get the Chisel Server URL
