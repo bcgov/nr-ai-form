@@ -24,7 +24,7 @@ resource "azurerm_service_plan" "chisel_server" {
   location            = var.location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
-  sku_name            = "B1"  # Basic tier - sufficient for tunnel
+  sku_name            = "B1" # Basic tier - sufficient for tunnel
 
   tags = var.common_tags
 }
@@ -52,9 +52,9 @@ resource "azurerm_linux_web_app" "chisel_server" {
 
   app_settings = {
     # Chisel Server Configuration
-    "CHISEL_AUTH"          = var.chisel_server_auth  # "user:password"
+    "CHISEL_AUTH"          = var.chisel_server_auth # "user:password"
     "CHISEL_ENABLE_SOCKS5" = "true"
-    "CHISEL_PORT"          = "80"  # App Service converts to 443
+    "CHISEL_PORT"          = "80" # App Service converts to 443
     "WEBSITES_PORT"        = "80"
 
     # Monitoring
