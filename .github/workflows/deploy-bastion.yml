@@ -38,45 +38,6 @@ jobs:
       # Required so the action can read tfvars_file from this repo
       - uses: actions/checkout@v4
 
-      - name: Validate required environment configuration
-        env:
-          STORAGE_ACCOUNT_NAME: ${{ vars.STORAGE_ACCOUNT_NAME }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          VNET_NAME: ${{ secrets.VNET_NAME }}
-          VNET_RESOURCE_GROUP_NAME: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
-          VNET_ADDRESS_SPACE: ${{ secrets.VNET_ADDRESS_SPACE }}
-          BASTION_SUBNET_ADDRESS_PREFIX: ${{ secrets.BASTION_SUBNET_ADDRESS_PREFIX }}
-          JUMPBOX_SUBNET_ADDRESS_PREFIX: ${{ secrets.JUMPBOX_SUBNET_ADDRESS_PREFIX }}
-          VM_ADMIN_LOGIN_PRINCIPAL_IDS: ${{ secrets.VM_ADMIN_LOGIN_PRINCIPAL_IDS }}
-        run: |
-          missing=()
-          required=(
-            STORAGE_ACCOUNT_NAME
-            AZURE_CLIENT_ID
-            AZURE_TENANT_ID
-            AZURE_SUBSCRIPTION_ID
-            VNET_NAME
-            VNET_RESOURCE_GROUP_NAME
-            VNET_ADDRESS_SPACE
-            BASTION_SUBNET_ADDRESS_PREFIX
-            JUMPBOX_SUBNET_ADDRESS_PREFIX
-            VM_ADMIN_LOGIN_PRINCIPAL_IDS
-          )
-
-          for name in "${required[@]}"; do
-            if [ -z "${!name}" ]; then
-              missing+=("$name")
-            fi
-          done
-
-          if [ "${#missing[@]}" -gt 0 ]; then
-            echo "::error::Missing required GitHub Environment configuration for '${{ inputs.environment }}': ${missing[*]}"
-            echo "::error::Go to Settings > Environments > ${{ inputs.environment }} and add the missing secrets/vars."
-            exit 1
-          fi
-
       - uses: bcgov/action-deployer-vm-bastion-alz@b7053b77b6030a98909ad12182f588ad4302c0a2
         with:
           app_name: nr-ai-form
