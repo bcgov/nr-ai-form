@@ -1,0 +1,75 @@
+name: Deploy VM + Bastion (ALZ)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (must match a GitHub Environment + OIDC federated credential)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+          - tools
+      terraform_command:
+        description: 'Terraform command to run'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+permissions:
+  id-token: write  # Required for OIDC authentication
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Bastion + Jumpbox (${{ inputs.environment }})
+    runs-on: ubuntu-24.04
+    # Environment must be set on the JOB so environment-scoped secrets resolve
+    # and OIDC trusts the job with subject: repo:...:environment:<env>
+    environment: ${{ inputs.environment }}
+    steps:
+      # Required so the action can read tfvars_file from this repo
+      - uses: actions/checkout@v4
+
+      - uses: bcgov/action-deployer-vm-bastion-alz@v1
+        with:
+          app_name: nr-ai-form
+          app_env: ${{ inputs.environment }}
+          terraform_command: ${{ inputs.terraform_command }}
+
+          # tfvars file checked into this repo for non-secret config.
+          # Secrets (VNet, subnet CIDRs, OIDC) are passed below via GitHub secrets.
+          tfvars_file: ./config/nr-ai-form-bastion.tfvars
+
+          # Optional overrides — uncomment to override tfvars values:
+          # location: Canada Central
+          # vm_size: Standard_B2als_v2
+          # bastion_sku: Standard
+          # enable_bastion_automation: "true"
+          # jumpbox_subnet_name: nr-ai-form-jumpbox  # override if another namespace owns the default name
+
+          # Terraform remote state — STORAGE_ACCOUNT_NAME variable set by initial-azure-setup.sh
+          backend_storage_account: ${{ vars.STORAGE_ACCOUNT_NAME }}
+
+          # Azure OIDC identity (environment-scoped secrets)
+          azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+          # Network details — always passed from secrets, never plain text
+          vnet_name: ${{ secrets.VNET_NAME }}
+          vnet_resource_group_name: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
+          vnet_address_space: ${{ secrets.VNET_ADDRESS_SPACE }}
+          bastion_subnet_address_prefix: ${{ secrets.BASTION_SUBNET_ADDRESS_PREFIX }}
+          jumpbox_subnet_address_prefix: ${{ secrets.JUMPBOX_SUBNET_ADDRESS_PREFIX }}
+
+          # Comma-separated Entra object IDs (users or groups) allowed to log in to the jumpbox.
+          # Use a group ID so access is managed in Entra, not in CI secrets.
+          vm_admin_login_principal_ids: ${{ secrets.VM_ADMIN_LOGIN_PRINCIPAL_IDS }}
