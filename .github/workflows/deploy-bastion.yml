@@ -44,18 +44,6 @@ jobs:
           app_env: ${{ inputs.environment }}
           terraform_command: ${{ inputs.terraform_command }}
 
-          # tfvars file checked into this repo for non-secret config.
-          # Secrets (VNet, subnet CIDRs, OIDC) are passed below via GitHub secrets.
-          tfvars_file: ./config/nr-ai-form-bastion.tfvars
-
-          # Optional overrides — uncomment to override tfvars values:
-          # location: Canada Central
-          # vm_size: Standard_B2als_v2
-          # bastion_sku: Standard
-          # enable_bastion_automation: "true"
-          # jumpbox_subnet_name: nr-ai-form-jumpbox  # override if another namespace owns the default name
-
-          # Terraform remote state — STORAGE_ACCOUNT_NAME variable set by initial-azure-setup.sh
           backend_storage_account: ${{ vars.STORAGE_ACCOUNT_NAME }}
 
           # Azure OIDC identity (environment-scoped secrets)
@@ -73,3 +61,9 @@ jobs:
           # Comma-separated Entra object IDs (users or groups) allowed to log in to the jumpbox.
           # Use a group ID so access is managed in Entra, not in CI secrets.
           vm_admin_login_principal_ids: ${{ secrets.VM_ADMIN_LOGIN_PRINCIPAL_IDS }}
+          vm_size: Standard_B2als_v2
+          bastion_sku: Standard
+          enable_bastion: true
+          enable_jumpbox: true
+          enable_bastion_automation: true
+          enable_monitoring: false
