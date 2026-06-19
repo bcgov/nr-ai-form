@@ -38,7 +38,7 @@ jobs:
       # Required so the action can read tfvars_file from this repo
       - uses: actions/checkout@v4
 
-      - uses: bcgov/action-deployer-vm-bastion-alz@v1
+      - uses: bcgov/action-deployer-vm-bastion-alz@b7053b77b6030a98909ad12182f588ad4302c0a2
         with:
           app_name: nr-ai-form
           app_env: ${{ inputs.environment }}
