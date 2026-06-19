@@ -116,7 +116,75 @@ namespaces:
 oc tag 1dca6b-tools/orchestrator-agent:latest 1dca6b-dev/orchestrator-agent:latest
 ```
 
-Runtime configuration (Azure OpenAI keys, `CONVERSATION_AGENT_A2A_URL`,
-`FORM_SUPPORT_AGENT_A2A_URL`, Redis, etc.) is supplied at deploy time via
-Secrets/ConfigMaps — see the per-service `.env` templates and the env-var section
-in the repo `CLAUDE.md`. These build manifests only produce images.
+## Deploy to 1dca6b-test
+
+Runtime manifests deploy the `:test` images from `1dca6b-tools` into the
+**`1dca6b-test`** namespace. Each `*-deploy.yaml` is a Template bundling a
+**Deployment + Service + Route** for one agent:
+
+| Deploy template                   | Service / Route      | Container port | Image (`:test` tag) |
+|-----------------------------------|----------------------|----------------|----------------------|
+| `orchestrator-agent-deploy.yaml`  | `orchestrator-agent` | 8002           | `1dca6b-tools/orchestrator-agent:test` |
+| `conversation-agent-deploy.yaml`  | `conversation-agent` | 8000           | `1dca6b-tools/conversation-agent:test` |
+| `formsupport-agent-deploy.yaml`   | `formsupport-agent`  | 8001           | `1dca6b-tools/formsupport-agent:test`  |
+
+The orchestrator Deployment overrides `CONVERSATION_AGENT_A2A_URL` and
+`FORM_SUPPORT_AGENT_A2A_URL` to the in-cluster Service names
+(`http://conversation-agent:8000`, `http://formsupport-agent:8001`).
+
+### 1. Allow 1dca6b-test to pull images from 1dca6b-tools (one-time)
+
+```bash
+oc policy add-role-to-user system:image-puller \
+  system:serviceaccount:1dca6b-test:default \
+  -n 1dca6b-tools
+```
+
+### 2. Create the Secrets
+
+Each agent's env is a `Secret` generated from its `.env`, kept in this folder as
+`<agent>-secret.yaml` (gitignored — contains real credentials). Apply into
+`1dca6b-test`:
+
+```bash
+oc apply -f conversation-agent-secret.yaml
+oc apply -f formsupport-agent-secret.yaml
+oc apply -f orchestrator-agent-secret.yaml
+```
+
+The Deployments load these via `envFrom.secretRef`
+(`conversation-agent-env`, `formsupport-agent-env`, `orchestrator-agent-env`).
+
+### 3. Deploy
+
+```bash
+oc project 1dca6b-test
+
+oc process -f conversation-agent-deploy.yaml | oc apply -f -
+oc process -f formsupport-agent-deploy.yaml  | oc apply -f -
+oc process -f orchestrator-agent-deploy.yaml | oc apply -f -
+```
+
+Deploy-template parameters (same for all three):
+
+| Parameter         | Default |
+|-------------------|---------|
+| `NAMESPACE`       | `1dca6b-test` |
+| `IMAGE_REGISTRY`  | `image-registry.openshift-image-registry.svc:5000` |
+| `IMAGE_NAMESPACE` | `1dca6b-tools` |
+| `IMAGE_TAG`       | `test` |
+| `REPLICAS`        | `1` |
+
+Get the public URLs:
+
+```bash
+oc get route -n 1dca6b-test
+```
+
+> **Redis caveat:** the orchestrator Secret carries `REDIS_HOST=10.0.0.71`
+> (an Azure private IP) from `.env`. Multi-turn sessions need a Redis reachable
+> from the cluster — point `REDIS_HOST`/`REDIS_PORT` at an in-cluster Redis or a
+> reachable managed instance before relying on session state.
+
+These build manifests only produce images; all runtime config comes from the
+Secrets above (see also the env-var section in the repo `CLAUDE.md`).
