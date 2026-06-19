@@ -1,0 +1,66 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: formsupport-agent
+  annotations:
+    description: >-
+      ImageStream + Docker-strategy BuildConfig for the form support agent
+      (step-aware form guidance, port 8001). Build context is agentic_ai_backend/
+      (Dockerfile copies utils/ + agents/), matching docker-compose `context: .`.
+labels:
+  app: agentic-ai-backend
+  component: formsupport-agent
+parameters:
+  - name: NAMESPACE
+    description: OpenShift project the objects are created in.
+    value: 1dca6b-tools
+    required: true
+  - name: GIT_URI
+    description: Source Git repository.
+    value: https://github.com/bcgov/nr-ai-form.git
+    required: true
+  - name: GIT_REF
+    description: Branch, tag, or commit to build.
+    value: dev-AA-SHOWCASE-4381
+    required: true
+objects:
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: formsupport-agent
+      namespace: ${NAMESPACE}
+      labels:
+        app: agentic-ai-backend
+        component: formsupport-agent
+    spec:
+      lookupPolicy:
+        local: false
+
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: formsupport-agent
+      namespace: ${NAMESPACE}
+      labels:
+        app: agentic-ai-backend
+        component: formsupport-agent
+    spec:
+      successfulBuildsHistoryLimit: 5
+      failedBuildsHistoryLimit: 5
+      runPolicy: Serial
+      source:
+        type: Git
+        git:
+          uri: ${GIT_URI}
+          ref: ${GIT_REF}
+        contextDir: agentic_ai_backend
+      strategy:
+        type: Docker
+        dockerStrategy:
+          dockerfilePath: agents/formsupportagent/Dockerfile
+      output:
+        to:
+          kind: ImageStreamTag
+          name: formsupport-agent:latest
+      triggers:
+        - type: ConfigChange
