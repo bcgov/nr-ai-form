@@ -1,0 +1,120 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: orchestrator-agent-deploy
+  annotations:
+    description: >-
+      Deployment + Service + Route for the orchestrator agent (public entry point)
+      in 1dca6b-test, running the :test image promoted in the 1dca6b-tools
+      ImageStream. Overrides the A2A URLs to the in-cluster Service names.
+labels:
+  app: agentic-ai-backend
+  component: orchestrator-agent
+parameters:
+  - name: NAMESPACE
+    description: Runtime project to deploy into.
+    value: 1dca6b-test
+    required: true
+  - name: IMAGE_REGISTRY
+    description: Internal OpenShift image registry hostname.
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+  - name: IMAGE_NAMESPACE
+    description: Project that holds the source ImageStream (where builds run).
+    value: 1dca6b-tools
+    required: true
+  - name: IMAGE_TAG
+    description: ImageStream tag to run.
+    value: test
+    required: true
+  - name: REPLICAS
+    value: "1"
+    required: true
+objects:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: orchestrator-agent
+      namespace: ${NAMESPACE}
+      labels:
+        app: agentic-ai-backend
+        component: orchestrator-agent
+    spec:
+      replicas: ${{REPLICAS}}
+      selector:
+        matchLabels:
+          component: orchestrator-agent
+      template:
+        metadata:
+          labels:
+            app: agentic-ai-backend
+            component: orchestrator-agent
+        spec:
+          containers:
+            - name: orchestrator-agent
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/orchestrator-agent:${IMAGE_TAG}
+              imagePullPolicy: Always
+              ports:
+                - name: http
+                  containerPort: 8002
+              envFrom:
+                - secretRef:
+                    name: orchestrator-agent-env
+              # In-cluster Service URLs override the localhost values in the Secret.
+              env:
+                - name: CONVERSATION_AGENT_A2A_URL
+                  value: http://conversation-agent:8000
+                - name: FORM_SUPPORT_AGENT_A2A_URL
+                  value: http://formsupport-agent:8001
+              readinessProbe:
+                tcpSocket:
+                  port: http
+                initialDelaySeconds: 10
+                periodSeconds: 10
+              livenessProbe:
+                tcpSocket:
+                  port: http
+                initialDelaySeconds: 30
+                periodSeconds: 20
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
+                limits:
+                  cpu: 500m
+                  memory: 1Gi
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: orchestrator-agent
+      namespace: ${NAMESPACE}
+      labels:
+        app: agentic-ai-backend
+        component: orchestrator-agent
+    spec:
+      selector:
+        component: orchestrator-agent
+      ports:
+        - name: http
+          port: 8002
+          targetPort: http
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: orchestrator-agent
+      namespace: ${NAMESPACE}
+      labels:
+        app: agentic-ai-backend
+        component: orchestrator-agent
+    spec:
+      to:
+        kind: Service
+        name: orchestrator-agent
+        weight: 100
+      port:
+        targetPort: http
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
