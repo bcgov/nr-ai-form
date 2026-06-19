@@ -218,6 +218,17 @@ jobs:
           BACKEND_SA="${{ secrets.TERRAFORM_BACKEND_SA }}"
           BACKEND_CONTAINER="${{ secrets.TERRAFORM_BACKEND_CONTAINER }}"
 
+          # Match repo convention from other workflows: prefer vars for tfstate when secrets are not set.
+          if [ -z "${BACKEND_RG}" ]; then
+            BACKEND_RG="${{ vars.RESOURCE_GROUP_NAME }}"
+          fi
+          if [ -z "${BACKEND_SA}" ]; then
+            BACKEND_SA="${{ vars.TFSTATE_STORAGE_ACCOUNT }}"
+          fi
+          if [ -z "${BACKEND_CONTAINER}" ]; then
+            BACKEND_CONTAINER="tfstate"
+          fi
+
           if [ -z "${BACKEND_RG}" ] || [ -z "${BACKEND_SA}" ] || [ -z "${BACKEND_CONTAINER}" ]; then
             echo "::error::Missing backend settings. Ensure TERRAFORM_BACKEND_RG, TERRAFORM_BACKEND_SA, and TERRAFORM_BACKEND_CONTAINER are set."
             exit 1
@@ -360,6 +371,17 @@ jobs:
           BACKEND_SA="${{ secrets.TERRAFORM_BACKEND_SA }}"
           BACKEND_CONTAINER="${{ secrets.TERRAFORM_BACKEND_CONTAINER }}"
 
+          # Match repo convention from other workflows: prefer vars for tfstate when secrets are not set.
+          if [ -z "${BACKEND_RG}" ]; then
+            BACKEND_RG="${{ vars.RESOURCE_GROUP_NAME }}"
+          fi
+          if [ -z "${BACKEND_SA}" ]; then
+            BACKEND_SA="${{ vars.TFSTATE_STORAGE_ACCOUNT }}"
+          fi
+          if [ -z "${BACKEND_CONTAINER}" ]; then
+            BACKEND_CONTAINER="tfstate"
+          fi
+
           if [ -z "${BACKEND_RG}" ] || [ -z "${BACKEND_SA}" ] || [ -z "${BACKEND_CONTAINER}" ]; then
             echo "::error::Missing backend settings. Ensure TERRAFORM_BACKEND_RG, TERRAFORM_BACKEND_SA, and TERRAFORM_BACKEND_CONTAINER are set."
             exit 1
@@ -493,6 +515,17 @@ jobs:
           BACKEND_RG="${{ secrets.TERRAFORM_BACKEND_RG }}"
           BACKEND_SA="${{ secrets.TERRAFORM_BACKEND_SA }}"
           BACKEND_CONTAINER="${{ secrets.TERRAFORM_BACKEND_CONTAINER }}"
+
+          # Match repo convention from other workflows: prefer vars for tfstate when secrets are not set.
+          if [ -z "${BACKEND_RG}" ]; then
+            BACKEND_RG="${{ vars.RESOURCE_GROUP_NAME }}"
+          fi
+          if [ -z "${BACKEND_SA}" ]; then
+            BACKEND_SA="${{ vars.TFSTATE_STORAGE_ACCOUNT }}"
+          fi
+          if [ -z "${BACKEND_CONTAINER}" ]; then
+            BACKEND_CONTAINER="tfstate"
+          fi
 
           if [ -z "${BACKEND_RG}" ] || [ -z "${BACKEND_SA}" ] || [ -z "${BACKEND_CONTAINER}" ]; then
             echo "::error::Missing backend settings. Ensure TERRAFORM_BACKEND_RG, TERRAFORM_BACKEND_SA, and TERRAFORM_BACKEND_CONTAINER are set."
