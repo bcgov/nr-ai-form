@@ -53,7 +53,7 @@ jobs:
 
           # Network details — always passed from secrets, never plain text
           vnet_name: ${{ vars.VNET_NAME }}
-          vnet_resource_group_name: ${{ vars.VNET_RESOURCE_GROUP_NAME }}
+          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           bastion_subnet_address_prefix: ${{ secrets.BASTION_SUBNET_ADDRESS_PREFIX }}
           jumpbox_subnet_address_prefix: ${{ secrets.JUMPBOX_SUBNET_ADDRESS_PREFIX }}
