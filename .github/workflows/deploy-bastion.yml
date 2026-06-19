@@ -44,7 +44,11 @@ jobs:
           app_env: ${{ inputs.environment }}
           terraform_command: ${{ inputs.terraform_command }}
 
+          # Keep Bastion resources isolated from existing app resource groups/state
+          resource_group_name: nr-ai-form-bastion-${{ inputs.environment }}
+
           backend_storage_account: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+          backend_state_key: nr-ai-form/bastion/${{ inputs.environment }}/terraform.tfstate
 
           # Azure OIDC identity (environment-scoped secrets)
           azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -53,7 +57,7 @@ jobs:
 
           # Network details — always passed from secrets, never plain text
           vnet_name: ${{ vars.VNET_NAME }}
-          vnet_resource_group_name: ${{ vars.RESOURCE_GROUP_NAME }}
+          vnet_resource_group_name: ${{ vars.VNET_RESOURCE_GROUP_NAME || vars.RESOURCE_GROUP_NAME }}
           vnet_address_space: ${{ vars.VNET_ADDRESS_SPACE }}
           bastion_subnet_address_prefix: ${{ secrets.BASTION_SUBNET_ADDRESS_PREFIX }}
           jumpbox_subnet_address_prefix: ${{ secrets.JUMPBOX_SUBNET_ADDRESS_PREFIX }}
