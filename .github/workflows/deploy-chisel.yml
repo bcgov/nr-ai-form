@@ -63,6 +63,11 @@ jobs:
             exit 1
           }
 
+      - name: Terraform Init (modules only)
+        run: |
+          cd infra
+          terraform init -backend=false -no-color
+
       - name: Terraform validate
         run: |
           cd infra
