@@ -42,7 +42,7 @@ SEED_FILE = os.path.join(
 
 
 def seed():
-    if "<YOUR_" in ENDPOINT or "<YOUR_" in KEY:
+    if "<" in ENDPOINT or "<" in KEY:
         print(
             "ERROR: Please update ENDPOINT and KEY at the top of this script\n"
             "       with your Azure Cosmos DB account details.\n"
