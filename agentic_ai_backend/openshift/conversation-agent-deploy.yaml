@@ -1,0 +1,113 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: conversation-agent-deploy
+  annotations:
+    description: >-
+      Deployment + Service + Route for the conversation agent in 1dca6b-test,
+      running the :test image promoted in the 1dca6b-tools ImageStream.
+labels:
+  app: agentic-ai-backend
+  component: conversation-agent
+parameters:
+  - name: NAMESPACE
+    description: Runtime project to deploy into.
+    value: 1dca6b-test
+    required: true
+  - name: IMAGE_REGISTRY
+    description: Internal OpenShift image registry hostname.
+    value: image-registry.openshift-image-registry.svc:5000
+    required: true
+  - name: IMAGE_NAMESPACE
+    description: Project that holds the source ImageStream (where builds run).
+    value: 1dca6b-tools
+    required: true
+  - name: IMAGE_TAG
+    description: ImageStream tag to run.
+    value: test
+    required: true
+  - name: REPLICAS
+    value: "1"
+    required: true
+objects:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: conversation-agent
+      namespace: ${NAMESPACE}
+      labels:
+        app: agentic-ai-backend
+        component: conversation-agent
+    spec:
+      replicas: ${{REPLICAS}}
+      selector:
+        matchLabels:
+          component: conversation-agent
+      template:
+        metadata:
+          labels:
+            app: agentic-ai-backend
+            component: conversation-agent
+        spec:
+          containers:
+            - name: conversation-agent
+              image: ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/conversation-agent:${IMAGE_TAG}
+              imagePullPolicy: Always
+              ports:
+                - name: http
+                  containerPort: 8000
+              envFrom:
+                - secretRef:
+                    name: conversation-agent-env
+              readinessProbe:
+                tcpSocket:
+                  port: http
+                initialDelaySeconds: 10
+                periodSeconds: 10
+              livenessProbe:
+                tcpSocket:
+                  port: http
+                initialDelaySeconds: 30
+                periodSeconds: 20
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
+                limits:
+                  cpu: 500m
+                  memory: 1Gi
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: conversation-agent
+      namespace: ${NAMESPACE}
+      labels:
+        app: agentic-ai-backend
+        component: conversation-agent
+    spec:
+      selector:
+        component: conversation-agent
+      ports:
+        - name: http
+          port: 8000
+          targetPort: http
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: conversation-agent
+      namespace: ${NAMESPACE}
+      labels:
+        app: agentic-ai-backend
+        component: conversation-agent
+    spec:
+      to:
+        kind: Service
+        name: conversation-agent
+        weight: 100
+      port:
+        targetPort: http
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
