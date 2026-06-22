@@ -44,6 +44,10 @@ jobs:
           app_env: ${{ inputs.environment }}
           terraform_command: ${{ inputs.terraform_command }}
 
+          # Load non-sensitive config (jumpbox_subnet_name, vm_size, bastion_sku, etc.)
+          # This ensures jumpbox_subnet_name is unique per namespace per ALZ constraint
+          tfvars_file: ./config/nr-ai-form-bastion.tfvars
+
           # Keep Bastion resources isolated from existing app resource groups/state
           resource_group_name: nr-ai-form-bastion-${{ inputs.environment }}
 
