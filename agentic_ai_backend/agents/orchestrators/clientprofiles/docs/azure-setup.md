@@ -58,66 +58,18 @@ Requires RBAC role assignment: `Cosmos DB Built-in Data Reader` on the Container
 
 ---
 
-## How to Call `resolve()` from a WebSocket API
-
-### Flow
-
-```
-Frontend connects with client_id → WebSocket endpoint → resolve(client_id) → ClientProfile → orchestrate
-```
-
-### WebSocket Example
+## How to Call `resolve()` from WebSocket/HTTP
 
 ```python
-from fastapi import WebSocket, Query
-from clientprofiles import get_client_profile_store, ClientIdRequiredError, ClientProfileNotFoundError
+from clientprofiles import get_client_profile_store
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, client_id: str = Query(...)):
-    store = get_client_profile_store()
-
-    try:
-        profile = await store.resolve(client_id)
-    except ClientIdRequiredError:
-        await websocket.close(code=4000, reason="client_id is required")
-        return
-    except ClientProfileNotFoundError:
-        await websocket.close(code=4004, reason="Unknown client_id")
-        return
-
-    await websocket.accept()
-
-    while True:
-        data = await websocket.receive_json()
-        # Use profile to configure tenant-specific behavior
-        result = await orchestrate_a2a(query=data["query"], ...)
-        await websocket.send_json(result)
+store = get_client_profile_store()
+profile = await store.resolve(client_id)  # returns ClientProfile or raises exception
 ```
 
-### HTTP Example
+Raises `ClientIdRequiredError` (400) if `client_id` is missing, `ClientProfileNotFoundError` (404) if not found.
 
-```python
-@app.post("/invoke")
-async def invoke_agent(request: InvokeRequest):
-    store = get_client_profile_store()
-
-    try:
-        profile = await store.resolve(request.client_id)
-    except ClientIdRequiredError:
-        raise HTTPException(status_code=400, detail="client_id is required")
-    except ClientProfileNotFoundError:
-        raise HTTPException(status_code=404, detail="Unknown client_id")
-
-    output = await orchestrate_a2a(query=request.query, ...)
-    return InvokeResponse(response=output)
-```
-
-### Key Points
-
-- `get_client_profile_store()` is a singleton — safe to call on every request
-- `resolve()` does a point read (1 RU) — fast
-- Call `resolve()` before accepting WebSocket connections to reject unknown tenants early
-- The `ClientProfile` contains: `subAgents`, `tenantResources`, `corsOrigins`, `orchestratorPrompts`
+The returned `profile` contains: `subAgents`, `tenantResources`, `corsOrigins`, `orchestratorPrompts`.
 
 ---
 
@@ -129,6 +81,14 @@ async def invoke_agent(request: InvokeRequest):
 | `scripts/seed_azure_cosmos.py` | Real Azure account | One-time setup (needs endpoint + key) |
 
 Seed data lives in `clientprofiles/seed/client_profiles.json`.
+
+---
+
+## Known Issues
+
+1. **Emulator data persistence is broken.** The Cosmos DB Emulator has a known issue where data is lost when the emulator is stopped, even with `AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true` configured. The seed script must be rerun after every emulator restart. Reference: [Azure/azure-cosmos-db-emulator-docker#96](https://github.com/Azure/azure-cosmos-db-emulator-docker/issues/96)
+
+2. **Azure Cosmos DB seeding requires VNet access.** For real Azure Cosmos DB, the seed script must be executed from within the VM/VNet environment because access is restricted by Cosmos DB firewall rules. External machines (including CI/CD runners) cannot reach the endpoint directly.
 
 ---
 
