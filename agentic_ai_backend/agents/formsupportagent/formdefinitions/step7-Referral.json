@@ -1,28 +1,28 @@
 {
     "formName": "Water Licence Application",
     "formDescription": "Step 7 - Referral",
-    "properties": {
-        "ReferralContactOrgName_100377297_185549445": {
+    "formfields": {
+        "ReferralContactOrgName": {
             "type": "string",
-            "id": "ReferralContactOrgName_100377297_185549445",
+            "id": "ReferralContactOrgName",
             "title": "Company / Organization / Government",
             "required": false
         },
-        "ReferralContactName_100377297_185549445": {
+        "ReferralContactName": {
             "type": "string",
-            "id": "ReferralContactName_100377297_185549445",
+            "id": "ReferralContactName",
             "title": "Contact Name",
             "required": true
         },
-        "ReferralContactAddress_100377297_185549445": {
+        "ReferralContactAddress": {
             "type": "string",
-            "id": "ReferralContactAddress_100377297_185549445",
+            "id": "ReferralContactAddress",
             "title": "Contact Address",
             "required": true
         },
-        "ReferralContactPhone_100377297_185549445": {
+        "ReferralContactPhone": {
             "type": "string",
-            "id": "ReferralContactPhone_100377297_185549445",
+            "id": "ReferralContactPhone",
             "title": "Contact Phone",
             "required": false,
             "format": "phone",
@@ -32,16 +32,16 @@
                 "ReferralContactPhone_100377297_185549445_3"
             ]
         },
-        "ReferralContactEmail_100377297_185549445": {
+        "ReferralContactEmail": {
             "type": "string",
-            "id": "ReferralContactEmail_100377297_185549445",
+            "id": "ReferralContactEmail",
             "title": "Contact Email",
             "required": false,
             "format": "email"
         },
-        "GrantReferralPermission_100374064_185549445": {
+        "GrantReferralPermission": {
             "type": "boolean",
-            "id": "GrantReferralPermission_100374064_185549445",
+            "id": "GrantReferralPermission",
             "title": "Consent to referral and First Nation consultation",
             "required": true,
             "trueValue": "Y",
