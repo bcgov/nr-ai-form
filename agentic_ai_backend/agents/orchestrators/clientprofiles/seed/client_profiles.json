@@ -1,0 +1,114 @@
+[
+  {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "clientId": "11111111-1111-4111-8111-111111111111",
+    "clientName": "Water Permit App",
+    "corsOrigins": [
+      "https://test.j200.gov.bc.ca/*",
+      "http://localhost*"
+    ],
+    "tenantResources": {
+      "blobConnectionString": "<key-vault-secret-for-connection-string>",
+      "containerName": "assets",
+      "prompts": {
+        "dispatcher": "tenants/water/agentprompts/dispatcher",
+        "aggregator": "tenants/water/agentprompts/aggregrator"
+      }
+    },
+    "subAgents": [
+      {
+        "agentType": "conversationAgent",
+        "enabled": true,
+        "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
+        "config": {
+          "indexName": "rag-bc-fish",
+          "knowledgeAgentName": "knowledgebase-bc-waterpermit-dev",
+          "azureSearchApiKey":"<azure-search-api-key-or-key-vault-secret-for-api-key>"
+        }
+      },
+      {
+        "agentType": "formSupportAgent",
+        "enabled": true,
+        "promptPath": "tenants/water/agentprompts/formsupportagent/instructions.md",
+        "config": {
+          "formDefinitionContainer": "tenants/water/formdefinitions",
+          "stepBasedPromptContainer": "tenants/water/prompttemplates"
+        }
+      }
+    ]
+  },
+  {
+    "id": "22222222-2222-4222-8222-222222222222",
+    "clientId": "22222222-2222-4222-8222-222222222222",
+    "clientName": "Fishing Permit App",
+    "corsOrigins": [
+      "https://showcase.apps.silver.devops.gov.bc.ca/*",
+      "http://localhost*"
+    ],
+    "tenantResources": {
+      "blobConnectionString": "<key-vault-secret-for-connection-string>",
+      "containerName": "fishing-permit-prompts",
+      "prompts": {
+        "dispatcher": "orchestrator/dispatcher",
+        "aggregator": "orchestrator/aggregator"
+      }
+    },
+    "subAgents": [
+      {
+        "agentType": "conversationAgent",
+        "enabled": true,
+        "promptPath": "agents/conversation/instructions.md",
+        "config": {
+          "indexName": "fishing-permit-index",
+          "knowledgeAgentName": "fishing-permit-knowledge-agent"
+        }
+      },
+      {
+        "agentType": "formSupportAgent",
+        "enabled": true,
+        "promptPath": "agents/formsupport/instructions.md",
+        "config": {
+          "formDefinitionContainer": "fishing-permit-form-definitions",
+          "stepBasedPromptContainer": "fishing-permit-form-prompts"
+        }
+      }
+    ]
+  },
+  {
+    "id": "33333333-3333-4333-8333-333333333333",
+    "clientId": "33333333-3333-4333-8333-333333333333",
+    "clientName": "Example App",
+    "corsOrigins": [
+      "http://localhost:8002",
+      "http://localhost:8080"
+    ],
+    "tenantResources": {
+      "blobConnectionString": "<key-vault-secret-for-connection-string>",
+      "containerName": "dev-prompts",
+      "prompts": {
+        "dispatcher": "orchestrator/dispatcher",
+        "aggregator": "orchestrator/aggregator"
+      }
+    },
+    "subAgents": [
+      {
+        "agentType": "conversationAgent",
+        "enabled": true,
+        "promptPath": "agents/conversation/instructions.md",
+        "config": {
+          "indexName": "dev-search-index",
+          "knowledgeAgentName": "dev-knowledge-agent"
+        }
+      },
+      {
+        "agentType": "formSupportAgent",
+        "enabled": true,
+        "promptPath": "agents/formsupport/instructions.md",
+        "config": {
+          "formDefinitionContainer": "dev-form-definitions",
+          "stepBasedPromptContainer": "dev-form-prompts"
+        }
+      }
+    ]
+  }
+]
