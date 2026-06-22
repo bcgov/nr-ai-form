@@ -38,48 +38,6 @@ jobs:
       # Required so the action can read tfvars_file from this repo
       - uses: actions/checkout@v4
 
-      - name: Azure CLI Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Preflight RBAC check for apply/destroy
-        if: ${{ inputs.terraform_command != 'plan' }}
-        env:
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          TARGET_VNET_RG: ${{ vars.VNET_RESOURCE_GROUP_NAME || vars.RESOURCE_GROUP_NAME }}
-        run: |
-          set -euo pipefail
-
-          SP_OBJECT_ID="$(az ad sp show --id "${AZURE_CLIENT_ID}" --query id -o tsv)"
-          SUB_SCOPE="/subscriptions/${AZURE_SUBSCRIPTION_ID}"
-          VNET_RG_SCOPE="${SUB_SCOPE}/resourceGroups/${TARGET_VNET_RG}"
-
-          has_uaa_or_owner="$(az role assignment list \
-            --assignee-object-id "${SP_OBJECT_ID}" \
-            --scope "${SUB_SCOPE}" \
-            --query "[?roleDefinitionName=='Owner' || roleDefinitionName=='User Access Administrator'] | length(@)" \
-            -o tsv)"
-
-          has_network_contributor="$(az role assignment list \
-            --assignee-object-id "${SP_OBJECT_ID}" \
-            --scope "${VNET_RG_SCOPE}" \
-            --query "[?roleDefinitionName=='Network Contributor' || roleDefinitionName=='Contributor' || roleDefinitionName=='Owner'] | length(@)" \
-            -o tsv)"
-
-          if [ "${has_uaa_or_owner}" -eq 0 ]; then
-            echo "::error::Missing RBAC: service principal must have Owner or User Access Administrator on ${SUB_SCOPE} to create role assignments."
-            exit 1
-          fi
-
-          if [ "${has_network_contributor}" -eq 0 ]; then
-            echo "::error::Missing RBAC: service principal must have Network Contributor (or Contributor/Owner) on ${VNET_RG_SCOPE}."
-            exit 1
-          fi
-
       - uses: bcgov/action-deployer-vm-bastion-alz@b7053b77b6030a98909ad12182f588ad4302c0a2
         with:
           app_name: nr-ai-form
