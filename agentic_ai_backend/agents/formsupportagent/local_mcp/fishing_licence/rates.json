@@ -1,0 +1,53 @@
+{
+  "base_fees": {
+    "resident": {
+      "one-day": 11.43,
+      "eight-day": 22.86,
+      "annual": 41.15,
+      "senior_annual": 5.71,
+      "disability_annual": 1.14
+    },
+    "non-resident": {
+      "one-day": 22.86,
+      "eight-day": 41.15,
+      "annual": 62.87
+    },
+    "alien": {
+      "one-day": 22.86,
+      "eight-day": 57.14,
+      "annual": 91.44
+    }
+  },
+  "surcharges": {
+    "resident": {
+      "steelhead": 28.57,
+      "salmon": 17.14,
+      "rainbow-char": 11.43
+    },
+    "non-resident": {
+      "steelhead": 68.57,
+      "salmon": 34.29,
+      "rainbow-char": 22.86
+    }
+  },
+  "sturgeon": {
+    "resident": {
+      "one-day": 9.14,
+      "eight-day": 17.14,
+      "annual": 28.57
+    },
+    "non-resident": {
+      "one-day": 17.14,
+      "eight-day": 34.29,
+      "annual": 68.58
+    }
+  },
+  "classified_waters": {
+    "resident": {
+      "annual": 17.15
+    },
+    "non-resident": {
+      "daily": 45.72
+    }
+  }
+}
