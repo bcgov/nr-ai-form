@@ -49,6 +49,9 @@ from utils.blobservice import BlobService
 from local_mcp.livestock.inprocess_client import (
     LIVESTOCK_WATER_CONSUMPTION_TOOLS,
 )
+from local_mcp.fishing_licence.inprocess_client import (
+    FISHING_LICENCE_TOOLS,
+)
 
 def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_template_service=None):
     """
@@ -108,7 +111,7 @@ class FormSupportAgent():
         )
         agent_kwargs = {
             "instructions": final_instructions,
-            "tools": LIVESTOCK_WATER_CONSUMPTION_TOOLS,
+            "tools": LIVESTOCK_WATER_CONSUMPTION_TOOLS + FISHING_LICENCE_TOOLS,
             "name": "FormSupportAgent",
         }
         self.agent = client.as_agent(
