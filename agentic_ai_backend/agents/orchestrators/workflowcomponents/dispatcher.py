@@ -9,8 +9,8 @@ from openai import AsyncAzureOpenAI
 from models.intentmodel import IntentListModel, IntentModel
 from workflowcomponents.skillsregistry import (
     CONVERSATION_AGENT_ID,
-    DISPATCHER_INTENT_SKILL,
     FORM_SUPPORT_AGENT_ID,
+    get_dispatcher_skill,
 )
 
 _dispatcher_client: AsyncAzureOpenAI | None = None
@@ -91,7 +91,7 @@ class Dispatcher(Executor):
                 model=deployment,
                 temperature=0.1,
                 messages=[
-                    {"role": "system", "content": DISPATCHER_INTENT_SKILL.content},
+                    {"role": "system", "content": get_dispatcher_skill().content},
                     {"role": "user", "content": json.dumps({"query": query, "step": step})},
                 ],
                 response_format=IntentListModel,
