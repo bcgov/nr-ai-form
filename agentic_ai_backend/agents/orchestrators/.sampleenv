@@ -33,3 +33,19 @@ AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING=""
 AGENTPROMPTS_CONTAINER_NAME="assets"
 AGENT_DISPATCHER_PROMPTS_PATH="tenants/water/agentprompts/dispatcher"
 AGENT_AGGREGATOR_PROMPTS_PATH="tenants/water/agentprompts/aggregrator"
+
+
+# ─── Cosmos DB Client Profiles ────────────────────────────────────────────────
+
+# Option 1: Endpoint + Key (for emulator AND non-MI Azure environments)
+AZURE_COSMOS_DB_ENDPOINT=https://localhost:8081/
+AZURE_COSMOS_DB_KEY=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
+
+# Option 2: Managed Identity (Azure-hosted dev, test, and production - just set endpoint, no key needed)
+# AZURE_COSMOS_DB_ENDPOINT=https://your-cosmos-account.documents.azure.com:443/
+
+# Database name (defaults to AgentMemoryDB if not set)
+AZURE_COSMOS_DB_DATABASE_NAME=AgentMemoryDB
+
+# Set to "localhost" to disable TLS verification for the Cosmos emulator and to set "true", just don't set it at all (leave it commented out / remove it)
+CSSAI_EXECUTION_ENV=localhost
