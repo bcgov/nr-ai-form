@@ -82,6 +82,8 @@ The returned `profile` contains: `subAgents`, `tenantResources`, `corsOrigins`, 
 
 Seed data lives in `clientprofiles/seed/client_profiles.json`.
 
+The `id` field is not required in the JSON — the seed scripts automatically set `id = clientId` for each document. If `clientId` is also missing, a random UUID is generated.
+
 ---
 
 ## Known Issues

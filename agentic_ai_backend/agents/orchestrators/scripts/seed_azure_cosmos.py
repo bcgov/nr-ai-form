@@ -13,6 +13,7 @@ Run from the orchestrators directory:
 import json
 import os
 import sys
+import uuid
 
 from azure.cosmos import CosmosClient, PartitionKey
 
@@ -89,6 +90,10 @@ def seed():
         profiles = json.load(f)
 
     for profile in profiles:
+        # Auto-generate clientId if not provided; always sync id = clientId
+        if "clientId" not in profile:
+            profile["clientId"] = str(uuid.uuid4())
+        profile["id"] = profile["clientId"]
         container.upsert_item(profile)
         print(f"  Done: {profile['clientId']} - {profile['clientName']}")
 
