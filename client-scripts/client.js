@@ -59,7 +59,9 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
-
+const CLIENT_ID_DICT = {
+    "WATER-LICENSE-APP": "11111111-1111-4111-8111-111111111111"
+}
 
 //-------------------------- Services Starts ---------------------------//
 // TEST URL
@@ -90,7 +92,8 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
     const payload = {
         query: query,
         step_number: step_number,
-        session_id: session_id
+        session_id: session_id,
+        client_id: CLIENT_ID_DICT["WATER-LICENSE-APP"] || null
     };
 
     try {
@@ -101,7 +104,7 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
             },
             body: JSON.stringify(payload)
         });
-
+// TODO: ANN CAPTURE COSMOD DB ERRORS AND PRINT
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
