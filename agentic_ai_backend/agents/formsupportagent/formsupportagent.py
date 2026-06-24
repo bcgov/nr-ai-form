@@ -110,8 +110,7 @@ class FormSupportAgent():
             api_version=api_version,
         )
         agent_kwargs = {
-            "instructions": final_instructions,
-            "tools": LIVESTOCK_WATER_CONSUMPTION_TOOLS + FISHING_LICENCE_TOOLS,
+            "instructions": final_instructions,            
             "name": "FormSupportAgent",
         }
         self.agent = client.as_agent(
