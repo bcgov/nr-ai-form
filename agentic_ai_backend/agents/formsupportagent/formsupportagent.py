@@ -110,7 +110,8 @@ class FormSupportAgent():
             api_version=api_version,
         )
         agent_kwargs = {
-            "instructions": final_instructions,            
+            "instructions": final_instructions,
+            "tools": FISHING_LICENCE_TOOLS,
             "name": "FormSupportAgent",
         }
         self.agent = client.as_agent(
