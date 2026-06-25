@@ -11,63 +11,65 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
-/**
- * Allow testing of alternative javascript 
- * if the browser's local storage has an item 'clientInstance': 'ms'
- * javascript in remote file (see `url`) will be loaded instead  
- */
-let clientInstance = localStorage.getItem('clientInstance');
-if (clientInstance === 'ms') {
-    var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'aot') {
-    var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'aot-ks') {
-    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'aot-aj') {
-    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'css') {
-    var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
+// /**
+//  * Allow testing of alternative javascript 
+//  * if the browser's local storage has an item 'clientInstance': 'ms'
+//  * javascript in remote file (see `url`) will be loaded instead  
+//  */
+// let clientInstance = localStorage.getItem('clientInstance');
+// if (clientInstance === 'ms') {
+//     var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
+// else if (clientInstance === 'aot') {
+//     var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
+// else if (clientInstance === 'aot-ks') {
+//     var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
+// else if (clientInstance === 'aot-aj') {
+//     var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
+// else if (clientInstance === 'css') {
+//     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
 
-else {
+// else {
 
-    (function () {
+//     (function () {
 
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
-
+const CLIENT_ID_DICT = {
+    "WATER-LICENSE-APP": "11111111-1111-4111-8111-111111111111"
+}
 
 //-------------------------- Services Starts ---------------------------//
 // TEST URL
 // const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
 
 // DEV URL
-const ORCHESTRATOR_API_URL = "https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/invoke";
-// const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+// const ORCHESTRATOR_API_URL = "https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/invoke";
+const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
 // Guided questions live on the same backend host as the chat/orchestrator API.
 
 // TODO: add the correct url for the guided questions API
@@ -90,7 +92,8 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
     const payload = {
         query: query,
         step_number: step_number,
-        session_id: session_id
+        session_id: session_id,
+        client_id: CLIENT_ID_DICT["WATER-LICENSE-APP"] || null
     };
 
     try {
@@ -101,7 +104,7 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
             },
             body: JSON.stringify(payload)
         });
-
+// TODO: ANN CAPTURE COSMOD DB ERRORS AND PRINT
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -1605,7 +1608,7 @@ if (isAIAssistantEnabled) {
             console.error('Error clearing chat storage:', e);
         }
     }
-    }
-    )();
+//     }
+//     )();
 
-}
+// }

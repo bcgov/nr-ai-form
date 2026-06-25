@@ -34,7 +34,7 @@ CONTAINER_NAME = "ClientProfiles"
 
 # Path to the seed JSON file (relative to this script)
 SEED_FILE = os.path.join(
-    os.path.dirname(__file__), "..", "clientprofiles", "seed", "client_profiles.json"
+    os.path.dirname(__file__), "..", "..", "..", "clientprofiles", "seed", "client_profiles.json"
 )
 
 # ==============================================================================

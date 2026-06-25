@@ -7,7 +7,7 @@
       "http://localhost*"
     ],
     "tenantResources": {
-      "blobConnectionString": "<key-vault-secret-for-connection-string>",
+      "blobConnectionString": "",
       "containerName": "assets",
       "prompts": {
         "dispatcher": "tenants/water/agentprompts/dispatcher",
@@ -20,9 +20,30 @@
         "enabled": true,
         "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
         "config": {
-          "indexName": "rag-bc-fish",
-          "knowledgeAgentName": "knowledgebase-bc-waterpermit-dev",
-          "azureSearchApiKey":"<azure-search-api-key-or-key-vault-secret-for-api-key>"
+          "azureSearchKnowledgeAgentName": "",
+          "azureSearchApiKey": "",
+          "agentMaxTokens": 2500,
+          "agentTemperature": 0.1,
+          "azureSearchIndexName": "rag-bc-fish",
+          "azureSearchEndpoint": "",
+          "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
+          "azureSearchKnowledgeAgentRequestMode": "messages",
+          "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
+          "azureSearchKnowledgeAgentReasoningEffort": "low",
+          "azureSearchKnowledgeAgentMaxOutputSize": 5000,
+          "azureSearchKnowledgeAgentMaxRuntimeSeconds": 30,
+          "azureSearchKnowledgeAgentMaxHistoryMessages": 10,
+          "azureSearchTop": 5,
+          "azureSearchTrimLength": 0,
+          "azureSearchEnableTrimming": false,
+          "azureSearchIncludeTotalCount": true,
+          "azureSearchQueryType": "semantic",
+          "azureSearchSemanticConfiguration": "",
+          "azureSearchQueryCaption": "extractive",
+          "azureSearchQueryAnswer": "extractive",
+          "azureSearchQueryAnswerCount": 3,
+          "azureSearchQueryLanguage": "en-US",
+          "conversationAgentMode": "llm"
         }
       },
       {

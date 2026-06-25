@@ -34,12 +34,14 @@ class FormSupportAgentA2AExecutor(Executor):
         id: str = "FormSupportAgentA2A",
         name: str = "Form Support Agent (A2A)",
         instructions: str = "Handles form support queries using A2A protocol",
-        session_id: str = None
+        session_id: str = None,
+        client_profile: dict = None
     ):
         super().__init__(id=id, name=name, instructions=instructions)
         self.client = FormSupportAgentA2AClient(base_url=base_url)
         self.step_number = step_number
         self.session_id = session_id
+        self.client_profile = client_profile
         
     @handler
     async def handle(
@@ -74,6 +76,7 @@ class FormSupportAgentA2AExecutor(Executor):
                 intent.query,
                 session_id=self.session_id,
                 step_number=self.step_number,
+                client_profile=self.client_profile,
             )
             
             # The form support agent emits raw JSON per its prompt template; parse it

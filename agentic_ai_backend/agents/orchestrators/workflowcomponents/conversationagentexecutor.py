@@ -23,11 +23,13 @@ class ConversationAgentA2AExecutor(Executor):
         id: str = "ConversationAgentA2A",
         name: str = "Conversation Agent (A2A)",
         instructions: str = "Handles conversation queries using A2A protocol",
-        session_id: str = None
+        session_id: str = None,
+        client_profile: dict = None
     ):
         super().__init__(id=id, name=name, instructions=instructions)
         self.client = ConversationAgentA2AClient(base_url=base_url)
         self.session_id = session_id
+        self.client_profile = client_profile
         
     @handler
     async def handle(
@@ -57,7 +59,11 @@ class ConversationAgentA2AExecutor(Executor):
 
         try:
             # Invoke the remote agent via A2A, passing session_id for conversation history
-            response = await self.client.invoke(intent.query, session_id=self.session_id)
+            response = await self.client.invoke(
+                intent.query,
+                session_id=self.session_id,
+                client_profile=self.client_profile,
+            )
             
             # Send the response with source information
             # Wrap it in a dict so we can track the source

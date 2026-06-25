@@ -48,10 +48,13 @@ services:
       - CONVERSATION_AGENT_A2A_URL=http://conversation-agent:8000
       - FORM_SUPPORT_AGENT_A2A_URL=http://formsupport-agent:8001
       - REDIS_HOST=redis
+      - AZURE_COSMOS_DB_ENDPOINT=https://azure-cosmos-emulator:8081
+      - CSSAI_EXECUTION_ENV=localhost
     depends_on:
       - conversation-agent
       - formsupport-agent
       - redis
+      - azure-cosmos-emulator
 
   redis:
     image: redis:7.4 #use this same version on Azure Redis instance as well. PR review comment.
@@ -72,9 +75,20 @@ services:
     environment:
       - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=3
       - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
-      - AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1
     volumes:
       - cosmosdb-data:/data/cosmosdb
+
+  cosmos-seed:
+    build:
+      context: .
+      dockerfile: agents/orchestrators/scripts/Dockerfile.seed
+    container_name: cosmos-seed
+    environment:
+      - COSMOS_EMULATOR_ENDPOINT=https://azure-cosmos-emulator:8081
+      - SEED_FILE_PATH=/app/client_profiles.json
+    depends_on:
+      - azure-cosmos-emulator
+    restart: "no"
 
 volumes:
   redis-data:

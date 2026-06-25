@@ -21,8 +21,8 @@ from azure.cosmos import CosmosClient, PartitionKey
 # ║  CONFIGURATION — update these if your local setup differs                  ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
-# Cosmos emulator endpoint (default: https://localhost:8081)
-ENDPOINT = "https://localhost:8081"
+# Cosmos emulator endpoint — uses env var inside Docker, defaults to localhost for local dev
+ENDPOINT = os.getenv("COSMOS_EMULATOR_ENDPOINT", "https://localhost:8081")
 
 # Well-known emulator master key (public, not a secret)
 KEY = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
@@ -31,9 +31,10 @@ KEY = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsE
 DATABASE_NAME = "AgentMemoryDB"
 CONTAINER_NAME = "ClientProfiles"
 
-# Path to the seed JSON file (relative to this script's directory)
-SEED_FILE = os.path.join(
-    os.path.dirname(__file__), "..", "clientprofiles", "seed", "client_profiles.json"
+# Path to the seed JSON file — env var override for Docker, otherwise relative to this script
+SEED_FILE = os.getenv(
+    "SEED_FILE_PATH",
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "clientprofiles", "seed", "client_profiles.json"),
 )
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗

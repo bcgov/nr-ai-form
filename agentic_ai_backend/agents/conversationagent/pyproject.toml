@@ -13,7 +13,9 @@ dependencies = [
     "python-dotenv==1.2.2",
     "uvicorn==0.44.0",
     "utils",
+    "clientprofiles",
 ]
 
 [tool.uv.sources]
 utils = { path = "../../utils" }
+clientprofiles = { path = "../../clientprofiles" }
