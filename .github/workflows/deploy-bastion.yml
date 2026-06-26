@@ -31,8 +31,6 @@ jobs:
   deploy:
     name: Deploy Bastion + Jumpbox (${{ inputs.environment }})
     runs-on: ubuntu-24.04
-    # Environment must be set on the JOB so environment-scoped secrets resolve
-    # and OIDC trusts the job with subject: repo:...:environment:<env>
     environment: ${{ inputs.environment }}
     steps:
       # Required so the action can read tfvars_file from this repo
@@ -46,7 +44,7 @@ jobs:
 
           # Load non-sensitive config (jumpbox_subnet_name, vm_size, bastion_sku, etc.)
           # This ensures jumpbox_subnet_name is unique per namespace per ALZ constraint
-          tfvars_file: ./config/nr-ai-form-bastion.tfvars
+          tfvars_file: ./infra/modules/bastion/nr-ai-form-bastion.tfvars
 
           # Keep Bastion resources isolated from existing app resource groups/state
           resource_group_name: nr-ai-form-bastion-${{ inputs.environment }}
