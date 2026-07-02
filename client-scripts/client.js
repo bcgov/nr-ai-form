@@ -69,7 +69,7 @@ const CLIENT_ID_DICT = {
 
 // DEV URL
 // const ORCHESTRATOR_API_URL = `https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
-const ORCHESTRATOR_API_URL = `http://localhost:8002/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
+const ORCHESTRATOR_API_URL = `http://localhost:8002/invoke`;
 // Guided questions live on the same backend host as the chat/orchestrator API.
 
 // TODO: add the correct url for the guided questions API
