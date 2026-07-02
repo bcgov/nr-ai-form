@@ -60,16 +60,16 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
 const CLIENT_ID_DICT = {
-    "WATER-LICENSE-APP": "11111111-1111-4111-8111-111111111111"
+    "water_license_app": "11111111-1111-4111-8111-111111111111"
 }
 
 //-------------------------- Services Starts ---------------------------//
 // TEST URL
-// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
+// const ORCHESTRATOR_API_URL = `https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
 
 // DEV URL
-// const ORCHESTRATOR_API_URL = "https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/invoke";
-const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
+// const ORCHESTRATOR_API_URL = `https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
+const ORCHESTRATOR_API_URL = `http://localhost:8002/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
 // Guided questions live on the same backend host as the chat/orchestrator API.
 
 // TODO: add the correct url for the guided questions API
