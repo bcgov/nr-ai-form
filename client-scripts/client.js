@@ -69,11 +69,22 @@ const CLIENT_ID_DICT = {
 
 // DEV URL
 // const ORCHESTRATOR_API_URL = `https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
-const ORCHESTRATOR_API_URL = `http://localhost:8002/invoke`;
+const ORCHESTRATOR_API_URL = `http://localhost:8002`;
 // Guided questions live on the same backend host as the chat/orchestrator API.
 
 // TODO: add the correct url for the guided questions API
 const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
+
+const clientId = CLIENT_ID_DICT["water_license_app"];
+
+if (!clientId) {
+  throw new Error("Missing client ID");
+}
+
+const INVOKE_URL = new URL(
+  `/tenants/${clientId}/invoke`,
+  ORCHESTRATOR_API_URL
+).toString();
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
@@ -93,11 +104,10 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
         query: query,
         step_number: step_number,
         session_id: session_id
-        // client_id: CLIENT_ID_DICT["WATER-LICENSE-APP"] || null
     };
 
     try {
-        const response = await fetch(ORCHESTRATOR_API_URL, {
+        const response = await fetch(INVOKE_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
