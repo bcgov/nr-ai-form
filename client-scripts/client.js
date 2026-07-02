@@ -92,8 +92,8 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
     const payload = {
         query: query,
         step_number: step_number,
-        session_id: session_id,
-        client_id: CLIENT_ID_DICT["WATER-LICENSE-APP"] || null
+        session_id: session_id
+        // client_id: CLIENT_ID_DICT["WATER-LICENSE-APP"] || null
     };
 
     try {
