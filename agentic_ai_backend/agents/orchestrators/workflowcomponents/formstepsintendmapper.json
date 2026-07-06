@@ -3,6 +3,8 @@
     "stepIdentifier": "step0",
     "shortDescription": "Handles Fishing Licence Application queries",
     "intentTags": [
+      "What is this form form for?",
+      "What information is required to complete this form?",
       "Angler's Information - Date Of Birth, Residency Status, Fish and Wildlife ID (WID).",
       "Fishing Licence Type or Duration - Annual, eight day, one day",
       "Fishing Region - Vancouver Island , Lower Mainland, Thompson Okanagan, Kootenay Rockies, Cariboo Chilcotin Coast, North Coast Skeena, Peace",
