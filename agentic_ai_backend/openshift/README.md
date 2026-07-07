@@ -188,3 +188,16 @@ oc get route -n 1dca6b-test
 
 These build manifests only produce images; all runtime config comes from the
 Secrets above (see also the env-var section in the repo `CLAUDE.md`).
+
+## Deploy redis
+
+- Creater secret `redis` with `database-password: <password>`
+
+- from this directory, deploy Redis (container and Service) using bitnami image:
+
+```bash
+oc apply -f .\redis-deploy.yaml -n <namespace>
+```
+
+
+
