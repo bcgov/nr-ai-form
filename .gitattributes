@@ -1,0 +1,31 @@
+# Default: normalize all text files to LF in the repo
+* text=auto eol=lf
+
+# Shell scripts must always use LF — CRLF breaks shebangs on Linux
+*.sh text eol=lf
+
+# Python, YAML, TOML, Dockerfiles — LF only
+*.py  text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+Dockerfile* text eol=lf
+
+# Markdown and JSON — LF only
+*.md   text eol=lf
+*.json text eol=lf
+
+# Terraform
+*.tf     text eol=lf
+*.tfvars text eol=lf
+
+# Binary files — no line-ending conversion
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.gz   binary
+*.tar  binary

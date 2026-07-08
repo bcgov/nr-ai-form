@@ -1,6 +1,9 @@
 import sys
 import os
 import asyncio
+import logging
+import time
+from dataclasses import dataclass
 from dotenv import load_dotenv
 
 from azure.core.credentials import AzureKeyCredential
@@ -11,6 +14,7 @@ from azure.search.documents.knowledgebases.models import (
     KnowledgeBaseRetrievalRequest,
     KnowledgeRetrievalSemanticIntent,
 )
+from agent_framework import tool
 from agent_framework.openai import OpenAIChatCompletionClient
 
 # Add parent directories to path to allow importing 'tools' and the shared 'utils'
@@ -20,72 +24,67 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 
 from tools.azure_ai_search import azure_ai_search
 from utils.blobservice import BlobService
+from models.client_settings_type import ConversationAgentClientSettings
+from conversationconstants import (
+    CONVERSATION_AGENT_MODE_LLM,
+    DEFAULT_AGENT_MAX_TOKENS,
+    DEFAULT_AGENT_TEMPERATURE,
+    DEFAULT_CONVERSATION_AGENT_MODE,
+    DEFAULT_KB_API_VERSION,
+    DEFAULT_KB_MAX_HISTORY_MESSAGES,
+    DEFAULT_KB_MAX_OUTPUT_SIZE,
+    DEFAULT_KB_MAX_RUNTIME_SECONDS,
+    DEFAULT_KB_OUTPUT_MODE,
+    DEFAULT_KB_REASONING_EFFORT,
+    DEFAULT_KB_REQUEST_MODE,
+    SUPPORTED_CONVERSATION_AGENT_MODES,
+)
+from utils.tenantsettings import (
+    setting_from_client_config,
+    settings_cache_parts,
+    top_level_setting_from_client,
+)
+
+
+@dataclass
+class _CachedInstructions:
+    text: str
+    expires_at: float
+
+
+_INSTRUCTIONS_CACHE: dict[tuple[str, str, str], _CachedInstructions] = {}
+_INSTRUCTIONS_CACHE_TTL_SECONDS = float(os.getenv("CONVERSATION_PROMPT_CACHE_TTL_SECONDS", "300"))
+
+
+def make_azure_ai_search_tool(client_settings: ConversationAgentClientSettings):
+    """
+    Factory function that creates an Azure AI Search tool for a specific client configuration.
+
+    This function creates a closure that binds the client_settings to the azure_ai_search
+    function, allowing it to be used as a tool by the agent framework with tenant-specific
+    configuration (endpoint, API key, index name, etc.).
+
+    Args:
+        client_settings: Tenant-specific configuration containing Azure Search credentials
+                        and settings (endpoint, API key, index name, etc.)
+
+    Returns:
+        A tool function that can be used by the agent framework to perform Azure AI Search
+        queries. The returned function takes a query string and returns search results.
+    """
+    @tool(
+        name="azure_ai_search",
+        description="Retrieves information related with Permit Applications using Azure AI Search",
+    )
+    def azure_ai_search_for_client(query: str) -> str:
+        return azure_ai_search(query, client_settings=client_settings)
+
+    return azure_ai_search_for_client
 
 
 load_dotenv()
 
-DEFAULT_KB_API_VERSION = "2025-11-01-preview"
-DEFAULT_KB_MAX_OUTPUT_SIZE = 5001
-MIN_KB_MAX_OUTPUT_SIZE = 500
-DEFAULT_KB_MAX_RUNTIME_SECONDS = 30
-DEFAULT_KB_MAX_HISTORY_MESSAGES = 10
-DEFAULT_KB_REQUEST_MODE = "messages"
-DEFAULT_KB_OUTPUT_MODE = "answerSynthesis"
-DEFAULT_KB_REASONING_EFFORT = "low"
-SUPPORTED_KB_REQUEST_MODES = {"messages", "intents"}
-SUPPORTED_KB_OUTPUT_MODES = {"answerSynthesis", "extractiveData"}
-SUPPORTED_KB_REASONING_EFFORTS = {"minimal", "low", "medium"}
-
-CONVERSATION_AGENT_MODE_KNOWLEDGEBASE = "knowledgebase"
-CONVERSATION_AGENT_MODE_LLM = "llm"
-SUPPORTED_CONVERSATION_AGENT_MODES = {
-    CONVERSATION_AGENT_MODE_KNOWLEDGEBASE,
-    CONVERSATION_AGENT_MODE_LLM,
-}
-DEFAULT_CONVERSATION_AGENT_MODE = CONVERSATION_AGENT_MODE_KNOWLEDGEBASE
-
-
-def _get_choice_env(name: str, default: str, allowed: set[str]) -> str:
-    value = os.getenv(name, default)
-    if value not in allowed:
-        allowed_values = ", ".join(sorted(allowed))
-        raise ValueError(f"{name} must be one of: {allowed_values}.")
-    return value
-
-
-def _get_positive_int_env(name: str, default: int) -> int:
-    raw_value = os.getenv(name, str(default))
-    try:
-        parsed_value = int(raw_value)
-    except ValueError as exc:
-        raise ValueError(f"{name} must be an integer.") from exc
-
-    if parsed_value < 1:
-        raise ValueError(f"{name} must be greater than 0.")
-
-    return parsed_value
-
-
-def _get_kb_max_output_size() -> int:
-    raw_value = os.getenv(
-        "AZURE_SEARCH_KNOWLEDGE_AGENT_MAX_OUTPUT_SIZE",
-        str(DEFAULT_KB_MAX_OUTPUT_SIZE),
-    )
-    try:
-        max_output_size = int(raw_value)
-    except ValueError as exc:
-        raise ValueError(
-            "AZURE_SEARCH_KNOWLEDGE_AGENT_MAX_OUTPUT_SIZE must be an integer."
-        ) from exc
-
-    if max_output_size < MIN_KB_MAX_OUTPUT_SIZE:
-        raise ValueError(
-            "AZURE_SEARCH_KNOWLEDGE_AGENT_MAX_OUTPUT_SIZE must be greater than 5000 "
-            f"(got {max_output_size})."
-        )
-
-    return max_output_size
-
+logger = logging.getLogger(__name__)
 
 class AzureGatewayChatCompletionClient(OpenAIChatCompletionClient):
     """Compatibility wrapper for gateways that reject null assistant tool-call content."""
@@ -94,7 +93,6 @@ class AzureGatewayChatCompletionClient(OpenAIChatCompletionClient):
         prepared_messages = super()._prepare_message_for_openai(message)
         for prepared_message in prepared_messages:
             if prepared_message.get("role") == "assistant" and "tool_calls" in prepared_message:
-                # Some OpenAI-compatible gateways reject null/empty assistant content when tool_calls are present.
                 prepared_message.setdefault("content", " ")
         return prepared_messages
 
@@ -106,93 +104,50 @@ AzureOpenAIChatClient = AzureGatewayChatCompletionClient
 class ConversationAgent:
     """Answers user queries against Azure AI Search.
 
-    Two modes selected by ``CONVERSATION_AGENT_MODE``:
+    Two modes selected by ``conversationAgentMode`` in client_settings config:
 
     - ``knowledgebase`` (default): direct Azure AI Search Knowledge Base
       retrieval (agentic), no LLM in this service.
     - ``llm``: Azure OpenAI chat completion driving the ``azure_ai_search``
-      tool — the older flow preserved here for fallback.
+      tool - the older flow preserved here for fallback.
+
+    All configuration is driven by client_settings (per-tenant profile from
+    Cosmos DB). No os.getenv() for tenant-specific settings.
     """
 
     class _SessionShim:
-        # KB retrieval is stateless per call; the A2A server still calls
-        # ``agent.agent.create_session(session_id=...)``, so we hand back a
-        # lightweight state object that round-trips through the server cache.
         def create_session(self, session_id=None):
             return {"session_id": session_id, "messages": []}
 
-    def __init__(self, endpoint=None, api_key=None, deployment_name=None,
-                 api_version=None, max_tokens=None, temperature=None):
-        self._mode = _get_choice_env(
-            "CONVERSATION_AGENT_MODE",
-            DEFAULT_CONVERSATION_AGENT_MODE,
-            SUPPORTED_CONVERSATION_AGENT_MODES,
-        )
-        if self._mode == CONVERSATION_AGENT_MODE_LLM:
-            self._init_llmlogic(
-                endpoint, api_key, deployment_name, api_version,
-                max_tokens, temperature,
-            )
-        else:
-            self._init_knowledgebase()
-
-    def _init_knowledgebase(self):
-        search_endpoint = os.environ["AZURE_SEARCH_ENDPOINT"]
-        search_api_key = os.environ["AZURE_SEARCH_API_KEY"]
-        knowledge_base_name = os.environ["AZURE_SEARCH_KNOWLEDGE_AGENT_NAME"]
-        kb_api_version = os.getenv(
-            "AZURE_SEARCH_KNOWLEDGE_AGENT_API_VERSION",
-            DEFAULT_KB_API_VERSION,
-        )
-
-        client_kwargs = {}
-        if kb_api_version:
-            client_kwargs["api_version"] = kb_api_version
-
-        self._search_endpoint = search_endpoint
-        self._kb_api_version = kb_api_version
-        self._max_output_size = _get_kb_max_output_size()
-        self._max_runtime_seconds = _get_positive_int_env(
-            "AZURE_SEARCH_KNOWLEDGE_AGENT_MAX_RUNTIME_SECONDS",
-            DEFAULT_KB_MAX_RUNTIME_SECONDS,
-        )
-        self._max_history_messages = _get_positive_int_env(
-            "AZURE_SEARCH_KNOWLEDGE_AGENT_MAX_HISTORY_MESSAGES",
-            DEFAULT_KB_MAX_HISTORY_MESSAGES,
-        )
-        self._request_mode = _get_choice_env(
-            "AZURE_SEARCH_KNOWLEDGE_AGENT_REQUEST_MODE",
-            DEFAULT_KB_REQUEST_MODE,
-            SUPPORTED_KB_REQUEST_MODES,
-        )
-        self._output_mode = _get_choice_env(
-            "AZURE_SEARCH_KNOWLEDGE_AGENT_OUTPUT_MODE",
-            DEFAULT_KB_OUTPUT_MODE,
-            SUPPORTED_KB_OUTPUT_MODES,
-        )
-        self._reasoning_effort = _get_choice_env(
-            "AZURE_SEARCH_KNOWLEDGE_AGENT_REASONING_EFFORT",
-            DEFAULT_KB_REASONING_EFFORT,
-            SUPPORTED_KB_REASONING_EFFORTS,
-        )
-        self._client = KnowledgeBaseRetrievalClient(
-            endpoint=search_endpoint,
-            credential=AzureKeyCredential(search_api_key),
-            knowledge_base_name=knowledge_base_name,
-            **client_kwargs,
-        )
+    def __init__(self):
+        # Lightweight init - actual client setup happens per-request in run()
+        # based on the tenant's client_settings.
         self.agent = self._SessionShim()
 
-    def _init_llmlogic(self, endpoint, api_key, deployment_name, api_version,
-                     max_tokens, temperature):
-        endpoint = endpoint or os.environ["AZURE_OPENAI_ENDPOINT"]
-        api_key = api_key or os.environ["AZURE_OPENAI_API_KEY"]
-        deployment_name = deployment_name or os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
-        api_version = api_version or os.environ["AZURE_OPENAI_API_VERSION"]
-        if max_tokens is None:
-            max_tokens = int(os.getenv("AGENT_MAX_TOKENS", "800"))
-        if temperature is None:
-            temperature = float(os.getenv("AGENT_TEMPERATURE", "0.1"))
+    async def run(self, userquery, session=None, thread=None, *, client_settings: ConversationAgentClientSettings):
+        """Run the conversation agent with per-tenant config from client_settings."""
+        cfg = client_settings.get("config") or {}
+        mode = setting_from_client_config(
+            client_settings,
+            "conversationAgentMode",
+            default=DEFAULT_CONVERSATION_AGENT_MODE,
+        )
+
+        if mode not in SUPPORTED_CONVERSATION_AGENT_MODES:
+            raise ValueError(f"conversationAgentMode must be one of: {SUPPORTED_CONVERSATION_AGENT_MODES}")
+
+        if mode == CONVERSATION_AGENT_MODE_LLM:
+            llm_query = userquery.strip().replace(" ", " + ")
+            return await self._run_llmlogic(llm_query, cfg, client_settings)
+        return await self._run_knowledgebase(userquery, session, thread, cfg, client_settings)
+
+    async def _run_llmlogic(self, userquery, cfg, client_settings: ConversationAgentClientSettings):
+        endpoint = setting_from_client_config(client_settings, "azureOpenaiEndpoint", required=True)
+        api_key = setting_from_client_config(client_settings, "azureOpenaiApiKey", required=True)
+        deployment_name = setting_from_client_config(client_settings, "azureOpenaiChatDeploymentName", required=True)
+        api_version = setting_from_client_config(client_settings, "azureOpenaiApiVersion", required=True)
+        max_tokens = cfg.get("agentMaxTokens", DEFAULT_AGENT_MAX_TOKENS)
+        temperature = cfg.get("agentTemperature", DEFAULT_AGENT_TEMPERATURE)
 
         client = AzureOpenAIChatClient(
             model=deployment_name,
@@ -200,13 +155,12 @@ class ConversationAgent:
             azure_endpoint=endpoint,
             api_version=api_version,
         )
-        agent_kwargs = {
-            "instructions": self._load_instructions(),
-            "tools": [azure_ai_search],
-            "name": "ConversationAgent",
-        }
-        self.agent = client.as_agent(
-            **agent_kwargs,
+
+        instructions = self._load_instructions(client_settings)
+        agent = client.as_agent(
+            instructions=instructions,
+            tools=[make_azure_ai_search_tool(client_settings)],
+            name="ConversationAgent",
             default_options={
                 "temperature": temperature,
                 "max_tokens": max_tokens,
@@ -214,90 +168,86 @@ class ConversationAgent:
             },
         )
 
-    def _load_instructions(self) -> str:
-        """Load the agent's instruction prompt from Azure Blob Storage.
-
-        Reads the blob at ``AGENT_CONVERSATION_PROMPTS_PATH`` inside the
-        ``AGENTPROMPTS_CONTAINER_NAME`` container, using the connection string
-        ``AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING`` (see ``.env``). Falls back
-        to the bundled local copy only when the blob store is not configured or
-        unreachable.
-        """
-        connection_string = os.getenv("AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING")
-        container_name = os.getenv("AGENTPROMPTS_CONTAINER_NAME")
-        blob_path = os.getenv("AGENT_CONVERSATION_PROMPTS_PATH")
-
-        if connection_string and container_name and blob_path:
-            try:
-                blob_service = BlobService(connection_string)
-                instructions = blob_service.read_blob_text(container_name, blob_path)
-                if instructions.strip():
-                    print(f"Loaded ConversationAgent instructions from blob: {container_name}/{blob_path}")
-                    return instructions
-                print(f"Blob {container_name}/{blob_path} is empty; falling back to local instructions.")
-            except Exception as e:
-                print(f"Failed to load instructions from blob {container_name}/{blob_path}: {e}")
-        else:
-            print(
-                "AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING/AGENTPROMPTS_CONTAINER_NAME/"
-                "AGENT_CONVERSATION_PROMPTS_PATH not fully set; falling back to local instructions."
-            )
-
-        return self._load_local_instructions()
-
-    @staticmethod
-    def _load_local_instructions() -> str:
-        local_path = os.path.join(
-            os.path.dirname(__file__), "prompttemplates", "instructions.md"
-        )
-        try:
-            with open(local_path, "r", encoding="utf-8") as f:
-                instructions = f.read()
-            if instructions.strip():
-                print(f"Loaded ConversationAgent instructions from local file: {local_path}")
-                return instructions
-        except FileNotFoundError:
-            pass
-        except Exception as e:
-            print(f"Failed to read local instructions {local_path}: {e}")
-        raise RuntimeError(
-            "ConversationAgent instructions not found. Set "
-            "AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING, AGENTPROMPTS_CONTAINER_NAME, and "
-            f"AGENT_CONVERSATION_PROMPTS_PATH, or provide a local file at {local_path}."
-        )
-
-    async def run(self, userquery, session=None, thread=None):
-        if self._mode == CONVERSATION_AGENT_MODE_LLM:
-            return await self._run_llmlogic(userquery.strip().replace(" ", " + "))
-        return await self._run_knowledgebase(userquery, session, thread)
-
-    async def _run_llmlogic(self, userquery):
-        # Mirrors prior behavior: session/thread is intentionally not threaded
-        # into the underlying agent call.
-        result = await self.agent.run(userquery)
+        result = await agent.run(userquery)
         return result.text
 
-    async def _run_knowledgebase(self, userquery, session=None, thread=None):
+    async def _run_knowledgebase(self, userquery, session, thread, cfg, client_settings: ConversationAgentClientSettings):
+        search_endpoint = setting_from_client_config(client_settings, "azureSearchEndpoint", required=True)
+        search_api_key = setting_from_client_config(client_settings, "azureSearchApiKey", required=True)
+        knowledge_base_name = setting_from_client_config(client_settings, "azureSearchKnowledgeAgentName", required=True)
+        kb_api_version = setting_from_client_config(client_settings, "azureSearchKnowledgeAgentApiVersion", default=DEFAULT_KB_API_VERSION)
+        max_output_size = int(setting_from_client_config(client_settings, "azureSearchKnowledgeAgentMaxOutputSize", default=DEFAULT_KB_MAX_OUTPUT_SIZE))
+        max_runtime_seconds = int(setting_from_client_config(client_settings, "azureSearchKnowledgeAgentMaxRuntimeSeconds", default=DEFAULT_KB_MAX_RUNTIME_SECONDS))
+        max_history_messages = int(setting_from_client_config(client_settings, "azureSearchKnowledgeAgentMaxHistoryMessages", default=DEFAULT_KB_MAX_HISTORY_MESSAGES))
+        request_mode = setting_from_client_config(client_settings, "azureSearchKnowledgeAgentRequestMode", default=DEFAULT_KB_REQUEST_MODE)
+        output_mode = setting_from_client_config(client_settings, "azureSearchKnowledgeAgentOutputMode", default=DEFAULT_KB_OUTPUT_MODE)
+        reasoning_effort = setting_from_client_config(client_settings, "azureSearchKnowledgeAgentReasoningEffort", default=DEFAULT_KB_REASONING_EFFORT)
+
+        client_kwargs = {}
+        if kb_api_version:
+            client_kwargs["api_version"] = kb_api_version
+
+        kb_client = KnowledgeBaseRetrievalClient(
+            endpoint=search_endpoint,
+            credential=AzureKeyCredential(search_api_key),
+            knowledge_base_name=knowledge_base_name,
+            **client_kwargs,
+        )
+
         session_state = self._get_session_state(session, thread)
-        request, user_message = self._build_request(userquery, session_state)
+        request, user_message = self._build_request(
+            userquery, session_state, request_mode, output_mode,
+            max_output_size, max_runtime_seconds, reasoning_effort,
+        )
+
         try:
-            result = await asyncio.to_thread(
-                self._client.retrieve, retrieval_request=request
-            )
+            result = await asyncio.to_thread(kb_client.retrieve, retrieval_request=request)
         except Exception as e:
-            error_message = self._format_retrieval_error(str(e))
-            print(f"Error calling Azure AI Search Knowledge Base: {error_message}")
+            error_message = self._format_retrieval_error(
+                str(e), request_mode, search_endpoint, kb_api_version,
+            )
+            logger.warning("Error calling Azure AI Search Knowledge Base: %s", error_message)
             return f"Error retrieving from Knowledge Base: {error_message}"
 
         answer = self._extract_answer(result)
         if session_state is not None and user_message is not None:
-            self._append_message(session_state, user_message)
+            self._append_message(session_state, user_message, max_history_messages)
             self._append_message(
                 session_state,
                 self._create_text_message("assistant", answer),
+                max_history_messages,
             )
 
         return answer
+
+    def _load_instructions(self, client_settings: ConversationAgentClientSettings) -> str:
+        """Load agent instructions from Azure Blob Storage using tenant config."""
+        blob_conn_str = top_level_setting_from_client(client_settings, "blobConnectionString", required=True)
+        container_name = top_level_setting_from_client(client_settings, "containerName", required=True)
+        prompt_path = top_level_setting_from_client(client_settings, "promptPath", required=True)
+        if not blob_conn_str or not container_name or not prompt_path:
+            raise RuntimeError("ConversationAgent instruction blob config is required.")
+
+        client_id, fingerprint = settings_cache_parts(client_settings)
+        cache_key = (client_id, fingerprint, prompt_path)
+        now = time.monotonic()
+        cached = _INSTRUCTIONS_CACHE.get(cache_key)
+        if _INSTRUCTIONS_CACHE_TTL_SECONDS > 0 and cached and now < cached.expires_at:
+            return cached.text
+
+        try:
+            blob_service = BlobService(blob_conn_str)
+            instructions = blob_service.read_blob_text(container_name, prompt_path)
+            if instructions.strip():
+                if _INSTRUCTIONS_CACHE_TTL_SECONDS > 0:
+                    _INSTRUCTIONS_CACHE[cache_key] = _CachedInstructions(
+                        text=instructions,
+                        expires_at=now + _INSTRUCTIONS_CACHE_TTL_SECONDS,
+                    )
+                return instructions
+            raise RuntimeError(f"ConversationAgent instructions blob {container_name}/{prompt_path} is empty.")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load ConversationAgent instructions from blob {container_name}/{prompt_path}: {e}") from e
 
     @staticmethod
     def _get_session_state(session, thread):
@@ -314,53 +264,50 @@ class ConversationAgent:
             content=[KnowledgeBaseMessageTextContent(text=text)],
         )
 
-    def _build_request(self, userquery, session_state):
-        if self._request_mode == "messages":
+    def _build_request(self, userquery, session_state, request_mode, output_mode,
+                       max_output_size, max_runtime_seconds, reasoning_effort):
+        if request_mode == "messages":
             user_message = self._create_text_message("user", userquery)
             request_messages = []
             if session_state is not None:
                 request_messages.extend(session_state["messages"])
             request_messages.append(user_message)
-            # The installed SDK can still serialize preview-only fields even
-            # though its typed constructor has not caught up yet.
             request = KnowledgeBaseRetrievalRequest(
                 {
                     "messages": request_messages,
-                    "outputMode": self._output_mode,
-                    "maxOutputSize": self._max_output_size,
-                    "maxRuntimeInSeconds": self._max_runtime_seconds,
-                    "retrievalReasoningEffort": {"kind": self._reasoning_effort},
+                    "outputMode": output_mode,
+                    "maxOutputSize": max_output_size,
+                    "maxRuntimeInSeconds": max_runtime_seconds,
+                    "retrievalReasoningEffort": {"kind": reasoning_effort},
                 }
             )
             return request, user_message
 
         request = KnowledgeBaseRetrievalRequest(
             intents=[KnowledgeRetrievalSemanticIntent(search=userquery)],
-            max_output_size_in_tokens=self._max_output_size,
-            max_runtime_in_seconds=self._max_runtime_seconds,
+            max_output_size_in_tokens=max_output_size,
+            max_runtime_in_seconds=max_runtime_seconds,
         )
         return request, None
 
-    def _append_message(self, session_state, message: KnowledgeBaseMessage) -> None:
+    def _append_message(self, session_state, message: KnowledgeBaseMessage, max_history: int) -> None:
         session_state["messages"].append(message)
-        if len(session_state["messages"]) > self._max_history_messages:
-            session_state["messages"] = session_state["messages"][
-                -self._max_history_messages:
-            ]
+        if len(session_state["messages"]) > max_history:
+            session_state["messages"] = session_state["messages"][-max_history:]
 
-    def _format_retrieval_error(self, error_message: str) -> str:
-        if self._request_mode == "messages" and (
+    @staticmethod
+    def _format_retrieval_error(error_message: str, request_mode: str,
+                                search_endpoint: str, kb_api_version: str) -> str:
+        if request_mode == "messages" and (
             "parameter 'messages'" in error_message
             or "parameter 'outputMode'" in error_message
         ):
             return (
                 f"{error_message} This endpoint or API version does not support "
-                "message-based agentic retrieval. Use "
-                f"AZURE_SEARCH_KNOWLEDGE_AGENT_API_VERSION={DEFAULT_KB_API_VERSION} "
-                "with an Azure AI Search knowledge base endpoint, or set "
-                "AZURE_SEARCH_KNOWLEDGE_AGENT_REQUEST_MODE=intents for llm "
-                f"compatibility. Current endpoint: {self._search_endpoint}; current "
-                f"api version: {self._kb_api_version}."
+                "message-based agentic retrieval. Set "
+                "azureSearchKnowledgeAgentRequestMode=intents in client profile "
+                f"for compatibility. Current endpoint: {search_endpoint}; current "
+                f"api version: {kb_api_version}."
             )
         return error_message
 
@@ -376,11 +323,10 @@ class ConversationAgent:
 
 
 async def dryrun(query):
-    agent = ConversationAgent()
-    print("User Query is {0}".format(query))
-    result = await agent.run(query)
-    print(result)
-
+    raise RuntimeError(
+        "ConversationAgent dryrun no longer reads tenant settings from .env. "
+        "Invoke through the orchestrator so client_settings are resolved from Cosmos."
+    )
 
 if __name__ == "__main__":
     query = sys.argv[-1]

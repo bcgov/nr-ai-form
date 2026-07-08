@@ -8,6 +8,7 @@ dependencies = [
     "fastapi==0.127.0",
     "uvicorn==0.38.0",
     "utils",
+    "clientprofiles",
     "websockets>=16.0",
     "requests>=2.32.3",
     "python-dotenv>=1.0.0",
@@ -15,3 +16,4 @@ dependencies = [
 
 [tool.uv.sources]
 utils = { path = "../utils" }
+clientprofiles = { path = "../clientprofiles" }

@@ -1,4 +1,4 @@
-"""Seed a Azure Cosmos DB account with client profile data.
+"""Seed an Azure Cosmos DB account with client profile data.
 
 Prerequisites:
     1. Create the Cosmos DB account in Azure Portal (NoSQL API)
@@ -10,70 +10,72 @@ Run from the orchestrators directory:
     .venv/Scripts/python scripts/seed_azure_cosmos.py
 """
 
+import base64
 import json
 import os
 import sys
 import uuid
 
 from azure.cosmos import CosmosClient, PartitionKey
+from clientprofiles import validate_client_profiles
 
 
-# ==============================================================================
-# CONFIGURATION - UPDATE THESE VALUES before running
-# ==============================================================================
+BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+if BACKEND_ROOT not in sys.path:
+    sys.path.insert(0, BACKEND_ROOT)
 
-# Your Azure Cosmos DB endpoint (from Azure Portal > Cosmos DB account > Keys)
-ENDPOINT = "<Endpoint>"  # e.g. "https://your-account.documents.azure.com:443/"
 
-# Your Azure Cosmos DB primary key (from Azure Portal > Cosmos DB account > Keys)
+ENDPOINT = "<Endpoint>"
 KEY = "<your azure cosmos db key>"
-
-# Database and container names
 DATABASE_NAME = "AgentMemoryDB"
 CONTAINER_NAME = "ClientProfiles"
-
-# Path to the seed JSON file (relative to this script)
 SEED_FILE = os.path.join(
     os.path.dirname(__file__), "..", "..", "..", "clientprofiles", "seed", "client_profiles.json"
 )
 
-# ==============================================================================
-# SCRIPT - no changes needed below this line
-# ==============================================================================
 
-
-def seed():
+def validate_cosmos_key() -> None:
     if "<" in ENDPOINT or "<" in KEY:
-        print(
-            "ERROR: Please update ENDPOINT and KEY at the top of this script\n"
-            "       with your Azure Cosmos DB account details.\n"
-            "       (Azure Portal > Cosmos DB account > Keys)",
-            file=sys.stderr,
+        raise RuntimeError(
+            "Please update ENDPOINT and KEY at the top of this script with your Azure Cosmos DB account details."
         )
-        sys.exit(1)
 
-    # Validate the key is valid base64 before connecting
-    import base64
     try:
         decoded = base64.b64decode(KEY)
         print(f"Key validation: OK ({len(decoded)} bytes decoded)")
-    except Exception as e:
-        print(f"ERROR: KEY is not valid base64: {e}", file=sys.stderr)
-        print(f"       Key length: {len(KEY)} characters", file=sys.stderr)
-        print(f"       Key ends with: ...{KEY[-10:]}", file=sys.stderr)
-        print(f"       Expected: 88 characters ending with '=='", file=sys.stderr)
-        print(f"\n       Re-copy the PRIMARY KEY from Azure Portal using the copy button.", file=sys.stderr)
-        sys.exit(1)
+    except Exception as exc:
+        raise RuntimeError(
+            "KEY is not valid base64. Re-copy the PRIMARY KEY from Azure Portal using the copy button."
+        ) from exc
 
+
+def load_profiles(seed_path: str) -> list[dict]:
+    print(f"\nLoading profiles from: {seed_path}")
+    with open(seed_path, encoding="utf-8") as f:
+        profiles = json.load(f)
+
+    for profile in profiles:
+        if "clientId" not in profile:
+            profile["clientId"] = str(uuid.uuid4())
+        profile["id"] = profile["clientId"]
+
+    print("Validating tenant profiles before upsert...")
+    validate_client_profiles(profiles)
+    print(f"Validation passed for {len(profiles)} tenant profile(s).")
+    return profiles
+
+
+def seed() -> None:
+    validate_cosmos_key()
     seed_path = os.path.normpath(SEED_FILE)
 
     print(f"Target:    {ENDPOINT} (Azure Cosmos DB)")
     print(f"Database:  {DATABASE_NAME}")
     print(f"Container: {CONTAINER_NAME}")
     print(f"Seed file: {seed_path}")
-    print()
 
-    # TLS enabled for real Azure (not the emulator)
+    profiles = load_profiles(seed_path)
+
     client = CosmosClient(ENDPOINT, credential=KEY)
 
     print(f"Creating database '{DATABASE_NAME}' if not exists...")
@@ -85,15 +87,7 @@ def seed():
         partition_key=PartitionKey(path="/clientId"),
     )
 
-    print(f"\nLoading profiles from: {seed_path}")
-    with open(seed_path, encoding="utf-8") as f:
-        profiles = json.load(f)
-
     for profile in profiles:
-        # Auto-generate clientId if not provided; always sync id = clientId
-        if "clientId" not in profile:
-            profile["clientId"] = str(uuid.uuid4())
-        profile["id"] = profile["clientId"]
         container.upsert_item(profile)
         print(f"  Done: {profile['clientId']} - {profile['clientName']}")
 
@@ -103,8 +97,9 @@ def seed():
 if __name__ == "__main__":
     try:
         seed()
-    except FileNotFoundError as e:
-        print(f"\nError: Seed file not found: {e}", file=sys.stderr)
+    except FileNotFoundError as exc:
+        print(f"\nError: Seed file not found: {exc}", file=sys.stderr)
         sys.exit(1)
-    except Exception as e:
-        raise
+    except Exception as exc:
+        print(f"\nError: {exc}", file=sys.stderr)
+        sys.exit(1)

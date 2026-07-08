@@ -17,28 +17,33 @@ import websockets
 
 # This WebSocket is to receive frontend connections; not to be confused with the other websockets
 # that initiate connections to the agent server.
-from fastapi import FastAPI, HTTPException, WebSocket
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from clientprofiles import (
+    ClientIdRequiredError,
+    ClientProfileNotFoundError,
+    TenantConfigService,
+    TenantConfigUnavailableError,
+    get_client_profile_store,
+    is_origin_allowed,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- Configuration ---
-# The URL of the agent server's WebSocket endpoint
-ORCHESTRATOR_AGENT_WS_URL = os.getenv("ORCHESTRATOR_AGENT_WS_URL", "ws://localhost:8002/ws")
-CORS_ALLOW_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "*").split(",")
+# The base URL of the orchestrator agent WebSocket endpoint. The path is always /ws.
+ORCHESTRATOR_AGENT_WS_BASE_URL = os.getenv("ORCHESTRATOR_AGENT_WS_BASE_URL", "ws://localhost:8002")
 
 
 # --- Global State ---
 # Store active WebSocket connections: session_id -> WebSocket (Frontend)
 frontend_websockets: Dict[str, WebSocket] = {}
 
-# Store active WebSocket connections: session_id -> ClientWebSocket (Agent)
-agent_websocket: websockets.WebSocketClientProtocol = None
 
 # Global Redis Utils instance
 _redis_utils_instance = None
+_tenant_config_service: TenantConfigService | None = None
 
 def get_redis_utils():
     global _redis_utils_instance
@@ -46,6 +51,58 @@ def get_redis_utils():
         _redis_utils_instance = redisdbutils()
     return _redis_utils_instance
 
+def get_tenant_config_service() -> TenantConfigService:
+    global _tenant_config_service
+    if _tenant_config_service is None:
+        _tenant_config_service = TenantConfigService(get_client_profile_store())
+    return _tenant_config_service
+
+
+def _orchestrator_ws_url() -> str:
+    """Return the orchestrator WebSocket URL without tenant id in the path."""
+    base_url = ORCHESTRATOR_AGENT_WS_BASE_URL.rstrip("/")
+    if base_url.endswith("/ws"):
+        return base_url
+    return f"{base_url}/ws"
+
+
+async def _resolve_profile_for_ws(websocket: WebSocket, client_id: str):
+    try:
+        return await get_tenant_config_service().get_profile(client_id)
+    except ClientProfileNotFoundError:
+        await websocket.close(code=1008, reason="Unknown tenant")
+    except (ClientIdRequiredError, TenantConfigUnavailableError):
+        await websocket.close(code=1013, reason="Tenant configuration unavailable")
+    return None
+
+
+async def _proxy_to_orchestrator(
+    websocket: WebSocket,
+    agent_url: str,
+    session_id: str,
+    client_id: str,
+    initial_message: dict | None = None,
+) -> None:
+    """Proxy browser WebSocket messages to the orchestrator plain /ws route."""
+    async with websockets.connect(agent_url) as agent_ws:
+        if initial_message is not None:
+            initial_message["session_id"] = session_id
+            initial_message["client_id"] = client_id
+            await agent_ws.send(json.dumps(initial_message))
+            await websocket.send_text(await agent_ws.recv())
+
+        while True:
+            data = await websocket.receive_text()
+            try:
+                message = json.loads(data)
+            except json.JSONDecodeError:
+                await websocket.send_text(json.dumps({"error": "Invalid JSON"}))
+                continue
+
+            message["session_id"] = session_id
+            message["client_id"] = client_id
+            await agent_ws.send(json.dumps(message))
+            await websocket.send_text(await agent_ws.recv())
 # --- Lifecycle ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,115 +116,74 @@ async def lifespan(app: FastAPI):
             logger.error(f"Error closing frontend connection for {session_id}: {e}")
     frontend_websockets.clear()
 
-    if agent_websocket:
-        try:
-            await agent_websocket.close()
-            logger.info(f"Closed agent connection")
-        except Exception as e:
-            logger.error(f"Error closing agent connection: {e}")
-
-
 app = FastAPI(
     title="AI Agent WebSocket Gateway",
-    description="Interface that routes requests via persistent WebSockets to the Agent Server.",
+    description="Interface that routes WebSocket requests to the Agent Server.",
     version="1.0.0",
     lifespan=lifespan
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ALLOW_ORIGINS,
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-async def connect_to_agent() -> websockets.WebSocketClientProtocol:
-    """
-    Get an existing WebSocket connection for the session, or establish a new one.
-    """
-    global agent_websocket
-    
-    if agent_websocket:
-        logger.info("Using existing agent connection {agent_websocket}")
-        return agent_websocket
-    # Create new connection
-    try:
-        logger.info(f"Connecting to {ORCHESTRATOR_AGENT_WS_URL}...")
-        agent_websocket = await websockets.connect(ORCHESTRATOR_AGENT_WS_URL)
-        logger.info(f"Connected to orchestrator agent")
-        return agent_websocket
-    except Exception as e:
-        logger.error(f"Failed to connect to orchestrator agent server: {e}")
-        raise HTTPException(status_code=503, detail=f"Failed to connect to agent server: {str(e)}")
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, session_id: Optional[str] = None):
-    """
-    WebSocket endpoint that proxies messages between the client and the agent server.
-    Ensures a persistent connection to the agent server is maintained per session.
+    """Browser-facing WebSocket endpoint without tenant id in the URL.
+
+    Because the tenant id is not in the URL, the first JSON message must include
+    client_id. The socket is accepted first, then immediately closed with 1008 if
+    the tenant is unknown or the Origin is not allowed for that tenant.
     """
     await websocket.accept()
-    logger.info(f"Client connected to /ws for session {session_id}")
 
-    # If no session_id is provided, generate a new one
-    if not session_id:
-        session_id = str(uuid.uuid4())
-        logger.info(f"Generated new session ID: {session_id}")
-        await websocket.send_text(json.dumps({"event": "session_init", "session_id": session_id}))
-    
-    thread_id = session_id
-    if session_id not in frontend_websockets:
-        frontend_websockets[thread_id] = websocket
-    
-    logger.info(f"Client connected to /ws for session {thread_id}")
-    
+    public_session_id = session_id or str(uuid.uuid4())
+    frontend_websockets[public_session_id] = websocket
+    logger.info(f"Client connected to /ws for session {public_session_id}")
+
     try:
-        while True:
-            # Receive message from client
-            data = await websocket.receive_text()
-            try:
-                message = json.loads(data)
-            except json.JSONDecodeError:
-                await websocket.send_text(json.dumps({"error": "Invalid JSON"}))
-                continue
+        try:
+            message = json.loads(await websocket.receive_text())
+        except json.JSONDecodeError:
+            await websocket.send_text(json.dumps({"error": "Invalid JSON"}))
+            await websocket.close(code=1008, reason="Invalid JSON")
+            return
 
-            logger.info(f"Received message from client for session {thread_id}: {message}")
-            # We can use the session_id from the URL path
-            message["session_id"] = thread_id
+        client_id = message.get("client_id")
+        if not client_id:
+            await websocket.send_text(json.dumps({"error": "client_id is required"}))
+            await websocket.close(code=1008, reason="client_id is required")
+            return
 
-            try:
-                # Get or create connection to the agent server for this session
-                agent_ws = await connect_to_agent()
-                
-                # Forward the client's message to the agent server
-                await agent_ws.send(json.dumps(message))
-                
-                # Receive response from agent server
-                # Note: This implementation assumes a request-response pattern.
-                response_data = await agent_ws.recv()
-                print(f"Received response from agent: {response_data}")
-                
-                # Send the agent server's response back to the client
-                await websocket.send_text(response_data)
+        profile = await _resolve_profile_for_ws(websocket, client_id)
+        if profile is None:
+            return
 
-            except Exception as e:
-                logger.error(f"Error communicating with agent server: {e}")
-                global agent_websocket
-                if agent_websocket:
-                    try:
-                        await agent_websocket.close()
-                    except Exception:
-                        pass
-                    agent_websocket = None
-                await websocket.send_text(json.dumps({"error": f"Agent server error: {str(e)}"}))
+        origin = websocket.headers.get("origin")
+        if not is_origin_allowed(origin, profile.corsOrigins):
+            logger.warning("Rejected gateway websocket origin client_id=%r origin=%r allowed_origins=%r", client_id, origin, profile.corsOrigins)
+            await websocket.close(code=1008, reason="Origin not allowed")
+            return
 
-    except Exception as e:
-        logger.info(f"WebSocket client disconnected or session error: {e}")
+        if not session_id:
+            await websocket.send_text(json.dumps({"event": "session_init", "session_id": public_session_id}))
+
+        await _proxy_to_orchestrator(
+            websocket,
+            _orchestrator_ws_url(),
+            public_session_id,
+            profile.clientId,
+            initial_message=message,
+        )
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket client disconnected for session {public_session_id}")
+    except Exception as exc:
+        logger.exception("WebSocket proxy failed")
+        try:
+            await websocket.send_text(json.dumps({"error": "Agent server error"}))
+        except Exception:
+            pass
     finally:
-        logger.info(f"WebSocket connection closed for session {thread_id}")
-        if thread_id in frontend_websockets:
-            del frontend_websockets[thread_id]
+        logger.info(f"WebSocket connection closed for session {public_session_id}")
+        frontend_websockets.pop(public_session_id, None)
 
 @app.get("/history/{session_id}")
 async def get_history(session_id: str):
@@ -181,32 +197,32 @@ async def get_history(session_id: str):
         if data is None:
             logger.info(f"No data from redis: {data}")
             return []
-        
+
         messages = data.get("state", {}).get("in_memory", {}).get("messages", []) if isinstance(data, dict) else []
 
         flattened_history = []
         logger.info("=============================================================")
         logger.info(f"messages: {messages}")
-        
+
         for msg in messages:
             role = msg.get("role")
             contents = msg.get("contents", [])
             text = ""
-            
+
             # Extract the base text
             if contents and isinstance(contents, list):
                 for item in contents:
                     if item.get("type") == "text":
                         text = item.get("text", "")
                         break
-            
+
             # 5. Apply Role-Specific Formatting
             if text:
                 if role == "user":
                     # Split by the FIRST colon and take everything after it
                     if ":" in text:
                         text = text.split(":", 1)[1]
-                        
+
                 elif role == "assistant":
                     # Check if the text looks like a dictionary/JSON object
                     text_stripped = text.strip()
@@ -244,9 +260,8 @@ async def get_history(session_id: str):
 @app.get("/health")
 async def health_check():
     return {
-        "status": "healthy", 
-        "frontend_connections": len(frontend_websockets),
-        "agent_connection": agent_websocket is not None
+        "status": "healthy",
+        "frontend_connections": len(frontend_websockets)
     }
 
 if __name__ == "__main__":

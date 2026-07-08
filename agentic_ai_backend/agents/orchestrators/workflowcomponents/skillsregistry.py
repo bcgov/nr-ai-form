@@ -1,15 +1,15 @@
 """Skill registry backed by Microsoft Agent Framework's SkillsProvider.
 
-The dispatcher prompt lives as `skills/dispatcher/system.md` and is fetched from
-Azure Blob Storage when configured (see `promptsource.load_prompt`), falling back
-to that bundled local copy. Static substitutions (sub-agent IDs, the form-step
-intent mapper) are baked into the skill body. The resulting `Skill` is registered
-on a `SkillsProvider` that the dispatcher attaches to its agent so the LLM
-discovers and loads it via the framework's `load_skill` tool at runtime.
+The dispatcher prompt is loaded from tenant-specific Azure Blob Storage through
+request-scoped PromptSource. There is no local-file fallback in production; the
+legacy local_rel_path argument is ignored by PromptSource and kept only for API
+compatibility with older call sites.
 
-The skill is built lazily (`get_dispatcher_skill`) rather than at import time:
-this module is imported before `load_dotenv()` runs in the entry points, so the
-blob credentials are only reliably present once a prompt is first requested.
+PromptSource caches orchestrator prompt blobs in memory using the tenant config
+fingerprint, container, prompt path, and filename as the cache key. The cache TTL
+is controlled by ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS, defaults to 300 seconds,
+and can be set to 0 to disable prompt caching during active prompt development.
+Static substitutions are still applied in one place before creating the Skill.
 """
 
 import json
@@ -19,7 +19,7 @@ from string import Template
 
 from agent_framework import Skill, SkillsProvider
 
-from workflowcomponents.promptsource import load_prompt
+from workflowcomponents.promptsource import DEFAULT_PROMPT_SOURCE, PromptSource
 
 FORM_SUPPORT_AGENT_ID = "FormSupportAgentA2A"
 CONVERSATION_AGENT_ID = "ConversationAgentA2A"
@@ -33,9 +33,9 @@ def _form_step_intent_mapper_json() -> str:
         return json.dumps(json.load(mapper_file), indent=2)
 
 
-@lru_cache(maxsize=1)
-def _dispatcher_content() -> str:
-    raw = load_prompt(
+def _dispatcher_content(prompt_source: PromptSource | None = None) -> str:
+    source = prompt_source or DEFAULT_PROMPT_SOURCE
+    raw = source.load_prompt(
         blob_path_env="AGENT_DISPATCHER_PROMPTS_PATH",
         blob_filename="system.md",
         local_rel_path="dispatcher/system.md",
@@ -47,8 +47,7 @@ def _dispatcher_content() -> str:
     )
 
 
-@lru_cache(maxsize=1)
-def get_dispatcher_skill() -> Skill:
+def get_dispatcher_skill(prompt_source: PromptSource | None = None) -> Skill:
     return Skill(
         name="dispatcher-intent",
         description=(
@@ -56,10 +55,9 @@ def get_dispatcher_skill() -> Skill:
             "route the user query to FormSupportAgentA2A, ConversationAgentA2A, or both, "
             "with a 0-10 confidence score per agent."
         ),
-        content=_dispatcher_content(),
+        content=_dispatcher_content(prompt_source),
     )
 
 
-@lru_cache(maxsize=1)
-def get_skills_provider() -> SkillsProvider:
-    return SkillsProvider(skills=[get_dispatcher_skill()])
+def get_skills_provider(prompt_source: PromptSource | None = None) -> SkillsProvider:
+    return SkillsProvider(skills=[get_dispatcher_skill(prompt_source)])

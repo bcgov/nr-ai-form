@@ -1,55 +1,69 @@
-from agent_framework import Executor, WorkflowContext, handler
+﻿from agent_framework import Executor, WorkflowContext, handler
+import logging
 from typing import Any
 from typing_extensions import Never
 import json
-import os
-from functools import lru_cache
 from string import Template
 
 from openai import AsyncAzureOpenAI
 
+from clientprofiles import OrchestratorRuntimeSettings
 from models.intentmodel import IntentListModel
-from workflowcomponents.promptsource import load_prompt
+from workflowcomponents.orchestratorsettings import openai_common_settings, runtime_int_value, runtime_value
+from workflowcomponents.promptsource import DEFAULT_PROMPT_SOURCE, PromptSource
 from workflowcomponents.routing import get_primary_intent, select_subagents
 
+logger = logging.getLogger(__name__)
 
-@lru_cache(maxsize=1)
-def _aggregator_user_prompt_template() -> Template:
-    raw = load_prompt(
-        blob_path_env="AGENT_AGGREGATOR_PROMPTS_PATH",
-        blob_filename="user.md",
-        local_rel_path="aggregator/user.md",
-    )
-    return Template(raw)
-
-
-@lru_cache(maxsize=1)
-def _aggregator_system_prompt() -> str:
-    return load_prompt(
-        blob_path_env="AGENT_AGGREGATOR_PROMPTS_PATH",
-        blob_filename="system.md",
-        local_rel_path="aggregator/system.md",
-    )
 
 
 class Aggregator(Executor):
     """Collect sub-agent results and curate a single user-facing response.
 
     Two inbound message types:
-      * `IntentListModel` from the dispatcher — resets state and tells the
+      * `IntentListModel` from the dispatcher - resets state and tells the
         aggregator how many executor results to expect on this turn.
-      * `dict` from each selected sub-agent executor — buffered until the
+      * `dict` from each selected sub-agent executor - buffered until the
         expected count is reached, then merged via the LLM.
 
     Also supports a legacy `list[Any]` path (fan-in) for tests / older callers.
     """
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        prompt_source: PromptSource | None = None,
+        runtime_settings: OrchestratorRuntimeSettings | None = None,
+        active_executor_ids: list[str] | None = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(*args, **kwargs)
+        # PromptSource and OpenAI settings are request-scoped for tenant isolation.
+        self._prompt_source = prompt_source or DEFAULT_PROMPT_SOURCE
+        self._runtime_settings = runtime_settings
         self._expected_count: int = 0
         self._buffered: list[Any] = []
         self._client: AsyncAzureOpenAI | None = None
         self._client_signature: tuple | None = None
+        # Enabled executor ids for this tenant; used to reject dispatcher choices
+        # that point to agents disabled in the tenant profile.
+        self._active_executor_ids = active_executor_ids or []
+
+
+    def _aggregator_user_prompt_template(self) -> Template:
+        raw = self._prompt_source.load_prompt(
+            blob_path_env="AGENT_AGGREGATOR_PROMPTS_PATH",
+            blob_filename="user.md",
+            local_rel_path="aggregator/user.md",
+        )
+        return Template(raw)
+
+    def _aggregator_system_prompt(self) -> str:
+        return self._prompt_source.load_prompt(
+            blob_path_env="AGENT_AGGREGATOR_PROMPTS_PATH",
+            blob_filename="system.md",
+            local_rel_path="aggregator/system.md",
+        )
 
     def _get_or_create_client(
         self, api_key: str, endpoint: str, api_version: str, deployment: str
@@ -90,9 +104,19 @@ class Aggregator(Executor):
         else:
             wanted = {get_primary_intent(task).targetagent}
 
-        self._expected_count = len(wanted)
+        if self._active_executor_ids:
+            available = set(self._active_executor_ids)
+            selected = wanted & available
+            if not selected:
+                raise RuntimeError(
+                    f"Invalid routing state: selected agent(s) are not enabled for this tenant. "
+                    f"Selected agent(s): {sorted(wanted)}. Enabled agent(s): {self._active_executor_ids}."
+                )
+        else:
+            selected = wanted
+
+        self._expected_count = len(selected)
         self._buffered = []
-        print(f"Aggregator: expecting {self._expected_count} result(s) for agents {wanted}")
 
     @handler
     async def handle_result(self, result: dict[str, Any], ctx: WorkflowContext[Never, list[Any]]) -> None:
@@ -146,7 +170,7 @@ class Aggregator(Executor):
 
         # Short-circuit: only Conversation Agent returned usable content.
         # Conversation Agent already produces natural language, so there's
-        # nothing for the aggregator LLM to merge — return it directly.
+        # nothing for the aggregator LLM to merge - return it directly.
         if self._has_conversation_text(conversation_text) and not self._has_form_text(form_text):
             aggregated_result = {
                 "source": "Aggregator",
@@ -157,35 +181,31 @@ class Aggregator(Executor):
             await ctx.yield_output([aggregated_result])
             return
 
-        api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
-        aggregator_deployment = (
-            os.getenv("AZURE_OPENAI_AGGREGATOR_CHAT_DEPLOYMENT_NAME") or deployment
+        api_key, endpoint, deployment, api_version = openai_common_settings(self._runtime_settings)
+        aggregator_deployment = runtime_value(
+            self._runtime_settings,
+            "azureOpenAIAggregatorChatDeploymentName",
+            default=deployment,
         )
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION")
-
         if api_key and endpoint and aggregator_deployment and api_version:
             try:
                 client = self._get_or_create_client(
                     api_key, endpoint, api_version, aggregator_deployment
                 )
 
-                system_prompt = _aggregator_system_prompt()
+                system_prompt = self._aggregator_system_prompt()
 
-                user_prompt = _aggregator_user_prompt_template().safe_substitute(
+                user_prompt = self._aggregator_user_prompt_template().safe_substitute(
                     conversation_text=conversation_text,
                     form_text=form_text,
                     form_step=form_step,
                 )
 
-                try:
-                    max_completion_tokens = int(
-                        os.getenv("AZURE_OPENAI_AGGREGATOR_MAX_COMPLETION_TOKENS", "600")
-                    )
-                except ValueError:
-                    max_completion_tokens = 600
-
+                max_completion_tokens = runtime_int_value(
+                    self._runtime_settings,
+                    "azureOpenAIAggregatorMaxCompletionTokens",
+                    default=600,
+                )
                 request_kwargs: dict[str, Any] = {
                     "model": aggregator_deployment,
                     "messages": [
@@ -214,8 +234,10 @@ class Aggregator(Executor):
 
             except Exception as e:
                 print(f"Error in Aggregator LLM call: {e}")
+                logger.warning("Aggregator LLM call failed: %s", e)
         else:
             print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, DEPLOYMENT, or API_VERSION). Returning raw results.")
+            logger.warning("Aggregator Azure OpenAI settings are incomplete; returning raw results.")
 
         print("Aggregator: Yielding raw results.")
         await ctx.yield_output(active_results)

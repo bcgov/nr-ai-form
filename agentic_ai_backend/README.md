@@ -39,91 +39,44 @@ The system uses the **A2A (Agent to Agent) protocol** for inter-agent communicat
 
 ### High-Level Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     User / Frontend                         │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         │ Query
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Orchestrator Agent                         │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │            WorkflowBuilder                           │   │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐            │   │
-│  │  │Dispatcher│─▶│Executors │─▶│Aggregator│           │   │
-│  │  └──────────┘  └──────────┘  └──────────┘            │   │
-│  └──────────────────────────────────────────────────────┘   │
-└────────────────────┬──────────────────┬─────────────────────┘
-                     │                  │
-                     │ A2A Protocol     │ A2A Protocol
-                     │ (HTTP/JSON)      │ (HTTP/JSON)
-                     │                  │
-        ┌────────────▼─────┐   ┌───────▼──────────────┐
-        │ Conversation     │   │ Form Support         │
-        │ Agent A2A Server │   │ Agent A2A Server     │
-        │ Port: 8000       │   │ Port: 8001           │
-        │                  │   │                      │
-        │ ┌──────────────┐ │   │ ┌────────────────┐   │
-        │ │ FastAPI      │ │   │ │ FastAPI        │   │
-        │ │ /.well-known/│ │   │ │ /.well-known/  │   │
-        │ │ /invoke      │ │   │ │ /invoke        │   │
-        │ │ /health      │ │   │ │ /health        │   │
-        │ └──────────────┘ │   │ └────────────────┘   │
-        │                  │   │                      │
-        │ ┌──────────────┐ │   │ ┌────────────────┐   │
-        │ │Conversation  │ │   │ │Form Support    │   │
-        │ │Agent Logic   │ │   │ │Agent Logic     │   │
-        │ │(Azure AI     │ │   │ │(Step-aware)    │   │
-        │ │ Search)      │ │   │ └────────────────┘   │
-        │ └──────────────┘ │   │                      │
-        └──────────────────┘   └──────────────────────┘
+```mermaid
+flowchart TD
+    User[User / Frontend]
+    Orchestrator[Orchestrator Agent]
+    Workflow[WorkflowBuilder]
+    Dispatcher[Dispatcher]
+    Executors[Enabled Executors]
+    Aggregator[Aggregator]
+    ConversationServer[Conversation Agent A2A Server<br/>Port 8000]
+    FormServer[Form Support Agent A2A Server<br/>Port 8001]
+    ConversationLogic[Conversation Agent Logic<br/>Azure AI Search]
+    FormLogic[Form Support Agent Logic<br/>Step-aware]
+
+    User -->|Query| Orchestrator
+    Orchestrator --> Workflow
+    Workflow --> Dispatcher
+    Dispatcher --> Executors
+    Executors --> Aggregator
+    Executors -->|A2A HTTP/JSON| ConversationServer
+    Executors -->|A2A HTTP/JSON| FormServer
+    ConversationServer --> ConversationLogic
+    FormServer --> FormLogic
+    Aggregator --> Orchestrator
+    Orchestrator -->|Final response| User
 ```
 
 ### Architecture Layers
 
-```
-┌────────────────────────────────────────────────────────┐
-│              Orchestration Layer                       │
-│  - WorkflowBuilder                                     │
-│  - Dispatcher, Aggregator                              │
-│  - Workflow Execution                                  │
-└────────────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────┐
-│              Executor Layer                            │
-│  - ConversationAgentA2AExecutor                        │
-│  - FormSupportAgentA2AExecutor                         │
-└────────────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────┐
-│              A2A Client Layer                          │
-│  - CSS_AI_A2A_BaseClient                               │
-│  - ConversationAgentA2AClient                          │
-│  - FormSupportAgentA2AClient                           │
-└────────────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────┐
-│              Network Layer (HTTP/JSON)                 │
-└────────────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────┐
-│              A2A Server Layer                          │
-│  - FastAPI Endpoints                                   │
-│  - Request Validation (Pydantic)                       │
-└────────────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────┐
-│              Agent Layer                               │
-│  - Agent Business Logic                                │
-│  - LLM Integration (Azure OpenAI)                      │
-│  - Tool Integration (Azure AI Search)                  │
-└────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Orchestration[Orchestration Layer<br/>WorkflowBuilder<br/>Dispatcher and Aggregator<br/>Workflow Execution]
+    Executor[Executor Layer<br/>ConversationAgentA2AExecutor<br/>FormSupportAgentA2AExecutor]
+    Client[A2A Client Layer<br/>CSS_AI_A2A_BaseClient<br/>ConversationAgentA2AClient<br/>FormSupportAgentA2AClient]
+    Network[Network Layer<br/>HTTP/JSON]
+    Server[A2A Server Layer<br/>FastAPI Endpoints<br/>Pydantic Request Validation]
+    Agent[Agent Layer<br/>Agent Business Logic<br/>Azure OpenAI<br/>Azure AI Search]
+
+    Orchestration --> Executor --> Client --> Network --> Server --> Agent
 ```
 
 ---
@@ -147,15 +100,15 @@ The system uses the **A2A (Agent to Agent) protocol** for inter-agent communicat
 - Stateless operation (can be made stateful with session management)
 
 **Directory Structure**:
-```
+```text
 conversationagent/
-├── conversationagent.py          # Core agent implementation
-├── conversation_agent_a2a_server.py  # A2A HTTP wrapper
-├── agentmanifest/
-│   └── manifest.json             # A2A capability manifest
-├── models/
-│   └── conversationmodel.py      # Request/Response models
-└── .env                          # Configuration
+|-- conversationagent.py              # Core agent implementation
+|-- conversation_agent_a2a_server.py  # A2A HTTP wrapper
+|-- agentmanifest/
+|   `-- manifest.json                 # A2A capability manifest
+|-- models/
+|   `-- conversationmodel.py          # Request/Response models
+`-- .env                              # Configuration
 ```
 
 **A2A Endpoints**:
@@ -183,19 +136,19 @@ conversationagent/
 - **Caching**: Agent instances cached per step for performance
 
 **Directory Structure**:
-```
+```text
 formsupportagent/
-├── formsupportagent.py           # Core agent implementation
-├── formsupport_agent_a2a_server.py  # A2A HTTP wrapper
-├── agentmanifest/
-│   └── manifest.json             # A2A capability manifest
-├── models/
-│   └── formsupportmodel.py       # Request/Response models
-├── formdefinitions/
-│   ├── step2.json                # Step 2 form definition
-│   ├── step3.json                # Step 3 form definition (if exists)
-│   └── ...
-└── .env                          # Configuration
+|-- formsupportagent.py               # Core agent implementation
+|-- formsupport_agent_a2a_server.py   # A2A HTTP wrapper
+|-- agentmanifest/
+|   `-- manifest.json                 # A2A capability manifest
+|-- models/
+|   `-- formsupportmodel.py           # Request/Response models
+|-- formdefinitions/
+|   |-- step2.json                    # Step 2 form definition
+|   |-- step3.json                    # Step 3 form definition, if present
+|   `-- ...
+`-- .env                              # Configuration
 ```
 
 **Step Number Support**:
@@ -232,33 +185,38 @@ formsupportagent/
 4. **Error Handling**: Manage agent failures gracefully
 
 **Workflow Pattern**:
-```
-User Query
-    │
-    ▼
-[Dispatcher] ────┬───▶ [ConversationAgentA2AExecutor]
-                 │
-                 └───▶ [FormSupportAgentA2AExecutor]
-                           │
-                           ▼
-                      [Aggregator] ───▶ Aggregated Results
+```mermaid
+flowchart TD
+    UserQuery[User Query]
+    Dispatcher[Dispatcher]
+    Conversation[ConversationAgentA2AExecutor]
+    FormSupport[FormSupportAgentA2AExecutor]
+    Aggregator[Aggregator]
+    Result[Aggregated Results]
+
+    UserQuery --> Dispatcher
+    Dispatcher --> Conversation
+    Dispatcher --> FormSupport
+    Conversation --> Aggregator
+    FormSupport --> Aggregator
+    Aggregator --> Result
 ```
 
 **Directory Structure**:
-```
+```text
 orchestrators/
-├── orchestratoragent.py          # Main orchestrator
-├── a2aclients/
-│   ├── a2a_client.py             # Base A2A client
-│   ├── conversationagentclient.py
-│   └── formsupportagentclient.py
-├── workflowcomponents/
-│   ├── dispatcher.py             # Query dispatcher
-│   ├── aggregator.py             # Response aggregator
-│   ├── conversationagentexecutor.py
-│   └── formsupportagentexecutor.py
-├── .env                          # Configuration
-└── README.md                     # This file
+|-- orchestratoragent.py              # Main orchestrator
+|-- a2aclients/
+|   |-- a2a_client.py                 # Base A2A client
+|   |-- conversationagentclient.py
+|   `-- formsupportagentclient.py
+|-- workflowcomponents/
+|   |-- dispatcher.py                 # Query dispatcher
+|   |-- aggregator.py                 # Response aggregator
+|   |-- conversationagentexecutor.py
+|   `-- formsupportagentexecutor.py
+|-- .env                              # Configuration
+`-- README.md                         # This file
 ```
 
 ---
@@ -297,11 +255,80 @@ Response: {
 
 # 2. Invocation Endpoint
 POST /invoke
-Request: {
+
+Production callers should invoke the orchestrator (`/tenants/{client_id}/invoke` or WebSocket) so tenant settings are resolved from Cosmos DB. Direct sub-agent `/invoke` calls are for local testing or service-to-service diagnostics and must include `client_settings`.
+
+`configFingerprint` is normally generated by the orchestrator from the Cosmos tenant profile. For direct local testing, use any stable non-secret value such as `"local-test"`. Reusing the same value lets caches work normally; changing it forces fresh prompt/client cache entries.
+
+Conversation Agent request shape:
+{
     "query": "What is BCeID?",
     "session_id": "abc123",
-    "step_number": 2  # Optional, for Form Support Agent
+    "client_settings": {
+        "clientId": "11111111-1111-4111-8111-111111111111",
+        "configFingerprint": "<tenant-config-fingerprint>",
+        "agentType": "conversationAgent",
+        "enabled": true,
+        "blobConnectionString": "<storage-connection-string-or-secret-reference>",
+        "containerName": "assets",
+        "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
+        "config": {
+            "conversationAgentMode": "llm",
+            "azureSearchEndpoint": "<azure-ai-search-endpoint>",
+            "azureSearchApiKey": "<azure-ai-search-api-key>",
+            "azureSearchIndexName": "<azure-ai-search-index-name>",
+            "azureSearchKnowledgeAgentName": "<knowledge-agent-name>",
+            "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
+            "azureSearchKnowledgeAgentRequestMode": "messages",
+            "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
+            "azureSearchKnowledgeAgentReasoningEffort": "low",
+            "azureSearchKnowledgeAgentMaxOutputSize": 6000,
+            "azureSearchKnowledgeAgentMaxRuntimeSeconds": 30,
+            "azureSearchKnowledgeAgentMaxHistoryMessages": 10,
+            "azureSearchTop": 5,
+            "azureSearchTrimLength": 500,
+            "azureSearchEnableTrimming": true,
+            "azureSearchIncludeTotalCount": true,
+            "azureSearchQueryType": "semantic",
+            "azureSearchSemanticConfiguration": "semanticconfig",
+            "azureSearchQueryCaption": "extractive",
+            "azureSearchQueryAnswer": "extractive",
+            "azureSearchQueryAnswerCount": 3,
+            "azureSearchQueryLanguage": "en-US",
+            "agentMaxTokens": 2500,
+            "agentTemperature": 0.1,
+            "azureOpenaiEndpoint": "<azure-openai-endpoint>",
+            "azureOpenaiApiKey": "<azure-openai-api-key>",
+            "azureOpenaiChatDeploymentName": "gpt-5.1",
+            "azureOpenaiApiVersion": "2024-10-21"
+        }
+    }
 }
+
+Form Support Agent request shape:
+{
+    "query": "I am a First Nation farmer, I would like to apply for a water licence",
+    "session_id": "abc123",
+    "step_number": "step2-Eligibility",
+    "client_settings": {
+        "clientId": "11111111-1111-4111-8111-111111111111",
+        "configFingerprint": "<tenant-config-fingerprint>",
+        "agentType": "formSupportAgent",
+        "enabled": true,
+        "blobConnectionString": "<storage-connection-string-or-secret-reference>",
+        "containerName": "assets",
+        "promptPath": "tenants/water/agentprompts/formsupportagent/instructions.md",
+        "config": {
+            "formDefinitionContainer": "tenants/water/formdefinitions",
+            "stepBasedPromptContainer": "tenants/water/prompttemplates",
+            "azureOpenaiEndpoint": "<azure-openai-endpoint>",
+            "azureOpenaiApiKey": "<azure-openai-api-key>",
+            "azureOpenaiChatDeploymentName": "gpt-5.1",
+            "azureOpenaiApiVersion": "2024-10-21"
+        }
+    }
+}
+
 Response: {
     "response": "BCeID is...",
     "session_id": "abc123"
@@ -334,27 +361,27 @@ class CSS_AI_A2A_BaseClient:
 
 #### Before A2A (Direct Imports)
 ```python
-# ❌ Tight coupling
+# X Tight coupling
 from formsupportagent.formsupportagent import FormSupportAgent
 from conversationagent.conversationagent import ConversationAgent
 
-# ❌ Path manipulation required
+# X Path manipulation required
 sys.path.append(agents_dir)
 
-# ❌ All in one process
-# ❌ Can't scale independently
-# ❌ Hard to update separately
+# X All in one process
+# X Can't scale independently
+# X Hard to update separately
 ```
 
 #### After A2A (HTTP Communication)
 ```python
-# ✅ Loose coupling
+# OK Loose coupling
 from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExecutor
 
-# ✅ No path manipulation
-# ✅ Independent processes
-# ✅ Scale each agent separately
-# ✅ Update agents independently
+# OK No path manipulation
+# OK Independent processes
+# OK Scale each agent separately
+# OK Update agents independently
 ```
 
 #### Key Advantages
@@ -386,7 +413,7 @@ class Dispatcher(Executor):
         await ctx.send_message(userquery)
 ```
 
-**Pattern**: Fan-out (1 → N)
+**Pattern**: Fan-out (1 -> N)
 
 ### Executors
 
@@ -435,32 +462,23 @@ class Aggregator(Executor):
         await ctx.yield_output(results)
 ```
 
-**Pattern**: Fan-in (N → 1)
+**Pattern**: Fan-in (N -> 1)
 
 ### Workflow Graph
 
-```
-                    ┌──────────────┐
-                    │  Dispatcher  │
-                    └──────┬───────┘
-                           │ Fan-Out
-         ┌─────────────────┼─────────────────┐
-         │                 │                 │
-         ▼                 ▼                 ▼
-┌────────────────┐  ┌────────────────┐  ...
-│ Executor 1     │  │ Executor 2     │
-│ (Conversation) │  │ (Form Support) │
-└───────┬────────┘  └───────┬────────┘
-        │                   │
-        └─────────┬─────────┘
-                  │ Fan-In
-                  ▼
-         ┌────────────────┐
-         │   Aggregator   │
-         └────────────────┘
-                  │
-                  ▼
-             Final Output
+```mermaid
+flowchart TD
+    Dispatcher[Dispatcher]
+    Conversation[Executor 1<br/>Conversation]
+    FormSupport[Executor 2<br/>Form Support]
+    Aggregator[Aggregator]
+    Final[Final Output]
+
+    Dispatcher -->|Fan-out| Conversation
+    Dispatcher -->|Fan-out| FormSupport
+    Conversation -->|Fan-in| Aggregator
+    FormSupport -->|Fan-in| Aggregator
+    Aggregator --> Final
 ```
 
 ---
@@ -520,4 +538,4 @@ See complete documentation regarding Usage, Deployment and more in the project d
 
 ---
 
-© 2025 BC Government. All rights reserved.
+Copyright 2025 BC Government. All rights reserved.

@@ -1,12 +1,16 @@
 
 import json
+import logging
 from typing import Any, Optional, Union
 
 from agent_framework import Executor, WorkflowContext, handler
 
 from a2aclients.formsupportagentclient import FormSupportAgentA2AClient
+from clientprofiles import FormSupportAgentSettings
 from models.intentmodel import IntentListModel, IntentModel
 from workflowcomponents.routing import get_intent_for_agent, get_primary_intent
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_json_response(response: Any) -> Any:
@@ -26,23 +30,27 @@ class FormSupportAgentA2AExecutor(Executor):
     Executor that communicates with Form Support Agent via A2A protocol.
     Supports dynamic form step selection.
     """
-    
+
     def __init__(
-        self, 
+        self,
         base_url: str = "http://localhost:8001",
         step_number: Optional[Union[int, str]] = "step2-Eligibility",
         id: str = "FormSupportAgentA2A",
         name: str = "Form Support Agent (A2A)",
         instructions: str = "Handles form support queries using A2A protocol",
         session_id: str = None,
-        client_profile: dict = None
+        *,
+        client_settings: FormSupportAgentSettings,
+        # Timeout in seconds for the HTTP A2A call to the Form Support Agent.
+        timeout: int = 30
     ):
         super().__init__(id=id, name=name, instructions=instructions)
-        self.client = FormSupportAgentA2AClient(base_url=base_url)
+        self.client = FormSupportAgentA2AClient(base_url=base_url, timeout=timeout)
         self.step_number = step_number
         self.session_id = session_id
-        self.client_profile = client_profile
-        
+        # A2A requests are JSON payloads, so convert the typed settings at the boundary.
+        self.client_settings = client_settings.model_dump(exclude_none=True)
+
     @handler
     async def handle(
         self,
@@ -51,7 +59,7 @@ class FormSupportAgentA2AExecutor(Executor):
     ):
         """
         Handle incoming query by forwarding to Form Support Agent via A2A.
-        
+
         Args:
             task: Dispatcher output
             ctx: Workflow context for sending messages
@@ -76,9 +84,9 @@ class FormSupportAgentA2AExecutor(Executor):
                 intent.query,
                 session_id=self.session_id,
                 step_number=self.step_number,
-                client_profile=self.client_profile,
+                client_settings=self.client_settings,
             )
-            
+
             # The form support agent emits raw JSON per its prompt template; parse it
             # so downstream consumers (aggregator + final orchestrator output) get a
             # nested object instead of a string with escaped quotes.
@@ -89,10 +97,11 @@ class FormSupportAgentA2AExecutor(Executor):
                 "confidence": intent.confidence,
             }
             await ctx.send_message(response_with_source)
-            
+
         except Exception as e:
             error_msg = f"Error communicating with Form Support Agent (step {self.step_number}): {str(e)}"
             print(error_msg)
+            logger.exception('Form Support Agent A2A call failed')
             error_with_source = {
                 "source": self.id,
                 "response": error_msg,

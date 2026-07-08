@@ -1,18 +1,8 @@
 
 
-AZURE_OPENAI_ENDPOINT=""
-AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=""
-AZURE_OPENAI_API_VERSION=""
-AZURE_OPENAI_API_KEY=""
-
-AZURE_OPENAI_AGGREGATOR_CHAT_DEPLOYMENT_NAME="gpt-5-mini"
-AZURE_OPENAI_AGGREGATOR_MAX_COMPLETION_TOKENS=600
-
-
 CONVERSATION_AGENT_A2A_URL="http://localhost:8000"
 FORM_SUPPORT_AGENT_A2A_URL="http://localhost:8001"
-FORM_STEP_NUMBER=2 
-A2A_CLIENT_TIMEOUT_SECONDS=120
+
 
 
 
@@ -29,10 +19,24 @@ CORS_ALLOW_ORIGINS=""
 APPLICATIONINSIGHTS_CONNECTION_STRING=""
 
 
-AGENTPROMPTS_BLOBSTORAGE_CONNECTIONSTRING=""
-AGENTPROMPTS_CONTAINER_NAME="assets"
-AGENT_DISPATCHER_PROMPTS_PATH="tenants/water/agentprompts/dispatcher"
-AGENT_AGGREGATOR_PROMPTS_PATH="tenants/water/agentprompts/aggregrator"
+
+# ─── Cache TTL (Time To Live) Settings ───────────────────────────────────────
+# All values are in seconds. The cache is time-based — it has no awareness of
+# blob or Cosmos changes. Updates to prompts or tenant profiles will not take
+# effect until the relevant TTL expires.
+# Set any value to 0 to disable that cache layer entirely (useful during active
+# prompt development so changes take effect immediately on the next request).
+
+# Orchestrator: how long tenant profiles loaded from Cosmos DB are kept in memory.
+# Fresh tier — served from memory, no Cosmos read. Default: 300 (5 min)
+TENANT_PROFILE_FRESH_TTL_SECONDS=300
+# Stale tier — used if Cosmos is temporarily unavailable (outage/timeout). Default: 86400 (24 h)
+TENANT_PROFILE_STALE_TTL_SECONDS=86400
+# Max time to wait for a Cosmos read before falling back to stale cache. Default: 0.5
+TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS=0.5
+
+# Orchestrator: how long dispatcher/aggregator prompts loaded from blob are cached. Default: 300
+ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS=300
 
 
 # ─── Cosmos DB Client Profiles ────────────────────────────────────────────────

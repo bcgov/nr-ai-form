@@ -1,4 +1,4 @@
-services:
+﻿services:
   conversation-agent:
     build:
       context: .
@@ -18,7 +18,7 @@ services:
     env_file:
       - ./agents/formsupportagent/.env
     restart: unless-stopped
-  
+
   api-backend:
     build:
       context: .
@@ -29,12 +29,18 @@ services:
       - ./api_backend/.env
     environment:
       - ORCHESTRATOR_AGENT_A2A_URL=http://orchestrator-agent:8002
-      - ORCHESTRATOR_AGENT_WS_URL=ws://orchestrator-agent:8002/ws
+      - ORCHESTRATOR_AGENT_WS_BASE_URL=ws://orchestrator-agent:8002
+      - CSSAI_EXECUTION_ENV=localhost
       - REDIS_HOST=redis
+      - AZURE_COSMOS_DB_ENDPOINT=${AZURE_COSMOS_DB_ENDPOINT}
+      - AZURE_COSMOS_DB_KEY=${AZURE_COSMOS_DB_KEY}
+      - AZURE_COSMOS_DB_DATABASE_NAME=${AZURE_COSMOS_DB_DATABASE_NAME}
     restart: unless-stopped
     depends_on:
-      - orchestrator-agent
-      - redis
+      orchestrator-agent:
+        condition: service_started
+      redis:
+        condition: service_started
 
   orchestrator-agent:
     build:
@@ -48,13 +54,21 @@ services:
       - CONVERSATION_AGENT_A2A_URL=http://conversation-agent:8000
       - FORM_SUPPORT_AGENT_A2A_URL=http://formsupport-agent:8001
       - REDIS_HOST=redis
-      - AZURE_COSMOS_DB_ENDPOINT=https://azure-cosmos-emulator:8081
+      - AZURE_COSMOS_DB_ENDPOINT=${AZURE_COSMOS_DB_ENDPOINT}
+      - AZURE_COSMOS_DB_KEY=${AZURE_COSMOS_DB_KEY}
+      - AZURE_COSMOS_DB_DATABASE_NAME=${AZURE_COSMOS_DB_DATABASE_NAME}
       - CSSAI_EXECUTION_ENV=localhost
     depends_on:
-      - conversation-agent
-      - formsupport-agent
-      - redis
-      - azure-cosmos-emulator
+      conversation-agent:
+        condition: service_started
+      formsupport-agent:
+        condition: service_started
+      redis:
+        condition: service_started
+      azure-cosmos-emulator:
+        condition: service_started
+      cosmos-seed:
+        condition: service_completed_successfully
 
   redis:
     image: redis:7.4 #use this same version on Azure Redis instance as well. PR review comment.
@@ -87,7 +101,8 @@ services:
       - COSMOS_EMULATOR_ENDPOINT=https://azure-cosmos-emulator:8081
       - SEED_FILE_PATH=/app/client_profiles.json
     depends_on:
-      - azure-cosmos-emulator
+      azure-cosmos-emulator:
+        condition: service_started
     restart: "no"
 
 volumes:
