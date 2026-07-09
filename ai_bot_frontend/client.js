@@ -11,80 +11,61 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
-// /**
-//  * Allow testing of alternative javascript 
-//  * if the browser's local storage has an item 'clientInstance': 'ms'
-//  * javascript in remote file (see `url`) will be loaded instead  
-//  */
-// let clientInstance = localStorage.getItem('clientInstance');
-// if (clientInstance === 'ms') {
-//     var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot') {
-//     var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot-ks') {
-//     var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot-aj') {
-//     var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'css') {
-//     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
+/**
+ * Allow testing of alternative javascript 
+ * if the browser's local storage has an item 'clientInstance': 'ms'
+ * javascript in remote file (see `url`) will be loaded instead  
+ */
+let clientInstance = localStorage.getItem('clientInstance');
+if (clientInstance === 'ms') {
+    var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot') {
+    var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-ks') {
+    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-aj') {
+    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'css') {
+    var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
 
-// else {
+else {
 
-//     (function () {
+    (function () {
 
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
-const CLIENT_ID_DICT = {
-    "water_license_app": "11111111-1111-4111-8111-111111111111"
-}
-
-//-------------------------- Services Starts ---------------------------//
-// TEST URL
-// const ORCHESTRATOR_API_URL = `https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
-
-// DEV URL
-// const ORCHESTRATOR_API_URL = `https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
-const ORCHESTRATOR_API_URL = `http://localhost:8002`;
-// Guided questions live on the same backend host as the chat/orchestrator API.
-
-// TODO: add the correct url for the guided questions API
-const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
-
-const clientId = CLIENT_ID_DICT["water_license_app"];
-
-if (!clientId) {
-  throw new Error("Missing client ID");
-}
-
-const INVOKE_URL = new URL(
-  `/tenants/${clientId}/invoke`,
-  ORCHESTRATOR_API_URL
-).toString();
+const clientId = '11111111-1111-4111-8111-111111111111';
+// TEST: const ORCHESTRATOR_API_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
+// DEV : const ORCHESTRATOR_API_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
+const ORCHESTRATOR_API_URL = 'http://localhost:8002';
+const INVOKE_URL = new URL(`/tenants/${clientId}/invoke`, ORCHESTRATOR_API_URL).toString();
+// const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
+const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, ORCHESTRATOR_API_URL).toString();
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
