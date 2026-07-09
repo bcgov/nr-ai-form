@@ -84,7 +84,53 @@ let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: right" nowrap=""><span id="Delete_1_100536361_100379172_173010900_sp" name="Delete_1_100536361_100379172_173010900_sp" class="possegrid" style="text-align: right"><img src="images/btndel.gif?v=5797" width="23" height="20" id="Delete_1_100536361_100379172_173010900" name="Delete_1_100536361_100379172_173010900" class="possegrid" onclick="if (confirm('Are you sure you want to delete this?')) {PosseDelete('https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Default.aspx?PossePresentation=Public&amp;PosseObjectId=173010563','173010900'); PosseSubmit();}" tabindex="3" title="Delete this line" alt="Delete" onmouseover="this.style.cursor='pointer'" onkeypress="if(event.keyCode=='13'){this.click();}"></span></td>
                             </tr>`
 
+const CONVERSATION_HISTORY_API_URL = "http://localhost:8003/history";
+const WEBSOCKET_BASE_URL = "ws://localhost:8003/ws";
+let socket = null;
 
+async function getConversationHistory() {
+    try {
+        const threadId = localStorage.getItem('nrAiForm_threadId');
+        const response = await fetch(`${CONVERSATION_HISTORY_API_URL}/${threadId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Unable to load conversation history: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error loading conversation history", error);
+        throw error;
+    }
+}
+
+function invokeAPIWithWS(query, step_number, session_id = null) {
+    // Create JSON body for API request
+    const body = {
+        query,
+        step_number,
+        session_id
+    };
+
+    // make api call over WebSocket if connected
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        console.error("WebSocket not connected, cannot connect with AI services");
+        throw new Error("WebSocket not connected, cannot connect with AI services");
+    }
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(body));
+    } else {
+        console.warn('WebSocket not connected, cannot connect with AI services');
+        throw new Error("WebSocket not connected, cannot connect with AI services");
+    }
+}
 
 async function invokeOrchestrator(query, step_number, session_id = null) {
     const payload = {
@@ -122,24 +168,34 @@ const FormSteps = {
     step0bot: "step0-Bot",
     STEP10_COMPLETE: "step10-Complete",
     step2eligibility: "step2-Eligibility",
+    STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION: "step3-Technical-Information-Project-Information",
     STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
     STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
     STEP3_DAM_RESERVOIR_CONTACT_ADDRESS: "step3-Dam-Reservoir-Contact-Address",
     STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL: "step3-Dam-Reservoir-Add-Individual",
     STEP3_DAM_RESERVOIR_ADD_ORGANIZATION: "step3-Dam-Reservoir-Add-Organization",
     STEP3_TECHNICAL_INFORMATION_ADD_WELL: "step3-Technical-Information-Add-Well",
-    STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR: "step3-Technical-Information-Dam-Reservoir",
-    STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST: "step3-Technical-Information-Fee-Exemption-Request",
-    STEP3_TECHNICAL_INFORMATION_JOINT_WORKS: "step3-Technical-Information-Joint-Works",
-    STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION: "step3-Technical-Information-Land-Tenure-Option",
-    STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS: "step3-Technical-Information-Other-Authorizations",
-    STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION: "step3-Technical-Information-Source-of-Water-for-Application",
-    STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION: "step3-Technical-Information-Water-Diversion",
+    STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR:
+        "step3-Technical-Information-Dam-Reservoir",
+    STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST:
+        "step3-Technical-Information-Fee-Exemption-Request",
+    STEP3_TECHNICAL_INFORMATION_JOINT_WORKS:
+        "step3-Technical-Information-Joint-Works",
+    STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION:
+        "step3-Technical-Information-Land-Tenure-Option",
+    STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS:
+        "step3-Technical-Information-Other-Authorizations",
+    STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION:
+        "step3-Technical-Information-Source-of-Water-for-Application",
+    STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION:
+        "step3-Technical-Information-Water-Diversion",
     STEP3_TECHNICAL_INFORMATION_WORKS: "step3-Technical-Information-Works",
     STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
-    STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD: "step4-Location-Map-Files-Multi-File-Upload",
+    STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD:
+        "step4-Location-Map-Files-Multi-File-Upload",
     STEP4_LOCATION_OTHER_AFFECTED_LANDS: "step4-Location-Other-Affected-Lands",
-    STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD: "step4-Location-Spatial-Files-Multi-File-Upload",
+    STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD:
+        "step4-Location-Spatial-Files-Multi-File-Upload",
     STEP4_LOCATION: "step4-Location",
     STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
     STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
@@ -150,8 +206,8 @@ const FormSteps = {
     STEP7_INDIVIDUAL: "step7-Individual",
     STEP7_REFERRALS: "step7-Referral",
     STEP9_DECLARATIONS: "step9-Declarations",
-    STEP7_CONTACT_INFORMATION: "step7-Contact-Information",
-    STEP8_REVIEW: "step8-Review"
+    STEP7_APPLICANT_INFORMATION: "step7-Contact-Information",
+    STEP8_REVIEW: "step8-Review",
 };
 //-------------------------- Steppers Ends ---------------------------//
 
@@ -308,20 +364,29 @@ function getStep3SubstepFromPaneHeader() {
     if (!paneHeaderText) return null;
 
     const step3PaneHeaderMap = {
-        governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
-        works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
-        jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
-        damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-        landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
-        otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
-        // Add Well Popup
-        well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
-        // Add Surface Water Source Popup
-        surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-        
-        // On the main form window; Not to be confused with the popup.
-        sourceofwaterforapplication: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+      governmentandfirstnationfeeexemptionrequest:
+        FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+      waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+      works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+      jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+      damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+      landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+      otherauthorizations:
+        FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+      // Add Well Popup
+      well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+      // Add Surface Water Source Popup
+      surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+      projectinformation:
+        FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
+      // On the main form window; Not to be confused with the popup.
+      sourceofwaterforapplication:
+        FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+      // Step 3 Dam Reservoir Individual Contact
+      wslicdamresindivcontact: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+      // Address - Reused across multiple steps
+      address: FormSteps.STEP3_DAM_RESERVOIR_CONTACT_ADDRESS,
+      wslicdamresbuscontact: FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
     };
 
     return step3PaneHeaderMap[paneHeaderText] || null;
@@ -349,27 +414,32 @@ function getCurrentFormStepFromPaneHeaders() {
         eligibility: FormSteps.step2eligibility,
         governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
         waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        projectinformation: FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
         addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
         step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
         step3soureofwater: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
-        step3addsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+        surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
         step3jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
         step3damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-        step3damreservoircontactindividual: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
-        step3damreservoircontactindividualmailingaddress: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS,
-        step3damreservoircontactorganization: FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
-        step3addwell: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+        // Step 3 Dam Reservoir Individual Contact
+        wslicdamresindivcontact: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+        // Address - Reused across multiple steps
+        address: FormSteps.STEP3_DAM_RESERVOIR_CONTACT_ADDRESS,
+        wslicdamresbuscontact: FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
+        well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
         step3landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
         step3otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
         step4location: FormSteps.STEP4_LOCATION,
-        step4locationlanddetails: FormSteps.STEP4_LOCATION_LAND_DETAILS,
-        step4locationotheraffectedlands: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
+        // Step 4 Location - Applicant's land details
+        vfapplandinfofromapp: FormSteps.STEP4_LOCATION_LAND_DETAILS,
+        // Step 4 Location - Other affected land details
+        vflandinfo: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
         step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
         step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
-        step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION,
+        applicantinformation: FormSteps.STEP7_APPLICANT_INFORMATION,
         step8review: FormSteps.STEP8_REVIEW,
-        step7referrals: FormSteps.STEP7_REFERRALS,
-        step9declarations: FormSteps.STEP9_DECLARATIONS
+        referralinformation: FormSteps.STEP7_REFERRALS,
+        step9declarations: FormSteps.STEP9_DECLARATIONS,
     };
     return paneHeaderStepMap[paneHeaderText] || null;
 }
@@ -1228,6 +1298,75 @@ function initBot() {
         });
     }
 
+    initWebSocket(sessionId);
+
+    function initWebSocket(sessionId) {
+        console.log("[WebSocket] Connecting to " + WEBSOCKET_BASE_URL + " with session ID:", sessionId);
+        const wsUrl = sessionId ? `${WEBSOCKET_BASE_URL}?session_id=${encodeURIComponent(sessionId)}` : WEBSOCKET_BASE_URL;
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function (e) {
+            console.log("[WebSocket] Connection established for session:", sessionId);
+        };
+
+        socket.onmessage = function (event) {
+            console.log(`[WebSocket] Data received:`, event.data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log('ws response: ', data);
+
+                if (data.event === "session_init") {
+                    console.log("[WebSocket] Backend assigned new session ID:", data.session_id);
+                    sessionId = data.session_id; // Update the local variable
+                    localStorage.setItem("nrAiForm_threadId", sessionId); // Persist to browser
+                    return; // Exit early so we don't treat this system message as a chat message
+                } else {
+                    processAssistantResponse(data);
+                }
+            } catch (err) {
+                console.error("Error parsing WebSocket message:", err);
+            }
+        };
+
+        socket.onclose = function (event) {
+            console.log("[WebSocket] Connection closed");
+        };
+
+        socket.onerror = function (error) {
+            console.error("[WebSocket] Error occurred");
+        };
+    }
+
+    function processAssistantResponse(response) {
+        applyFormSupportSuggestionsFromResponse(response);
+        const serverThreadId = extractThreadIdFromResponse(response);
+        if (serverThreadId && serverThreadId !== sessionId) {
+            migrateChatHistory(sessionId, serverThreadId);
+            migrateChatScrollPosition(sessionId, serverThreadId);
+            sessionId = serverThreadId;
+            restoredScrollTop = loadChatScrollPosition(sessionId);
+        }
+        saveThreadId(sessionId);
+        showTyping(false);
+
+        // Convert the backend/orchestrator response into the assistant message array that
+        // will be rendered in the chat, then use that same array to determine whether a
+        // clicked guided question was actually answered.
+        const messages = extractAssistantMessages(response);
+        const hasAssistantReply = hasUsableAssistantReply(messages);
+        if (pendingGuidedQuestion && hasAssistantReply) {
+            // A prompt only becomes permanent once the assistant actually answered it.
+            pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
+        }
+        if (pendingGuidedQuestion && !hasAssistantReply) {
+            // If the request completed but did not return a usable answer, treat the prompt
+            // as unanswered and show it again for the current step.
+            restorePendingGuidedQuestion();
+        }
+        // Finally render the assistant reply messages into the chat window.
+        messages.forEach((msg) => appendMessage('assistant', msg));
+    }
+
     function restoreChatScrollPosition() {
         chatMessages.scrollTop = restoredScrollTop;
     }
@@ -1380,34 +1519,13 @@ function initBot() {
                 text = `Human verification form query : ${text}`;
             }
 
-            const response = await invokeOrchestrator(text, currentStep, sessionId);
-            applyFormSupportSuggestionsFromResponse(response);
-            const serverThreadId = extractThreadIdFromResponse(response);
-            if (serverThreadId && serverThreadId !== sessionId) {
-                migrateChatHistory(sessionId, serverThreadId);
-                migrateChatScrollPosition(sessionId, serverThreadId);
-                sessionId = serverThreadId;
-                restoredScrollTop = loadChatScrollPosition(sessionId);
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                // Socket isn't open, directly invoke orchestrator.
+                const response = await invokeOrchestratorAPI(text, currentStep, sessionId);
+                processAssistantResponse(response);
+            } else {
+                invokeAPIWithWS(text, currentStep, sessionId);
             }
-            saveThreadId(sessionId);
-            showTyping(false);
-
-            // Convert the backend/orchestrator response into the assistant message array that
-            // will be rendered in the chat, then use that same array to determine whether a
-            // clicked guided question was actually answered.
-            const messages = extractAssistantMessages(response);
-            const hasAssistantReply = hasUsableAssistantReply(messages);
-            if (pendingGuidedQuestion && hasAssistantReply) {
-                // A prompt only becomes permanent once the assistant actually answered it.
-                pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
-            }
-            if (pendingGuidedQuestion && !hasAssistantReply) {
-                // If the request completed but did not return a usable answer, treat the prompt
-                // as unanswered and show it again for the current step.
-                restorePendingGuidedQuestion();
-            }
-            // Finally render the assistant reply messages into the chat window.
-            messages.forEach((msg) => appendMessage('assistant', msg));
 
         } catch (error) {
             // Request-level failure:

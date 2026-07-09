@@ -20,16 +20,16 @@
             "title": "Contact Address",
             "required": true
         },
-        "ReferralContactPhone": {
+        "PhoneNumber": {
             "type": "string",
-            "id": "ReferralContactPhone",
+            "id": "PhoneNumber",
             "title": "Contact Phone",
             "required": false,
             "format": "phone",
             "parts": [
-                "ReferralContactPhone_100377297_185549445_1",
-                "ReferralContactPhone_100377297_185549445_2",
-                "ReferralContactPhone_100377297_185549445_3"
+                "ReferralContactPhone_100377297_198444264_1",
+                "ReferralContactPhone_100377297_198444264_2",
+                "ReferralContactPhone_100377297_198444264_3"
             ]
         },
         "ReferralContactEmail": {

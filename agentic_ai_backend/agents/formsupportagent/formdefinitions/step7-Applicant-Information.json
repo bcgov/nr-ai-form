@@ -57,7 +57,7 @@
             "title": "Applicant Middle Name",
             "description": "The legal middle name of the individual applicant, if applicable."
         },
-        "APPL_PhoneNumber_1": {
+    "APPL_PhoneNumber_1": {
             "type": "text",
             "id": "APPL_PhoneNumber_1",
             "title": "Applicant Phone Number (Area Code)",
