@@ -7,7 +7,7 @@
       "http://localhost*"
     ],
     "tenantResources": {
-      "blobConnectionString": "",
+      "blobConnectionString": "<blob-connection-string>",
       "containerName": "assets",
       "prompts": {
         "dispatcher": "tenants/water/agentprompts/dispatcher",
@@ -30,12 +30,12 @@
         "enabled": true,
         "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
         "config": {
-          "azureSearchKnowledgeAgentName": "",
-          "azureSearchApiKey": "",
+          "azureSearchKnowledgeAgentName": "<azure-search-knowledge-agent-name>",
+          "azureSearchApiKey": "<azure-search-api-key>",
           "agentMaxTokens": 2500,
           "agentTemperature": 0.1,
           "azureSearchIndexName": "rag-bc-fish",
-          "azureSearchEndpoint": "",
+          "azureSearchEndpoint": "<azure-search-endpoint>",
           "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
           "azureSearchKnowledgeAgentRequestMode": "messages",
           "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
