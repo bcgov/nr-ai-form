@@ -485,6 +485,28 @@ flowchart TD
 
 ## Configuration
 
+### Prerequisites
+
+Before running docker-compose, you must set up the environment configuration file:
+
+1. Copy the sample environment file:
+   ```bash
+   cp .sampleenv .env
+   ```
+
+2. Update the values in `.env` with your actual configuration. The sample file contains default values for the local Cosmos DB emulator:
+   - `AZURE_COSMOS_DB_ENDPOINT` - Cosmos DB endpoint (uses emulator by default)
+   - `AZURE_COSMOS_DB_KEY` - Cosmos DB key (use emulator key for local development)
+   - `AZURE_COSMOS_DB_DATABASE_NAME` - Database name
+
+3. **Optional - Client Profile Seeding**: If you plan to use client profile seeding via docker-compose, update the client profile JSON file with your actual values before running docker:
+   ```bash
+   # Edit this file with your actual Azure resource values
+   clientprofiles/seed/client_profiles.json
+   ```
+   
+   The docker-compose includes a `cosmos-seed` service that will automatically seed the Cosmos DB emulator with the client profiles defined in this file. Update the placeholder values (e.g., `<azure-openai-endpoint>`, `<azure-search-api-key>`, etc.) with your actual Azure resource credentials.
+
 ### Environment Variables
 
 #### Orchestrator (`.env`)
