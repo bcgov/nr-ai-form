@@ -1,45 +1,14 @@
 # ConversationAgent mode:
 #   knowledgebase (default) -> direct Azure AI Search Knowledge Base retrieval
 #   legacy                  -> Azure OpenAI chat + azure_ai_search tool calling
-CONVERSATION_AGENT_MODE=knowledgebase
 
-# Azure OpenAI configuration
-# Required when CONVERSATION_AGENT_MODE=legacy; unused by the knowledgebase flow.
-AZURE_OPENAI_API_KEY=
-AZURE_OPENAI_ENDPOINT=
-AZURE_OPENAI_CHAT_DEPLOYMENT_NAME="gpt-4o-mini"
-AZURE_OPENAI_API_VERSION="2024-10-21"
-AGENT_MAX_TOKENS=800
-AGENT_TEMPERATURE=0.1
-# Required when CONVERSATION_AGENT_MODE=legacy; the azure_ai_search tool reads it.
-AZURE_SEARCH_INDEX_NAME=
-
-# Azure AI Search Knowledge Base Configuration
-# Use your native Search endpoint, for example:
-# https://your-search-service.search.windows.net
-AZURE_SEARCH_API_KEY=
-AZURE_SEARCH_ENDPOINT=
-AZURE_SEARCH_KNOWLEDGE_AGENT_NAME=
-AZURE_SEARCH_KNOWLEDGE_AGENT_API_VERSION=2025-11-01-preview
-AZURE_SEARCH_KNOWLEDGE_AGENT_REQUEST_MODE=messages
-AZURE_SEARCH_KNOWLEDGE_AGENT_OUTPUT_MODE=answerSynthesis
-AZURE_SEARCH_KNOWLEDGE_AGENT_REASONING_EFFORT=low
-AZURE_SEARCH_KNOWLEDGE_AGENT_MAX_OUTPUT_SIZE=6000
-AZURE_SEARCH_KNOWLEDGE_AGENT_MAX_RUNTIME_SECONDS=30
-AZURE_SEARCH_KNOWLEDGE_AGENT_MAX_HISTORY_MESSAGES=10
 
 HOST="0.0.0.0"
 PORT="8000"
 
-AZURE_SEARCH_TOP=10
-AZURE_SEARCH_TRIM_LENGTH=1000
-AZURE_SEARCH_ENABLE_TRIMMING=false
 
-AZURE_SEARCH_INCLUDE_TOTAL_COUNT=true
-AZURE_SEARCH_QUERY_TYPE="semantic"
-AZURE_SEARCH_SEMANTIC_CONFIGURATION=""
-AZURE_SEARCH_QUERY_CAPTION="extractive"
-AZURE_SEARCH_QUERY_ANSWER="extractive"
-AZURE_SEARCH_QUERY_ANSWER_COUNT=3
-AZURE_SEARCH_QUERY_LANGUAGE="en-us"
-
+# ─── Cache TTL (Time To Live) Settings ───────────────────────────────────────
+# How long the conversation instructions blob text is cached in memory (LLM mode only).
+# Set to 0 to disable caching so prompt changes take effect immediately.
+# Default: 300 (5 minutes)
+CONVERSATION_PROMPT_CACHE_TTL_SECONDS=300

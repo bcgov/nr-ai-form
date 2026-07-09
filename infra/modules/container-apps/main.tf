@@ -880,8 +880,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "ORCHESTRATOR_AGENT_WS_URL"
-        value = "ws://localhost:${var.orchestrator_agent_port}/ws"
+        name  = "ORCHESTRATOR_AGENT_WS_BASE_URL"
+        value = "ws://localhost:${var.orchestrator_agent_port}"
       }
 
       env {

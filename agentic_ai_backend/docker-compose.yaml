@@ -1,4 +1,4 @@
-services:
+﻿services:
   conversation-agent:
     build:
       context: .
@@ -19,6 +19,29 @@ services:
       - ./agents/formsupportagent/.env
     restart: unless-stopped
 
+  api-backend:
+    build:
+      context: .
+      dockerfile: api_backend/Dockerfile
+    ports:
+      - "8003:8003"
+    env_file:
+      - ./api_backend/.env
+    environment:
+      - ORCHESTRATOR_AGENT_A2A_URL=http://orchestrator-agent:8002
+      - ORCHESTRATOR_AGENT_WS_BASE_URL=ws://orchestrator-agent:8002
+      - CSSAI_EXECUTION_ENV=localhost
+      - REDIS_HOST=redis
+      - AZURE_COSMOS_DB_ENDPOINT=${AZURE_COSMOS_DB_ENDPOINT}
+      - AZURE_COSMOS_DB_KEY=${AZURE_COSMOS_DB_KEY}
+      - AZURE_COSMOS_DB_DATABASE_NAME=${AZURE_COSMOS_DB_DATABASE_NAME}
+    restart: unless-stopped
+    depends_on:
+      orchestrator-agent:
+        condition: service_started
+      redis:
+        condition: service_started
+
   orchestrator-agent:
     build:
       context: .
@@ -30,10 +53,22 @@ services:
     environment:
       - CONVERSATION_AGENT_A2A_URL=http://conversation-agent:8000
       - FORM_SUPPORT_AGENT_A2A_URL=http://formsupport-agent:8001
+      - REDIS_HOST=redis
+      - AZURE_COSMOS_DB_ENDPOINT=${AZURE_COSMOS_DB_ENDPOINT}
+      - AZURE_COSMOS_DB_KEY=${AZURE_COSMOS_DB_KEY}
+      - AZURE_COSMOS_DB_DATABASE_NAME=${AZURE_COSMOS_DB_DATABASE_NAME}
+      - CSSAI_EXECUTION_ENV=localhost
     depends_on:
-      - conversation-agent
-      - formsupport-agent
-      - redis
+      conversation-agent:
+        condition: service_started
+      formsupport-agent:
+        condition: service_started
+      redis:
+        condition: service_started
+      azure-cosmos-emulator:
+        condition: service_started
+      cosmos-seed:
+        condition: service_completed_successfully
 
   redis:
     image: redis:7.4 #use this same version on Azure Redis instance as well. PR review comment.
@@ -54,9 +89,21 @@ services:
     environment:
       - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=3
       - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
-      - AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1
     volumes:
       - cosmosdb-data:/data/cosmosdb
+
+  cosmos-seed:
+    build:
+      context: .
+      dockerfile: agents/orchestrators/scripts/Dockerfile.seed
+    container_name: cosmos-seed
+    environment:
+      - COSMOS_EMULATOR_ENDPOINT=https://azure-cosmos-emulator:8081
+      - SEED_FILE_PATH=/app/client_profiles.json
+    depends_on:
+      azure-cosmos-emulator:
+        condition: service_started
+    restart: "no"
 
 volumes:
   redis-data:

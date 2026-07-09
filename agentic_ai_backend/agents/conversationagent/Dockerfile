@@ -3,6 +3,7 @@ FROM python:3.13-slim
 RUN pip install --no-cache-dir uv
 WORKDIR /app
 COPY utils/ ./utils/
+COPY clientprofiles/ ./clientprofiles/
 COPY agents/tools/ ./agents/tools/
 COPY agents/conversationagent/ ./agents/conversationagent/
 WORKDIR /app/agents/conversationagent

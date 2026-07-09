@@ -59,19 +59,13 @@ else {
 
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
-
-
-//-------------------------- Services Starts ---------------------------//
-// TEST URL
-// const ORCHESTRATOR_API_URL = "https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/invoke";
-
-// DEV URL
-const ORCHESTRATOR_API_URL = "https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/invoke";
-// const ORCHESTRATOR_API_URL = "http://localhost:8002/invoke";
-// Guided questions live on the same backend host as the chat/orchestrator API.
-
-// TODO: add the correct url for the guided questions API
-const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
+const clientId = '11111111-1111-4111-8111-111111111111';
+// TEST: const ORCHESTRATOR_API_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
+// DEV : const ORCHESTRATOR_API_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
+const ORCHESTRATOR_API_URL = 'http://localhost:8002';
+const INVOKE_URL = new URL(`/tenants/${clientId}/invoke`, ORCHESTRATOR_API_URL).toString();
+// const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
+const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, ORCHESTRATOR_API_URL).toString();
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
@@ -94,14 +88,14 @@ async function invokeOrchestrator(query, step_number, session_id = null) {
     };
 
     try {
-        const response = await fetch(ORCHESTRATOR_API_URL, {
+        const response = await fetch(INVOKE_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(payload)
         });
-
+// TODO: ANN CAPTURE COSMOD DB ERRORS AND PRINT
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -1605,7 +1599,7 @@ if (isAIAssistantEnabled) {
             console.error('Error clearing chat storage:', e);
         }
     }
-    }
-    )();
+//     }
+//     )();
 
-}
+// }

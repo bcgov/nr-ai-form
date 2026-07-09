@@ -1,0 +1,230 @@
+[
+  {
+    "clientId": "11111111-1111-4111-8111-111111111111",
+    "clientName": "Water Permit App",
+    "corsOrigins": [
+      "https://test.j200.gov.bc.ca/*",
+      "http://localhost*"
+    ],
+    "tenantResources": {
+      "blobConnectionString": "<blob-connection-string>",
+      "containerName": "assets",
+      "prompts": {
+        "dispatcher": "tenants/water/agentprompts/dispatcher",
+        "aggregator": "tenants/water/agentprompts/aggregrator"
+      },
+      "config": {
+        "azureOpenAIEndpoint": "<azure-openai-ai-endpoint>",
+        "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
+        "azureOpenAIApiVersion": "<azure-openai-api-version>",
+        "azureOpenAIApiKey": "<azure-openai-api-key>",
+        "azureOpenAIAggregatorChatDeploymentName": "<azure-openai-aggregator-chat-deployment-name>",
+        "azureOpenAIAggregatorMaxCompletionTokens": 2500,
+        "formStepNumber": 2,
+        "a2aClientTimeoutSeconds": 120
+      }
+    },
+    "subAgents": [
+      {
+        "agentType": "conversationAgent",
+        "enabled": true,
+        "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
+        "config": {
+          "azureSearchKnowledgeAgentName": "<azure-search-knowledge-agent-name>",
+          "azureSearchApiKey": "<azure-search-api-key>",
+          "agentMaxTokens": 2500,
+          "agentTemperature": 0.1,
+          "azureSearchIndexName": "rag-bc-waterpermit-dev",
+          "azureSearchEndpoint": "<azure-search-endpoint>",
+          "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
+          "azureSearchKnowledgeAgentRequestMode": "messages",
+          "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
+          "azureSearchKnowledgeAgentReasoningEffort": "low",
+          "azureSearchKnowledgeAgentMaxOutputSize": 5000,
+          "azureSearchKnowledgeAgentMaxRuntimeSeconds": 30,
+          "azureSearchKnowledgeAgentMaxHistoryMessages": 10,
+          "azureSearchTop": 5,
+          "azureSearchTrimLength": 0,
+          "azureSearchEnableTrimming": false,
+          "azureSearchIncludeTotalCount": true,
+          "azureSearchQueryType": "semantic",
+          "azureSearchSemanticConfiguration": "",
+          "azureSearchQueryCaption": "extractive",
+          "azureSearchQueryAnswer": "extractive",
+          "azureSearchQueryAnswerCount": 3,
+          "azureSearchQueryLanguage": "en-US",
+          "conversationAgentMode": "llm",
+          "azureOpenaiEndpoint": "<azure-openai-endpoint>",
+          "azureOpenaiApiKey": "<azure-openai-api-key>",
+          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiApiVersion": "2024-10-21"
+        }
+      },
+      {
+        "agentType": "formSupportAgent",
+        "enabled": true,
+        "promptPath": "tenants/water/agentprompts/formsupportagent/instructions.md",
+        "config": {
+          "formDefinitionContainer": "tenants/water/formdefinitions",
+          "stepBasedPromptContainer": "tenants/water/prompttemplates",
+          "azureOpenaiEndpoint": "<azure-openai-endpoint>",
+          "azureOpenaiApiKey": "<azure-openai-api-key>",
+          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiApiVersion": "2024-10-21"
+        }
+      }
+    ]
+  },
+  {
+    "clientId": "22222222-2222-4222-8222-222222222222",
+    "clientName": "Fishing Permit App",
+    "corsOrigins": [
+      "https://showcase.apps.silver.devops.gov.bc.ca/*",
+      "http://localhost*"
+    ],
+    "tenantResources": {
+      "blobConnectionString": "<key-vault-secret-for-connection-string>",
+      "containerName": "fishing-permit-prompts",
+      "prompts": {
+        "dispatcher": "orchestrator/dispatcher",
+        "aggregator": "orchestrator/aggregator"
+      },
+      "config": {
+        "azureOpenAIEndpoint": "<azure-openai-endpoint-for-fishing>",
+        "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
+        "azureOpenAIApiVersion": "2024-10-21",
+        "azureOpenAIApiKey": "<azure-openai-api-key-for-fishing>",
+        "azureOpenAIAggregatorChatDeploymentName": "<azure-openai-aggregator-chat-deployment-name>",
+        "azureOpenAIAggregatorMaxCompletionTokens": 2500,
+        "formStepNumber": "step2-Eligibility",
+        "a2aClientTimeoutSeconds": 120
+      }
+    },
+    "subAgents": [
+      {
+        "agentType": "conversationAgent",
+        "enabled": true,
+        "promptPath": "agents/conversation/instructions.md",
+        "config": {
+          "conversationAgentMode": "knowledgebase",
+          "azureSearchEndpoint": "<azure-search-endpoint-for-fishing>",
+          "azureSearchApiKey": "<azure-search-api-key-for-fishing>",
+          "azureSearchIndexName": "fishing-permit-index",
+          "azureSearchKnowledgeAgentName": "fishing-permit-knowledge-agent",
+          "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
+          "azureSearchKnowledgeAgentRequestMode": "messages",
+          "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
+          "azureSearchKnowledgeAgentReasoningEffort": "low",
+          "azureSearchKnowledgeAgentMaxOutputSize": 5000,
+          "azureSearchKnowledgeAgentMaxRuntimeSeconds": 30,
+          "azureSearchKnowledgeAgentMaxHistoryMessages": 10,
+          "azureSearchTop": 5,
+          "azureSearchTrimLength": 500,
+          "azureSearchEnableTrimming": true,
+          "azureSearchIncludeTotalCount": true,
+          "azureSearchQueryType": "semantic",
+          "azureSearchSemanticConfiguration": "semanticconfig",
+          "azureSearchQueryCaption": "extractive",
+          "azureSearchQueryAnswer": "extractive",
+          "azureSearchQueryAnswerCount": 3,
+          "azureSearchQueryLanguage": "en-US",
+          "azureOpenaiEndpoint": "<azure-openai-endpoint-for-fishing>",
+          "azureOpenaiApiKey": "<azure-openai-api-key-for-fishing>",
+          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiApiVersion": "2024-10-21",
+          "agentMaxTokens": 2500,
+          "agentTemperature": 0.1
+        }
+      },
+      {
+        "agentType": "formSupportAgent",
+        "enabled": true,
+        "promptPath": "agents/formsupport/instructions.md",
+        "config": {
+          "formDefinitionContainer": "fishing-permit-form-definitions",
+          "stepBasedPromptContainer": "fishing-permit-form-prompts",
+          "azureOpenaiEndpoint": "<azure-openai-endpoint-for-fishing>",
+          "azureOpenaiApiKey": "<azure-openai-api-key-for-fishing>",
+          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiApiVersion": "2024-10-21"
+        }
+      }
+    ]
+  },
+  {
+    "clientId": "33333333-3333-4333-8333-333333333333",
+    "clientName": "Example App",
+    "corsOrigins": [
+      "http://localhost:8002",
+      "http://localhost:8080"
+    ],
+    "tenantResources": {
+      "blobConnectionString": "<key-vault-secret-for-connection-string>",
+      "containerName": "dev-prompts",
+      "prompts": {
+        "dispatcher": "orchestrator/dispatcher",
+        "aggregator": "orchestrator/aggregator"
+      },
+      "config": {
+        "azureOpenAIEndpoint": "<azure-openai-endpoint-for-dev>",
+        "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
+        "azureOpenAIApiVersion": "2024-10-21",
+        "azureOpenAIApiKey": "<azure-openai-api-key-for-dev>",
+        "azureOpenAIAggregatorChatDeploymentName": "<azure-openai-aggregator-chat-deployment-name>",
+        "azureOpenAIAggregatorMaxCompletionTokens": 2500,
+        "formStepNumber": "step2-Eligibility",
+        "a2aClientTimeoutSeconds": 120
+      }
+    },
+    "subAgents": [
+      {
+        "agentType": "conversationAgent",
+        "enabled": true,
+        "promptPath": "agents/conversation/instructions.md",
+        "config": {
+          "conversationAgentMode": "knowledgebase",
+          "azureSearchEndpoint": "<azure-search-endpoint-for-dev>",
+          "azureSearchApiKey": "<azure-search-api-key-for-dev>",
+          "azureSearchIndexName": "dev-search-index",
+          "azureSearchKnowledgeAgentName": "dev-knowledge-agent",
+          "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
+          "azureSearchKnowledgeAgentRequestMode": "messages",
+          "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
+          "azureSearchKnowledgeAgentReasoningEffort": "low",
+          "azureSearchKnowledgeAgentMaxOutputSize": 5000,
+          "azureSearchKnowledgeAgentMaxRuntimeSeconds": 30,
+          "azureSearchKnowledgeAgentMaxHistoryMessages": 10,
+          "azureSearchTop": 5,
+          "azureSearchTrimLength": 500,
+          "azureSearchEnableTrimming": true,
+          "azureSearchIncludeTotalCount": true,
+          "azureSearchQueryType": "semantic",
+          "azureSearchSemanticConfiguration": "semanticconfig",
+          "azureSearchQueryCaption": "extractive",
+          "azureSearchQueryAnswer": "extractive",
+          "azureSearchQueryAnswerCount": 3,
+          "azureSearchQueryLanguage": "en-US",
+          "azureOpenaiEndpoint": "<azure-openai-endpoint-for-dev>",
+          "azureOpenaiApiKey": "<azure-openai-api-key-for-dev>",
+          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiApiVersion": "2024-10-21",
+          "agentMaxTokens": 2500,
+          "agentTemperature": 0.1
+        }
+      },
+      {
+        "agentType": "formSupportAgent",
+        "enabled": true,
+        "promptPath": "agents/formsupport/instructions.md",
+        "config": {
+          "formDefinitionContainer": "dev-form-definitions",
+          "stepBasedPromptContainer": "dev-form-prompts",
+          "azureOpenaiEndpoint": "<azure-openai-endpoint-for-dev>",
+          "azureOpenaiApiKey": "<azure-openai-api-key-for-dev>",
+          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiApiVersion": "2024-10-21"
+        }
+      }
+    ]
+  }
+]

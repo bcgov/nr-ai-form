@@ -1,39 +1,50 @@
-from azure.search.documents import SearchClient
-from azure.core.credentials import AzureKeyCredential
 import inspect
-import os
+import logging
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents import SearchClient
 
 from agent_framework import tool
+from utils.tenantsettings import setting_from_client_config
+
+logger = logging.getLogger(__name__)
+
+
+def _parse_bool(value, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).lower() == "true"
 
 
 @tool(
     name="azure_ai_search",
     description="Retrieves information related with Permit Applications using Azure AI Search",
 )
-def azure_ai_search(query: str) -> str:
-    """
-        Retrieves information related with BC government permit application
-    """
+def azure_ai_search(query: str, client_settings: dict) -> str:
+    """Retrieves information related with BC government permit application."""
     try:
-        print("Azure AI Search Tool calling...")
-        endpoint = os.environ["AZURE_SEARCH_ENDPOINT"]
-        key = os.environ["AZURE_SEARCH_API_KEY"]
-        index_name = os.environ["AZURE_SEARCH_INDEX_NAME"]
-        
-        top_value = int(os.getenv("AZURE_SEARCH_TOP", 3))
-        trim_length = int(os.getenv("AZURE_SEARCH_TRIM_LENGTH", 500))
-        enable_trimming = os.getenv("AZURE_SEARCH_ENABLE_TRIMMING", "true").lower() == "true"
-        include_total_count = os.getenv("AZURE_SEARCH_INCLUDE_TOTAL_COUNT", "true").lower() == "true"
-        query_type = os.getenv("AZURE_SEARCH_QUERY_TYPE", "semantic")
-        semantic_configuration = os.getenv("AZURE_SEARCH_SEMANTIC_CONFIGURATION", "semanticconfig")
-        query_caption = os.getenv("AZURE_SEARCH_QUERY_CAPTION", "extractive")
-        query_answer = os.getenv("AZURE_SEARCH_QUERY_ANSWER", "extractive")
-        query_answer_count = int(os.getenv("AZURE_SEARCH_QUERY_ANSWER_COUNT", 3))
-        query_language = os.getenv("AZURE_SEARCH_QUERY_LANGUAGE", "en-us")
+        endpoint = setting_from_client_config(client_settings, "azureSearchEndpoint", required=True)
+        key = setting_from_client_config(client_settings, "azureSearchApiKey", required=True)
+        index_name = setting_from_client_config(client_settings, "azureSearchIndexName", required=True)
+
+        top_value = int(setting_from_client_config(client_settings, "azureSearchTop", default=3))
+        trim_length = int(setting_from_client_config(client_settings, "azureSearchTrimLength", default=500))
+        enable_trimming = _parse_bool(setting_from_client_config(client_settings, "azureSearchEnableTrimming", default="true"), True)
+        include_total_count = _parse_bool(setting_from_client_config(client_settings, "azureSearchIncludeTotalCount", default="true"), True)
+        query_type = setting_from_client_config(client_settings, "azureSearchQueryType", default="semantic")
+        semantic_configuration = setting_from_client_config(client_settings, "azureSearchSemanticConfiguration", default="semanticconfig")
+        query_caption = setting_from_client_config(client_settings, "azureSearchQueryCaption", default="extractive")
+        query_answer = setting_from_client_config(client_settings, "azureSearchQueryAnswer", default="extractive")
+        query_answer_count = int(setting_from_client_config(client_settings, "azureSearchQueryAnswerCount", default=3))
+        query_language = setting_from_client_config(client_settings, "azureSearchQueryLanguage", default="en-us")
+
+        if not endpoint or not key or not index_name:
+            raise ValueError("Azure AI Search is not configured: endpoint, api key, and index name are required.")
 
         credential = AzureKeyCredential(key)
         client = SearchClient(endpoint=endpoint, index_name=index_name, credential=credential)
-        
+
         search_kwargs = {
             "include_total_count": include_total_count,
             "top": top_value,
@@ -54,7 +65,7 @@ def azure_ai_search(query: str) -> str:
             search_text=query,
             **search_kwargs,
         )
-        
+
         output = []
 
         if include_total_count:
@@ -70,7 +81,6 @@ def azure_ai_search(query: str) -> str:
                     output.append(f"Answer: {answer_text}")
 
         for result in results:
-            # Try to grab content from common field names
             content = result.get("content") or result.get("text") or result.get("chunk") or str(result)
             captions = result.get("@search.captions") or []
 
@@ -85,6 +95,9 @@ def azure_ai_search(query: str) -> str:
                 output.append(f"Content: {str(content)}")
         print(f"Azure AI Search Tool results: {output}")
         return "\n\n".join(output) if output else "No results found."
+    except ValueError:
+        raise
     except Exception as e:
         print(f"Error executing search: {e}")
+        logger.warning("Azure AI Search query failed: %s", e)
         return f"Error executing search: {e}"

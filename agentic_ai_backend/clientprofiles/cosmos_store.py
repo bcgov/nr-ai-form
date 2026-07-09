@@ -10,6 +10,7 @@ class.
 There is no default profile — every request must provide an explicit client_id.
 """
 
+import asyncio
 import logging
 
 from azure.cosmos import CosmosClient
@@ -39,6 +40,18 @@ class CosmosClientProfileStore(ClientProfileStore):
         key: str | None = None,
         disable_ssl: bool = False,
     ) -> None:
+        client_options = {
+            # connection_verify=False disables TLS cert verification.
+            # The Cosmos emulator uses a self-signed certificate that fails
+            # standard chain-of-trust validation, so TLS verification must
+            # be disabled in local development.
+            "connection_verify": not disable_ssl,
+            # The Docker emulator can advertise its internal container IP.
+            # Host-run scripts cannot reach that IP, so local emulator mode
+            # stays pinned to the configured endpoint.
+            "enable_endpoint_discovery": not disable_ssl,
+        }
+
         # Credential chain priority order:
         # 1. Account key (AZURE_COSMOS_DB_KEY) — used by the Cosmos emulator
         #    and any environment where Managed Identity is not available.
@@ -48,11 +61,7 @@ class CosmosClientProfileStore(ClientProfileStore):
             self._client = CosmosClient(
                 endpoint,
                 credential=key,
-                # connection_verify=False disables TLS cert verification.
-                # The Cosmos emulator uses a self-signed certificate that fails
-                # standard chain-of-trust validation, so TLS verification must
-                # be disabled in local development.
-                connection_verify=not disable_ssl,
+                **client_options,
             )
         else:
             from azure.identity import DefaultAzureCredential
@@ -60,10 +69,7 @@ class CosmosClientProfileStore(ClientProfileStore):
             self._client = CosmosClient(
                 endpoint,
                 credential=DefaultAzureCredential(),
-                # connection_verify=False disables TLS cert verification.
-                # The Cosmos emulator uses a self-signed certificate that fails
-                # standard chain-of-trust validation.
-                connection_verify=not disable_ssl,
+                **client_options,
             )
 
         db = self._client.get_database_client(database_name)
@@ -85,7 +91,8 @@ class CosmosClientProfileStore(ClientProfileStore):
             # Point read (read_item).
             # Point reads are O(1) lookups by partition key + document id,
             # costing exactly 1 RU regardless of document size.
-            doc = self._container.read_item(
+            doc = await asyncio.to_thread(
+                self._container.read_item,
                 item=client_id, partition_key=client_id
             )
             return ClientProfile.model_validate(doc)

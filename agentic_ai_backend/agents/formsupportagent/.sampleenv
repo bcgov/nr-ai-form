@@ -1,11 +1,14 @@
-# Azure OpenAI Configuration
-AZURE_OPENAI_API_KEY=
-AZURE_OPENAI_ENDPOINT=
-AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=
-AZURE_OPENAI_API_VERSION="2024-10-21"
 
 HOST="0.0.0.0"
 PORT="8001"
 
-AZURE_BLOBSTORAGE_CONNECTIONSTRING=
-AZURE_BLOBSTORAGE_CONTAINER=
+
+# ─── Cache TTL (Time To Live) Settings ───────────────────────────────────────
+# How long the fully-built FormSupportAgent (blob reads + OpenAI client) is cached
+# per (tenant, step). Set to 0 to disable so prompt changes take effect immediately.
+# Default: 300 (5 minutes)
+FORM_SUPPORT_AGENT_CACHE_TTL_SECONDS=300
+
+# How long the common instructions blob text is cached independently.
+# Default: 300 (5 minutes)
+FORM_SUPPORT_PROMPT_CACHE_TTL_SECONDS=300
