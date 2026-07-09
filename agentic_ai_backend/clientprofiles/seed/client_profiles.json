@@ -34,7 +34,7 @@
           "azureSearchApiKey": "<azure-search-api-key>",
           "agentMaxTokens": 2500,
           "agentTemperature": 0.1,
-          "azureSearchIndexName": "rag-bc-fish",
+          "azureSearchIndexName": "rag-bc-waterpermit-dev",
           "azureSearchEndpoint": "<azure-search-endpoint>",
           "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
           "azureSearchKnowledgeAgentRequestMode": "messages",
