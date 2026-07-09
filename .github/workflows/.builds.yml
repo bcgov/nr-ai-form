@@ -21,7 +21,7 @@ jobs:
       matrix:
         package:
           - name: conversation_agent
-            context: ./agentic_ai_backend/agents
+            context: ./agentic_ai_backend
             dockerfile: ./agentic_ai_backend/agents/conversationagent/Dockerfile
           - name: formsupport_agent
             context: ./agentic_ai_backend
