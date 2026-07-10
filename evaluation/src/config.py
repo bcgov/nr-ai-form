@@ -129,6 +129,32 @@ class Settings(BaseSettings):
         validation_alias="CODE_VULNERABILITY_THRESHOLD",
     )
 
+    # PyRIT Red-Teaming Configuration
+    enable_red_team: bool = Field(
+        default=False,
+        validation_alias="ENABLE_RED_TEAM",
+    )
+    
+    red_team_threat_models: str = Field(
+        default="jailbreak,prompt_injection,data_exfiltration",
+        validation_alias="RED_TEAM_THREAT_MODELS",
+    )  # Comma-separated list of threat models to test
+    
+    red_team_max_iterations: int = Field(
+        default=5,
+        validation_alias="RED_TEAM_MAX_ITERATIONS",
+    )  # Max attack chains per threat model
+    
+    red_team_timeout_seconds: int = Field(
+        default=300,
+        validation_alias="RED_TEAM_TIMEOUT_SECONDS",
+    )  # Timeout per red-team test
+    
+    red_team_vulnerability_threshold: float = Field(
+        default=0.3,
+        validation_alias="RED_TEAM_VULNERABILITY_THRESHOLD",
+    )  # Score above this = vulnerable
+
     def validate_config(self) -> bool:
         """Validate required configuration"""
         if not self.azure_openai_api_key:
