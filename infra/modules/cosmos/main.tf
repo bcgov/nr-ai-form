@@ -81,9 +81,7 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb_sql_db_container" {
   partition_key_paths = ["/id"]
 
   lifecycle {
-    ignore_changes = [
-      all
-    ]
+    ignore_changes = all
     prevent_destroy = true
   }
 }
