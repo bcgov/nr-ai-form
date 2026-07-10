@@ -5,6 +5,8 @@ import aiohttp
 from typing import Any
 import uuid
 from pyrit.prompt_target import PromptTarget
+from pyrit.prompt_target.common.target_configuration import TargetConfiguration
+from pyrit.prompt_target.common.target_capabilities import TargetCapabilities
 from pyrit.models import Message
 import structlog
 
@@ -17,6 +19,15 @@ class CustomBackendTarget(PromptTarget):
     
     Sends red-teaming prompts to a custom /invoke endpoint instead of Azure OpenAI.
     """
+
+    # Declare capabilities for this target (required for multi-turn attacks like Crescendo)
+    _DEFAULT_CONFIGURATION: TargetConfiguration = TargetConfiguration(
+        capabilities=TargetCapabilities(
+            supports_multi_turn=True,
+            supports_editable_history=True,
+            supports_system_prompt=True,
+        )
+    )
 
     def __init__(
         self,
