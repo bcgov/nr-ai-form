@@ -45,7 +45,7 @@ LAW_ID="${RG_ID}/providers/Microsoft.OperationalInsights/workspaces/${APP_NAME}-
 AI_ID="${RG_ID}/providers/Microsoft.Insights/components/${APP_NAME}-appinsights"
 COSMOS_ACCT_ID="${RG_ID}/providers/Microsoft.DocumentDB/databaseAccounts/${APP_NAME}-cosmosdb-sql"
 COSMOS_DB_ID="${COSMOS_ACCT_ID}/sqlDatabases/AgentMemoryDB"
-COSMOS_CONTAINER_ID="${COSMOS_DB_ID}/containers/SessionContainer"
+COSMOS_CONTAINER_ID="${COSMOS_DB_ID}/containers/ClientProfiles"
 CA_ENV_NAME="${APP_NAME}-${app_env}-containerenv"
 CA_ENV_ID="${RG_ID}/providers/Microsoft.App/managedEnvironments/${CA_ENV_NAME}"
 
