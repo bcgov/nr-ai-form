@@ -74,17 +74,14 @@ resource "azurerm_cosmosdb_sql_database" "cosmosdb_sql_db" {
 }
 
 resource "azurerm_cosmosdb_sql_container" "cosmosdb_sql_db_container" {
-  name                      = var.cosmosdb_sql_database_container_name
-  resource_group_name       = var.resource_group_name
-  account_name              = azurerm_cosmosdb_account.cosmosdb_sql.name
-  database_name             = azurerm_cosmosdb_sql_database.cosmosdb_sql_db.name
-  partition_key_paths       = ["/partitionKey"]
-  analytical_storage_ttl    = 0
+  name                = var.cosmosdb_sql_database_container_name
+  resource_group_name = var.resource_group_name
+  account_name        = azurerm_cosmosdb_account.cosmosdb_sql.name
+  database_name       = azurerm_cosmosdb_sql_database.cosmosdb_sql_db.name
 
   lifecycle {
     ignore_changes = [
-      default_ttl,
-      throughput
+      all
     ]
     prevent_destroy = true
   }
