@@ -201,16 +201,27 @@ class PyRITRunner:
                 )
             
             # Create attack adversarial config for Crescendo attack
-            from pyrit.executor.attack import AttackAdversarialConfig
+            from pyrit.executor.attack import AttackAdversarialConfig, AttackScoringConfig
             
             attack_config = AttackAdversarialConfig(
                 target=objective_target,
             )
             
+            # When using custom backend, disable scoring since it won't have API access
+            if backend_url and backend_url not in ["http://localhost:8000", ""]:
+                scoring_config = AttackScoringConfig(
+                    objective_scorer=None,
+                    refusal_scorer=None,
+                    use_score_as_feedback=False,
+                )
+            else:
+                scoring_config = AttackScoringConfig()
+            
             # Use Crescendo attack (more sophisticated jailbreak attack)
             attack = CrescendoAttack(
                 objective_target=objective_target,
                 attack_adversarial_config=attack_config,
+                attack_scoring_config=scoring_config,
                 max_turns=self.max_iterations,
             )
             
@@ -289,16 +300,27 @@ class PyRITRunner:
                 )
             
             # Create attack adversarial config for RedTeaming attack
-            from pyrit.executor.attack import AttackAdversarialConfig
+            from pyrit.executor.attack import AttackAdversarialConfig, AttackScoringConfig
             
             attack_config = AttackAdversarialConfig(
                 target=objective_target,
             )
             
+            # When using custom backend, disable scoring since it won't have API access
+            if backend_url and backend_url not in ["http://localhost:8000", ""]:
+                scoring_config = AttackScoringConfig(
+                    objective_scorer=None,
+                    refusal_scorer=None,
+                    use_score_as_feedback=False,
+                )
+            else:
+                scoring_config = AttackScoringConfig()
+            
             # Use RedTeamingAttack (intelligent multi-turn)
             attack = RedTeamingAttack(
                 objective_target=objective_target,
                 attack_adversarial_config=attack_config,
+                attack_scoring_config=scoring_config,
                 max_turns=max_turns,
             )
             
@@ -381,11 +403,12 @@ class PyRITRunner:
             )
             
             # Run appropriate attack based on type
-            if attack_type == "Crescendo" or "jailbreak" in test_case.get("threat_models", []):
+            # NOTE: attack_type parameter explicitly set by user overrides threat_models routing
+            if attack_type == "Crescendo":
                 result = await self.run_jailbreak_attack(query)
             elif attack_type == "MultiTurn" or attack_type == "RedTeaming":
                 result = await self.run_multi_turn_attack(query, max_turns=self.max_iterations)
-            else:  # Default to PromptSending
+            else:  # Default to PromptSending (ignore threat_models, use user's explicit choice)
                 result = await self.run_attack(query)
             
             results.append(result)
