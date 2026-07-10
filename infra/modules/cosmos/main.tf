@@ -68,7 +68,7 @@ resource "azurerm_cosmosdb_sql_database" "cosmosdb_sql_db" {
   throughput          = 400
 
   lifecycle {
-    ignore_changes = [throughput, max_throughput]
+    ignore_changes = [throughput]
     prevent_destroy = true
   }
 }
