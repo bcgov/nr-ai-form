@@ -62,7 +62,9 @@ const GUIDED_QUESTIONS_ENABLED = false;
 const clientId = '11111111-1111-4111-8111-111111111111';
 // TEST: const ORCHESTRATOR_API_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
 // DEV : const ORCHESTRATOR_API_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
-const ORCHESTRATOR_API_URL = 'http://localhost:8002';
+// DEV - COMMON SERVICE 
+ const ORCHESTRATOR_API_URL="https://nraif-671b-dev-commonservi-api.livelymushroom-b9ecaae0.canadacentral.azurecontainerapps.io"       
+// const ORCHESTRATOR_API_URL = 'http://localhost:8002';
 const INVOKE_URL = new URL(`/tenants/${clientId}/invoke`, ORCHESTRATOR_API_URL).toString();
 // const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
 const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, ORCHESTRATOR_API_URL).toString();
