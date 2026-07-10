@@ -350,23 +350,62 @@ class PyRITRunner:
             }
 
     @staticmethod
-    def _format_pyrit_results(pyrit_results: List[Any]) -> Dict[str, Any]:
-        """Format PyRIT attack results for reporting."""
+    def _format_pyrit_results(pyrit_results: Any) -> Dict[str, Any]:
+        """Format PyRIT attack results for reporting.
+        
+        Args:
+            pyrit_results: AttackExecutorResult containing completed_results
+            
+        Returns:
+            Formatted results with turns containing prompts and responses
+        """
         formatted = {
-            "total_turns": len(pyrit_results),
+            "total_turns": 0,
             "turns": []
         }
         
-        for i, result in enumerate(pyrit_results, 1):
+        # Handle AttackExecutorResult wrapper
+        if hasattr(pyrit_results, 'completed_results'):
+            # This is an AttackExecutorResult
+            completed = pyrit_results.completed_results
+        else:
+            # Assume it's a list of results
+            completed = pyrit_results if isinstance(pyrit_results, list) else [pyrit_results]
+        
+        formatted["total_turns"] = len(completed)
+        
+        for i, result in enumerate(completed, 1):
+            # Extract objective (the attack prompt)
+            objective = getattr(result, 'objective', '')
+            
+            # Extract last response
+            last_response = getattr(result, 'last_response', None)
+            response_text = ""
+            if last_response:
+                # last_response is a MessagePiece, extract converted_value or original_value
+                response_text = getattr(last_response, 'converted_value', '') or getattr(last_response, 'original_value', '')
+            
+            # Extract execution metadata
+            executed_turns = getattr(result, 'executed_turns', 0)
+            outcome = getattr(result, 'outcome', 'unknown')
+            
             turn_data = {
                 "turn": i,
-                "prompt": str(result.prompt) if hasattr(result, "prompt") else "",
-                "response": str(result.response) if hasattr(result, "response") else "",
+                "prompt": str(objective)[:500],  # Truncate long prompts
+                "response": str(response_text)[:500],  # Truncate long responses
+                "outcome": str(outcome),
+                "turns_executed": executed_turns,
             }
             
             # Add scoring if available
-            if hasattr(result, "score"):
-                turn_data["score"] = result.score
+            last_score = getattr(result, 'last_score', None)
+            if last_score:
+                turn_data["score"] = getattr(last_score, 'score_value', None)
+            
+            # Add error info if present
+            error_msg = getattr(result, 'error_message', None)
+            if error_msg:
+                turn_data["error"] = error_msg
             
             formatted["turns"].append(turn_data)
         
