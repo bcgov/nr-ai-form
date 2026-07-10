@@ -1601,7 +1601,7 @@ if (isAIAssistantEnabled) {
             console.error('Error clearing chat storage:', e);
         }
     }
-//     }
-//     )();
+     }
+    )();
 
-// }
+ }
