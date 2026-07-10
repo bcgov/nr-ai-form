@@ -89,15 +89,19 @@ class PyRITRunner:
             # Determine which target to use: custom backend or Azure OpenAI
             backend_url = settings.backend_api_url
             logger.info("backend_url_check", backend_url=backend_url, is_set=bool(backend_url))
+            print(f"[DEBUG] Backend URL: {backend_url}", flush=True)
+            print(f"[DEBUG] Using custom backend condition: {bool(backend_url and backend_url not in ['http://localhost:8000', ''])}", flush=True)
             
             if backend_url and backend_url not in ["http://localhost:8000", ""]:
                 # Use custom backend target
                 logger.info("using_custom_backend_target", endpoint=backend_url)
+                print(f"[DEBUG] Creating CustomBackendTarget with endpoint: {backend_url}", flush=True)
                 objective_target = CustomBackendTarget(
                     endpoint=backend_url,
                     session_id=None,  # Will be auto-generated
                     step_number=2,
                 )
+                print(f"[DEBUG] CustomBackendTarget created successfully", flush=True)
             else:
                 # Fall back to Azure OpenAI
                 from pyrit.prompt_target import OpenAIChatTarget
@@ -114,6 +118,7 @@ class PyRITRunner:
                     raise ValueError("AZURE_OPENAI_API_KEY not configured")
                 
                 logger.info("using_openai_target", endpoint=base_endpoint)
+                print(f"[DEBUG] Using OpenAI target with endpoint: {base_endpoint}", flush=True)
                 objective_target = OpenAIChatTarget(
                     endpoint=base_endpoint,
                     api_key=api_key,
