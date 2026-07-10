@@ -103,7 +103,7 @@ class PyRITRunner:
                 api_key=api_key,
             )
             
-            # Create simple attack without converters first
+            # Create attack with objective_target (PromptSendingAttack needs this, not attack_adversarial_config)
             attack = PromptSendingAttack(
                 objective_target=objective_target,
             )
@@ -162,9 +162,17 @@ class PyRITRunner:
                 api_key=settings.azure_openai_api_key,
             )
             
+            # Create attack adversarial config for Crescendo attack
+            from pyrit.executor.attack import AttackAdversarialConfig
+            
+            attack_config = AttackAdversarialConfig(
+                target=objective_target,
+            )
+            
             # Use Crescendo attack (more sophisticated jailbreak attack)
             attack = CrescendoAttack(
                 objective_target=objective_target,
+                attack_adversarial_config=attack_config,
                 max_turns=self.max_iterations,
             )
             
@@ -231,9 +239,17 @@ class PyRITRunner:
                 api_key=settings.azure_openai_api_key,
             )
             
+            # Create attack adversarial config for RedTeaming attack
+            from pyrit.executor.attack import AttackAdversarialConfig
+            
+            attack_config = AttackAdversarialConfig(
+                target=objective_target,
+            )
+            
             # Use RedTeamingAttack (intelligent multi-turn)
             attack = RedTeamingAttack(
                 objective_target=objective_target,
+                attack_adversarial_config=attack_config,
                 max_turns=max_turns,
             )
             
