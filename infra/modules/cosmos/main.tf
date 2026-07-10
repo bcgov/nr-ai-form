@@ -84,8 +84,7 @@ resource "azurerm_cosmosdb_sql_container" "cosmosdb_sql_db_container" {
     ignore_changes = [
       default_ttl,
       analytical_storage_ttl,
-      index_policy,
-      unique_key
+      throughput
     ]
     prevent_destroy = true
   }
