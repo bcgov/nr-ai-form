@@ -82,26 +82,29 @@ class PyRITRunner:
             os.environ["AZURE_OPENAI_ENDPOINT"] = settings.azure_openai_endpoint
             os.environ["OPENAI_CHAT_KEY"] = settings.azure_openai_api_key
             
-            from pyrit.executor.attack import AttackExecutor, PromptSendingAttack
+            from pyrit.executor.attack import AttackExecutor, PromptSendingAttack, AttackScoringConfig
             
             logger.info("pyrit_attack_start", query=query[:100])
             
             # Determine which target to use: custom backend or Azure OpenAI
             backend_url = settings.backend_api_url
             logger.info("backend_url_check", backend_url=backend_url, is_set=bool(backend_url))
-            print(f"[DEBUG] Backend URL: {backend_url}", flush=True)
-            print(f"[DEBUG] Using custom backend condition: {bool(backend_url and backend_url not in ['http://localhost:8000', ''])}", flush=True)
             
             if backend_url and backend_url not in ["http://localhost:8000", ""]:
                 # Use custom backend target
                 logger.info("using_custom_backend_target", endpoint=backend_url)
-                print(f"[DEBUG] Creating CustomBackendTarget with endpoint: {backend_url}", flush=True)
                 objective_target = CustomBackendTarget(
                     endpoint=backend_url,
                     session_id=None,  # Will be auto-generated
                     step_number=2,
                 )
-                print(f"[DEBUG] CustomBackendTarget created successfully", flush=True)
+                
+                # When using custom backend, disable scoring since it won't have API access
+                attack_config = AttackScoringConfig(
+                    objective_scorer=None,
+                    refusal_scorer=None,
+                    use_score_as_feedback=False,
+                )
             else:
                 # Fall back to Azure OpenAI
                 from pyrit.prompt_target import OpenAIChatTarget
@@ -118,15 +121,18 @@ class PyRITRunner:
                     raise ValueError("AZURE_OPENAI_API_KEY not configured")
                 
                 logger.info("using_openai_target", endpoint=base_endpoint)
-                print(f"[DEBUG] Using OpenAI target with endpoint: {base_endpoint}", flush=True)
                 objective_target = OpenAIChatTarget(
                     endpoint=base_endpoint,
                     api_key=api_key,
                 )
+                
+                # Use default scoring config for Azure OpenAI
+                attack_config = AttackScoringConfig()
             
             # Create attack with objective_target (PromptSendingAttack needs this, not attack_adversarial_config)
             attack = PromptSendingAttack(
                 objective_target=objective_target,
+                attack_scoring_config=attack_config,
             )
             
             # Execute attack

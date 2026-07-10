@@ -61,7 +61,6 @@ class CustomBackendTarget(PromptTarget):
         Returns:
             List of Message objects with backend response
         """
-        print(f"[DEBUG] CustomBackendTarget._send_prompt_to_target_async called with {len(normalized_conversation)} messages", flush=True)
         try:
             # Get the last user message from the conversation
             last_message = None
@@ -80,7 +79,6 @@ class CustomBackendTarget(PromptTarget):
             
             # Extract prompt text from message using get_value()
             prompt = str(last_message.get_value())
-            print(f"[DEBUG] Extracted prompt: {prompt}", flush=True)
             
             # Build request payload matching your backend API
             request_payload = {
@@ -92,9 +90,6 @@ class CustomBackendTarget(PromptTarget):
             # Use endpoint as-is (assumes it already has /invoke or appropriate path)
             invoke_url = self.endpoint
             
-            print(f"[DEBUG] Sending request to: {invoke_url}", flush=True)
-            print(f"[DEBUG] Payload: {request_payload}", flush=True)
-            
             logger.info(
                 "sending_backend_prompt",
                 url=invoke_url,
@@ -104,20 +99,16 @@ class CustomBackendTarget(PromptTarget):
             
             # Make async HTTP POST request
             async with aiohttp.ClientSession() as session:
-                print(f"[DEBUG] Making POST request to {invoke_url}", flush=True)
                 async with session.post(
                     invoke_url,
                     json=request_payload,
                     timeout=aiohttp.ClientTimeout(total=30),
                 ) as response:
-                    print(f"[DEBUG] Response status: {response.status}", flush=True)
                     if response.status == 200:
                         response_data = await response.json()
-                        print(f"[DEBUG] Response data: {response_data}", flush=True)
                         
                         # Extract response text from backend format
                         response_text = self._extract_response(response_data)
-                        print(f"[DEBUG] Extracted response text: {response_text}", flush=True)
                         
                         logger.info(
                             "backend_response_received",
@@ -131,11 +122,9 @@ class CustomBackendTarget(PromptTarget):
                             prompt=response_text,
                             role="assistant"
                         )
-                        print(f"[DEBUG] Returning response message", flush=True)
                         return [response_message]
                     else:
                         error_text = await response.text()
-                        print(f"[DEBUG] Backend error response: {error_text}", flush=True)
                         logger.error(
                             "backend_error",
                             status=response.status,
@@ -146,7 +135,6 @@ class CustomBackendTarget(PromptTarget):
                             prompt=f"Error {response.status}: {error_text}",
                             role="assistant"
                         )
-                        print(f"[DEBUG] Returning error message", flush=True)
                         return [error_response]
                         
         except asyncio.TimeoutError:
