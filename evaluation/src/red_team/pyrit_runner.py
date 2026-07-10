@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 
 import structlog
 from src.config import settings
+from src.red_team.custom_backend_target import CustomBackendTarget
 
 logger = structlog.get_logger(__name__)
 
@@ -82,26 +83,41 @@ class PyRITRunner:
             os.environ["OPENAI_CHAT_KEY"] = settings.azure_openai_api_key
             
             from pyrit.executor.attack import AttackExecutor, PromptSendingAttack
-            from pyrit.prompt_target import OpenAIChatTarget
-            
-            endpoint = settings.azure_openai_endpoint
-            if not endpoint:
-                raise ValueError("AZURE_OPENAI_ENDPOINT not configured")
-            
-            # Extract base endpoint for OpenAI (remove any path components)
-            base_endpoint = endpoint.split("/wlrs")[0] if "/wlrs" in endpoint else endpoint
-            
-            api_key = settings.azure_openai_api_key
-            if not api_key:
-                raise ValueError("AZURE_OPENAI_API_KEY not configured")
             
             logger.info("pyrit_attack_start", query=query[:100])
             
-            # Create objective target (your backend API or OpenAI)
-            objective_target = OpenAIChatTarget(
-                endpoint=base_endpoint,
-                api_key=api_key,
-            )
+            # Determine which target to use: custom backend or Azure OpenAI
+            backend_url = settings.backend_api_url
+            logger.info("backend_url_check", backend_url=backend_url, is_set=bool(backend_url))
+            
+            if backend_url and backend_url not in ["http://localhost:8000", ""]:
+                # Use custom backend target
+                logger.info("using_custom_backend_target", endpoint=backend_url)
+                objective_target = CustomBackendTarget(
+                    endpoint=backend_url,
+                    session_id=None,  # Will be auto-generated
+                    step_number=2,
+                )
+            else:
+                # Fall back to Azure OpenAI
+                from pyrit.prompt_target import OpenAIChatTarget
+                
+                endpoint = settings.azure_openai_endpoint
+                if not endpoint:
+                    raise ValueError("AZURE_OPENAI_ENDPOINT not configured")
+                
+                # Extract base endpoint for OpenAI (remove any path components)
+                base_endpoint = endpoint.split("/wlrs")[0] if "/wlrs" in endpoint else endpoint
+                
+                api_key = settings.azure_openai_api_key
+                if not api_key:
+                    raise ValueError("AZURE_OPENAI_API_KEY not configured")
+                
+                logger.info("using_openai_target", endpoint=base_endpoint)
+                objective_target = OpenAIChatTarget(
+                    endpoint=base_endpoint,
+                    api_key=api_key,
+                )
             
             # Create attack with objective_target (PromptSendingAttack needs this, not attack_adversarial_config)
             attack = PromptSendingAttack(
@@ -145,22 +161,33 @@ class PyRITRunner:
             os.environ["OPENAI_CHAT_KEY"] = settings.azure_openai_api_key
             
             from pyrit.executor.attack import AttackExecutor, CrescendoAttack
-            from pyrit.prompt_target import OpenAIChatTarget
-            
-            endpoint = settings.azure_openai_endpoint
-            if not endpoint:
-                raise ValueError("AZURE_OPENAI_ENDPOINT not configured")
-            
-            # Extract base endpoint
-            base_endpoint = endpoint.split("/wlrs")[0] if "/wlrs" in endpoint else endpoint
             
             logger.info("pyrit_jailbreak_attack_start", query=query[:100])
             
-            # Create objective target
-            objective_target = OpenAIChatTarget(
-                endpoint=base_endpoint,
-                api_key=settings.azure_openai_api_key,
-            )
+            # Determine which target to use: custom backend or Azure OpenAI
+            backend_url = settings.backend_api_url
+            if backend_url and backend_url not in ["http://localhost:8000", ""]:
+                # Use custom backend target
+                logger.info("using_custom_backend_target_jailbreak", endpoint=backend_url)
+                objective_target = CustomBackendTarget(
+                    endpoint=backend_url,
+                    session_id=None,
+                    step_number=2,
+                )
+            else:
+                # Fall back to Azure OpenAI
+                from pyrit.prompt_target import OpenAIChatTarget
+                
+                endpoint = settings.azure_openai_endpoint
+                if not endpoint:
+                    raise ValueError("AZURE_OPENAI_ENDPOINT not configured")
+                
+                base_endpoint = endpoint.split("/wlrs")[0] if "/wlrs" in endpoint else endpoint
+                logger.info("using_openai_target_jailbreak", endpoint=base_endpoint)
+                objective_target = OpenAIChatTarget(
+                    endpoint=base_endpoint,
+                    api_key=settings.azure_openai_api_key,
+                )
             
             # Create attack adversarial config for Crescendo attack
             from pyrit.executor.attack import AttackAdversarialConfig
@@ -222,22 +249,33 @@ class PyRITRunner:
             os.environ["OPENAI_CHAT_KEY"] = settings.azure_openai_api_key
             
             from pyrit.executor.attack import AttackExecutor, RedTeamingAttack
-            from pyrit.prompt_target import OpenAIChatTarget
-            
-            endpoint = settings.azure_openai_endpoint
-            if not endpoint:
-                raise ValueError("AZURE_OPENAI_ENDPOINT not configured")
-            
-            # Extract base endpoint
-            base_endpoint = endpoint.split("/wlrs")[0] if "/wlrs" in endpoint else endpoint
             
             logger.info("pyrit_multiturn_attack_start", query=query[:100], max_turns=max_turns)
             
-            # Create objective target
-            objective_target = OpenAIChatTarget(
-                endpoint=base_endpoint,
-                api_key=settings.azure_openai_api_key,
-            )
+            # Determine which target to use: custom backend or Azure OpenAI
+            backend_url = settings.backend_api_url
+            if backend_url and backend_url not in ["http://localhost:8000", ""]:
+                # Use custom backend target
+                logger.info("using_custom_backend_target_multiturn", endpoint=backend_url)
+                objective_target = CustomBackendTarget(
+                    endpoint=backend_url,
+                    session_id=None,
+                    step_number=2,
+                )
+            else:
+                # Fall back to Azure OpenAI
+                from pyrit.prompt_target import OpenAIChatTarget
+                
+                endpoint = settings.azure_openai_endpoint
+                if not endpoint:
+                    raise ValueError("AZURE_OPENAI_ENDPOINT not configured")
+                
+                base_endpoint = endpoint.split("/wlrs")[0] if "/wlrs" in endpoint else endpoint
+                logger.info("using_openai_target_multiturn", endpoint=base_endpoint)
+                objective_target = OpenAIChatTarget(
+                    endpoint=base_endpoint,
+                    api_key=settings.azure_openai_api_key,
+                )
             
             # Create attack adversarial config for RedTeaming attack
             from pyrit.executor.attack import AttackAdversarialConfig
