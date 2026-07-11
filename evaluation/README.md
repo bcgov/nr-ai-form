@@ -4,50 +4,286 @@ Comprehensive evaluation framework for NR AI Agentic Backend using Azure AI Eval
 
 ## Quick Start
 
+### Security Red-Teaming (Recommended)
+```bash
+cd evaluation
+uv sync
+python -m src.red_team.cli scan --use-file -a PromptSending
+```
+
 ### Quality Evaluation
 ```bash
 cd evaluation
 uv sync
 cp .env.example .env
-python -m src  # Run quality evaluators
+python -m src
 ```
+
+## What Can You Do?
 
 ### Security Red-Teaming
+
+Test your application against adversarial attacks using PyRIT:
+
 ```bash
-python -m src.red_team.cli scan  # Run security scan
+# Quick vulnerability scan (PromptSending)
+python -m src.red_team.cli scan --use-file -a PromptSending
+
+# Jailbreak-specific testing (Crescendo)
+python -m src.red_team.cli scan --use-file -a Crescendo --cases jailbreak_role_playing
+
+# Intelligent red-teaming (RedTeaming)
+python -m src.red_team.cli scan --use-file -a RedTeaming
+
+# Test single query
+python -m src.red_team.cli test-query -q "What is the application fee?"
+
+# View available test cases
+python -m src.red_team.cli list-cases
 ```
 
-## Evaluation Modes
+**Threats Tested:**
+- Jailbreak attacks (role-playing, authority manipulation, hypothetical scenarios)
+- Prompt injection (SQL, JSON, system override, subprompt)
+- Data exfiltration (PII extraction, tech stack discovery)
+- Validation bypass
 
-### 1. Quality Evaluation
-Measure AI output quality using Azure Evaluation SDK:
+### Quality Evaluation
+
+Measure AI output quality:
 - **Groundedness**: Verify facts are grounded in context
 - **Code Vulnerability**: Detect code security issues
 - **Safety**: Check for harmful content
+
+## Documentation
+
+### Security Red-Teaming Guides
+
+| Guide | Purpose |
+|-------|---------|
+| [Quick Reference](../docs/PYRIT_QUICK_REFERENCE.md) | Command reference and common workflows |
+| [Setup Guide](../docs/PYRIT_SETUP_GUIDE.md) | Complete setup and configuration |
+| [Test Cases Guide](../docs/PYRIT_TEST_CASES_GUIDE.md) | 14 security test cases explained |
+| [Attack Strategies](../docs/PYRIT_ATTACK_STRATEGIES.md) | Attack types: PromptSending, Crescendo, MultiTurn, RedTeaming |
+| [Custom Backend Guide](../docs/PYRIT_CUSTOM_BACKEND_GUIDE.md) | CustomBackendTarget implementation details |
+
+## Evaluation Modes
+
+### 1. Security Red-Teaming
+Automated adversarial testing using PyRIT framework:
+- **PromptSending**: Quick baseline with text converters (1-5 min)
+- **Crescendo**: Escalating jailbreak attacks (5-10 min)
+- **MultiTurn**: Adaptive multi-turn attacks (10-20 min)
+- **RedTeaming**: Intelligent LLM-guided attacks (20-60 min)
+
+Run with:
+```bash
+python -m src.red_team.cli scan --use-file -a <AttackType>
+```
+
+### 2. Quality Evaluation
+Measure AI output quality using Azure Evaluation SDK.
 
 Run with:
 ```bash
 python -m src
 ```
 
-### 2. Security Red-Teaming (NEW!)
-Test your application against adversarial attacks using PyRIT:
-- **Jailbreak**: Attempts to bypass safety guidelines
-- **Prompt Injection**: Tests for injection vulnerabilities
-- **Data Exfiltration**: Attempts to extract sensitive data
+## Project Structure
 
-Run with:
-```bash
-python -m src.red_team.cli scan
 ```
-
-See [PyRIT Quick Reference](.personal_docs/PYRIT_QUICK_REFERENCE.md) for commands.
+evaluation/
+├── README.md                      # This file
+├── data/
+│   └── red_team_test_cases.json  # 14 security test cases
+├── results/
+│   └── pyrit_report_*.json       # Generated security reports
+├── src/
+│   ├── red_team/
+│   │   ├── cli.py                # CLI interface
+│   │   ├── custom_backend_target.py  # Custom PyRIT target
+│   │   ├── pyrit_runner.py       # Attack orchestration
+│   │   └── orchestrator.py       # Test case management
+│   └── config.py                 # Configuration
+└── .env.example                  # Environment template
+```
 
 ## Setup
 
-1. **Install dependencies:**
-   ```bash
-   cd evaluation
+### 1. Install Dependencies
+
+```bash
+cd evaluation
+uv sync
+```
+
+### 2. Configure Environment
+
+```bash
+cp ../.env.example ../.env
+# Add BACKEND_API_URL for custom backend attacks
+```
+
+### 3. Run Your First Scan
+
+```bash
+# Basic scan
+python -m src.red_team.cli scan --use-file -a PromptSending
+
+# View detailed output
+python -m src.red_team.cli scan --use-file -a PromptSending
+```
+
+### 4. Check Reports
+
+Reports are saved to `results/pyrit_report_YYYYMMDD_HHMMSS.json`:
+```bash
+# List all reports
+ls -la results/
+
+# View latest report
+cat results/pyrit_report_*.json | python -m json.tool | head -100
+```
+
+## Common Commands
+
+### Test Single Query
+```bash
+python -m src.red_team.cli test-query -q "Your test query" -a PromptSending
+```
+
+### View Test Cases
+```bash
+python -m src.red_team.cli list-cases
+python -m src.red_team.cli list-cases -f jailbreak
+```
+
+### Run Specific Cases
+```bash
+python -m src.red_team.cli scan --use-file \
+  --cases "jailbreak_role_playing,prompt_injection_sql" \
+  -a Crescendo
+```
+
+### Save to Custom Location
+```bash
+python -m src.red_team.cli scan --use-file \
+  -a PromptSending \
+  -o /tmp/security_report.json
+```
+
+## Attack Types Explained
+
+| Attack | Description | Time | Best For |
+|--------|---|---|---|
+| **PromptSending** | Text converters on single turn | 1-5 min | Quick scan |
+| **Crescendo** | Escalating multi-turn jailbreak | 5-10 min | Jailbreak testing |
+| **MultiTurn** | Adaptive multi-turn attacks | 10-20 min | Complex scenarios |
+| **RedTeaming** | Intelligent LLM-guided attacks | 20-60 min | Comprehensive audit |
+
+See [Attack Strategies Guide](../docs/PYRIT_ATTACK_STRATEGIES.md) for detailed explanation.
+
+## Test Cases Overview
+
+14 security test cases covering:
+- **Jailbreak**: 5 cases (role-playing, authority, hypothetical, etc.)
+- **Prompt Injection**: 6 cases (SQL, JSON, system override, etc.)
+- **Data Exfiltration**: 2 cases (PII, tech stack discovery)
+- **Baseline**: 1 legitimate query for comparison
+
+See [Test Cases Guide](../docs/PYRIT_TEST_CASES_GUIDE.md) for all 14 cases.
+
+## Integration with Backend
+
+### Custom Backend API
+
+The framework automatically detects and attacks your custom backend API:
+
+```bash
+# Set in environment
+export BACKEND_API_URL=https://your-api.com/invoke
+
+# Attacks are automatically routed to your backend
+python -m src.red_team.cli scan --use-file -a PromptSending
+```
+
+Your backend receives requests like:
+```json
+{
+  "query": "Attack prompt here",
+  "session_id": "uuid",
+  "step_number": "2"
+}
+```
+
+See [Custom Backend Guide](../docs/PYRIT_CUSTOM_BACKEND_GUIDE.md) for implementation details.
+
+## Reports
+
+After running scans, reports are saved as JSON with:
+- Attack type and configuration
+- Test case queries
+- Actual prompts sent to backend
+- Responses received from backend
+- Execution metadata (turns, outcomes, timestamps)
+- Error information (if any)
+
+Example:
+```bash
+results/pyrit_report_20260710_233315.json
+```
+
+Reports contain full turn-by-turn attack transcripts for analysis and remediation.
+
+## Troubleshooting
+
+### Backend Connection Issues
+```bash
+# Test backend connectivity
+curl -X POST https://your-api.com/invoke \
+  -H "Content-Type: application/json" \
+  -d '{"query":"test","session_id":"test","step_number":"2"}'
+```
+
+### Configuration Issues
+```bash
+# Verify environment
+python -c "from src.config import settings; print(settings.backend_api_url)"
+```
+
+### Test Single Query First
+```bash
+# Quick test to diagnose issues
+python -m src.red_team.cli test-query -q "What is the application fee?"
+```
+
+See [Setup Guide](../docs/PYRIT_SETUP_GUIDE.md) troubleshooting section for more.
+
+## Next Steps
+
+1. 📖 Read [Quick Reference](../docs/PYRIT_QUICK_REFERENCE.md) for command reference
+2. 🔍 View test cases: `python -m src.red_team.cli list-cases`
+3. ⚡ Run quick scan: `python -m src.red_team.cli scan --use-file -a PromptSending`
+4. 📊 Analyze reports in `results/` directory
+5. 🔐 Review [Test Cases Guide](../docs/PYRIT_TEST_CASES_GUIDE.md) for vulnerability details
+6. 🎯 Choose [Attack Strategy](../docs/PYRIT_ATTACK_STRATEGIES.md) for deeper testing
+
+## References
+
+- **[PyRIT GitHub](https://github.com/Azure/PyRIT)** - Official repository
+- **[PyRIT Documentation](https://microsoft.github.io/PyRIT/)** - Complete documentation
+- **[OWASP Prompt Injection](https://owasp.org/www-community/attacks/Prompt_Injection)** - Security background
+
+## Documentation Index
+
+All PyRIT documentation in `docs/`:
+- `PYRIT_QUICK_REFERENCE.md` - Commands and examples
+- `PYRIT_SETUP_GUIDE.md` - Complete setup guide
+- `PYRIT_TEST_CASES_GUIDE.md` - 14 test cases explained
+- `PYRIT_ATTACK_STRATEGIES.md` - Attack type comparison and usage
+- `PYRIT_CUSTOM_BACKEND_GUIDE.md` - Custom target implementation
+- `PYRIT_MIGRATION_GUIDE.md` - Migration from other frameworks
+- `PYRIT_SECURITY_GUIDE.md` - Security best practices
    uv sync
    ```
 
