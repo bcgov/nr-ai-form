@@ -44,13 +44,16 @@ class PyRITRunner:
             from pyrit.setup.initializers import SimpleInitializer
             
             # Set environment variables for PyRIT
-            # SimpleInitializer requires these
-            os.environ["OPENAI_CHAT_ENDPOINT"] = settings.azure_openai_endpoint
+            # SimpleInitializer requires OPENAI_CHAT_ENDPOINT, OPENAI_CHAT_KEY, and OPENAI_CHAT_MODEL
+            os.environ["OPENAI_CHAT_ENDPOINT"] = settings.azure_openai_endpoint or "https://dummy.openai.azure.com"
             os.environ["OPENAI_CHAT_MODEL"] = settings.azure_openai_deployment
-            os.environ["OPENAI_CHAT_KEY"] = settings.azure_openai_api_key
+            os.environ["OPENAI_CHAT_KEY"] = settings.azure_openai_api_key or "dummy-key"
             
-            # Also set Azure-specific ones for targets
-            os.environ["AZURE_OPENAI_ENDPOINT"] = settings.azure_openai_endpoint
+            # Also set Azure-specific ones for targets that might use them
+            if settings.azure_openai_endpoint:
+                os.environ["AZURE_OPENAI_ENDPOINT"] = settings.azure_openai_endpoint
+            if settings.azure_openai_api_key:
+                os.environ["AZURE_OPENAI_API_KEY"] = settings.azure_openai_api_key
             
             logger.info("initializing_pyrit")
             await initialize_pyrit_async(
@@ -306,7 +309,8 @@ class PyRITRunner:
                 target=objective_target,
             )
             
-            # When using custom backend, disable scoring since it won't have API access
+            # When using custom backend, create scoring config with null scorers
+            # RedTeamingAttack requires attack_scoring_config to be provided
             if backend_url and backend_url not in ["http://localhost:8000", ""]:
                 scoring_config = AttackScoringConfig(
                     objective_scorer=None,
@@ -348,6 +352,19 @@ class PyRITRunner:
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
+
+    async def run_red_team_attack(self, query: str, max_turns: int = 5) -> Dict[str, Any]:
+        """
+        Run red-teaming attack (alias for run_multi_turn_attack).
+        
+        Args:
+            query: Query to attack
+            max_turns: Maximum number of turns
+            
+        Returns:
+            Attack results with turns
+        """
+        return await self.run_multi_turn_attack(query, max_turns=max_turns)
 
     @staticmethod
     def _format_pyrit_results(pyrit_results: Any) -> Dict[str, Any]:
