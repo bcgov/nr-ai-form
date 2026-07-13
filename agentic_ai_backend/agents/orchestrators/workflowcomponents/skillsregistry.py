@@ -1,4 +1,4 @@
-"""Skill registry backed by Microsoft Agent Framework's SkillsProvider.
+"""Dispatcher prompt registry for tenant-aware orchestrator routing.
 
 The dispatcher prompt is loaded from tenant-specific Azure Blob Storage through
 request-scoped PromptSource. There is no local-file fallback in production; the
@@ -9,15 +9,14 @@ PromptSource caches orchestrator prompt blobs in memory using the tenant config
 fingerprint, container, prompt path, and filename as the cache key. The cache TTL
 is controlled by ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS, defaults to 300 seconds,
 and can be set to 0 to disable prompt caching during active prompt development.
-Static substitutions are still applied in one place before creating the Skill.
+Static substitutions are still applied in one place before dispatcher LLM calls.
 """
 
 import json
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from string import Template
-
-from agent_framework import Skill, SkillsProvider
 
 from workflowcomponents.promptsource import DEFAULT_PROMPT_SOURCE, PromptSource
 
@@ -25,6 +24,21 @@ FORM_SUPPORT_AGENT_ID = "FormSupportAgentA2A"
 CONVERSATION_AGENT_ID = "ConversationAgentA2A"
 
 _FORM_MAPPER_PATH = Path(__file__).with_name("formstepsintendmapper.json")
+
+
+@dataclass(frozen=True)
+class DispatcherSkill:
+    """Prompt metadata used by the dispatcher.
+
+    The Microsoft Agent Framework `Skill` type is abstract in newer versions.
+    The dispatcher only needs prompt text for the chat-completions system
+    message, so this local value object avoids binding routing to framework
+    internals that are not used by the workflow.
+    """
+
+    name: str
+    description: str
+    content: str
 
 
 @lru_cache(maxsize=1)
@@ -47,8 +61,8 @@ def _dispatcher_content(prompt_source: PromptSource | None = None) -> str:
     )
 
 
-def get_dispatcher_skill(prompt_source: PromptSource | None = None) -> Skill:
-    return Skill(
+def get_dispatcher_skill(prompt_source: PromptSource | None = None) -> DispatcherSkill:
+    return DispatcherSkill(
         name="dispatcher-intent",
         description=(
             "Intent classifier for the BC water permit orchestrator. Decides whether to "
@@ -57,7 +71,3 @@ def get_dispatcher_skill(prompt_source: PromptSource | None = None) -> Skill:
         ),
         content=_dispatcher_content(prompt_source),
     )
-
-
-def get_skills_provider(prompt_source: PromptSource | None = None) -> SkillsProvider:
-    return SkillsProvider(skills=[get_dispatcher_skill(prompt_source)])
