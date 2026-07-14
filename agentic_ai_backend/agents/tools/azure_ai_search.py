@@ -4,7 +4,7 @@ from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 
 from agent_framework import tool
-from utils.tenantsettings import setting_from_client_config
+from utils.tenantsettings import AZURE_SEARCH_API_KEY_ENV, AZURE_SEARCH_ENDPOINT_ENV, environment_setting, setting_from_client_config
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,8 @@ def _parse_bool(value, default: bool) -> bool:
 def azure_ai_search(query: str, client_settings: dict) -> str:
     """Retrieves information related with BC government permit application."""
     try:
-        endpoint = setting_from_client_config(client_settings, "azureSearchEndpoint", required=True)
-        key = setting_from_client_config(client_settings, "azureSearchApiKey", required=True)
+        endpoint = environment_setting(AZURE_SEARCH_ENDPOINT_ENV, required=True)
+        key = environment_setting(AZURE_SEARCH_API_KEY_ENV, required=True)
         index_name = setting_from_client_config(client_settings, "azureSearchIndexName", required=True)
 
         top_value = int(setting_from_client_config(client_settings, "azureSearchTop", default=3))

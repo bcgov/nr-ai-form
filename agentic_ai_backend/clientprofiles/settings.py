@@ -28,8 +28,6 @@ class AgentSettings(BaseModel):
     clientId: str | None = None
     configFingerprint: str | None = None
     promptPath: str | None = None
-    blobConnectionString: str | None = None
-    containerName: str | None = None
     config: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -44,10 +42,8 @@ class FormSupportAgentSettings(AgentSettings):
 
 
 class OrchestratorPromptSettings(BaseModel):
-    """Tenant-specific prompt storage for dispatcher and aggregator prompts."""
+    """Tenant-specific prompt paths for dispatcher and aggregator prompts."""
 
-    blobConnectionString: str | None = None
-    containerName: str | None = None
     dispatcherPromptPath: str | None = None
     aggregatorPromptPath: str | None = None
 
@@ -91,7 +87,6 @@ def _require_value(value: Any, path: str) -> None:
     if _is_missing(value):
         raise TenantSettingsValidationError(f"{path} is required in tenant profile.")
 
-
 def _require_agent_field(settings: AgentSettings, field_name: str, label: str) -> None:
     _require_value(getattr(settings, field_name), f"{label}.{field_name}")
 
@@ -100,9 +95,7 @@ def _require_config_field(config: BaseModel, field_name: str, label: str) -> Non
     _require_value(getattr(config, field_name), f"{label}.config.{field_name}")
 
 
-def _validate_shared_blob_settings(settings: AgentSettings, label: str) -> None:
-    _require_agent_field(settings, "blobConnectionString", label)
-    _require_agent_field(settings, "containerName", label)
+def _validate_agent_prompt_settings(settings: AgentSettings, label: str) -> None:
     _require_agent_field(settings, "promptPath", label)
 
 
@@ -110,26 +103,20 @@ def _validate_conversation(settings: ConversationAgentSettings) -> None:
     if not settings.enabled:
         return
 
-    _validate_shared_blob_settings(settings, "conversationAgent")
+    _validate_agent_prompt_settings(settings, "conversationAgent")
     mode = settings.config.conversationAgentMode or "knowledgebase"
     settings.config.conversationAgentMode = mode
 
     if mode == "llm":
         for field_name in (
-            "azureOpenaiEndpoint",
-            "azureOpenaiApiKey",
             "azureOpenaiChatDeploymentName",
             "azureOpenaiApiVersion",
-            "azureSearchEndpoint",
-            "azureSearchApiKey",
             "azureSearchIndexName",
         ):
             _require_config_field(settings.config, field_name, "conversationAgent")
         return
 
     for field_name in (
-        "azureSearchEndpoint",
-        "azureSearchApiKey",
         "azureSearchKnowledgeAgentName",
     ):
         _require_config_field(settings.config, field_name, "conversationAgent")
@@ -139,12 +126,10 @@ def _validate_form_support(settings: FormSupportAgentSettings) -> None:
     if not settings.enabled:
         return
 
-    _validate_shared_blob_settings(settings, "formSupportAgent")
+    _validate_agent_prompt_settings(settings, "formSupportAgent")
     for field_name in (
         "formDefinitionContainer",
         "stepBasedPromptContainer",
-        "azureOpenaiEndpoint",
-        "azureOpenaiApiKey",
         "azureOpenaiChatDeploymentName",
         "azureOpenaiApiVersion",
     ):
@@ -153,8 +138,6 @@ def _validate_form_support(settings: FormSupportAgentSettings) -> None:
 
 def _validate_orchestrator_prompts(settings: OrchestratorPromptSettings) -> None:
     for field_name in (
-        "blobConnectionString",
-        "containerName",
         "dispatcherPromptPath",
         "aggregatorPromptPath",
     ):
@@ -163,10 +146,8 @@ def _validate_orchestrator_prompts(settings: OrchestratorPromptSettings) -> None
 
 def _validate_orchestrator_runtime(settings: OrchestratorRuntimeSettings) -> None:
     for field_name in (
-        "azureOpenAIEndpoint",
         "azureOpenAIChatDeploymentName",
         "azureOpenAIApiVersion",
-        "azureOpenAIApiKey",
         "azureOpenAIAggregatorChatDeploymentName",
         "azureOpenAIAggregatorMaxCompletionTokens",
         "formStepNumber",
@@ -174,22 +155,17 @@ def _validate_orchestrator_runtime(settings: OrchestratorRuntimeSettings) -> Non
     ):
         _require_value(getattr(settings, field_name), f"tenantResources.config.{field_name}")
 
-
 def build_tenant_agent_settings(profile: ClientProfile) -> TenantAgentSettings:
     """Convert the flexible Cosmos profile into typed, validated runtime settings."""
-    # TODO: Resolve Key Vault secret references or managed-identity-backed resources
-    # before model validation. Cosmos should store non-secret config and secret
-    # references, not raw API keys or connection strings.
+    # Cosmos stores tenant shape and non-secret config. Deployment-owned values stay in environment.
     profile_data = profile.model_dump()
     tenant_resources = profile_data.get("tenantResources") or {}
     subagents = profile_data.get("subAgents") or []
     fingerprint = build_config_fingerprint(profile)
 
     def subagent(agent_type: str) -> dict[str, Any]:
-        raw = next((item for item in subagents if item.get("agentType") == agent_type), {})
-        # Shared blob fields are flattened because current sub-agent invoke contracts expect them there.
+        raw = dict(next((item for item in subagents if item.get("agentType") == agent_type), {}))
         return {
-            **tenant_resources,
             **raw,
             "clientId": profile.clientId,
             "configFingerprint": fingerprint,
@@ -203,8 +179,6 @@ def build_tenant_agent_settings(profile: ClientProfile) -> TenantAgentSettings:
         conversation=ConversationAgentSettings.model_validate(subagent("conversationAgent")),
         form_support=FormSupportAgentSettings.model_validate(subagent("formSupportAgent")),
         orchestrator_prompts=OrchestratorPromptSettings(
-            blobConnectionString=tenant_resources.get("blobConnectionString"),
-            containerName=tenant_resources.get("containerName"),
             dispatcherPromptPath=prompts.get("dispatcher"),
             aggregatorPromptPath=prompts.get("aggregator"),
         ),
@@ -219,13 +193,12 @@ def build_tenant_agent_settings(profile: ClientProfile) -> TenantAgentSettings:
 
 
 def validate_client_profiles(raw_profiles: list[dict[str, Any]]) -> None:
-    """Validate raw seed/profile documents using the runtime tenant settings rules."""
+    """Validate seed/profile document structure without runtime environment values."""
     errors: list[str] = []
     for index, raw_profile in enumerate(raw_profiles, start=1):
         client_id = raw_profile.get("clientId") or raw_profile.get("id") or f"profile #{index}"
         try:
-            profile = ClientProfile.model_validate(raw_profile)
-            build_tenant_agent_settings(profile)
+            ClientProfile.model_validate(raw_profile)
         except Exception as exc:
             errors.append(f"- {client_id}: {exc}")
 

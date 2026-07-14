@@ -7,8 +7,16 @@ HOST="0.0.0.0"
 PORT="8000"
 
 
-# ─── Cache TTL (Time To Live) Settings ───────────────────────────────────────
+# --- Cache TTL (Time To Live) Settings ---
 # How long the conversation instructions blob text is cached in memory (LLM mode only).
 # Set to 0 to disable caching so prompt changes take effect immediately.
 # Default: 300 (5 minutes)
 CONVERSATION_PROMPT_CACHE_TTL_SECONDS=300
+
+# Deployment-owned values resolved from environment, not client_settings/Cosmos.
+AZURE_OPENAI_ENDPOINT=<azure-openai-endpoint>
+AZURE_OPENAI_API_KEY=<azure-openai-api-key>
+AZURE_SEARCH_ENDPOINT=<azure-search-endpoint>
+AZURE_SEARCH_API_KEY=<azure-search-api-key>
+AZURE_BLOBSTORAGE_CONNECTIONSTRING=<azure-blob-storage-connection-string>
+AZURE_BLOBSTORAGE_CONTAINER=assets

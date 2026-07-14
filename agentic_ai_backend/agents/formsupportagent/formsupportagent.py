@@ -6,7 +6,13 @@ from dotenv import load_dotenv
 import os
 import sys
 from agents.formsupportagent.models.formsupportmodel import FormSupportAgentClientSettings
-from utils.tenantsettings import settings_cache_parts, top_level_setting_from_client
+from utils.tenantsettings import (
+    AZURE_BLOB_CONNECTION_STRING_ENV,
+    AZURE_BLOB_CONTAINER_ENV,
+    environment_setting,
+    settings_cache_parts,
+    top_level_setting_from_client,
+)
 
 load_dotenv()
 
@@ -135,8 +141,8 @@ class FormSupportAgent():
 
     def _load_common_instructions(self, client_settings: FormSupportAgentClientSettings) -> str:
         """Load shared FormSupportAgent rules from Azure Blob Storage."""
-        connection_string = top_level_setting_from_client(client_settings, "blobConnectionString", required=True)
-        container_name = top_level_setting_from_client(client_settings, "containerName", required=True)
+        connection_string = environment_setting(AZURE_BLOB_CONNECTION_STRING_ENV, required=True)
+        container_name = environment_setting(AZURE_BLOB_CONTAINER_ENV, required=True)
         blob_path = top_level_setting_from_client(client_settings, "promptPath", required=True)
         if not connection_string or not container_name or not blob_path:
             raise RuntimeError("FormSupportAgent common instruction blob config is required.")

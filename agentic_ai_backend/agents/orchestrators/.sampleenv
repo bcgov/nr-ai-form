@@ -20,17 +20,17 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=""
 
 
 
-# ─── Cache TTL (Time To Live) Settings ───────────────────────────────────────
-# All values are in seconds. The cache is time-based — it has no awareness of
+# --- Cache TTL (Time To Live) Settings ---
+# All values are in seconds. The cache is time-based - it has no awareness of
 # blob or Cosmos changes. Updates to prompts or tenant profiles will not take
 # effect until the relevant TTL expires.
 # Set any value to 0 to disable that cache layer entirely (useful during active
 # prompt development so changes take effect immediately on the next request).
 
 # Orchestrator: how long tenant profiles loaded from Cosmos DB are kept in memory.
-# Fresh tier — served from memory, no Cosmos read. Default: 300 (5 min)
+# Fresh tier - served from memory, no Cosmos read. Default: 300 (5 min)
 TENANT_PROFILE_FRESH_TTL_SECONDS=300
-# Stale tier — used if Cosmos is temporarily unavailable (outage/timeout). Default: 86400 (24 h)
+# Stale tier - used if Cosmos is temporarily unavailable (outage/timeout). Default: 86400 (24 h)
 TENANT_PROFILE_STALE_TTL_SECONDS=86400
 # Max time to wait for a Cosmos read before falling back to stale cache. Default: 0.5
 TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS=0.5
@@ -39,7 +39,7 @@ TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS=0.5
 ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS=300
 
 
-# ─── Cosmos DB Client Profiles ────────────────────────────────────────────────
+# --- Cosmos DB Client Profiles ---
 
 # Option 1: Endpoint + Key (for emulator AND non-MI Azure environments)
 AZURE_COSMOS_DB_ENDPOINT=https://localhost:8081/
@@ -53,3 +53,9 @@ AZURE_COSMOS_DB_DATABASE_NAME=AgentMemoryDB
 
 # Set to "localhost" to disable TLS verification for the Cosmos emulator and to set "true", just don't set it at all (leave it commented out / remove it)
 CSSAI_EXECUTION_ENV=localhost
+# Deployment-owned values resolved from environment, not Cosmos DB.
+# Keep tenant-specific deployment names, paths, and tuning in Cosmos.
+AZURE_OPENAI_ENDPOINT=<azure-openai-endpoint>
+AZURE_OPENAI_API_KEY=<azure-openai-api-key>
+AZURE_BLOBSTORAGE_CONNECTIONSTRING=<azure-blob-storage-connection-string>
+AZURE_BLOBSTORAGE_CONTAINER=assets

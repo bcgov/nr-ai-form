@@ -123,6 +123,11 @@ resource "azurerm_container_app" "backend" {
   }
 
   secret {
+    name  = "cosmos-db-key"
+    value = var.cosmosdb_key
+  }
+
+  secret {
     name  = "redis-password"
     value = var.redis_password
   }
@@ -202,6 +207,22 @@ resource "azurerm_container_app" "backend" {
         secret_name = "appinsights-instrumentation-key"
       }
 
+      # Cosmos DB Client Profiles
+      env {
+        name  = "AZURE_COSMOS_DB_ENDPOINT"
+        value = var.cosmosdb_endpoint
+      }
+
+      env {
+        name        = "AZURE_COSMOS_DB_KEY"
+        secret_name = "cosmos-db-key"
+      }
+
+      env {
+        name  = "AZURE_COSMOS_DB_DATABASE_NAME"
+        value = var.cosmosdb_db_name
+      }
+
       # Azure OpenAI Configuration
       env {
         name        = "AZURE_OPENAI_API_KEY"
@@ -223,16 +244,28 @@ resource "azurerm_container_app" "backend" {
         value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
-      # # Azure Search Configuration
-      # env {
-      #   name  = "AZURE_SEARCH_ENDPOINT"
-      #   value = var.azure_search_endpoint
-      # }
+      # Tenant secrets resolved from environment while building Cosmos-backed client_settings.
+      env {
+        name        = "AZURE_SEARCH_API_KEY"
+        secret_name = "azure-search-api-key"
+      }
 
-      # env {
-      #   name        = "AZURE_SEARCH_API_KEY"
-      #   secret_name = "azure-search-api-key"
-      # }
+      env {
+        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+        secret_name = "azure-blobstorage-connectionstring"
+      }
+
+      env {
+        name  = "AZURE_BLOBSTORAGE_CONTAINER"
+        value = var.azure_blobstorage_container
+      }
+      # Azure Search Configuration
+      env {
+        name  = "AZURE_SEARCH_ENDPOINT"
+        value = var.azure_search_endpoint
+      }
+
+      # AZURE_SEARCH_API_KEY is already exposed above because tenant validation needs it.
 
       # env {
       #   name  = "AZURE_SEARCH_INDEX_NAME"
@@ -460,6 +493,16 @@ resource "azurerm_container_app" "backend" {
         value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
+      # Blob secret resolved from environment for tenant prompt assets.
+      env {
+        name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+        secret_name = "azure-blobstorage-connectionstring"
+      }
+
+      env {
+        name  = "AZURE_BLOBSTORAGE_CONTAINER"
+        value = var.azure_blobstorage_container
+      }
       # Azure Search Configuration
       env {
         name  = "AZURE_SEARCH_ENDPOINT"
@@ -698,15 +741,15 @@ resource "azurerm_container_app" "backend" {
       }
 
       # Azure Search Configuration
-      # env {
-      #   name  = "AZURE_SEARCH_ENDPOINT"
-      #   value = var.azure_search_endpoint
-      # }
+      env {
+        name  = "AZURE_SEARCH_ENDPOINT"
+        value = var.azure_search_endpoint
+      }
 
-      # env {
-      #   name        = "AZURE_SEARCH_API_KEY"
-      #   secret_name = "azure-search-api-key"
-      # }
+      env {
+        name        = "AZURE_SEARCH_API_KEY"
+        secret_name = "azure-search-api-key"
+      }
 
       # env {
       #   name  = "AZURE_SEARCH_INDEX_NAME"

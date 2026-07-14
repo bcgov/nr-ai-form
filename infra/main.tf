@@ -111,10 +111,10 @@ module "container_apps" {
   container_registry_url  = var.container_registry_url
 
   # CosmosDB
-  # Original CosmosDB inputs
-    cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
-    cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
-    cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
+  cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
+  cosmosdb_key            = module.cosmos.cosmosdb_primary_key
+  cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
+  cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
   # CosmosDB (disabled for now)
   #cosmosdb_endpoint       = ""
   #cosmosdb_db_name        = ""
