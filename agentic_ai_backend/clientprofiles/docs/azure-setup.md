@@ -126,7 +126,7 @@ POST /tenants/{client_id}/invoke
 WS   /ws
 ```
 
-The orchestrator resolves `TenantConfig` at the HTTP/WebSocket boundary. The workflow receives `TenantAgentSettings`, not the raw Cosmos document. Sub-agent settings are converted to dictionaries only at the final A2A request boundary because the current sub-agent invoke contracts are JSON payloads. Deployment-owned values such as OpenAI/Search API keys, OpenAI endpoint, blob connection string, and blob container name are read from service environment variables and are not included in the forwarded `client_settings` payload.
+The orchestrator resolves `TenantConfig` at the HTTP/WebSocket boundary. The workflow receives `TenantAgentSettings`, not the raw Cosmos document. Sub-agent settings are converted to dictionaries only at the final A2A request boundary because the current sub-agent invoke contracts are JSON payloads.
 
 Direct sub-agent invocation (`conversationagent /invoke` or `formsupportagent /invoke`) bypasses Cosmos resolution, so callers must include the full `client_settings` object in the request body. This is intended for local testing and diagnostics; production clients should call the orchestrator so tenant settings are resolved and validated centrally.
 
@@ -176,16 +176,6 @@ Tenant profiles should list exact origins, for example:
 ```
 
 Paths are ignored because browser `Origin` headers never include paths. Local development may use `http://localhost*`, which matches localhost with any port but does not match lookalike hosts such as `http://localhost.evil`. Do not use `*` in tenant profiles.
-
----
-
-## Secret Handling
-
-Do not commit real account keys, search API keys, OpenAI endpoints, storage connection strings, or blob container names in seed files. These deployment-owned values are resolved from environment variables (`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_SEARCH_API_KEY`, `AZURE_SEARCH_ENDPOINT`, `AZURE_BLOBSTORAGE_CONNECTIONSTRING`, `AZURE_BLOBSTORAGE_CONTAINER`) at runtime and are intentionally kept out of Cosmos and forwarded `client_settings`. Production should later move these environment values to Key Vault references or managed identity wherever the downstream SDK supports it. Debug logs should still avoid dumping full request payloads, but `client_settings` should no longer contain these deployment-owned secrets.
-
-### TODO: Externalize Tenant Secrets
-
-Tenant secrets and deployment-owned endpoints have been moved out of Cosmos DB and are currently resolved from deployment environment variables. Follow-up work should move those environment values to Key Vault references or managed identity wherever SDK support exists, while preserving the current fail-fast validation behavior.
 
 ---
 

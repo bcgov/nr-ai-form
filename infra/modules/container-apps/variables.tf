@@ -385,13 +385,6 @@ variable "cosmosdb_endpoint" {
   nullable    = false
 }
 
-variable "cosmosdb_key" {
-  description = "Cosmos DB account key stored as the Container App secret named cosmos-db-key."
-  type        = string
-  sensitive   = true
-  nullable    = false
-}
-
 variable "enable_system_assigned_identity" {
   description = "Enable system assigned managed identity"
   type        = bool

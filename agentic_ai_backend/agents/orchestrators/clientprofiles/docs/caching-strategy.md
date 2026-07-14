@@ -29,7 +29,7 @@ Request
 
 **What is cached:** The full `TenantConfig` object per `client_id`. This includes:
 - The `ClientProfile` document read from Cosmos DB
-- The parsed and validated `TenantAgentSettings` (tenant OpenAI deployment config, search config, prompt paths, CORS origins, etc.). Deployment-owned blob/OpenAI/Search secrets are validated from env and kept out of forwarded sub-agent `client_settings`.
+- The parsed and validated `TenantAgentSettings` (tenant OpenAI deployment config, search config, prompt paths, CORS origins, etc.)
 - The `config_fingerprint` used as a cache key downstream
 
 **Two-tier design (fresh + stale):**

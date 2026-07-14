@@ -47,7 +47,7 @@ Container name (`ClientProfiles`) is hardcoded in the factory.
 
 Before running the runtime services with `docker-compose up`, create the local `.env` files from `.sampleenv` and replace placeholder values with actual development values. For local seeding, `scripts/seed_local_emulator.py` uses the Cosmos emulator endpoint/key defaults; the `cosmos-seed` container overrides only `COSMOS_EMULATOR_ENDPOINT` and `SEED_FILE_PATH`.
 
-Also review `clientprofiles/seed/client_profiles.json` before seeding. Cosmos profiles should contain tenant config such as deployment names, prompt paths, search indexes, and knowledge agent names, but not raw API keys, OpenAI endpoints, storage connection strings, or blob container names. Set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_SEARCH_API_KEY`, `AZURE_SEARCH_ENDPOINT`, `AZURE_BLOBSTORAGE_CONNECTIONSTRING`, and `AZURE_BLOBSTORAGE_CONTAINER` in the relevant service `.env` files before running the services. The Docker `cosmos-seed` service only needs the Cosmos emulator endpoint and seed JSON. The orchestrator reads `agents/orchestrators/.env`, the conversation agent reads `agents/conversationagent/.env`, and the form support agent reads `agents/formsupportagent/.env` when those services start.
+Also review `clientprofiles/seed/client_profiles.json` before seeding. Cosmos profiles should contain tenant config such as deployment names, prompt paths, search indexes, and knowledge agent names. Set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_SEARCH_API_KEY`, `AZURE_SEARCH_ENDPOINT`, `AZURE_BLOBSTORAGE_CONNECTIONSTRING`, and `AZURE_BLOBSTORAGE_CONTAINER` in the relevant service `.env` files before running the services. The Docker `cosmos-seed` service only needs the Cosmos emulator endpoint and seed JSON. The orchestrator reads `agents/orchestrators/.env`, the conversation agent reads `agents/conversationagent/.env`, and the form support agent reads `agents/formsupportagent/.env` when those services start.
 
 Do not commit real keys, OpenAI endpoints, storage connection strings, or blob container names after replacing placeholders for local testing.
 
@@ -176,16 +176,6 @@ Tenant profiles should list exact origins, for example:
 ```
 
 Paths are ignored because browser `Origin` headers never include paths. Local development may use `http://localhost*`, which matches localhost with any port but does not match lookalike hosts such as `http://localhost.evil`. Do not use `*` in tenant profiles.
-
----
-
-## Secret Handling
-
-Do not commit real account keys, search API keys, OpenAI endpoints, storage connection strings, or blob container names in seed files. These deployment-owned values are resolved from environment variables (`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_SEARCH_API_KEY`, `AZURE_SEARCH_ENDPOINT`, `AZURE_BLOBSTORAGE_CONNECTIONSTRING`, `AZURE_BLOBSTORAGE_CONTAINER`) at runtime and are intentionally kept out of Cosmos and forwarded `client_settings`. Production should later move these environment values to Key Vault references or managed identity wherever the downstream SDK supports it. Debug logs should still avoid dumping full request payloads, but `client_settings` should no longer contain these deployment-owned secrets.
-
-### TODO: Externalize Tenant Secrets
-
-Tenant secrets and deployment-owned endpoints have been moved out of Cosmos DB and are currently resolved from deployment environment variables. Follow-up work should move those environment values to Key Vault references or managed identity wherever SDK support exists, while preserving the current fail-fast validation behavior.
 
 ---
 

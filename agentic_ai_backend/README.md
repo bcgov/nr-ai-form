@@ -497,7 +497,8 @@ Before running docker-compose, you must set up the environment configuration fil
    clientprofiles/seed/client_profiles.json
    ```
    
-   The docker-compose includes a `cosmos-seed` service that will automatically seed the Cosmos DB emulator with the client profiles defined in this file. Keep raw keys, OpenAI endpoints, storage connection strings, and blob container names out of the seed file; set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_SEARCH_API_KEY`, `AZURE_SEARCH_ENDPOINT`, `AZURE_BLOBSTORAGE_CONNECTIONSTRING`, and `AZURE_BLOBSTORAGE_CONTAINER` in the relevant service `.env` files before running Docker. The orchestrator reads `agents/orchestrators/.env`, the conversation agent reads `agents/conversationagent/.env`, and the form support agent reads `agents/formsupportagent/.env`; `cosmos-seed` only needs the Cosmos emulator endpoint and seed JSON. Update only non-secret placeholders in the seed file, such as deployment names, prompt paths, search indexes, and knowledge agent names.
+  
+The docker-compose includes a `cosmos-seed` service that will automatically seed the Cosmos DB emulator with the client profiles defined in this file. Update the placeholder values
 
 ### Environment Variables
 
@@ -536,8 +537,6 @@ AZURE_SEARCH_API_KEY="..."
 AZURE_BLOBSTORAGE_CONNECTIONSTRING="..."
 AZURE_BLOBSTORAGE_CONTAINER="..."
 ```
-
-Deployment names, API versions, form step defaults, search indexes, prompt paths, and knowledge agent names are tenant config in Cosmos DB / `client_settings`. OpenAI/Search endpoints, API keys, blob connection string, and blob container name are deployment environment values.
 
 See complete documentation regarding Usage, Deployment and more in the project documentation.
 
