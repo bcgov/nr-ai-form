@@ -43,7 +43,7 @@ ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS=300
 
 # Option 1: Endpoint + Key (for emulator AND non-MI Azure environments)
 AZURE_COSMOS_DB_ENDPOINT=https://localhost:8081/
-AZURE_COSMOS_DB_KEY=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
+AZURE_COSMOS_DB_KEY=
 
 # Option 2: Managed Identity (Azure-hosted dev, test, and production - just set endpoint, no key needed)
 # AZURE_COSMOS_DB_ENDPOINT=https://your-cosmos-account.documents.azure.com:443/
