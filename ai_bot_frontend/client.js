@@ -256,19 +256,18 @@ function getScrollStorageKey(threadId) {
     return `${CHAT_SCROLL_STORAGE_PREFIX}:${threadId}`;
 }
 
-function loadChatHistory(threadId) {
+async function loadChatHistory(threadId) {
     try {
-        const raw = localStorage.getItem(getHistoryStorageKey(threadId));
-        const parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed : [];
+        const data = await getConversationHistory();
+        return Array.isArray(data) ? data : [];
     } catch {
         return [];
     }
 }
 
-function appendChatHistory(threadId, role, text) {
+async function appendChatHistory(threadId, role, text) {
     try {
-        const history = loadChatHistory(threadId);
+        const history = await loadChatHistory(threadId);
         history.push({ role, text });
         localStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
     } catch (error) {
