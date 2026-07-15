@@ -1,5 +1,6 @@
 """Helpers for request-scoped orchestrator runtime settings."""
 
+import os
 from typing import Any
 
 from clientprofiles import OrchestratorRuntimeSettings
@@ -37,8 +38,8 @@ def openai_common_settings(
 ) -> tuple[str | None, str | None, str | None, str | None]:
     """Return api_key, endpoint, deployment, and api_version for orchestrator LLM calls."""
     return (
-        runtime_value(settings, "azureOpenAIApiKey"),
-        runtime_value(settings, "azureOpenAIEndpoint"),
+        os.getenv("AZURE_OPENAI_API_KEY"),
+        os.getenv("AZURE_OPENAI_ENDPOINT"),
         runtime_value(settings, "azureOpenAIChatDeploymentName"),
         runtime_value(settings, "azureOpenAIApiVersion"),
     )

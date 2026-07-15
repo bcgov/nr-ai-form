@@ -40,6 +40,13 @@ from conversationconstants import (
     SUPPORTED_CONVERSATION_AGENT_MODES,
 )
 from utils.tenantsettings import (
+    AZURE_BLOB_CONNECTION_STRING_ENV,
+    AZURE_BLOB_CONTAINER_ENV,
+    AZURE_OPENAI_API_KEY_ENV,
+    AZURE_OPENAI_ENDPOINT_ENV,
+    AZURE_SEARCH_API_KEY_ENV,
+    AZURE_SEARCH_ENDPOINT_ENV,
+    environment_setting,
     setting_from_client_config,
     settings_cache_parts,
     top_level_setting_from_client,
@@ -142,8 +149,8 @@ class ConversationAgent:
         return await self._run_knowledgebase(userquery, session, thread, cfg, client_settings)
 
     async def _run_llmlogic(self, userquery, cfg, client_settings: ConversationAgentClientSettings):
-        endpoint = setting_from_client_config(client_settings, "azureOpenaiEndpoint", required=True)
-        api_key = setting_from_client_config(client_settings, "azureOpenaiApiKey", required=True)
+        endpoint = environment_setting(AZURE_OPENAI_ENDPOINT_ENV, required=True)
+        api_key = environment_setting(AZURE_OPENAI_API_KEY_ENV, required=True)
         deployment_name = setting_from_client_config(client_settings, "azureOpenaiChatDeploymentName", required=True)
         api_version = setting_from_client_config(client_settings, "azureOpenaiApiVersion", required=True)
         max_tokens = cfg.get("agentMaxTokens", DEFAULT_AGENT_MAX_TOKENS)
@@ -172,8 +179,8 @@ class ConversationAgent:
         return result.text
 
     async def _run_knowledgebase(self, userquery, session, thread, cfg, client_settings: ConversationAgentClientSettings):
-        search_endpoint = setting_from_client_config(client_settings, "azureSearchEndpoint", required=True)
-        search_api_key = setting_from_client_config(client_settings, "azureSearchApiKey", required=True)
+        search_endpoint = environment_setting(AZURE_SEARCH_ENDPOINT_ENV, required=True)
+        search_api_key = environment_setting(AZURE_SEARCH_API_KEY_ENV, required=True)
         knowledge_base_name = setting_from_client_config(client_settings, "azureSearchKnowledgeAgentName", required=True)
         kb_api_version = setting_from_client_config(client_settings, "azureSearchKnowledgeAgentApiVersion", default=DEFAULT_KB_API_VERSION)
         max_output_size = int(setting_from_client_config(client_settings, "azureSearchKnowledgeAgentMaxOutputSize", default=DEFAULT_KB_MAX_OUTPUT_SIZE))
@@ -222,8 +229,8 @@ class ConversationAgent:
 
     def _load_instructions(self, client_settings: ConversationAgentClientSettings) -> str:
         """Load agent instructions from Azure Blob Storage using tenant config."""
-        blob_conn_str = top_level_setting_from_client(client_settings, "blobConnectionString", required=True)
-        container_name = top_level_setting_from_client(client_settings, "containerName", required=True)
+        blob_conn_str = environment_setting(AZURE_BLOB_CONNECTION_STRING_ENV, required=True)
+        container_name = environment_setting(AZURE_BLOB_CONTAINER_ENV, required=True)
         prompt_path = top_level_setting_from_client(client_settings, "promptPath", required=True)
         if not blob_conn_str or not container_name or not prompt_path:
             raise RuntimeError("ConversationAgent instruction blob config is required.")

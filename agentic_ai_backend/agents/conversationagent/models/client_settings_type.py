@@ -10,8 +10,6 @@ class ConversationAgentConfig(TypedDict, total=False):
     conversationAgentMode: Literal["knowledgebase", "llm"]
 
     # Azure AI Search / Knowledge Base
-    azureSearchEndpoint: str
-    azureSearchApiKey: str
     azureSearchIndexName: str
     azureSearchKnowledgeAgentName: str
     azureSearchKnowledgeAgentApiVersion: str
@@ -35,8 +33,6 @@ class ConversationAgentConfig(TypedDict, total=False):
     azureSearchQueryLanguage: str
 
     # LLM mode settings
-    azureOpenaiEndpoint: str
-    azureOpenaiApiKey: str
     azureOpenaiChatDeploymentName: str
     azureOpenaiApiVersion: str
     agentMaxTokens: int
@@ -51,6 +47,4 @@ class ConversationAgentClientSettings(TypedDict):
     clientId: str
     configFingerprint: str
     promptPath: str
-    blobConnectionString: str
-    containerName: str
     config: ConversationAgentConfig

@@ -101,16 +101,12 @@ LLM mode example with the full supported config shape:
   "session_id": "optional-session-id",
   "client_settings": {
     "configFingerprint": "<tenant-config-fingerprint>",
-    "blobConnectionString": "<storage-connection-string-or-secret-reference>",
-    "containerName": "assets",
     "clientId": "11111111-1111-4111-8111-111111111111",
     "agentType": "conversationAgent",
     "enabled": true,
     "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
     "config": {
       "conversationAgentMode": "llm",
-      "azureSearchEndpoint": "<azure-ai-search-endpoint>",
-      "azureSearchApiKey": "<azure-ai-search-api-key>",
       "azureSearchIndexName": "<azure-ai-search-index-name>",
       "azureSearchKnowledgeAgentName": "<knowledge-agent-name>",
       "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
@@ -132,8 +128,6 @@ LLM mode example with the full supported config shape:
       "azureSearchQueryLanguage": "en-US",
       "agentMaxTokens": 2500,
       "agentTemperature": 0.1,
-      "azureOpenaiEndpoint": "<azure-openai-endpoint>",
-      "azureOpenaiApiKey": "<azure-openai-api-key>",
       "azureOpenaiChatDeploymentName": "gpt-5.1",
       "azureOpenaiApiVersion": "2024-10-21"
     }
@@ -141,9 +135,9 @@ LLM mode example with the full supported config shape:
 }
 ```
 
-For `conversationAgentMode: "llm"`, `azureOpenaiEndpoint`, `azureOpenaiApiKey`, `azureOpenaiChatDeploymentName`, `azureOpenaiApiVersion`, `azureSearchEndpoint`, `azureSearchApiKey`, and `azureSearchIndexName` are required. The Azure AI Search query settings are used by the `azure_ai_search` tool and defaulted by code when omitted.
+For `conversationAgentMode: "llm"`, `azureOpenaiChatDeploymentName`, `azureOpenaiApiVersion`, and `azureSearchIndexName` are required in `client_settings`. `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_SEARCH_ENDPOINT`, and `AZURE_SEARCH_API_KEY` are required in the service environment. The Azure AI Search query settings are used by the `azure_ai_search` tool and defaulted by code when omitted.
 
-For `conversationAgentMode: "knowledgebase"`, `azureSearchEndpoint`, `azureSearchApiKey`, and `azureSearchKnowledgeAgentName` are required by validation. The Knowledge Base tuning fields are supported and defaulted by code when omitted. Empty optional values are treated as missing and fall back to defaults; required values must not be blank.
+For `conversationAgentMode: "knowledgebase"`, `azureSearchKnowledgeAgentName` is required in `client_settings`. `AZURE_SEARCH_ENDPOINT` and `AZURE_SEARCH_API_KEY` are required in the service environment. The Knowledge Base tuning fields are supported and defaulted by code when omitted. Empty optional values are treated as missing and fall back to defaults; required values must not be blank.
 
 ## Project Structure
 
@@ -236,5 +230,3 @@ To add additional tools to the agent:
 1. Create a new tool in the `tools` directory
 2. Import the tool in `conversationagent.py`
 3. Add it to the `tools` parameter in the agent initialization
-
-

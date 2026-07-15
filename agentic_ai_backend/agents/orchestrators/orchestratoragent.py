@@ -4,6 +4,7 @@ This version uses A2A to communicate with remote agents instead of direct import
 """
 import ast
 import logging
+import os
 from agent_framework import WorkflowBuilder
 from agent_framework._workflows._message_utils import normalize_messages_input
 from typing import Any, Union, Optional
@@ -165,8 +166,8 @@ async def orchestrate_a2a(query: str,
 
     orchestrator_prompts = tenant_settings.orchestrator_prompts
     prompt_source = PromptSource(
-        connection_string=orchestrator_prompts.blobConnectionString,
-        container_name=orchestrator_prompts.containerName,
+        connection_string=os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING"),
+        container_name=os.getenv("AZURE_BLOBSTORAGE_CONTAINER"),
         prompt_directories=orchestrator_prompts.prompt_directories,
         cache_namespace=tenant_settings.config_fingerprint,
     )

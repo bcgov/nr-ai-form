@@ -99,8 +99,6 @@ To run the agent as a background service for other agents to call:
       "step_number": "step2-Eligibility",
       "client_settings": {
         "configFingerprint": "<tenant-config-fingerprint>",
-        "blobConnectionString": "<storage-connection-string-or-secret-reference>",
-        "containerName": "assets",
         "clientId": "11111111-1111-4111-8111-111111111111",
         "agentType": "formSupportAgent",
         "enabled": true,
@@ -108,8 +106,6 @@ To run the agent as a background service for other agents to call:
         "config": {
           "formDefinitionContainer": "tenants/water/formdefinitions",
           "stepBasedPromptContainer": "tenants/water/prompttemplates",
-          "azureOpenaiEndpoint": "<azure-openai-endpoint>",
-          "azureOpenaiApiKey": "<azure-openai-api-key>",
           "azureOpenaiChatDeploymentName": "gpt-5.1",
           "azureOpenaiApiVersion": "2024-10-21"
         }

@@ -101,6 +101,9 @@ jobs:
           AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          # Azure Blob Storage Configuration
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER || '' }}
           # Application Insights Configuration
           APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
       run: |
@@ -170,6 +173,9 @@ jobs:
           AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
           AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
           AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          # Azure Blob Storage Configuration
+          AZURE_BLOBSTORAGE_CONNECTIONSTRING: ${{ secrets.AZURE_BLOBSTORAGE_CONNECTIONSTRING }}
+          AZURE_BLOBSTORAGE_CONTAINER: ${{ vars.AZURE_BLOBSTORAGE_CONTAINER || '' }}
       run: |
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false
