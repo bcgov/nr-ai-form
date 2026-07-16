@@ -45,7 +45,7 @@ Container name (`ClientProfiles`) is hardcoded in the factory.
 
 ## Local Development (Emulator)
 
-Before running the runtime services with `docker-compose up`, create the local `.env` files from `.sampleenv` and replace placeholder values with actual development values. For local seeding, `scripts/seed_local_emulator.py` uses the Cosmos emulator endpoint/key defaults; the `cosmos-seed` container overrides only `COSMOS_EMULATOR_ENDPOINT` and `SEED_FILE_PATH`.
+Before running the runtime services with `docker-compose up`, create the local `.env` files from `.sampleenv` and replace placeholder values with actual development values. For local seeding, `clientprofiles/scripts/seed_local_emulator.py` uses the Cosmos emulator endpoint/key defaults; the `cosmos-seed` container overrides only `COSMOS_EMULATOR_ENDPOINT` and `SEED_FILE_PATH`.
 
 Also review `clientprofiles/seed/client_profiles.json` before seeding. Cosmos profiles should contain tenant config such as deployment names, prompt paths, search indexes, and knowledge agent names, but not raw API keys, OpenAI endpoints, storage connection strings, or blob container names. Set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_SEARCH_API_KEY`, `AZURE_SEARCH_ENDPOINT`, `AZURE_BLOBSTORAGE_CONNECTIONSTRING`, and `AZURE_BLOBSTORAGE_CONTAINER` in the relevant service `.env` files before running the services. The Docker `cosmos-seed` service only needs the Cosmos emulator endpoint and seed JSON. The orchestrator reads `agents/orchestrators/.env`, the conversation agent reads `agents/conversationagent/.env`, and the form support agent reads `agents/formsupportagent/.env` when those services start.
 
@@ -58,11 +58,9 @@ Do not commit real keys, OpenAI endpoints, storage connection strings, or blob c
 docker-compose up azure-cosmos-emulator -d
 
 # 2. Seed data (or rely on cosmos-seed container)
-cd agentic_ai_backend/agents/orchestrators
-.venv/Scripts/python scripts/seed_local_emulator.py
+cd agentic_ai_backend
+python clientprofiles/scripts/seed_local_emulator.py
 
-# 3. Test
-.venv/Scripts/python scripts/test_resolve.py
 ```
 
 `.env` for local venv:
@@ -79,7 +77,7 @@ CSSAI_EXECUTION_ENV=localhost
 docker-compose up
 ```
 
-The `cosmos-seed` service waits for the emulator to become ready, then seeds automatically. The orchestrator container's environment is already configured in `docker-compose.yaml` to point at `https://azure-cosmos-emulator:8081`.
+The `cosmos-seed` service waits for the emulator to become ready, then seeds automatically using `clientprofiles/scripts/Dockerfile.cosmos-seed`. The runtime containers use `docker-compose.yaml` to point at `https://azure-cosmos-emulator:8081`.
 
 ---
 
@@ -183,8 +181,8 @@ Paths are ignored because browser `Origin` headers never include paths. Local de
 
 | Script | Target | When to use |
 |--------|--------|-------------|
-| `scripts/seed_local_emulator.py` | Local emulator | After `docker-compose up` |
-| `scripts/seed_azure_cosmos.py` | Real Azure account | One-time setup (needs endpoint + key) |
+| `clientprofiles/scripts/seed_local_emulator.py` | Local emulator | After `docker-compose up` |
+| `clientprofiles/scripts/seed_azure_cosmos.py` | Real Azure account | One-time setup (needs endpoint + key) |
 
 Seed data lives in `clientprofiles/seed/client_profiles.json`.
 

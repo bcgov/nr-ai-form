@@ -1,4 +1,3 @@
-
 """Seed the local Cosmos DB emulator with client profile data.
 
 Prerequisites:
@@ -6,9 +5,8 @@ Prerequisites:
     2. Wait for it to be ready
     3. Install SDK: pip install azure-cosmos
 
-Run from the orchestrators directory:
-    cd agentic_ai_backend/agents/orchestrators
-    .venv\\Scripts\\python scripts/seed_local_emulator.py
+Run from agentic_ai_backend:
+    python clientprofiles/scripts/seed_local_emulator.py
 """
 
 import json
@@ -16,23 +14,22 @@ import os
 import sys
 import uuid
 
+BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if BACKEND_ROOT not in sys.path:
+    sys.path.insert(0, BACKEND_ROOT)
+
 from azure.cosmos import CosmosClient, PartitionKey
 from clientprofiles import TenantSettingsValidationError, validate_client_profiles
 
 
-BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-if BACKEND_ROOT not in sys.path:
-    sys.path.insert(0, BACKEND_ROOT)
-
-
 ENDPOINT = os.getenv("COSMOS_EMULATOR_ENDPOINT", "https://localhost:8081")
-# The default primary key for the Azure Cosmos DB Emulator is a well-known key used across all local installations.
+# The Azure Cosmos DB Emulator primary key is a well-known local development key.
 KEY = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
 DATABASE_NAME = "AgentMemoryDB"
 CONTAINER_NAME = "ClientProfiles"
 SEED_FILE = os.getenv(
     "SEED_FILE_PATH",
-    os.path.join(os.path.dirname(__file__), "..", "..", "..", "clientprofiles", "seed", "client_profiles.json"),
+    os.path.join(os.path.dirname(__file__), "..", "seed", "client_profiles.json"),
 )
 
 
