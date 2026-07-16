@@ -23,8 +23,6 @@ class ConversationAgentConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     conversationAgentMode: Literal["knowledgebase", "llm"] | None = None
-    azureSearchEndpoint: str | None = None
-    azureSearchApiKey: str | None = None
     azureSearchIndexName: str | None = None
     azureSearchKnowledgeAgentName: str | None = None
     azureSearchKnowledgeAgentApiVersion: str | None = None
@@ -44,8 +42,6 @@ class ConversationAgentConfig(BaseModel):
     azureSearchQueryAnswer: str | None = None
     azureSearchQueryAnswerCount: int | None = None
     azureSearchQueryLanguage: str | None = None
-    azureOpenaiEndpoint: str | None = None
-    azureOpenaiApiKey: str | None = None
     azureOpenaiChatDeploymentName: str | None = None
     azureOpenaiApiVersion: str | None = None
     agentMaxTokens: int | None = None
@@ -59,8 +55,6 @@ class FormSupportAgentConfig(BaseModel):
 
     formDefinitionContainer: str | None = None
     stepBasedPromptContainer: str | None = None
-    azureOpenaiEndpoint: str | None = None
-    azureOpenaiApiKey: str | None = None
     azureOpenaiChatDeploymentName: str | None = None
     azureOpenaiApiVersion: str | None = None
 
@@ -70,10 +64,8 @@ class OrchestratorRuntimeSettings(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    azureOpenAIEndpoint: str | None = None
     azureOpenAIChatDeploymentName: str | None = None
     azureOpenAIApiVersion: str | None = None
-    azureOpenAIApiKey: str | None = None
     azureOpenAIAggregatorChatDeploymentName: str | None = None
     azureOpenAIAggregatorMaxCompletionTokens: int | None = None
     formStepNumber: str | None = None
@@ -104,15 +96,9 @@ class OrchestratorPrompts(BaseModel):
 class TenantResources(BaseModel):
     """Shared storage and orchestrator-level prompt configuration for a tenant.
 
-    Contains the Azure Blob connection details and prompt paths needed by the
-    orchestrator to load tenant-specific dispatcher and aggregator prompts.
+    Contains prompt paths needed by the orchestrator to load tenant-specific dispatcher and aggregator prompts.
     """
 
-    # TODO: Replace raw secret fields with Key Vault references or managed identity
-    # where supported. Cosmos tenant profiles should store references/non-secret
-    # config, and the tenant settings boundary should resolve secrets before use.
-    blobConnectionString: str
-    containerName: str
     prompts: OrchestratorPrompts
     config: OrchestratorRuntimeSettings = Field(default_factory=OrchestratorRuntimeSettings)
 

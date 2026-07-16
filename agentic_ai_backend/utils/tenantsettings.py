@@ -1,6 +1,15 @@
 """Helpers for resolving tenant-aware settings from request payloads."""
 
+import os
 from typing import Any, Mapping
+
+
+AZURE_OPENAI_ENDPOINT_ENV = "AZURE_OPENAI_ENDPOINT"
+AZURE_OPENAI_API_KEY_ENV = "AZURE_OPENAI_API_KEY"
+AZURE_SEARCH_API_KEY_ENV = "AZURE_SEARCH_API_KEY"
+AZURE_SEARCH_ENDPOINT_ENV = "AZURE_SEARCH_ENDPOINT"
+AZURE_BLOB_CONNECTION_STRING_ENV = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
+AZURE_BLOB_CONTAINER_ENV = "AZURE_BLOBSTORAGE_CONTAINER"
 
 
 class MissingClientSettingError(ValueError):
@@ -11,6 +20,20 @@ def is_missing(value: Any) -> bool:
     return value in (None, "")
 
 
+def environment_setting(
+    env_name: str,
+    *,
+    required: bool = False,
+) -> Any:
+    """Read a deployment-owned setting from environment only."""
+    value = os.getenv(env_name)
+    if is_missing(value):
+        if required:
+            raise MissingClientSettingError(f"{env_name} is required in environment.")
+        return None
+    return value
+
+
 def setting_from_client_config(
     client_settings: Mapping[str, Any] | None,
     config_key: str,
@@ -18,7 +41,7 @@ def setting_from_client_config(
     default: Any = None,
     required: bool = False,
 ) -> Any:
-    """Read a config value from tenant client_settings only."""
+    """Read a tenant config value from client_settings only."""
     if client_settings is None:
         if required:
             raise MissingClientSettingError(f"client_settings.config.{config_key} is required.")

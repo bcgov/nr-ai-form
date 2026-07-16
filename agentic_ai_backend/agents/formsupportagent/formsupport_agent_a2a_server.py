@@ -30,9 +30,13 @@ from services.formdefinitionservice import FormDefinitionService
 from services.prompttemplateservice import PromptTemplateService
 from utils.blobservice import BlobService
 from utils.tenantsettings import (
+    AZURE_BLOB_CONNECTION_STRING_ENV,
+    AZURE_BLOB_CONTAINER_ENV,
+    AZURE_OPENAI_API_KEY_ENV,
+    AZURE_OPENAI_ENDPOINT_ENV,
+    environment_setting,
     setting_from_client_config,
     settings_cache_parts,
-    top_level_setting_from_client,
 )
 
 load_dotenv()
@@ -82,16 +86,8 @@ def _evict_expired_agents() -> None:
 
 
 def _resolve_blob_settings(client_settings: FormSupportAgentClientSettings):
-    connection_string = top_level_setting_from_client(
-        client_settings,
-        "blobConnectionString",
-        required=True,
-    )
-    container_name = top_level_setting_from_client(
-        client_settings,
-        "containerName",
-        required=True,
-    )
+    connection_string = environment_setting(AZURE_BLOB_CONNECTION_STRING_ENV, required=True)
+    container_name = environment_setting(AZURE_BLOB_CONTAINER_ENV, required=True)
     return connection_string, container_name
 
 
@@ -114,8 +110,8 @@ def get_agent(step_identifier: Union[int, str], client_settings: FormSupportAgen
     if _AGENT_CACHE_TTL_SECONDS > 0 and cached and now < cached.expires_at:
         return cached.agent
     try:
-        endpoint = setting_from_client_config(client_settings, "azureOpenaiEndpoint", required=True)
-        api_key = setting_from_client_config(client_settings, "azureOpenaiApiKey", required=True)
+        endpoint = environment_setting(AZURE_OPENAI_ENDPOINT_ENV, required=True)
+        api_key = environment_setting(AZURE_OPENAI_API_KEY_ENV, required=True)
         deployment_name = setting_from_client_config(client_settings, "azureOpenaiChatDeploymentName", required=True)
         api_version = setting_from_client_config(client_settings, "azureOpenaiApiVersion", required=True)
 

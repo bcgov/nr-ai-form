@@ -10,8 +10,6 @@ class FormSupportAgentConfig(TypedDict, total=False):
 
     formDefinitionContainer: str
     stepBasedPromptContainer: str
-    azureOpenaiEndpoint: str
-    azureOpenaiApiKey: str
     azureOpenaiChatDeploymentName: str
     azureOpenaiApiVersion: str
 
@@ -23,8 +21,6 @@ class FormSupportAgentClientSettings(TypedDict):
     clientId: str
     configFingerprint: str
     promptPath: str
-    blobConnectionString: str
-    containerName: str
     config: FormSupportAgentConfig
 
 
