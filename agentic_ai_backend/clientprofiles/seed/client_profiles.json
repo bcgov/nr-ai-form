@@ -3,8 +3,9 @@
     "clientId": "11111111-1111-4111-8111-111111111111",
     "clientName": "Water Permit App",
     "corsOrigins": [
-      "https://test.j200.gov.bc.ca/*",
-      "http://localhost*"
+      "http://localhost",
+      "https://train.j200.gov.bc.ca",
+      "https://test.j200.gov.bc.ca"
     ],
     "tenantResources": {
       "prompts": {
@@ -12,9 +13,9 @@
         "aggregator": "tenants/water/agentprompts/aggregrator"
       },
       "config": {
-        "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
-        "azureOpenAIApiVersion": "<azure-openai-api-version>",
-        "azureOpenAIAggregatorChatDeploymentName": "<azure-openai-aggregator-chat-deployment-name>",
+        "azureOpenAIChatDeploymentName": "gpt-5.1",
+        "azureOpenAIApiVersion": "2024-10-21",
+        "azureOpenAIAggregatorChatDeploymentName": "gpt-5.1",
         "azureOpenAIAggregatorMaxCompletionTokens": 2500,
         "formStepNumber": 2,
         "a2aClientTimeoutSeconds": 120
@@ -26,7 +27,7 @@
         "enabled": true,
         "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
         "config": {
-          "azureSearchKnowledgeAgentName": "<azure-search-knowledge-agent-name>",
+          "azureSearchKnowledgeAgentName": "knowledgebase-bc-waterpermit-dev",
           "agentMaxTokens": 2500,
           "agentTemperature": 0.1,
           "azureSearchIndexName": "rag-bc-waterpermit-dev",
@@ -42,13 +43,13 @@
           "azureSearchEnableTrimming": false,
           "azureSearchIncludeTotalCount": true,
           "azureSearchQueryType": "semantic",
-          "azureSearchSemanticConfiguration": "",
+          "azureSearchSemanticConfiguration": "rag-bc-waterpermit-dev-semantic-configuration",
           "azureSearchQueryCaption": "extractive",
           "azureSearchQueryAnswer": "extractive",
           "azureSearchQueryAnswerCount": 3,
           "azureSearchQueryLanguage": "en-US",
           "conversationAgentMode": "llm",
-          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiChatDeploymentName": "gpt-5.1",
           "azureOpenaiApiVersion": "2024-10-21"
         }
       },
@@ -59,7 +60,7 @@
         "config": {
           "formDefinitionContainer": "tenants/water/formdefinitions",
           "stepBasedPromptContainer": "tenants/water/prompttemplates",
-          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiChatDeploymentName": "gpt-5.1",
           "azureOpenaiApiVersion": "2024-10-21"
         }
       }
