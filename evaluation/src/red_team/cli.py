@@ -146,6 +146,15 @@ def scan(
         report_path = _save_pyrit_report(runner, output)
         click.echo(f"Report saved: {report_path}")
         
+        # Save detailed results with escalation steps
+        if results:
+            detailed_path = Path(report_path).parent / Path(report_path).stem.replace("pyrit_report", "crescendo_details") + ".json"
+            try:
+                runner.save_detailed_results(results, str(detailed_path))
+                click.echo(f"Detailed results saved: {detailed_path}")
+            except Exception as e:
+                click.echo(f"Warning: Could not save detailed results: {e}")
+        
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         sys.exit(1)

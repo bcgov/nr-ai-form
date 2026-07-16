@@ -28,6 +28,24 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Azure OpenAI Adversarial Endpoint Configuration (for attack generation)
+    adversarial_endpoint: str = Field(
+        default="",
+        validation_alias="ADVERSARIAL_ENDPOINT",
+    )
+    adversarial_api_key: str = Field(
+        default="",
+        validation_alias="ADVERSARIAL_API_KEY",
+    )
+    adversarial_deployment: str = Field(
+        default="gpt-4",
+        validation_alias="ADVERSARIAL_DEPLOYMENT",
+    )
+    adversarial_api_version: str = Field(
+        default="2024-10-21",
+        validation_alias="ADVERSARIAL_API_VERSION",
+    )
+
     # Backend API Configuration
     backend_api_url: str = Field(
         default="http://localhost:8000",
