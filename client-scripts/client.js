@@ -12,9 +12,9 @@ import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestio
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
 // /**
-//  * Allow testing of alternative javascript 
+//  * Allow testing of alternative javascript
 //  * if the browser's local storage has an item 'clientInstance': 'ms'
-//  * javascript in remote file (see `url`) will be loaded instead  
+//  * javascript in remote file (see `url`) will be loaded instead
 //  */
 // let clientInstance = localStorage.getItem('clientInstance');
 // if (clientInstance === 'ms') {
@@ -59,32 +59,21 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
-const CLIENT_ID_DICT = {
-    "water_license_app": "11111111-1111-4111-8111-111111111111"
-}
+const clientId = '11111111-1111-4111-8111-111111111111';
+// TEST: const API_BACKEND_BASE_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
+// DEV : const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
+const API_BACKEND_BASE_URL = 'http://localhost:8003';
+const CONVERSATION_HISTORY_API_URL = new URL(`/tenants/${clientId}/history`, API_BACKEND_BASE_URL).toString();
+// const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, API_BACKEND_BASE_URL).toString();
+const WEBSOCKET_BASE_URL = (() => {
+    const url = new URL('/ws', API_BACKEND_BASE_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return url.toString();
+})();
 
-//-------------------------- Services Starts ---------------------------//
-// TEST URL
-// const ORCHESTRATOR_API_URL = `https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
-
-// DEV URL
-// const ORCHESTRATOR_API_URL = `https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
-const ORCHESTRATOR_API_URL = `http://localhost:8002`;
-// Guided questions live on the same backend host as the chat/orchestrator API.
-
-// TODO: add the correct url for the guided questions API
-const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
-
-const clientId = CLIENT_ID_DICT["water_license_app"];
-
-if (!clientId) {
-  throw new Error("Missing client ID");
-}
-
-const INVOKE_URL = new URL(
-  `/tenants/${clientId}/invoke`,
-  ORCHESTRATOR_API_URL
-).toString();
+let socket = null;
+let socketOpenPromise = null;
+let requestInFlight = false;
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
@@ -99,33 +88,56 @@ let livestockPurposehtml = `<tr class="possegrid">
 
 
 
-async function invokeOrchestrator(query, step_number, session_id = null) {
-    const payload = {
-        query: query,
-        step_number: step_number,
-        session_id: session_id
-    };
+async function getConversationHistory(session_id = null) {
+    const threadId = session_id || localStorage.getItem(THREAD_ID_STORAGE_KEY);
+    if (!threadId) return [];
 
     try {
-        const response = await fetch(INVOKE_URL, {
-            method: "POST",
+        const response = await fetch(`${CONVERSATION_HISTORY_API_URL}/${encodeURIComponent(threadId)}`, {
+            method: "GET",
             headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
+                "Accept": "application/json"
+            }
         });
-// TODO: ANN CAPTURE COSMOD DB ERRORS AND PRINT
+
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
+            throw new Error(`Unable to load conversation history: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
         const data = await response.json();
-        return data;
+        return Array.isArray(data) ? data : [];
     } catch (error) {
-        console.error("Error invoking Orchestrator Agent:", error);
-        throw error;
+        console.error("Error loading conversation history", error);
+        return [];
     }
+}
+
+function getWebSocketUrl(session_id = null) {
+    const url = new URL(WEBSOCKET_BASE_URL);
+    if (session_id) {
+        url.searchParams.set('session_id', session_id);
+    }
+    return url.toString();
+}
+
+function invokeAPIWithWS(query, step_number, session_id = null) {
+    const body = {
+        client_id: clientId,
+        query,
+        step_number,
+        session_id
+    };
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        throw new Error("WebSocket not connected, cannot connect with AI services");
+    }
+    if (requestInFlight) {
+        throw new Error("A chat request is already in progress.");
+    }
+
+    requestInFlight = true;
+    socket.send(JSON.stringify(body));
 }
 //-------------------------- Services Ends ---------------------------//
 
@@ -171,8 +183,6 @@ const FormSteps = {
 const THREAD_ID_STORAGE_KEY = 'nrAiForm_threadId';
 const CHAT_HISTORY_STORAGE_PREFIX = 'nrAiForm_chatHistory';
 const CHAT_SCROLL_STORAGE_PREFIX = 'nrAiForm_chatScroll';
-const CHAT_OPEN_STORAGE_KEY = 'nrAiForm_chatOpen';
-const POPUP_INITIALIZED_STORAGE_KEY = 'nrAiForm_popupInitialized';
 
 function createFallbackThreadId() {
     const randomBytes = new Uint8Array(16);
@@ -1234,13 +1244,146 @@ function initBot() {
     saveThreadId(sessionId);
     const existingHistory = loadChatHistory(sessionId);
     if (existingHistory.length > 0) {
+        renderHistoryEntries(existingHistory, false);
+    }
+
+    initWebSocket(sessionId);
+    restoreConversationHistoryFromBackend(existingHistory.length > 0);
+
+    function renderHistoryEntries(historyEntries, persist = false) {
+        if (!Array.isArray(historyEntries) || historyEntries.length === 0) return;
         const welcome = chatMessages.querySelector('.wp-chat-welcome');
         if (welcome) welcome.remove();
-        existingHistory.forEach((entry) => {
+        historyEntries.forEach((entry) => {
             if (entry && typeof entry.role === 'string') {
-                appendMessage(entry.role, entry.text ?? '', false, false);
+                appendMessage(entry.role, entry.text ?? '', persist, false);
             }
         });
+    }
+
+    async function restoreConversationHistoryFromBackend(hasLocalHistory) {
+        if (hasLocalHistory) return;
+        const serverHistory = await getConversationHistory(sessionId);
+        if (serverHistory.length === 0 || loadChatHistory(sessionId).length > 0) return;
+        renderHistoryEntries(serverHistory, true);
+        requestAnimationFrame(restoreChatScrollPosition);
+    }
+
+    function initWebSocket(currentSessionId) {
+        if (socket) {
+            socket.onclose = null;
+            socket.onerror = null;
+            socket.onmessage = null;
+            try {
+                socket.close();
+            } catch (error) {
+                console.warn("[WebSocket] Error closing existing connection", error);
+            }
+        }
+
+        console.log("[WebSocket] Connecting to " + WEBSOCKET_BASE_URL + " with session ID:", currentSessionId);
+        socket = new WebSocket(getWebSocketUrl(currentSessionId));
+
+        socketOpenPromise = new Promise((resolve, reject) => {
+            socket.onopen = function () {
+                console.log("[WebSocket] Connection established for session:", currentSessionId);
+                resolve(socket);
+            };
+
+            socket.onerror = function () {
+                const error = new Error("WebSocket error connecting to API backend");
+                console.error("[WebSocket] Error occurred", error);
+                if (requestInFlight) {
+                    handleRequestFailure(error);
+                }
+                reject(error);
+            };
+        });
+
+        socket.onmessage = function (event) {
+            console.log(`[WebSocket] Data received:`, event.data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log('ws response: ', data);
+
+                if (data.event === "session_init") {
+                    console.log("[WebSocket] Backend assigned new session ID:", data.session_id);
+                    if (data.session_id && data.session_id !== sessionId) {
+                        migrateChatHistory(sessionId, data.session_id);
+                        migrateChatScrollPosition(sessionId, data.session_id);
+                        sessionId = data.session_id;
+                        restoredScrollTop = loadChatScrollPosition(sessionId);
+                        saveThreadId(sessionId);
+                    }
+                    return;
+                }
+
+                if (data.error) {
+                    handleRequestFailure(new Error(String(data.error)));
+                    return;
+                }
+
+                processAssistantResponse(data);
+            } catch (err) {
+                handleRequestFailure(err);
+            }
+        };
+
+        socket.onclose = function (event) {
+            console.log("[WebSocket] Connection closed", event.code, event.reason || "");
+            socketOpenPromise = null;
+            if (requestInFlight) {
+                handleRequestFailure(new Error("WebSocket connection closed before the assistant replied."));
+            }
+        };
+    }
+
+    async function ensureWebSocketConnection() {
+        if (socket && socket.readyState === WebSocket.OPEN) return socket;
+        if (socket && socket.readyState === WebSocket.CONNECTING && socketOpenPromise) {
+            return socketOpenPromise;
+        }
+        initWebSocket(sessionId);
+        return socketOpenPromise;
+    }
+
+    function handleRequestFailure(error) {
+        requestInFlight = false;
+        restorePendingGuidedQuestion();
+        showTyping(false);
+        appendMessage('system', "Sorry, I encountered an error connecting to the server.");
+        console.error(error);
+    }
+
+    function processAssistantResponse(response) {
+        requestInFlight = false;
+        applyFormSupportSuggestionsFromResponse(response);
+        const serverThreadId = extractThreadIdFromResponse(response);
+        if (serverThreadId && serverThreadId !== sessionId) {
+            migrateChatHistory(sessionId, serverThreadId);
+            migrateChatScrollPosition(sessionId, serverThreadId);
+            sessionId = serverThreadId;
+            restoredScrollTop = loadChatScrollPosition(sessionId);
+        }
+        saveThreadId(sessionId);
+        showTyping(false);
+
+        // Convert the backend/orchestrator response into the assistant message array that
+        // will be rendered in the chat, then use that same array to determine whether a
+        // clicked guided question was actually answered.
+        const messages = extractAssistantMessages(response);
+        const hasAssistantReply = hasUsableAssistantReply(messages);
+        if (pendingGuidedQuestion && hasAssistantReply) {
+            // A prompt only becomes permanent once the assistant actually answered it.
+            pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
+        }
+        if (pendingGuidedQuestion && !hasAssistantReply) {
+            // If the request completed but did not return a usable answer, treat the prompt
+            // as unanswered and show it again for the current step.
+            restorePendingGuidedQuestion();
+        }
+        // Finally render the assistant reply messages into the chat window.
+        messages.forEach((msg) => appendMessage('assistant', msg));
     }
 
     function restoreChatScrollPosition() {
@@ -1249,61 +1392,28 @@ function initBot() {
 
     requestAnimationFrame(restoreChatScrollPosition);
 
-    function openChatbot() {
-      // Opening the chat does a few UI-sync steps together:
-      // 1. show the modal,
-      // 2. hide the floating launcher button,
-      // 3. restore the last saved scroll position on the next paint,
-      // 4. refresh guided questions for the current step,
-      // 5. move keyboard focus into the input so the user can type immediately.
-      chatModal.classList.add("open");
-      chatButton.style.display = "none";
-      requestAnimationFrame(restoreChatScrollPosition);
-      refreshGuidedQuestions();
-      chatInput.focus();
-
-      // Set a flag in sessionStorage so if the page reloads, 
-      // we can restore the open state of the chat. This is cleared when the chat is closed.
-      sessionStorage.setItem(CHAT_OPEN_STORAGE_KEY, "true");
-    }
-
-    function closeChatbot() {
-      chatModal.classList.remove("open");
-      chatButton.style.display = "flex";
-      // Clear the open state flag from sessionStorage 
-      // so we don't reopen the chat on reload after it's been closed.
-      sessionStorage.removeItem(CHAT_OPEN_STORAGE_KEY);
-    }
-
     function toggleChat() {
-        const isChatOpenInStorage = sessionStorage.getItem(CHAT_OPEN_STORAGE_KEY) === 'true';
-        if (!isChatOpenInStorage) {
-            openChatbot();
+        const isOpen = chatModal.classList.contains('open');
+        if (!isOpen) {
+            // Opening the chat does a few UI-sync steps together:
+            // 1. show the modal,
+            // 2. hide the floating launcher button,
+            // 3. restore the last saved scroll position on the next paint,
+            // 4. refresh guided questions for the current step,
+            // 5. move keyboard focus into the input so the user can type immediately.
+            chatModal.classList.add('open');
+            chatButton.style.display = 'none';
+            requestAnimationFrame(restoreChatScrollPosition);
+            refreshGuidedQuestions();
+            chatInput.focus();
         } else {
-            closeChatbot();
+            chatModal.classList.remove('open');
+            chatButton.style.display = 'flex';
         }
     }
 
     chatButton.addEventListener('click', toggleChat);
     closeBtn.addEventListener('click', toggleChat);
-
-    const isChatOpenInStorage = sessionStorage.getItem(CHAT_OPEN_STORAGE_KEY) === 'true';
-
-    const isPopup = window.opener && window.opener !== window;
-    const hasPopupPreviouslyLoaded =
-        sessionStorage.getItem(POPUP_INITIALIZED_STORAGE_KEY) === "true";
-
-    if (isChatOpenInStorage && (!isPopup || (isPopup && hasPopupPreviouslyLoaded))) {
-        openChatbot();
-    }
-
-    if (isPopup && !hasPopupPreviouslyLoaded) {
-      // This is the INITIAL load of the popup. Clean inherited parent state.
-      sessionStorage.removeItem(CHAT_OPEN_STORAGE_KEY);
-
-      // Mark this popup as initialized so reloads don't hit this block again
-      sessionStorage.setItem(POPUP_INITIALIZED_STORAGE_KEY, "true");
-    }
 
     /**
      * Handles the full "guided question clicked" path.
@@ -1428,34 +1538,8 @@ function initBot() {
                 text = `Human verification form query : ${text}`;
             }
 
-            const response = await invokeOrchestrator(text, currentStep, sessionId);
-            applyFormSupportSuggestionsFromResponse(response);
-            const serverThreadId = extractThreadIdFromResponse(response);
-            if (serverThreadId && serverThreadId !== sessionId) {
-                migrateChatHistory(sessionId, serverThreadId);
-                migrateChatScrollPosition(sessionId, serverThreadId);
-                sessionId = serverThreadId;
-                restoredScrollTop = loadChatScrollPosition(sessionId);
-            }
-            saveThreadId(sessionId);
-            showTyping(false);
-
-            // Convert the backend/orchestrator response into the assistant message array that
-            // will be rendered in the chat, then use that same array to determine whether a
-            // clicked guided question was actually answered.
-            const messages = extractAssistantMessages(response);
-            const hasAssistantReply = hasUsableAssistantReply(messages);
-            if (pendingGuidedQuestion && hasAssistantReply) {
-                // A prompt only becomes permanent once the assistant actually answered it.
-                pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
-            }
-            if (pendingGuidedQuestion && !hasAssistantReply) {
-                // If the request completed but did not return a usable answer, treat the prompt
-                // as unanswered and show it again for the current step.
-                restorePendingGuidedQuestion();
-            }
-            // Finally render the assistant reply messages into the chat window.
-            messages.forEach((msg) => appendMessage('assistant', msg));
+            await ensureWebSocketConnection();
+            invokeAPIWithWS(text, currentStep, sessionId);
 
         } catch (error) {
             // Request-level failure:
