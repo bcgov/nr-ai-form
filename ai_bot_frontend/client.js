@@ -11,61 +11,73 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
-/**
- * Allow testing of alternative javascript 
- * if the browser's local storage has an item 'clientInstance': 'ms'
- * javascript in remote file (see `url`) will be loaded instead  
- */
-let clientInstance = localStorage.getItem('clientInstance');
-if (clientInstance === 'ms') {
-    var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'aot') {
-    var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'aot-ks') {
-    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'aot-aj') {
-    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
-else if (clientInstance === 'css') {
-    var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-    var script = document.createElement("script");
-    script.src = url;
-    script.type = "module";
-    document.head.appendChild(script);
-}
+// /**
+//  * Allow testing of alternative javascript
+//  * if the browser's local storage has an item 'clientInstance': 'ms'
+//  * javascript in remote file (see `url`) will be loaded instead
+//  */
+// let clientInstance = localStorage.getItem('clientInstance');
+// if (clientInstance === 'ms') {
+//     var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
+// else if (clientInstance === 'aot') {
+//     var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
+// else if (clientInstance === 'aot-ks') {
+//     var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
+// else if (clientInstance === 'aot-aj') {
+//     var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
+// else if (clientInstance === 'css') {
+//     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+//     var script = document.createElement("script");
+//     script.src = url;
+//     script.type = "module";
+//     document.head.appendChild(script);
+// }
 
-else {
+// else {
 
-    (function () {
+//     (function () {
 
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
 const clientId = '11111111-1111-4111-8111-111111111111';
-// TEST: const ORCHESTRATOR_API_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
-// DEV : const ORCHESTRATOR_API_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
-const ORCHESTRATOR_API_URL = 'http://localhost:8002';
-const INVOKE_URL = new URL(`/tenants/${clientId}/invoke`, ORCHESTRATOR_API_URL).toString();
-// const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
-const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, ORCHESTRATOR_API_URL).toString();
+// TEST: const API_BACKEND_BASE_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
+// DEV : const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
+const API_BACKEND_BASE_URL = 'http://localhost:8003';
+const CONVERSATION_HISTORY_API_URL = new URL(`/tenants/${clientId}/history`, API_BACKEND_BASE_URL).toString();
+// const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, API_BACKEND_BASE_URL).toString();
+// Derive ws/wss from the API backend URL so local http uses ws and deployed
+// https uses wss without maintaining a second host setting.
+const WEBSOCKET_BASE_URL = (() => {
+    const url = new URL('/ws', API_BACKEND_BASE_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return url.toString();
+})();
+
+let socket = null;
+let socketOpenPromise = null;
+// Keep the chat UI request/response model aligned with the backend's serialized
+// shared websocket request handling.
+let requestInFlight = false;
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
@@ -80,33 +92,58 @@ let livestockPurposehtml = `<tr class="possegrid">
 
 
 
-async function invokeOrchestrator(query, step_number, session_id = null) {
-    const payload = {
-        query: query,
-        step_number: step_number,
-        session_id: session_id
-    };
+async function getConversationHistory(session_id = null) {
+    const threadId = session_id || localStorage.getItem(THREAD_ID_STORAGE_KEY);
+    if (!threadId) return [];
 
     try {
-        const response = await fetch(INVOKE_URL, {
-            method: "POST",
+        const response = await fetch(`${CONVERSATION_HISTORY_API_URL}/${encodeURIComponent(threadId)}`, {
+            method: "GET",
             headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
+                "Accept": "application/json"
+            }
         });
-// TODO: ANN CAPTURE COSMOD DB ERRORS AND PRINT
+
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
+            throw new Error(`Unable to load conversation history: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
         const data = await response.json();
-        return data;
+        return Array.isArray(data) ? data : [];
     } catch (error) {
-        console.error("Error invoking Orchestrator Agent:", error);
-        throw error;
+        console.error("Error loading conversation history", error);
+        return [];
     }
+}
+
+function getWebSocketUrl(session_id = null) {
+    // Keep session_id as a query parameter; client_id stays in the first JSON
+    // message so the browser always connects to the same API backend /ws route.
+    const url = new URL(WEBSOCKET_BASE_URL);
+    if (session_id) {
+        url.searchParams.set('session_id', session_id);
+    }
+    return url.toString();
+}
+
+function invokeAPIWithWS(query, step_number, session_id = null) {
+    const body = {
+        client_id: clientId,
+        query,
+        step_number,
+        session_id
+    };
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        throw new Error("WebSocket not connected, cannot connect with AI services");
+    }
+    if (requestInFlight) {
+        throw new Error("A chat request is already in progress.");
+    }
+
+    requestInFlight = true;
+    socket.send(JSON.stringify(body));
 }
 //-------------------------- Services Ends ---------------------------//
 
@@ -1213,13 +1250,146 @@ function initBot() {
     saveThreadId(sessionId);
     const existingHistory = loadChatHistory(sessionId);
     if (existingHistory.length > 0) {
+        renderHistoryEntries(existingHistory, false);
+    }
+
+    initWebSocket(sessionId);
+    restoreConversationHistoryFromBackend(existingHistory.length > 0);
+
+    function renderHistoryEntries(historyEntries, persist = false) {
+        if (!Array.isArray(historyEntries) || historyEntries.length === 0) return;
         const welcome = chatMessages.querySelector('.wp-chat-welcome');
         if (welcome) welcome.remove();
-        existingHistory.forEach((entry) => {
+        historyEntries.forEach((entry) => {
             if (entry && typeof entry.role === 'string') {
-                appendMessage(entry.role, entry.text ?? '', false, false);
+                appendMessage(entry.role, entry.text ?? '', persist, false);
             }
         });
+    }
+
+    async function restoreConversationHistoryFromBackend(hasLocalHistory) {
+        if (hasLocalHistory) return;
+        const serverHistory = await getConversationHistory(sessionId);
+        if (serverHistory.length === 0 || loadChatHistory(sessionId).length > 0) return;
+        renderHistoryEntries(serverHistory, true);
+        requestAnimationFrame(restoreChatScrollPosition);
+    }
+
+    function initWebSocket(currentSessionId) {
+        if (socket) {
+            socket.onclose = null;
+            socket.onerror = null;
+            socket.onmessage = null;
+            try {
+                socket.close();
+            } catch (error) {
+                console.warn("[WebSocket] Error closing existing connection", error);
+            }
+        }
+
+        console.log("[WebSocket] Connecting to " + WEBSOCKET_BASE_URL + " with session ID:", currentSessionId);
+        socket = new WebSocket(getWebSocketUrl(currentSessionId));
+
+        socketOpenPromise = new Promise((resolve, reject) => {
+            socket.onopen = function () {
+                console.log("[WebSocket] Connection established for session:", currentSessionId);
+                resolve(socket);
+            };
+
+            socket.onerror = function () {
+                const error = new Error("WebSocket error connecting to API backend");
+                console.error("[WebSocket] Error occurred", error);
+                if (requestInFlight) {
+                    handleRequestFailure(error);
+                }
+                reject(error);
+            };
+        });
+
+        socket.onmessage = function (event) {
+            console.log(`[WebSocket] Data received:`, event.data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log('ws response: ', data);
+
+                if (data.event === "session_init") {
+                    console.log("[WebSocket] Backend assigned new session ID:", data.session_id);
+                    if (data.session_id && data.session_id !== sessionId) {
+                        migrateChatHistory(sessionId, data.session_id);
+                        migrateChatScrollPosition(sessionId, data.session_id);
+                        sessionId = data.session_id;
+                        restoredScrollTop = loadChatScrollPosition(sessionId);
+                        saveThreadId(sessionId);
+                    }
+                    return;
+                }
+
+                if (data.error) {
+                    handleRequestFailure(new Error(String(data.error)));
+                    return;
+                }
+
+                processAssistantResponse(data);
+            } catch (err) {
+                handleRequestFailure(err);
+            }
+        };
+
+        socket.onclose = function (event) {
+            console.log("[WebSocket] Connection closed", event.code, event.reason || "");
+            socketOpenPromise = null;
+            if (requestInFlight) {
+                handleRequestFailure(new Error("WebSocket connection closed before the assistant replied."));
+            }
+        };
+    }
+
+    async function ensureWebSocketConnection() {
+        if (socket && socket.readyState === WebSocket.OPEN) return socket;
+        if (socket && socket.readyState === WebSocket.CONNECTING && socketOpenPromise) {
+            return socketOpenPromise;
+        }
+        initWebSocket(sessionId);
+        return socketOpenPromise;
+    }
+
+    function handleRequestFailure(error) {
+        requestInFlight = false;
+        restorePendingGuidedQuestion();
+        showTyping(false);
+        appendMessage('system', "Sorry, I encountered an error connecting to the server.");
+        console.error(error);
+    }
+
+    function processAssistantResponse(response) {
+        requestInFlight = false;
+        applyFormSupportSuggestionsFromResponse(response);
+        const serverThreadId = extractThreadIdFromResponse(response);
+        if (serverThreadId && serverThreadId !== sessionId) {
+            migrateChatHistory(sessionId, serverThreadId);
+            migrateChatScrollPosition(sessionId, serverThreadId);
+            sessionId = serverThreadId;
+            restoredScrollTop = loadChatScrollPosition(sessionId);
+        }
+        saveThreadId(sessionId);
+        showTyping(false);
+
+        // Convert the backend/orchestrator response into the assistant message array that
+        // will be rendered in the chat, then use that same array to determine whether a
+        // clicked guided question was actually answered.
+        const messages = extractAssistantMessages(response);
+        const hasAssistantReply = hasUsableAssistantReply(messages);
+        if (pendingGuidedQuestion && hasAssistantReply) {
+            // A prompt only becomes permanent once the assistant actually answered it.
+            pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
+        }
+        if (pendingGuidedQuestion && !hasAssistantReply) {
+            // If the request completed but did not return a usable answer, treat the prompt
+            // as unanswered and show it again for the current step.
+            restorePendingGuidedQuestion();
+        }
+        // Finally render the assistant reply messages into the chat window.
+        messages.forEach((msg) => appendMessage('assistant', msg));
     }
 
     function restoreChatScrollPosition() {
@@ -1374,34 +1544,8 @@ function initBot() {
                 text = `Human verification form query : ${text}`;
             }
 
-            const response = await invokeOrchestrator(text, currentStep, sessionId);
-            applyFormSupportSuggestionsFromResponse(response);
-            const serverThreadId = extractThreadIdFromResponse(response);
-            if (serverThreadId && serverThreadId !== sessionId) {
-                migrateChatHistory(sessionId, serverThreadId);
-                migrateChatScrollPosition(sessionId, serverThreadId);
-                sessionId = serverThreadId;
-                restoredScrollTop = loadChatScrollPosition(sessionId);
-            }
-            saveThreadId(sessionId);
-            showTyping(false);
-
-            // Convert the backend/orchestrator response into the assistant message array that
-            // will be rendered in the chat, then use that same array to determine whether a
-            // clicked guided question was actually answered.
-            const messages = extractAssistantMessages(response);
-            const hasAssistantReply = hasUsableAssistantReply(messages);
-            if (pendingGuidedQuestion && hasAssistantReply) {
-                // A prompt only becomes permanent once the assistant actually answered it.
-                pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
-            }
-            if (pendingGuidedQuestion && !hasAssistantReply) {
-                // If the request completed but did not return a usable answer, treat the prompt
-                // as unanswered and show it again for the current step.
-                restorePendingGuidedQuestion();
-            }
-            // Finally render the assistant reply messages into the chat window.
-            messages.forEach((msg) => appendMessage('assistant', msg));
+            await ensureWebSocketConnection();
+            invokeAPIWithWS(text, currentStep, sessionId);
 
         } catch (error) {
             // Request-level failure:
