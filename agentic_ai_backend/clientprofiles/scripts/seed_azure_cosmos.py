@@ -5,9 +5,8 @@ Prerequisites:
     2. Get the endpoint URL and primary key from Azure Portal > Keys
     3. Install SDK: pip install azure-cosmos
 
-Run from the orchestrators directory:
-    cd agentic_ai_backend/agents/orchestrators
-    .venv/Scripts/python scripts/seed_azure_cosmos.py
+Run from agentic_ai_backend:
+    python clientprofiles/scripts/seed_azure_cosmos.py
 """
 
 import base64
@@ -16,22 +15,19 @@ import os
 import sys
 import uuid
 
-from azure.cosmos import CosmosClient, PartitionKey
-from clientprofiles import validate_client_profiles
-
-
-BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+BACKEND_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if BACKEND_ROOT not in sys.path:
     sys.path.insert(0, BACKEND_ROOT)
+
+from azure.cosmos import CosmosClient, PartitionKey
+from clientprofiles import validate_client_profiles
 
 
 ENDPOINT = "<Endpoint>"
 KEY = "<your azure cosmos db key>"
 DATABASE_NAME = "AgentMemoryDB"
 CONTAINER_NAME = "ClientProfiles"
-SEED_FILE = os.path.join(
-    os.path.dirname(__file__), "..", "..", "..", "clientprofiles", "seed", "client_profiles.json"
-)
+SEED_FILE = os.path.join(os.path.dirname(__file__), "..", "seed", "client_profiles.json")
 
 
 def validate_cosmos_key() -> None:

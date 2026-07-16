@@ -95,7 +95,7 @@
   cosmos-seed:
     build:
       context: .
-      dockerfile: agents/orchestrators/scripts/Dockerfile.seed
+      dockerfile: clientprofiles/scripts/Dockerfile.cosmos-seed
     container_name: cosmos-seed
     environment:
       - COSMOS_EMULATOR_ENDPOINT=https://azure-cosmos-emulator:8081
