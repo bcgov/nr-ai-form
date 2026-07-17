@@ -427,10 +427,6 @@ async def get_tenant_history(client_id: str, session_id: str, request: Request, 
     return await _get_flattened_history(_tenant_session_id(profile.clientId, public_session_id))
 
 
-@app.get("/history/{session_id}")
-async def get_history(session_id: str):
-    """Reject legacy history calls that do not include a tenant id."""
-    raise HTTPException(status_code=400, detail="Use /tenants/{client_id}/history/{session_id}")
 
 @app.get("/health")
 async def health_check():
