@@ -14,6 +14,7 @@
 - [Workflow Components](#workflow-components)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [Testing WebSocket in Postman](#testing-websocket-in-postman)
 - [Deployment](#deployment)
 
 ---
@@ -92,6 +93,88 @@ flowchart TD
     OrchestratorApi --> Orchestration
     Orchestration --> Executor --> Client --> Network --> Server --> Agent
 ```
+
+---
+
+## Testing WebSocket in Postman
+
+Use Postman to test the browser-facing API backend WebSocket. Do not connect Postman directly to the orchestrator for frontend testing; the frontend path is API backend `/ws` -> orchestrator `/ws`.
+
+### 1. Start the local services
+
+Run the API backend, orchestrator, Redis, Cosmos profile store, and the two sub-agents. For local Docker Compose, the API backend listens on port `8003`.
+
+### 2. Create a Postman WebSocket request
+
+In Postman, create a new **WebSocket** request and connect to one of these URLs:
+
+```text
+ws://localhost:8003/ws
+```
+
+or, to force a known session id:
+
+```text
+ws://localhost:8003/ws?session_id=postman-test-session-1
+```
+
+Add this request header. The value must match the selected tenant's `corsOrigins` in the `ClientProfiles` Cosmos document or local seed data.
+
+```text
+Origin: http://localhost
+```
+
+For deployed environments, use `wss://` and the deployed API backend host:
+
+```text
+wss://<api-backend-host>/ws?session_id=postman-test-session-1
+```
+
+### 3. Send the first JSON message
+
+After Postman shows the socket is connected, send a JSON message like this:
+
+```json
+{
+  "client_id": "11111111-1111-4111-8111-111111111111",
+  "query": "I want to apply for a water licence. Can you help me with eligibility?",
+  "step_number": "step2-Eligibility"
+}
+```
+
+The first message must include `client_id`. The API backend uses it to load the tenant profile, validate the `Origin`, and attach `client_profile` plus `tenant_settings` before proxying the request to the orchestrator.
+
+If the URL did not include `session_id`, the first response from the API backend is a session init event:
+
+```json
+{
+  "event": "session_init",
+  "session_id": "<generated-session-id>"
+}
+```
+
+Postman should then receive the orchestrator response on the same WebSocket connection. Keep sending additional JSON messages on the same connection to continue the same session.
+
+### 4. Check conversation history
+
+Use the session id from the URL or from the `session_init` event:
+
+```text
+GET http://localhost:8003/tenants/11111111-1111-4111-8111-111111111111/history/postman-test-session-1
+```
+
+Include the same allowed `Origin` header:
+
+```text
+Origin: http://localhost
+```
+
+### Common Postman failures
+
+- `client_id is required`: the first WebSocket message did not include `client_id`.
+- `Origin not allowed`: the `Origin` header is missing or does not match `profile.corsOrigins` for that `client_id`.
+- `Unknown tenant`: the `client_id` was not found in the `ClientProfiles` store.
+- `503 Failed to connect to agent server`: the API backend cannot connect to the orchestrator WebSocket URL.
 
 ---
 
