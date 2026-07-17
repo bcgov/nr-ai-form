@@ -132,6 +132,8 @@ wss://<api-backend-host>/ws?session_id=postman-test-session-1
 
 ### 3. Send the first JSON message
 
+The WebSocket connection opens before the user sends a query. On page load, `client.js` opens `/ws` and the API backend accepts the socket, then waits for the first JSON message. The `client_id` is not known to the API backend until that first message arrives. Cosmos `ClientProfiles` lookup, tenant Origin validation, and orchestrator proxying happen after the first message is received.
+
 After Postman shows the socket is connected, send a JSON message like this:
 
 ```json
