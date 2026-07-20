@@ -1,0 +1,26 @@
+# API backend Docker Compose settings. Copy this file to .env before running
+# docker compose locally.
+
+# Upstream websocket used by the API backend to call the orchestrator container.
+ORCHESTRATOR_AGENT_WS_URL=ws://orchestrator-agent:8002/ws
+
+# Cosmos DB tenant profile lookup. For Azure managed identity, set the endpoint
+# and leave AZURE_COSMOS_DB_KEY unset.
+AZURE_COSMOS_DB_ENDPOINT=https://azure-cosmos-emulator:8081
+AZURE_COSMOS_DB_KEY=<local-cosmos-emulator-key>
+AZURE_COSMOS_DB_DATABASE_NAME=AgentMemoryDB
+
+# Set to localhost only for the Cosmos emulator so local TLS verification is disabled.
+CSSAI_EXECUTION_ENV=localhost
+
+# Tenant profile cache behavior in the API layer.
+TENANT_PROFILE_FRESH_TTL_SECONDS=300
+TENANT_PROFILE_STALE_TTL_SECONDS=86400
+TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS=0.5
+
+# Redis is used by the shared thread manager for conversation history/session state.
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_SSL=False
+REDIS_TTL_DAYS=14

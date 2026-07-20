@@ -25,13 +25,8 @@
       dockerfile: api_backend/Dockerfile
     ports:
       - "8003:8003"
-    environment:
-      - ORCHESTRATOR_AGENT_WS_URL=ws://orchestrator-agent:8002/ws
-      - CSSAI_EXECUTION_ENV=localhost
-      - REDIS_HOST=redis
-      - AZURE_COSMOS_DB_ENDPOINT=${AZURE_COSMOS_DB_ENDPOINT}
-      - AZURE_COSMOS_DB_KEY=${AZURE_COSMOS_DB_KEY}
-      - AZURE_COSMOS_DB_DATABASE_NAME=${AZURE_COSMOS_DB_DATABASE_NAME}
+    env_file:
+      - ./api_backend/.env
     restart: unless-stopped
     depends_on:
       orchestrator-agent:
@@ -51,10 +46,6 @@
       - CONVERSATION_AGENT_A2A_URL=http://conversation-agent:8000
       - FORM_SUPPORT_AGENT_A2A_URL=http://formsupport-agent:8001
       - REDIS_HOST=redis
-      - AZURE_COSMOS_DB_ENDPOINT=${AZURE_COSMOS_DB_ENDPOINT}
-      - AZURE_COSMOS_DB_KEY=${AZURE_COSMOS_DB_KEY}
-      - AZURE_COSMOS_DB_DATABASE_NAME=${AZURE_COSMOS_DB_DATABASE_NAME}
-      - CSSAI_EXECUTION_ENV=localhost
     depends_on:
       conversation-agent:
         condition: service_started

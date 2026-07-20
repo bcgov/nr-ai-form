@@ -1,6 +1,6 @@
 # ConversationAgent mode:
 #   knowledgebase (default) -> direct Azure AI Search Knowledge Base retrieval
-#   legacy                  -> Azure OpenAI chat + azure_ai_search tool calling
+#   llm                    -> Azure OpenAI chat + azure_ai_search tool calling
 
 
 HOST="0.0.0.0"
