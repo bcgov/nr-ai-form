@@ -40,7 +40,7 @@ def main():
 @click.option(
     "--attack-type",
     "-a",
-    type=click.Choice(["PromptSending", "Crescendo", "MultiTurn", "RedTeaming"]),
+    type=click.Choice(["PromptSending", "Crescendo", "MultiTurn", "RedTeaming", "PromptSeed"]),
     default="PromptSending",
     help="Type of PyRIT attack to execute",
 )
@@ -148,7 +148,9 @@ def scan(
         
         # Save detailed results with escalation steps
         if results:
-            detailed_path = Path(report_path).parent / Path(report_path).stem.replace("pyrit_report", "crescendo_details") + ".json"
+            stem = Path(report_path).stem.replace("pyrit_report", "crescendo_details")
+            detailed_filename = stem + ".json"
+            detailed_path = Path(report_path).parent / detailed_filename
             try:
                 runner.save_detailed_results(results, str(detailed_path))
                 click.echo(f"Detailed results saved: {detailed_path}")
@@ -170,7 +172,7 @@ def scan(
 @click.option(
     "--attack-type",
     "-a",
-    type=click.Choice(["PromptSending", "Crescendo", "MultiTurn", "RedTeaming"]),
+    type=click.Choice(["PromptSending", "Crescendo", "MultiTurn", "RedTeaming", "PromptSeed"]),
     default="PromptSending",
     help="Type of PyRIT attack",
 )
@@ -194,6 +196,8 @@ def test_query(query: str, attack_type: str):
             result = asyncio.run(runner.run_multi_turn_attack(query))
         elif attack_type == "RedTeaming":
             result = asyncio.run(runner.run_red_team_attack(query))
+        elif attack_type == "PromptSeed":
+            result = asyncio.run(runner.run_attack_seed(query))
         else:
             result = asyncio.run(runner.run_attack(query))
         

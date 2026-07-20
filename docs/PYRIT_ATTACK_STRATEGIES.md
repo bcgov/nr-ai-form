@@ -66,7 +66,7 @@ python -m src.red_team.cli scan --use-file -a PromptSending
 # Full security scan (all 14 cases)
 python -m src.red_team.cli scan --use-file -a PromptSending
 
-# Prompt injection testing only
+# Prompt injection testing only #NOT WORKING
 python -m src.red_team.cli scan --use-file \
   --cases "prompt_injection_sql,prompt_injection_system_override" \
   -a PromptSending
