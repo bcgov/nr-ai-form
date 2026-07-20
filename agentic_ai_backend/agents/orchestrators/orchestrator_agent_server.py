@@ -8,25 +8,27 @@ import uuid
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import ValidationError
 
 from clientprofiles import (
+    ClientProfile,
     ClientIdRequiredError,
     ClientProfileNotFoundError,
+    TenantAgentSettings,
     TenantConfigInvalidError,
     TenantConfigUnavailableError,
 )
 from orchestratoragent import orchestrate_a2a
 from tenantconfigservice import get_tenant_config_service
-from tenantcors import tenant_cors_middleware
-from telemetry import OpenTelemetryAzureMonitorTelemetry, create_telemetry_middleware
+from telemetry import OpenTelemetryAzureMonitorTelemetry
 
 load_dotenv()
 
-from models.orchestratormodel import InvokeRequest, InvokeResponse
+from models.orchestratormodel import InvokeResponse
 
 logger = logging.getLogger(__name__)
 
-# TODO ABIN: This is a temporary A2A endpoint for testing and invoke. Later we
+# TODO ABIN: This is a temporary A2A endpoint. Later we
 # will use a pub-sub mechanism from a queue.
 app = FastAPI(version="1.0.0")
 
@@ -39,8 +41,6 @@ telemetry.set_common_context(
     environment=os.getenv("APP_ENVIRONMENT"),
     cloud_role="orchestrator-agent",
 )
-app.middleware("telemetry")(create_telemetry_middleware(telemetry))
-app.middleware("http")(tenant_cors_middleware)
 
 @app.get("/")
 async def root():
@@ -50,7 +50,6 @@ async def root():
         "version": "1.0.0",
         "endpoints": {
             "manifest": "/.well-known/agent.json",
-            "invoke": "/tenants/{client_id}/invoke",
             "websocket": "/ws",
             "health": "/health",
             "docs": "/docs",
@@ -67,20 +66,6 @@ async def agent_manifest():
         return json.load(f)
 
 
-async def _resolve_config_or_http(client_id: str | None):
-    try:
-        tenant_config = await get_tenant_config_service().get_config(client_id)
-        return tenant_config
-    except ClientIdRequiredError:
-        raise HTTPException(status_code=400, detail="client_id is required")
-    except ClientProfileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Unknown client_id: {client_id}")
-    except TenantConfigInvalidError as exc:
-        raise HTTPException(status_code=500, detail=f"Tenant configuration is invalid: {exc}")
-    except TenantConfigUnavailableError:
-        raise HTTPException(status_code=503, detail="Tenant configuration is temporarily unavailable")
-
-
 
 def _public_session_id(client_id: str, session_id: str | None) -> str:
     """Return the browser-facing session id without duplicated tenant prefixes."""
@@ -92,72 +77,44 @@ def _public_session_id(client_id: str, session_id: str | None) -> str:
 
 
 def _tenant_session_id(client_id: str, public_session_id: str) -> str:
-    """Return the backend session key used for Redis/sub-agent memory.
-
-    The browser keeps a plain session id, but backend state is namespaced by
-    tenant so two tenants cannot collide if they send the same session id.
-    """
+    """Return the backend session key used for Redis/sub-agent memory."""
     return f"{client_id}:{public_session_id}"
 
-async def _invoke_agent_for_tenant(request: InvokeRequest, client_id: str | None) -> InvokeResponse:
-    if request.client_id and client_id and request.client_id != client_id:
-        raise HTTPException(status_code=400, detail="client_id in path and body do not match")
+def _client_id_from_ws_request(request: dict) -> str | None:
+    # client_profile is forwarded by the API backend; validate it against the
+    # explicit client_id before trusting tenant-specific runtime settings.
+    client_id = request.get("client_id")
+    raw_profile = request.get("client_profile")
+    if not isinstance(raw_profile, dict):
+        return client_id
 
-    effective_client_id = client_id or request.client_id
-    tenant_config = await _resolve_config_or_http(effective_client_id)
-    profile = tenant_config.profile
-
-    conversation_url = os.getenv("CONVERSATION_AGENT_A2A_URL", "http://localhost:8000")
-    form_support_url = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
-    step_number = request.step_number or tenant_config.settings.orchestrator_runtime.formStepNumber
-
-    public_session_id = _public_session_id(profile.clientId, request.session_id)
-    tenant_session_id = _tenant_session_id(profile.clientId, public_session_id)
-
-    output_event = await orchestrate_a2a(
-        query=request.query,
-        conversation_agent_url=conversation_url,
-        form_support_agent_url=form_support_url,
-        step_number=step_number,
-        session_id=tenant_session_id,
-        tenant_settings=tenant_config.settings,
-    )
-
-    output = output_event if isinstance(output_event, list) else ([output_event] if output_event is not None else [])
-    return InvokeResponse(
-        response=output or "No response from orchestrator.",
-        session_id=public_session_id,
-    )
+    profile = ClientProfile.model_validate(raw_profile)
+    if client_id and client_id != profile.clientId:
+        raise ValueError("client_id does not match client_profile.clientId")
+    return profile.clientId
 
 
-@app.post("/tenants/{client_id}/invoke", response_model=InvokeResponse)
-async def invoke_agent_for_tenant(client_id: str, request: InvokeRequest):
-    try:
-        return await _invoke_agent_for_tenant(request, client_id)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("Orchestrator invoke failed", extra={"client_id": client_id})
-        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
-
-# todo: to be removed after testing. This is a legacy route for internal server-to-server clients.
-@app.post("/invoke", response_model=InvokeResponse)
-async def invoke_agent(request: InvokeRequest):
-    """Legacy invoke route. Production callers should use /tenants/{client_id}/invoke."""
-    try:
-        return await _invoke_agent_for_tenant(request, request.client_id)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("Orchestrator legacy invoke failed")
-        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+def _tenant_settings_from_request(request: dict) -> TenantAgentSettings | None:
+    # tenant_settings is the processed runtime view of the Cosmos profile.
+    raw_settings = request.get("tenant_settings")
+    if raw_settings is None:
+        return None
+    if not isinstance(raw_settings, dict):
+        raise ValueError("tenant_settings must be an object")
+    return TenantAgentSettings.model_validate(raw_settings)
 
 
-async def _process_ws_request(websocket: WebSocket, client_id: str, tenant_config, request: dict):
-    profile = tenant_config.profile
+async def _process_ws_request(
+    websocket: WebSocket,
+    client_id: str,
+    tenant_settings: TenantAgentSettings,
+    request: dict,
+):
+    # Return the public session id to the frontend, but use a tenant-prefixed
+    # key for backend memory so tenants cannot collide on the same session id.
     session_id = _public_session_id(client_id, request.get("session_id"))
     tenant_session_id = _tenant_session_id(client_id, session_id)
-    step_number = request.get("step_number") or tenant_config.settings.orchestrator_runtime.formStepNumber
+    step_number = request.get("step_number") or tenant_settings.orchestrator_runtime.formStepNumber
 
     if not request.get("query"):
         await websocket.send_json({"error": "query is required", "session_id": session_id})
@@ -169,7 +126,7 @@ async def _process_ws_request(websocket: WebSocket, client_id: str, tenant_confi
         form_support_agent_url=os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001"),
         step_number=step_number,
         session_id=tenant_session_id,
-        tenant_settings=tenant_config.settings,
+        tenant_settings=tenant_settings,
     )
 
     response = InvokeResponse(
@@ -193,40 +150,43 @@ async def _resolve_ws_config(websocket: WebSocket, client_id: str):
     return None
 
 
-async def _handle_ws_messages(websocket: WebSocket, client_id: str, initial_request: dict | None = None):
-    if initial_request is not None:
-        # Resolve through TenantConfigService for every message. The service still
-        # serves fresh cache hits, but long-lived WebSockets can pick up tenant
-        # config changes once TENANT_PROFILE_FRESH_TTL_SECONDS expires.
-        current_config = await _resolve_ws_config(websocket, client_id)
-        if current_config is not None:
-            try:
-                await _process_ws_request(websocket, client_id, current_config, initial_request)
-            except Exception as exc:
-                logger.exception("WebSocket orchestration failed", extra={"client_id": client_id})
-                await websocket.send_json({"error": str(exc)})
+async def _resolve_ws_context(websocket: WebSocket, request: dict) -> tuple[str | None, TenantAgentSettings | None]:
+    try:
+        client_id = _client_id_from_ws_request(request)
+        tenant_settings = _tenant_settings_from_request(request)
+    except (ValidationError, ValueError) as exc:
+        await websocket.send_json({"error": f"Tenant context is invalid: {exc}"})
+        return None, None
 
-    while True:
-        request = await websocket.receive_json()
-        current_config = await _resolve_ws_config(websocket, client_id)
-        if current_config is None:
-            continue
-        try:
-            await _process_ws_request(websocket, client_id, current_config, request)
-        except Exception as exc:
-            logger.exception("WebSocket orchestration failed", extra={"client_id": client_id})
-            await websocket.send_json({"error": str(exc)})
+    if not client_id:
+        await websocket.send_json({"error": "client_id is required"})
+        return None, None
 
+    if tenant_settings is not None:
+        if tenant_settings.client_id != client_id:
+            await websocket.send_json({"error": "client_id does not match tenant_settings.client_id"})
+            return None, None
+        return client_id, tenant_settings
+
+    # Backward-compatible fallback for internal callers that have not moved to
+    # API-provided tenant context yet. API gateway websocket traffic includes
+    # tenant_settings and does not use this Cosmos-backed path.
+    tenant_config = await _resolve_ws_config(websocket, client_id)
+    if tenant_config is None:
+        return None, None
+    return tenant_config.profile.clientId, tenant_config.settings
 
 
 @app.websocket("/ws")
 async def invoke_agent_ws(websocket: WebSocket):
-    """Legacy internal WebSocket route.
+    """Internal WebSocket route.
 
     API gateway callers use this plain /ws route and send client_id in the
     message body. Browser callers should connect to the API gateway, which
     validates tenant Origin before forwarding here.
     """
+    # Browser Origin headers are only accepted at the API backend, where tenant
+    # CORS rules are available before proxying to this internal route.
     if websocket.headers.get("origin"):
         await websocket.close(code=1008, reason="Connect through API gateway /ws")
         return
@@ -235,15 +195,18 @@ async def invoke_agent_ws(websocket: WebSocket):
     try:
         while True:
             request = await websocket.receive_json()
-            client_id = request.get("client_id")
-            tenant_config = await _resolve_ws_config(websocket, client_id)
-            if tenant_config is None:
+            client_id, tenant_settings = await _resolve_ws_context(websocket, request)
+            if client_id is None or tenant_settings is None:
                 continue
 
-            await _handle_ws_messages(websocket, tenant_config.profile.clientId, initial_request=request)
+            try:
+                await _process_ws_request(websocket, client_id, tenant_settings, request)
+            except Exception as exc:
+                logger.exception("WebSocket orchestration failed", extra={"client_id": client_id})
+                await websocket.send_json({"error": str(exc)})
     except WebSocketDisconnect:
         print("API Gateway disconnected from Orchestrator Websocket")
-        logger.info("Legacy websocket disconnected")
+        logger.info("Internal websocket disconnected")
 
 
 @app.get("/health")

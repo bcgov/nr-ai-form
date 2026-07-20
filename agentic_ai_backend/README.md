@@ -14,6 +14,7 @@
 - [Workflow Components](#workflow-components)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [Testing WebSocket in Postman](#testing-websocket-in-postman)
 - [Deployment](#deployment)
 
 ---
@@ -42,7 +43,10 @@ The system uses the **A2A (Agent to Agent) protocol** for inter-agent communicat
 ```mermaid
 flowchart TD
     User[User / Frontend]
-    Orchestrator[Orchestrator Agent]
+    ApiBackend[API Backend Gateway<br/>Port 8003]
+    Cosmos[(Cosmos DB<br/>ClientProfiles)]
+    Redis[(Redis<br/>tenant session history)]
+    Orchestrator[Orchestrator Agent<br/>Port 8002]
     Workflow[WorkflowBuilder]
     Dispatcher[Dispatcher]
     Executors[Enabled Executors]
@@ -52,23 +56,31 @@ flowchart TD
     ConversationLogic[Conversation Agent Logic<br/>Azure AI Search]
     FormLogic[Form Support Agent Logic<br/>Step-aware]
 
-    User -->|Query| Orchestrator
+    User -->|WS /ws with client_id| ApiBackend
+    User -->|GET /tenants/client_id/history/session_id| ApiBackend
+    ApiBackend -->|Resolve TenantConfig| Cosmos
+    ApiBackend -->|Read conversation history| Redis
+    ApiBackend -->|Single shared WS /ws<br/>client_profile + tenant_settings| Orchestrator
     Orchestrator --> Workflow
     Workflow --> Dispatcher
     Dispatcher --> Executors
     Executors --> Aggregator
-    Executors -->|A2A HTTP/JSON| ConversationServer
-    Executors -->|A2A HTTP/JSON| FormServer
+    Executors -->|A2A HTTP/JSON + client_settings| ConversationServer
+    Executors -->|A2A HTTP/JSON + client_settings| FormServer
     ConversationServer --> ConversationLogic
     FormServer --> FormLogic
     Aggregator --> Orchestrator
-    Orchestrator -->|Final response| User
+    Orchestrator -->|Final response| ApiBackend
+    ApiBackend -->|WS response| User
 ```
 
 ### Architecture Layers
 
 ```mermaid
 flowchart TD
+    Browser[Browser Layer<br/>client.js]
+    Gateway[API Backend Layer<br/>tenant origin validation<br/>Cosmos profile resolution<br/>frontend_websockets + agent_websocket]
+    OrchestratorApi[Orchestrator API Layer<br/>/ws]
     Orchestration[Orchestration Layer<br/>WorkflowBuilder<br/>Dispatcher and Aggregator<br/>Workflow Execution]
     Executor[Executor Layer<br/>ConversationAgentA2AExecutor<br/>FormSupportAgentA2AExecutor]
     Client[A2A Client Layer<br/>CSS_AI_A2A_BaseClient<br/>ConversationAgentA2AClient<br/>FormSupportAgentA2AClient]
@@ -76,8 +88,95 @@ flowchart TD
     Server[A2A Server Layer<br/>FastAPI Endpoints<br/>Pydantic Request Validation]
     Agent[Agent Layer<br/>Agent Business Logic<br/>Azure OpenAI<br/>Azure AI Search]
 
+    Browser -->|WebSocket only| Gateway
+    Gateway -->|Internal WebSocket| OrchestratorApi
+    OrchestratorApi --> Orchestration
     Orchestration --> Executor --> Client --> Network --> Server --> Agent
 ```
+
+---
+
+## Testing WebSocket in Postman
+
+Use Postman to test the browser-facing API backend WebSocket. Do not connect Postman directly to the orchestrator for frontend testing; the frontend path is API backend `/ws` -> orchestrator `/ws`.
+
+### 1. Start the local services
+
+Run the API backend, orchestrator, Redis, Cosmos profile store, and the two sub-agents. For local Docker Compose, the API backend listens on port `8003`.
+
+### 2. Create a Postman WebSocket request
+
+In Postman, create a new **WebSocket** request and connect to one of these URLs:
+
+```text
+ws://localhost:8003/ws
+```
+
+or, to force a known session id:
+
+```text
+ws://localhost:8003/ws?session_id=postman-test-session-1
+```
+
+Add this request header. The value must match the selected tenant's `corsOrigins` in the `ClientProfiles` Cosmos document or local seed data.
+
+```text
+Origin: http://localhost
+```
+
+For deployed environments, use `wss://` and the deployed API backend host:
+
+```text
+wss://<api-backend-host>/ws?session_id=postman-test-session-1
+```
+
+### 3. Send the first JSON message
+
+The WebSocket connection opens before the user sends a query. On page load, `client.js` opens `/ws` and the API backend accepts the socket, then waits for the first JSON message. The `client_id` is not known to the API backend until that first message arrives. Cosmos `ClientProfiles` lookup, tenant Origin validation, and orchestrator proxying happen after the first message is received.
+
+After Postman shows the socket is connected, send a JSON message like this:
+
+```json
+{
+  "client_id": "11111111-1111-4111-8111-111111111111",
+  "query": "I want to apply for a water licence. Can you help me with eligibility?",
+  "step_number": "step2-Eligibility"
+}
+```
+
+The first message must include `client_id`. The API backend uses it to load the tenant profile, validate the `Origin`, and attach `client_profile` plus `tenant_settings` before proxying the request to the orchestrator.
+
+If the URL did not include `session_id`, the first response from the API backend is a session init event:
+
+```json
+{
+  "event": "session_init",
+  "session_id": "<generated-session-id>"
+}
+```
+
+Postman should then receive the orchestrator response on the same WebSocket connection. Keep sending additional JSON messages on the same connection to continue the same session.
+
+### 4. Check conversation history
+
+Use the session id from the URL or from the `session_init` event:
+
+```text
+GET http://localhost:8003/tenants/11111111-1111-4111-8111-111111111111/history/postman-test-session-1
+```
+
+Include the same allowed `Origin` header:
+
+```text
+Origin: http://localhost
+```
+
+### Common Postman failures
+
+- `client_id is required`: the first WebSocket message did not include `client_id`.
+- `Origin not allowed`: the `Origin` header is missing or does not match `profile.corsOrigins` for that `client_id`.
+- `Unknown tenant`: the `client_id` was not found in the `ClientProfiles` store.
+- `503 Failed to connect to agent server`: the API backend cannot connect to the orchestrator WebSocket URL.
 
 ---
 
@@ -113,7 +212,6 @@ conversationagent/
 
 **A2A Endpoints**:
 - `GET /.well-known/agent.json` - Agent manifest
-- `POST /invoke` - Execute query
 - `GET /health` - Health check
 
 ---
@@ -163,7 +261,6 @@ formsupportagent/
 
 **A2A Endpoints**:
 - `GET /.well-known/agent.json` - Agent manifest
-- `POST /invoke` - Execute query (with step_number support)
 - `GET /health` - Health check
 
 ---
@@ -254,11 +351,10 @@ Response: {
 }
 
 # 2. Invocation Endpoint
-POST /invoke
 
-Production callers should invoke the orchestrator (`/tenants/{client_id}/invoke` or WebSocket) so tenant settings are resolved from Cosmos DB. Direct sub-agent `/invoke` calls are for local testing or service-to-service diagnostics and must include `client_settings`.
+Browser callers should invoke the API backend gateway (`WS /ws` and `/tenants/{client_id}/history/{session_id}`) so tenant profile resolution, Origin validation, and websocket proxying happen at the API layer. Direct sub-agent calls are for local testing or service-to-service diagnostics and must include `client_settings`.
 
-`configFingerprint` is normally generated by the orchestrator from the Cosmos tenant profile. For direct local testing, use any stable non-secret value such as `"local-test"`. Reusing the same value lets caches work normally; changing it forces fresh prompt/client cache entries.
+`configFingerprint` is normally generated from the Cosmos tenant profile during tenant config resolution. For direct local testing, use any stable non-secret value such as `"local-test"`. Reusing the same value lets caches work normally; changing it forces fresh prompt/client cache entries.
 
      Set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_SEARCH_API_KEY`, `AZURE_SEARCH_ENDPOINT`, `AZURE_BLOBSTORAGE_CONNECTIONSTRING`, and `AZURE_BLOBSTORAGE_CONTAINER` in the service environment.
 
