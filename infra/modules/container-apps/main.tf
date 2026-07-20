@@ -845,86 +845,89 @@ resource "azurerm_container_app" "backend" {
     }
     
     # API Backend Container - Public-facing WebSocket gateway to orchestrator
-    container {
-      name   = "api-backend"
-      image  = var.api_backend_image
-      cpu    = var.container_cpu
-      memory = var.container_memory
+    # Only deploy if api_backend_image is provided
+    dynamic "container" {
+      for_each = var.api_backend_image != "" ? [1] : []
+      content {
+        name   = "api-backend"
+        image  = var.api_backend_image
+        cpu    = var.container_cpu
+        memory = var.container_memory
 
-      startup_probe {
-        transport = "HTTP"
-        path      = "/health"
-        port      = var.api_backend_port
-        timeout   = 5
-      }
+        startup_probe {
+          transport = "HTTP"
+          path      = "/health"
+          port      = var.api_backend_port
+          timeout   = 5
+        }
 
-      readiness_probe {
-        transport               = "HTTP"
-        path                    = "/health"
-        port                    = var.api_backend_port
-        timeout                 = 5
-        failure_count_threshold = 3
-      }
+        readiness_probe {
+          transport               = "HTTP"
+          path                    = "/health"
+          port                    = var.api_backend_port
+          timeout                 = 5
+          failure_count_threshold = 3
+        }
 
-      liveness_probe {
-        transport               = "HTTP"
-        path                    = "/health"
-        port                    = var.api_backend_port
-        timeout                 = 5
-        failure_count_threshold = 3
-      }
+        liveness_probe {
+          transport               = "HTTP"
+          path                    = "/health"
+          port                    = var.api_backend_port
+          timeout                 = 5
+          failure_count_threshold = 3
+        }
 
-      env {
-        name  = "PORT"
-        value = tostring(var.api_backend_port)
-      }
+        env {
+          name  = "PORT"
+          value = tostring(var.api_backend_port)
+        }
 
-      env {
-        name  = "ORCHESTRATOR_AGENT_WS_URL"
-        value = "ws://localhost:${var.orchestrator_agent_port}/ws"
-      }
+        env {
+          name  = "ORCHESTRATOR_AGENT_WS_URL"
+          value = "ws://localhost:${var.orchestrator_agent_port}/ws"
+        }
 
-      env {
-        name  = "LOG_LEVEL"
-        value = var.log_level
-      }
+        env {
+          name  = "LOG_LEVEL"
+          value = var.log_level
+        }
 
-      env {
-        name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
-        secret_name = "appinsights-connection-string"
-      }
+        env {
+          name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+          secret_name = "appinsights-connection-string"
+        }
 
-      env {
-        name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
-        secret_name = "appinsights-instrumentation-key"
-      }
+        env {
+          name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
+          secret_name = "appinsights-instrumentation-key"
+        }
 
-      env {
-        name  = "REDIS_HOST"
-        value = var.redis_host
-      }
+        env {
+          name  = "REDIS_HOST"
+          value = var.redis_host
+        }
 
-      env {
-        name  = "REDIS_PORT"
-        value = tostring(var.redis_port)
-      }
+        env {
+          name  = "REDIS_PORT"
+          value = tostring(var.redis_port)
+        }
 
-      env {
-        name        = "REDIS_PASSWORD"
-        secret_name = "redis-password"
-      }
+        env {
+          name        = "REDIS_PASSWORD"
+          secret_name = "redis-password"
+        }
 
-      env {
-        name  = "REDIS_SSL"
-        value = tostring(var.redis_ssl)
-      }
+        env {
+          name  = "REDIS_SSL"
+          value = tostring(var.redis_ssl)
+        }
 
-      env {
-        name  = "REDIS_TTL_DAYS"
-        value = tostring(var.redis_ttl_days)
+        env {
+          name  = "REDIS_TTL_DAYS"
+          value = tostring(var.redis_ttl_days)
+        }
       }
     }
-    
 
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {
