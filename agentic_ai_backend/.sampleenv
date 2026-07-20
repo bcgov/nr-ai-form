@@ -1,5 +1,0 @@
-# Copy this file to .env before running docker compose locally.
-# These values are for the local Cosmos DB emulator only.
-AZURE_COSMOS_DB_ENDPOINT=https://azure-cosmos-emulator:8081
-AZURE_COSMOS_DB_KEY=<local-cosmos-emulator-key>
-AZURE_COSMOS_DB_DATABASE_NAME=AgentMemoryDB
