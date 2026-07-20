@@ -937,8 +937,8 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true                        # Must be true for Front Door to reach the public orchestrator endpoint
-    target_port                = var.orchestrator_agent_port # Orchestrator Agent is the public-facing ACA endpoint
+    external_enabled           = true                        # Must be true for Front Door to reach the public endpoint
+    target_port                = var.api_backend_image != "" ? var.api_backend_port : var.orchestrator_agent_port # If api_backend is deployed, it's the public-facing endpoint; otherwise orchestrator is
     transport                  = "auto"                      # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 

@@ -154,8 +154,7 @@ jobs:
         echo "orchestrator-agent-image=$ORCHESTRATOR_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "conversation-agent-image=$CONVERSATION_AGENT_IMAGE" >> $GITHUB_OUTPUT
         echo "formsupport-agent-image=$FORMSUPPORT_AGENT_IMAGE" >> $GITHUB_OUTPUT
-        # echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
-        # echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
+        echo "api-backend-image=$API_BACKEND_IMAGE" >> $GITHUB_OUTPUT
 
     - name: Safety Plan Check
       if: inputs.prevent_destroy == true && inputs.command == 'apply'
