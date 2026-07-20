@@ -843,7 +843,7 @@ resource "azurerm_container_app" "backend" {
       #   value = tostring(var.cors_allow_origins)
       # }
     }
-    /*
+    
     # API Backend Container - Public-facing WebSocket gateway to orchestrator
     container {
       name   = "api-backend"
@@ -924,7 +924,7 @@ resource "azurerm_container_app" "backend" {
         value = tostring(var.redis_ttl_days)
       }
     }
-    */
+    
 
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {

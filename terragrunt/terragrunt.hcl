@@ -7,7 +7,7 @@ locals {
   conversation_agent_image = get_env("conversation_agent_image")
   formsupport_agent_image  = get_env("formsupport_agent_image")
   orchestrator_agent_image = get_env("orchestrator_agent_image")
-  # api_backend_image        = get_env("api_backend_image", "")
+  api_backend_image        = get_env("api_backend_image", "")
   vnet_resource_group_name = get_env("vnet_resource_group_name") # Resource group where the VNet exists.
   vnet_name                = get_env("vnet_name")                # Name of the existing VNet.
   target_env               = get_env("target_env")
