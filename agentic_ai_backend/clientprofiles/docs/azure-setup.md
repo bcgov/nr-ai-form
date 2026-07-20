@@ -95,9 +95,9 @@ Requires RBAC role assignment: `Cosmos DB Built-in Data Reader` on the Container
 
 ---
 
-## How to Resolve Tenant Config from WebSocket/HTTP
+## How to Resolve Tenant Config from WebSocket
 
-Production route handlers should use `TenantConfigService`, not `store.resolve()` directly:
+Route handlers should use `TenantConfigService`, not `store.resolve()` directly:
 
 ```python
 from clientprofiles import TenantConfigService, get_client_profile_store
@@ -117,20 +117,29 @@ Raises `ClientIdRequiredError` (400) if `client_id` is missing, `ClientProfileNo
 
 ## Runtime Request Flow
 
-Production HTTP traffic should use tenant-scoped routes so the tenant is known before CORS preflight. Browser WebSocket traffic can use the API gateway plain `/ws` route when the first message includes `client_id`:
+Browser WebSocket traffic connects only to the API backend gateway plain `/ws` route; the first websocket message must include `client_id`:
 
 ```text
-POST /tenants/{client_id}/invoke
 WS   /ws
+GET  /tenants/{client_id}/history/{session_id}
 ```
 
-The orchestrator resolves `TenantConfig` at the HTTP/WebSocket boundary. The workflow receives `TenantAgentSettings`, not the raw Cosmos document. Sub-agent settings are converted to dictionaries only at the final A2A request boundary because the current sub-agent invoke contracts are JSON payloads.
+For browser websocket traffic, the API backend is the tenant boundary:
 
-Direct sub-agent invocation (`conversationagent /invoke` or `formsupportagent /invoke`) bypasses Cosmos resolution, so callers must include the full `client_settings` object in the request body. This is intended for local testing and diagnostics; production clients should call the orchestrator so tenant settings are resolved and validated centrally.
+1. The browser opens `WS /ws` on the API backend and sends the first JSON message with `client_id`, `query`, `step_number`, and `session_id`.
+2. The API backend resolves the full `TenantConfig` using `TenantConfigService(get_client_profile_store())`. The store is backed by Cosmos DB through `CosmosClientProfileStore`; route code should not call Cosmos directly.
+3. The API backend validates the browser `Origin` against `tenant_config.profile.corsOrigins`.
+4. The API backend stores frontend sockets by tenant-scoped key: `{client_id}:{session_id}`. This permits many frontend websocket connections while preventing two tenants with the same public session id from colliding.
+5. The API backend forwards each request to the orchestrator plain `/ws` route with `client_id`, `client_profile`, and `tenant_settings` in the JSON payload.
+6. The orchestrator websocket validates the forwarded tenant context and uses `TenantAgentSettings` directly. It does not read Cosmos again for normal API-gateway websocket traffic. A Cosmos-backed fallback remains only for older internal callers that send `client_id` without `tenant_settings`.
+
+The API backend keeps a single shared upstream websocket connection to the orchestrator agent (`agent_websocket`) and many browser-facing frontend websocket connections (`frontend_websockets`). Because the upstream socket follows a request/response pattern, gateway sends are serialized with a lock and the connection is recreated after communication failures.
+
+In the websocket flow, the workflow receives `TenantAgentSettings`, not the raw Cosmos document. Sub-agent settings are converted to dictionaries only at the final A2A request boundary because the current sub-agent invoke contracts are JSON payloads. Deployment-owned values such as OpenAI/Search API keys, OpenAI endpoint, blob connection string, and blob container name are read from service environment variables and are not included in the forwarded `client_settings` payload.
+
+Direct sub-agent calls bypass Cosmos resolution, so callers must include the full `client_settings` object in the request body. This is intended for local testing and diagnostics; production clients should call the API backend/orchestrator flow so tenant settings are resolved and validated centrally.
 
 For normal orchestrator traffic, `configFingerprint` is generated from the Cosmos tenant profile by `build_config_fingerprint(profile)`. For direct sub-agent testing, callers may use any stable non-secret string such as `"local-test"`; changing it intentionally bypasses existing prompt/agent cache entries.
-
-The API gateway exposes `WS /ws` for browser-facing WebSocket proxying without tenant id in the URL. The first message must include `client_id`; the gateway resolves that tenant, validates `Origin`, and opens a downstream connection to the orchestrator plain `/ws` route with `client_id` in the JSON payload.
 
 Browser-facing session ids should stay tenant-neutral, for example `session-abc123`. The orchestrator converts that public id into an internal backend key shaped as `{client_id}:{session_id}` before calling the workflow. Redis and sub-agent memory use the internal key so two tenants cannot collide if they send the same browser session id. The internal key should not be returned to the frontend.
 

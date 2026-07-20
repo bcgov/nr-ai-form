@@ -25,11 +25,8 @@
       dockerfile: api_backend/Dockerfile
     ports:
       - "8003:8003"
-    env_file:
-      - ./api_backend/.env
     environment:
-      - ORCHESTRATOR_AGENT_A2A_URL=http://orchestrator-agent:8002
-      - ORCHESTRATOR_AGENT_WS_BASE_URL=ws://orchestrator-agent:8002
+      - ORCHESTRATOR_AGENT_WS_URL=ws://orchestrator-agent:8002/ws
       - CSSAI_EXECUTION_ENV=localhost
       - REDIS_HOST=redis
       - AZURE_COSMOS_DB_ENDPOINT=${AZURE_COSMOS_DB_ENDPOINT}
