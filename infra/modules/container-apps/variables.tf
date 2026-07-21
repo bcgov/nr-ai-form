@@ -472,3 +472,84 @@ variable "internal_load_balancer_enabled" {
   default     = false
   nullable    = false
 }
+
+# Azure Cosmos DB Configuration
+variable "azure_cosmos_db_endpoint" {
+  description = "Azure Cosmos DB endpoint URL"
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "azure_cosmos_db_key" {
+  description = "Azure Cosmos DB read access key"
+  type        = string
+  default     = ""
+  sensitive   = true
+  nullable    = false
+}
+
+variable "azure_cosmos_db_database_name" {
+  description = "Azure Cosmos DB database name"
+  type        = string
+  default     = "AgentMemoryDB"
+  nullable    = false
+}
+
+# Tenant Profile Configuration
+variable "tenant_profile_fresh_ttl_seconds" {
+  description = "TTL in seconds for fresh tenant profile cache"
+  type        = string
+  default     = "300"
+  nullable    = false
+}
+
+variable "tenant_profile_stale_ttl_seconds" {
+  description = "TTL in seconds for stale tenant profile cache"
+  type        = string
+  default     = "86400"
+  nullable    = false
+}
+
+variable "tenant_profile_lookup_timeout_seconds" {
+  description = "Timeout in seconds for tenant profile lookup"
+  type        = string
+  default     = "0.5"
+  nullable    = false
+}
+
+# Cache Configuration
+variable "orchestrator_prompt_cache_ttl_seconds" {
+  description = "TTL in seconds for orchestrator prompt cache"
+  type        = string
+  default     = "300"
+  nullable    = false
+}
+
+variable "conversation_prompt_cache_ttl_seconds" {
+  description = "TTL in seconds for conversation prompt cache"
+  type        = string
+  default     = "300"
+  nullable    = false
+}
+
+variable "form_support_agent_cache_ttl_seconds" {
+  description = "TTL in seconds for form support agent cache"
+  type        = string
+  default     = "300"
+  nullable    = false
+}
+
+variable "form_support_prompt_cache_ttl_seconds" {
+  description = "TTL in seconds for form support prompt cache"
+  type        = string
+  default     = "300"
+  nullable    = false
+}
+
+variable "form_support_asset_cache_ttl_seconds" {
+  description = "TTL in seconds for form support asset cache"
+  type        = string
+  default     = "300"
+  nullable    = false
+}

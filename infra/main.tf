@@ -171,6 +171,23 @@ module "container_apps" {
   azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
   azure_blobstorage_container        = var.azure_blobstorage_container
 
+  # Azure Cosmos DB Configuration
+  azure_cosmos_db_endpoint      = var.azure_cosmos_db_endpoint
+  azure_cosmos_db_key           = var.azure_cosmos_db_key
+  azure_cosmos_db_database_name = var.azure_cosmos_db_database_name
+
+  # Tenant Profile Configuration
+  tenant_profile_fresh_ttl_seconds         = var.tenant_profile_fresh_ttl_seconds
+  tenant_profile_stale_ttl_seconds         = var.tenant_profile_stale_ttl_seconds
+  tenant_profile_lookup_timeout_seconds    = var.tenant_profile_lookup_timeout_seconds
+
+  # Cache Configuration
+  orchestrator_prompt_cache_ttl_seconds    = var.orchestrator_prompt_cache_ttl_seconds
+  conversation_prompt_cache_ttl_seconds    = var.conversation_prompt_cache_ttl_seconds
+  form_support_agent_cache_ttl_seconds     = var.form_support_agent_cache_ttl_seconds
+  form_support_prompt_cache_ttl_seconds    = var.form_support_prompt_cache_ttl_seconds
+  form_support_asset_cache_ttl_seconds     = var.form_support_asset_cache_ttl_seconds
+
   # Redis
   redis_host     = var.redis_host
   redis_port     = var.redis_port
