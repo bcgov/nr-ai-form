@@ -52,6 +52,23 @@ locals {
   azure_blobstorage_connectionstring = get_env("AZURE_BLOBSTORAGE_CONNECTIONSTRING", "")
   azure_blobstorage_container         = get_env("AZURE_BLOBSTORAGE_CONTAINER", "")
 
+  # Azure Cosmos DB Configuration
+  azure_cosmos_db_endpoint      = get_env("AZURE_COSMOS_DB_ENDPOINT", "")
+  azure_cosmos_db_key           = get_env("AZURE_COSMOS_DB_KEY", "")
+  azure_cosmos_db_database_name = get_env("AZURE_COSMOS_DB_DATABASE_NAME", "AgentMemoryDB")
+
+  # Tenant Profile Configuration
+  tenant_profile_fresh_ttl_seconds         = get_env("TENANT_PROFILE_FRESH_TTL_SECONDS", "300")
+  tenant_profile_stale_ttl_seconds         = get_env("TENANT_PROFILE_STALE_TTL_SECONDS", "86400")
+  tenant_profile_lookup_timeout_seconds    = get_env("TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS", "0.5")
+
+  # Cache Configuration
+  orchestrator_prompt_cache_ttl_seconds    = get_env("ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS", "300")
+  conversation_prompt_cache_ttl_seconds    = get_env("CONVERSATION_PROMPT_CACHE_TTL_SECONDS", "300")
+  form_support_agent_cache_ttl_seconds     = get_env("FORM_SUPPORT_AGENT_CACHE_TTL_SECONDS", "300")
+  form_support_prompt_cache_ttl_seconds    = get_env("FORM_SUPPORT_PROMPT_CACHE_TTL_SECONDS", "300")
+  form_support_asset_cache_ttl_seconds     = get_env("FORM_SUPPORT_ASSET_CACHE_TTL_SECONDS", "300")
+
   # Redis Configuration
   redis_host     = get_env("REDIS_HOST", "")
   redis_port     = get_env("REDIS_PORT", "10000")
@@ -138,6 +155,23 @@ azure_storage_container_name = "${local.azure_storage_container_name}"
 # Azure Blob Storage Configuration
 azure_blobstorage_connectionstring = "${local.azure_blobstorage_connectionstring}"
 azure_blobstorage_container         = "${local.azure_blobstorage_container}"
+
+# Azure Cosmos DB Configuration
+azure_cosmos_db_endpoint      = "${local.azure_cosmos_db_endpoint}"
+azure_cosmos_db_key           = "${local.azure_cosmos_db_key}"
+azure_cosmos_db_database_name = "${local.azure_cosmos_db_database_name}"
+
+# Tenant Profile Configuration
+tenant_profile_fresh_ttl_seconds         = "${local.tenant_profile_fresh_ttl_seconds}"
+tenant_profile_stale_ttl_seconds         = "${local.tenant_profile_stale_ttl_seconds}"
+tenant_profile_lookup_timeout_seconds    = "${local.tenant_profile_lookup_timeout_seconds}"
+
+# Cache Configuration
+orchestrator_prompt_cache_ttl_seconds    = "${local.orchestrator_prompt_cache_ttl_seconds}"
+conversation_prompt_cache_ttl_seconds    = "${local.conversation_prompt_cache_ttl_seconds}"
+form_support_agent_cache_ttl_seconds     = "${local.form_support_agent_cache_ttl_seconds}"
+form_support_prompt_cache_ttl_seconds    = "${local.form_support_prompt_cache_ttl_seconds}"
+form_support_asset_cache_ttl_seconds     = "${local.form_support_asset_cache_ttl_seconds}"
 
 # Redis Configuration
 redis_host     = "${local.redis_host}"
