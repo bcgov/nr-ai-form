@@ -149,40 +149,55 @@ else {
 
         //-------------------------- Steppers Starts ---------------------------//
         const FormSteps = {
-            step1introduction: "step1-Introduction",
-            step0bot: "step0-Bot",
-            STEP10_COMPLETE: "step10-Complete",
-            step2eligibility: "step2-Eligibility",
-            STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
-            STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
-            STEP3_DAM_RESERVOIR_CONTACT_ADDRESS: "step3-Dam-Reservoir-Contact-Address",
-            STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL: "step3-Dam-Reservoir-Add-Individual",
-            STEP3_DAM_RESERVOIR_ADD_ORGANIZATION: "step3-Dam-Reservoir-Add-Organization",
-            STEP3_TECHNICAL_INFORMATION_ADD_WELL: "step3-Technical-Information-Add-Well",
-            STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR: "step3-Technical-Information-Dam-Reservoir",
-            STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST: "step3-Technical-Information-Fee-Exemption-Request",
-            STEP3_TECHNICAL_INFORMATION_JOINT_WORKS: "step3-Technical-Information-Joint-Works",
-            STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION: "step3-Technical-Information-Land-Tenure-Option",
-            STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS: "step3-Technical-Information-Other-Authorizations",
-            STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION: "step3-Technical-Information-Source-of-Water-for-Application",
-            STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION: "step3-Technical-Information-Water-Diversion",
-            STEP3_TECHNICAL_INFORMATION_WORKS: "step3-Technical-Information-Works",
-            STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
-            STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD: "step4-Location-Map-Files-Multi-File-Upload",
-            STEP4_LOCATION_OTHER_AFFECTED_LANDS: "step4-Location-Other-Affected-Lands",
-            STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD: "step4-Location-Spatial-Files-Multi-File-Upload",
-            STEP4_LOCATION: "step4-Location",
-            STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
-            STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
-            STEP7_BUSINESS_COAPPLICANT: "step7-Business-Coapplicant",
-            STEP7_COMPANY: "step7-Company",
-            STEP7_INDIVIDUAL_ADDRESS: "step7-Individual-Address",
-            STEP7_INDIVIDUAL_COAPPLICANT: "step7-Individual-Coapplicant",
-            STEP7_INDIVIDUAL: "step7-Individual",
-            STEP7_REFERRALS: "step7-Referral",
-            STEP9_DECLARATIONS: "step9-Declarations",
-            STEP7_CONTACT_INFORMATION: "step7-Contact-Information",
-            STEP8_REVIEW: "step8-Review"
+          step1introduction: "step1-Introduction",
+          step0bot: "step0-Bot",
+          STEP10_COMPLETE: "step10-Complete",
+          step2eligibility: "step2-Eligibility",
+          STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
+          STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
+          STEP3_DAM_RESERVOIR_CONTACT_ADDRESS:
+            "step3-Dam-Reservoir-Contact-Address",
+          STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL:
+            "step3-Dam-Reservoir-Add-Individual",
+          STEP3_DAM_RESERVOIR_ADD_ORGANIZATION:
+            "step3-Dam-Reservoir-Add-Organization",
+          STEP3_TECHNICAL_INFORMATION_ADD_WELL:
+            "step3-Technical-Information-Add-Well",
+          STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR:
+            "step3-Technical-Information-Dam-Reservoir",
+          STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST:
+            "step3-Technical-Information-Fee-Exemption-Request",
+          STEP3_TECHNICAL_INFORMATION_JOINT_WORKS:
+            "step3-Technical-Information-Joint-Works",
+          STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION:
+            "step3-Technical-Information-Land-Tenure-Option",
+          STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS:
+            "step3-Technical-Information-Other-Authorizations",
+          STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION:
+            "step3-Technical-Information-Source-of-Water-for-Application",
+          STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION:
+            "step3-Technical-Information-Water-Diversion",
+          STEP3_TECHNICAL_INFORMATION_WORKS:
+            "step3-Technical-Information-Works",
+          STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
+          STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD:
+            "step4-Location-Map-Files-Multi-File-Upload",
+          STEP4_LOCATION_OTHER_AFFECTED_LANDS:
+            "step4-Location-Other-Affected-Lands",
+          STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD:
+            "step4-Location-Spatial-Files-Multi-File-Upload",
+          STEP4_LOCATION: "step4-Location",
+          STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
+          STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
+          STEP7_BUSINESS_COAPPLICANT: "step7-Business-Coapplicant",
+          STEP7_COMPANY: "step7-Company",
+          STEP7_INDIVIDUAL_ADDRESS: "step7-Individual-Address",
+          STEP7_INDIVIDUAL_COAPPLICANT: "step7-Individual-Coapplicant",
+          STEP7_INDIVIDUAL: "step7-Individual",
+          STEP7_REFERRALS: "step7-Referral",
+          STEP9_DECLARATIONS: "step9-Declarations",
+          STEP7_APPLICANT_INFORMATION: "step7-Applicant-Information",
+          STEP8_REVIEW: "step8-Review",
         };
         //-------------------------- Steppers Ends ---------------------------//
 
@@ -339,20 +354,33 @@ else {
             if (!paneHeaderText) return null;
 
             const step3PaneHeaderMap = {
-                governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-                waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
-                works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
-                jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
-                damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-                landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
-                otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
-                // Add Well Popup
-                well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
-                // Add Surface Water Source Popup
-                surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-
-                // On the main form window; Not to be confused with the popup.
-                sourceofwaterforapplication: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+              governmentandfirstnationfeeexemptionrequest:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+              waterdiversion:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+              works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+              jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+              damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+              landtenure:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+              otherauthorizations:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+              // Add Well Popup
+              well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+              // Add Surface Water Source Popup
+              surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+              projectinformation:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
+              // On the main form window; Not to be confused with the popup.
+              sourceofwaterforapplication:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+              // Step 3 Dam Reservoir Individual Contact
+              wslicdamresindivcontact:
+                FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+              // Address - Reused across multiple steps
+              address: FormSteps.STEP3_DAM_RESERVOIR_CONTACT_ADDRESS,
+              wslicdamresbuscontact:
+                FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
             };
 
             return step3PaneHeaderMap[paneHeaderText] || null;
@@ -376,31 +404,46 @@ else {
             if (!paneHeaderText) return null;
 
             const paneHeaderStepMap = {
-                introduction: FormSteps.step1introduction,
-                eligibility: FormSteps.step2eligibility,
-                governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-                waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
-                addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
-                step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
-                step3soureofwater: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
-                step3addsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-                step3jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
-                step3damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-                step3damreservoircontactindividual: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
-                step3damreservoircontactindividualmailingaddress: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS,
-                step3damreservoircontactorganization: FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
-                step3addwell: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
-                step3landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
-                step3otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
-                step4location: FormSteps.STEP4_LOCATION,
-                step4locationlanddetails: FormSteps.STEP4_LOCATION_LAND_DETAILS,
-                step4locationotheraffectedlands: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
-                step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
-                step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
-                step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION,
-                step8review: FormSteps.STEP8_REVIEW,
-                step7referrals: FormSteps.STEP7_REFERRALS,
-                step9declarations: FormSteps.STEP9_DECLARATIONS
+              introduction: FormSteps.step1introduction,
+              eligibility: FormSteps.step2eligibility,
+              governmentandfirstnationfeeexemptionrequest:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+              waterdiversion:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+              projectinformation:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
+              addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
+              step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+              step3soureofwater:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+              surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+              step3jointworks:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+              step3damreservoir:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+              // Step 3 Dam Reservoir Individual Contact
+              wslicdamresindivcontact:
+                FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+              // Address - Reused across multiple steps
+              address: FormSteps.STEP3_DAM_RESERVOIR_CONTACT_ADDRESS,
+              wslicdamresbuscontact:
+                FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
+              well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+              step3landtenure:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+              step3otherauthorizations:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+              step4location: FormSteps.STEP4_LOCATION,
+              // Step 4 Location - Applicant's land details
+              vfapplandinfofromapp: FormSteps.STEP4_LOCATION_LAND_DETAILS,
+              // Step 4 Location - Other affected land details
+              vflandinfo: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
+              step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
+              step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
+              applicantinformation: FormSteps.STEP7_APPLICANT_INFORMATION,
+              step8review: FormSteps.STEP8_REVIEW,
+              referralinformation: FormSteps.STEP7_REFERRALS,
+              step9declarations: FormSteps.STEP9_DECLARATIONS,
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }

@@ -1,0 +1,153 @@
+{
+  "formName": "Step 3 - BC Hydro, Film and Housing Details for Water Licence Application",
+  "formDescription": "This step has a set of questions/fields to capture the details of BC Hydro Sustainment Project, clean energy project or film projects or part of increasing the supply of housing units within British Columbia.",
+  "formfields": {
+    "bchydro-sustainment": {
+      "type": "dropdown",
+      "id": "bchydro-sustainment",
+      "title": "BC Hydro Sustainment Project",
+      "description": "Is this application related to a BC Hydro Sustainment Project required for the maintenance and upgrading of existing electricity infrastructure, such as replacing aging equipment, improving transmission and substation systems, or maintenance works in accordance with Dam Safety Regulations to support long-term energy needs?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "bchydro-clean-energy": {
+      "type": "dropdown",
+      "id": "bchydro-clean-energy",
+      "title": "Clean Energy Project",
+      "description": "Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024 and the present?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "bchydro-interconnections": {
+      "type": "dropdown",
+      "id": "bchydro-interconnections",
+      "title": "Infrastructure to support interconnections",
+      "description": "Is this application related to new or expanded BC Hydro Infrastructure to support interconnections with renewable energy projects?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "film-related": {
+      "type": "dropdown",
+      "id": "film-related",
+      "title": "Major Production",
+      "description": "Is the project a major production (movie or tv series)?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": false
+    },
+    "film-scale": {
+      "type": "dropdown",
+      "id": "film-scale",
+      "title": "Independent/Small-scale Production",
+      "description": "Is the project an independent film, documentary or small-scale production?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": false
+    },
+    "film-commercial": {
+      "type": "dropdown",
+      "id": "film-commercial",
+      "title": "Television Commercial",
+      "description": "Is the project a television commercial?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": false
+    },
+    "housing-permit-connect-navigator-service": {
+      "type": "dropdown",
+      "id": "housing-permit-connect-navigator-service",
+      "title": "Permit Connect Navigator Service",
+      "description": "Have you registered your project with the Permit Connect Navigator Service? (This service delivers specialized client support by assisting applicants throughout the permitting process and clarifying which natural resource permits are required for their project.)",
+      "enum": ["Yes", "No"],
+      "default": "No",
+      "required": true
+    },
+    "housing-project-id": {
+      "type": "text",
+      "id": "housing-project-id",
+      "title": "Project ID number",
+      "description": "Please provide the Project ID number:",
+      "default": "",
+      "required": true
+    },
+    "housing-number-units": {
+      "type": "dropdown",
+      "id": "housing-number-units",
+      "title": "Estimated Number of Units",
+      "description": "What is the Estimated Number of Units? (Note: A house with a secondary suite/subdivision resulting in building many single family homes should be marked as Single Family. Multi-family developments include townhouses, apartments, condominiums, stratas, co-ops, etc.)",
+      "enum": [
+        "Single Family",
+        "Multi-family 2-10 Units",
+        "Multi-family 11-50 Units",
+        "Multi-family 51-500 Units",
+        "Multi-family >500 Units",
+        "Housing - Unknown Unit"
+      ],
+      "default": "Multi-family 2-10 Units",
+      "required": true
+    },
+    "housing-rental": {
+      "type": "dropdown",
+      "id": "housing-rental",
+      "title": "Rental housing",
+      "description": "Does the application support rental housing?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "housing-social": {
+      "type": "dropdown",
+      "id": "housing-social",
+      "title": "Social housing",
+      "description": "Does the application support social housing?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "housing-indigenous": {
+      "type": "dropdown",
+      "id": "housing-indigenous",
+      "title": "Indigenous led",
+      "description": "Is the application Indigenous led?",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "housing-additional": {
+      "type": "dropdown",
+      "id": "housing-additional",
+      "title": "Additional provincial applications",
+      "description": "Are there any additional (existing or projected) provincial applications for permits/authorizations associated with this Housing project? This information will help facilitate a coordinated and efficient multi-authorization review.",
+      "enum": ["Yes", "No"],
+      "default": "Yes",
+      "required": true
+    },
+    "housing-existing": {
+      "type": "textarea",
+      "id": "housing-existing",
+      "title": "Existing provincial permit or authorization applications",
+      "description": "Please identify any existing provincial permit or authorization applications associated with this Housing project. If applicable, include relevant tracking or file numbers.",
+      "default": "",
+      "required": true
+    },
+    "housing-anticipated": {
+      "type": "textarea",
+      "id": "housing-anticipated",
+      "title": "Anticipated future provincial permit or authorization applications",
+      "description": "Please identify any anticipated future provincial permit or authorization applications for this Housing project. If known, include the permit type and the expected submission date.",
+      "default": "",
+      "required": true
+    },
+    "housing-intended-list": {
+      "type": "textarea",
+      "id": "housing-intended-list",
+      "title": "Intended applications list",
+      "description": "List the applications you intend to apply for:",
+      "default": "",
+      "required": true
+    }
+  }
+}
