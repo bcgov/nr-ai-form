@@ -16,37 +16,41 @@ variables:
     type: "secret"
     description: "API key for Azure OpenAI service"
     source: "GitHub secrets"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_sensitive: true
     terraform_default: '""'
+    agent_targets: ["orchestrator", "conversation", "formsupport", "api_backend"]
 
   - name: AZURE_OPENAI_ENDPOINT
     category: "Azure OpenAI"
     type: "variable"
     description: "Endpoint URL for Azure OpenAI service"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_default: '""'
+    agent_targets: ["orchestrator", "conversation", "formsupport"]
 
   - name: AZURE_OPENAI_API_VERSION
     category: "Azure OpenAI"
     type: "variable"
     description: "API version for Azure OpenAI"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_default: '""'
+    agent_targets: ["orchestrator", "conversation", "formsupport"]
 
   - name: AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
     category: "Azure OpenAI"
     type: "variable"
     description: "Deployment name for chat completions model"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_default: '""'
+    agent_targets: ["orchestrator", "conversation", "formsupport"]
 
   # ============================================================================
   # Azure Search Configuration
@@ -56,28 +60,31 @@ variables:
     type: "variable"
     description: "Endpoint URL for Azure Search service"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_default: '""'
+    agent_targets: ["conversation"]
 
   - name: AZURE_SEARCH_API_KEY
     category: "Azure Search"
     type: "secret"
     description: "API key for Azure Search service"
     source: "GitHub secrets"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_sensitive: true
     terraform_default: '""'
+    agent_targets: ["conversation"]
 
   - name: AZURE_SEARCH_INDEX_NAME
     category: "Azure Search"
     type: "variable"
     description: "Index name in Azure Search"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_default: '""'
+    agent_targets: ["conversation"]
 
   # ============================================================================
   # Azure Document Intelligence Configuration
@@ -144,6 +151,7 @@ variables:
     terraform_type: "string"
     terraform_default: '""'
     agent_default: ""
+    agent_targets: ["orchestrator", "conversation", "formsupport"]
 
   - name: AZURE_BLOBSTORAGE_CONTAINER
     category: "Azure Blob Storage"
@@ -154,6 +162,7 @@ variables:
     terraform_type: "string"
     terraform_default: '""'
     agent_default: "assets"
+    agent_targets: ["orchestrator", "conversation", "formsupport"]
 
   # ============================================================================
   # Azure Cosmos DB Configuration
@@ -167,6 +176,7 @@ variables:
     terraform_type: "string"
     terraform_default: '""'
     agent_default: ""
+    agent_targets: ["api_backend"]
 
   - name: AZURE_COSMOS_DB_KEY
     category: "Azure Cosmos DB"
@@ -178,6 +188,7 @@ variables:
     terraform_sensitive: true
     terraform_default: '""'
     agent_default: ""
+    agent_targets: ["api_backend"]
 
   - name: AZURE_COSMOS_DB_DATABASE_NAME
     category: "Azure Cosmos DB"
@@ -188,6 +199,7 @@ variables:
     terraform_type: "string"
     terraform_default: '"AgentMemoryDB"'
     agent_default: "AgentMemoryDB"
+    agent_targets: ["api_backend"]
 
   # ============================================================================
   # Tenant Profile Configuration
@@ -201,6 +213,7 @@ variables:
     terraform_type: "string"
     terraform_default: '"300"'
     agent_default: "300"
+    agent_targets: ["api_backend"]
 
   - name: TENANT_PROFILE_STALE_TTL_SECONDS
     category: "Tenant Profile"
@@ -211,6 +224,7 @@ variables:
     terraform_type: "string"
     terraform_default: '"86400"'
     agent_default: "86400"
+    agent_targets: ["api_backend"]
 
   - name: TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS
     category: "Tenant Profile"
@@ -221,6 +235,7 @@ variables:
     terraform_type: "string"
     terraform_default: '"0.5"'
     agent_default: "0.5"
+    agent_targets: ["api_backend"]
 
   # ============================================================================
   # Cache Configuration
@@ -288,46 +303,51 @@ variables:
     type: "variable"
     description: "Redis cache host"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_default: '""'
+    agent_targets: ["orchestrator", "api_backend"]
 
   - name: REDIS_PORT
     category: "Redis"
     type: "variable"
     description: "Redis cache port"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "number"
     terraform_default: '10000'
+    agent_targets: ["orchestrator", "api_backend"]
 
   - name: REDIS_PASSWORD
     category: "Redis"
     type: "secret"
     description: "Redis cache access key"
     source: "GitHub secrets"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_sensitive: true
     terraform_default: '""'
+    agent_targets: ["orchestrator", "api_backend"]
 
   - name: REDIS_SSL
     category: "Redis"
     type: "variable"
     description: "Enable SSL for Redis connection"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "bool"
     terraform_default: 'false'
+    agent_targets: ["orchestrator", "api_backend"]
 
   - name: REDIS_TTL_DAYS
     category: "Redis"
     type: "variable"
     description: "TTL in days for Redis entries"
     source: "GitHub vars"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "number"
     terraform_default: '14'
+    agent_targets: ["orchestrator", "api_backend"]
 
   # ============================================================================
   # CORS Configuration
@@ -349,7 +369,66 @@ variables:
     type: "secret"
     description: "Connection string for Application Insights"
     source: "GitHub secrets"
-    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module"]
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
     terraform_type: "string"
     terraform_sensitive: true
     terraform_default: '""'
+    agent_targets: ["orchestrator", "conversation", "formsupport"]
+
+  - name: APPINSIGHTS_INSTRUMENTATIONKEY
+    category: "Application Insights"
+    type: "secret"
+    description: "Instrumentation key for Application Insights"
+    source: "GitHub secrets"
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
+    terraform_type: "string"
+    terraform_sensitive: true
+    terraform_default: '""'
+    agent_targets: ["orchestrator", "conversation", "formsupport"]
+
+  # ============================================================================
+  # Agent Service Routing Configuration
+  # ============================================================================
+  - name: CONVERSATION_AGENT_A2A_URL
+    category: "Agent Routing"
+    type: "variable"
+    description: "URL for Conversation Agent A2A service"
+    source: "GitHub vars"
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
+    terraform_type: "string"
+    terraform_default: '"http://localhost:8000"'
+    agent_default: "http://localhost:8000"
+    agent_targets: ["orchestrator"]
+
+  - name: FORM_SUPPORT_AGENT_A2A_URL
+    category: "Agent Routing"
+    type: "variable"
+    description: "URL for Form Support Agent A2A service"
+    source: "GitHub vars"
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
+    terraform_type: "string"
+    terraform_default: '"http://localhost:8001"'
+    agent_default: "http://localhost:8001"
+    agent_targets: ["orchestrator"]
+
+  - name: ORCHESTRATOR_AGENT_WS_URL
+    category: "Agent Routing"
+    type: "variable"
+    description: "WebSocket URL for Orchestrator Agent service"
+    source: "GitHub vars"
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
+    terraform_type: "string"
+    terraform_default: '"ws://localhost:8002/ws"'
+    agent_default: "ws://localhost:8002/ws"
+    agent_targets: ["api_backend"]
+  
+  - name: TEST_URL
+    category: "Agent Routing"
+    type: "variable"
+    description: "TEST URL"
+    source: "GitHub vars"
+    targets: ["github-actions", "terragrunt", "terraform-root", "terraform-module", "agent-env"]
+    terraform_type: "string"
+    terraform_default: '"TEST"'
+    agent_default: "TEST"
+    agent_targets: ["api_backend"]
