@@ -2,6 +2,7 @@
 FastAPI A2A Wrapper for Form Support Agent
 This is a standalone wrapper that imports and exposes the FormSupportAgent via HTTP
 """
+import ast
 import json
 import logging
 import os
@@ -83,9 +84,54 @@ def _agent_cache_key(step_key: str, client_settings: FormSupportAgentClientSetti
 _HISTORY_SOURCE_ID = "in_memory"
 
 
+def _extract_aggregator_response(text: str) -> str:
+    """Reduce a stored orchestrator assistant turn to just the Aggregator's response.
+
+    The orchestrator persists its workflow output as a Python-repr string of a list of
+    payload dicts, e.g.::
+
+        [{'source': 'Aggregator', 'response': '<curated text>', 'original_results': [...]}]
+
+    Only the Aggregator's ``response`` is useful as conversation context; ``original_results``
+    (raw sub-agent payloads) and non-Aggregator entries are dropped. Falls back to the raw
+    text when it can't be parsed or no Aggregator payload is present.
+    """
+    stripped = (text or "").strip()
+    if not stripped or stripped[0] not in "[{":
+        return text
+    try:
+        parsed = ast.literal_eval(stripped)
+    except (ValueError, SyntaxError):
+        try:
+            parsed = json.loads(stripped)
+        except (ValueError, TypeError):
+            return text
+
+    items = parsed if isinstance(parsed, list) else [parsed]
+    for item in items:
+        if isinstance(item, dict) and item.get("source") == "Aggregator":
+            response = item.get("response")
+            if isinstance(response, str):
+                return response
+            if response is not None:
+                return json.dumps(response)
+    return text
+
+
 def _seed_messages(history) -> list[Message]:
-    """Convert orchestrator-provided {role, text} turns into MAF Message objects."""
-    return [Message(turn.role, [turn.text]) for turn in history if turn.text and turn.role in ("user", "assistant")]
+    """Convert orchestrator-provided {role, text} turns into MAF Message objects.
+
+    Assistant turns arrive as the orchestrator's full workflow payload; only the
+    Aggregator's curated ``response`` is kept (see ``_extract_aggregator_response``).
+    """
+    messages: list[Message] = []
+    for turn in history:
+        if not turn.text or turn.role not in ("user", "assistant"):
+            continue
+        text = _extract_aggregator_response(turn.text) if turn.role == "assistant" else turn.text
+        if text and text.strip():
+            messages.append(Message(turn.role, [text]))
+    return messages
 
 
 def _evict_expired_agents() -> None:
@@ -206,9 +252,7 @@ async def invoke_agent(request: InvokeRequest):
         # Get agent instance for this step
         agent = get_agent(step_identifier, client_settings=request.client_settings)
 
-        # Resolve session for this session+step combination
-        print(f"[HISTDEBUG] invoke session={request.session_id} step={step_identifier} "
-              f"history_turns={len(request.history) if request.history else 0}")
+
         session = None
         if request.session_id:
             session_key = (request.session_id, str(step_identifier))
@@ -220,11 +264,12 @@ async def invoke_agent(request: InvokeRequest):
                         if turn.role in ("user", "assistant") and turn.text:
                             print(f"[HISTDEBUG] cache MISS -> seeding session {session_key} with turn: role={turn.role}, text={turn.text}")
                     seeded = _seed_messages(request.history)
+                    for turn in seeded:
+                        print(f"[HISTDEBUG] cache MISS -> seeded message: role={turn.role}, text={turn.text}")
                     # Seed into the history provider's source-scoped state, not the top-level
                     # state dict — the InMemoryHistoryProvider only reads state["in_memory"]["messages"].
                     session.state.setdefault(_HISTORY_SOURCE_ID, {})["messages"] = seeded
-                    print(f"[HISTDEBUG] cache MISS -> seeded new session {session_key} "
-                          f"with {len(seeded)} messages")
+                   
                 else:
                     print(f"[HISTDEBUG] cache MISS -> new session {session_key}, no history provided")
                 # Persist the freshly created session so subsequent turns reuse it (cache HIT)
