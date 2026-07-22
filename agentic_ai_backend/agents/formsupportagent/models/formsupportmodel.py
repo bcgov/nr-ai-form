@@ -24,11 +24,17 @@ class FormSupportAgentClientSettings(TypedDict):
     config: FormSupportAgentConfig
 
 
+class HistoryTurn(BaseModel):
+    role: str
+    text: str
+
+
 class InvokeRequest(BaseModel):
     query: str
     session_id: Optional[str] = None
     step_number: Union[int, str]  # Required step identifier
     client_settings: FormSupportAgentClientSettings
+    history: Optional[list[HistoryTurn]] = None
 
 
 class InvokeResponse(BaseModel):

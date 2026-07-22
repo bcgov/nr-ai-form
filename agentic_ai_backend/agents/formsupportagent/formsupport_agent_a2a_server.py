@@ -9,7 +9,7 @@ import sys
 import time
 from dataclasses import dataclass
 from fastapi import FastAPI, HTTPException
-from agent_framework import AgentSession
+from agent_framework import AgentSession, Message
 from dotenv import load_dotenv
 
 # Add parent directories to path to allow importing modules
@@ -74,6 +74,11 @@ _AGENT_CACHE_TTL_SECONDS = float(os.getenv("FORM_SUPPORT_AGENT_CACHE_TTL_SECONDS
 def _agent_cache_key(step_key: str, client_settings: FormSupportAgentClientSettings) -> tuple[str, str, str]:
     client_id, fingerprint = settings_cache_parts(client_settings)
     return (client_id, fingerprint, step_key)
+
+
+def _seed_messages(history) -> list[Message]:
+    """Convert orchestrator-provided {role, text} turns into MAF Message objects."""
+    return [Message(turn.role, [turn.text]) for turn in history if turn.text and turn.role in ("user")]
 
 
 def _evict_expired_agents() -> None:
@@ -195,13 +200,25 @@ async def invoke_agent(request: InvokeRequest):
         agent = get_agent(step_identifier, client_settings=request.client_settings)
 
         # Resolve session for this session+step combination
+        print(f"[HISTDEBUG] invoke session={request.session_id} step={step_identifier} "
+              f"history_turns={len(request.history) if request.history else 0}")
         session = None
         if request.session_id:
             session_key = (request.session_id, str(step_identifier))
             session = _session_threads.get(session_key)
             if session is None:
                 session = agent.agent.create_session(session_id=request.session_id)
-                _session_threads[session_key] = session
+                if request.history:
+                    for turn in request.history:
+                        if turn.role == "user" and turn.text:
+                            print(f"[HISTDEBUG] cache MISS -> seeding session {session_key} with turn: role={turn.role}, text={turn.text}")
+                    session.state["messages"] = _seed_messages(request.history)
+                    print(f"[HISTDEBUG] cache MISS -> seeded new session {session_key} "
+                          f"with {len(session.state['messages'])} messages")
+                else:
+                    print(f"[HISTDEBUG] cache MISS -> new session {session_key}, no history provided")
+            else:
+                print(f"[HISTDEBUG] cache HIT for {session_key} (using existing in-memory session)")
         # Run the agent with the cleaned query (or original if no step was found)
         result = await agent.run(query, session=session)
 
