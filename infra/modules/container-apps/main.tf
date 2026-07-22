@@ -123,6 +123,11 @@ resource "azurerm_container_app" "backend" {
   }
 
   secret {
+    name  = "azure-cosmos-db-key"
+    value = var.azure_cosmos_db_key
+  }
+
+  secret {
     name  = "redis-password"
     value = var.redis_password
   }
