@@ -76,9 +76,16 @@ def _agent_cache_key(step_key: str, client_settings: FormSupportAgentClientSetti
     return (client_id, fingerprint, step_key)
 
 
+# Source ID the framework's auto-injected InMemoryHistoryProvider reads/writes under.
+# History must be seeded into session.state[_HISTORY_SOURCE_ID]["messages"], NOT the
+# top-level session.state["messages"], because providers receive a source-scoped state dict
+# (see agent_framework _agents.py: state=provider_session.state.setdefault(provider.source_id, {})).
+_HISTORY_SOURCE_ID = "in_memory"
+
+
 def _seed_messages(history) -> list[Message]:
     """Convert orchestrator-provided {role, text} turns into MAF Message objects."""
-    return [Message(turn.role, [turn.text]) for turn in history if turn.text and turn.role in ("user")]
+    return [Message(turn.role, [turn.text]) for turn in history if turn.text and turn.role in ("user", "assistant")]
 
 
 def _evict_expired_agents() -> None:
@@ -210,13 +217,19 @@ async def invoke_agent(request: InvokeRequest):
                 session = agent.agent.create_session(session_id=request.session_id)
                 if request.history:
                     for turn in request.history:
-                        if turn.role == "user" and turn.text:
+                        if turn.role in ("user", "assistant") and turn.text:
                             print(f"[HISTDEBUG] cache MISS -> seeding session {session_key} with turn: role={turn.role}, text={turn.text}")
-                    session.state["messages"] = _seed_messages(request.history)
+                    seeded = _seed_messages(request.history)
+                    # Seed into the history provider's source-scoped state, not the top-level
+                    # state dict — the InMemoryHistoryProvider only reads state["in_memory"]["messages"].
+                    session.state.setdefault(_HISTORY_SOURCE_ID, {})["messages"] = seeded
                     print(f"[HISTDEBUG] cache MISS -> seeded new session {session_key} "
-                          f"with {len(session.state['messages'])} messages")
+                          f"with {len(seeded)} messages")
                 else:
                     print(f"[HISTDEBUG] cache MISS -> new session {session_key}, no history provided")
+                # Persist the freshly created session so subsequent turns reuse it (cache HIT)
+                # and the framework's after_run-saved history accumulates across requests.
+                _session_threads[session_key] = session
             else:
                 print(f"[HISTDEBUG] cache HIT for {session_key} (using existing in-memory session)")
         # Run the agent with the cleaned query (or original if no step was found)
