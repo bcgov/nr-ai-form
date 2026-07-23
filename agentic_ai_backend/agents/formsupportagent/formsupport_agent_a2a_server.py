@@ -2,6 +2,7 @@
 FastAPI A2A Wrapper for Form Support Agent
 This is a standalone wrapper that imports and exposes the FormSupportAgent via HTTP
 """
+import ast
 import json
 import logging
 import os
@@ -9,7 +10,7 @@ import sys
 import time
 from dataclasses import dataclass
 from fastapi import FastAPI, HTTPException
-from agent_framework import AgentSession
+from agent_framework import AgentSession, Message
 from dotenv import load_dotenv
 
 # Add parent directories to path to allow importing modules
@@ -74,6 +75,63 @@ _AGENT_CACHE_TTL_SECONDS = float(os.getenv("FORM_SUPPORT_AGENT_CACHE_TTL_SECONDS
 def _agent_cache_key(step_key: str, client_settings: FormSupportAgentClientSettings) -> tuple[str, str, str]:
     client_id, fingerprint = settings_cache_parts(client_settings)
     return (client_id, fingerprint, step_key)
+
+
+# Source ID the framework's auto-injected InMemoryHistoryProvider reads/writes under.
+# History must be seeded into session.state[_HISTORY_SOURCE_ID]["messages"], NOT the
+# top-level session.state["messages"], because providers receive a source-scoped state dict
+# (see agent_framework _agents.py: state=provider_session.state.setdefault(provider.source_id, {})).
+_HISTORY_SOURCE_ID = "in_memory"
+
+
+def _extract_aggregator_response(text: str) -> str:
+    """Reduce a stored orchestrator assistant turn to just the Aggregator's response.
+
+    The orchestrator persists its workflow output as a Python-repr string of a list of
+    payload dicts, e.g.::
+
+        [{'source': 'Aggregator', 'response': '<curated text>', 'original_results': [...]}]
+
+    Only the Aggregator's ``response`` is useful as conversation context; ``original_results``
+    (raw sub-agent payloads) and non-Aggregator entries are dropped. Falls back to the raw
+    text when it can't be parsed or no Aggregator payload is present.
+    """
+    stripped = (text or "").strip()
+    if not stripped or stripped[0] not in "[{":
+        return text
+    try:
+        parsed = ast.literal_eval(stripped)
+    except (ValueError, SyntaxError):
+        try:
+            parsed = json.loads(stripped)
+        except (ValueError, TypeError):
+            return text
+
+    items = parsed if isinstance(parsed, list) else [parsed]
+    for item in items:
+        if isinstance(item, dict) and item.get("source") == "Aggregator":
+            response = item.get("response")
+            if isinstance(response, str):
+                return response
+            if response is not None:
+                return json.dumps(response)
+    return text
+
+
+def _seed_messages(history) -> list[Message]:
+    """Convert orchestrator-provided {role, text} turns into MAF Message objects.
+
+    Assistant turns arrive as the orchestrator's full workflow payload; only the
+    Aggregator's curated ``response`` is kept (see ``_extract_aggregator_response``).
+    """
+    messages: list[Message] = []
+    for turn in history:
+        if not turn.text or turn.role not in ("user", "assistant"):
+            continue
+        text = _extract_aggregator_response(turn.text) if turn.role == "assistant" else turn.text
+        if text and text.strip():
+            messages.append(Message(turn.role, [text]))
+    return messages
 
 
 def _evict_expired_agents() -> None:
@@ -194,14 +252,31 @@ async def invoke_agent(request: InvokeRequest):
         # Get agent instance for this step
         agent = get_agent(step_identifier, client_settings=request.client_settings)
 
-        # Resolve session for this session+step combination
+
         session = None
         if request.session_id:
             session_key = (request.session_id, str(step_identifier))
             session = _session_threads.get(session_key)
             if session is None:
                 session = agent.agent.create_session(session_id=request.session_id)
+                if request.history:
+                    for turn in request.history:
+                        if turn.role in ("user", "assistant") and turn.text:
+                            print(f"[HISTDEBUG] cache MISS -> seeding session {session_key} with turn: role={turn.role}, text={turn.text}")
+                    seeded = _seed_messages(request.history)
+                    for turn in seeded:
+                        print(f"[HISTDEBUG] cache MISS -> seeded message: role={turn.role}, text={turn.text}")
+                    # Seed into the history provider's source-scoped state, not the top-level
+                    # state dict — the InMemoryHistoryProvider only reads state["in_memory"]["messages"].
+                    session.state.setdefault(_HISTORY_SOURCE_ID, {})["messages"] = seeded
+                   
+                else:
+                    print(f"[HISTDEBUG] cache MISS -> new session {session_key}, no history provided")
+                # Persist the freshly created session so subsequent turns reuse it (cache HIT)
+                # and the framework's after_run-saved history accumulates across requests.
                 _session_threads[session_key] = session
+            else:
+                print(f"[HISTDEBUG] cache HIT for {session_key} (using existing in-memory session)")
         # Run the agent with the cleaned query (or original if no step was found)
         result = await agent.run(query, session=session)
 

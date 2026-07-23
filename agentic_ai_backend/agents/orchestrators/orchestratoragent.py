@@ -175,6 +175,11 @@ async def orchestrate_a2a(query: str,
     conversation_agent_enabled = tenant_settings.conversation.enabled if tenant_settings.conversation else None
     form_support_agent_enabled = tenant_settings.form_support.enabled if tenant_settings.form_support else None
 
+    # Option 1: orchestrator owns durable session state in Redis and forwards a
+    # curated slice of the conversation to the stateless sub-agents.
+    db_utils = get_redis_utils()
+    prior_history = await db_utils.get_history_turns(effective_session_id)
+
     executors = []
     if conversation_agent_enabled:
         conversation_settings = tenant_settings.conversation
@@ -194,6 +199,7 @@ async def orchestrate_a2a(query: str,
             base_url=form_support_agent_url,
             step_number=effective_step_number,
             session_id=effective_session_id,
+            history=prior_history,
             client_settings=form_support_settings,
             timeout=a2a_timeout_seconds
         )
@@ -251,9 +257,6 @@ async def orchestrate_a2a(query: str,
 
 
     final_data = None
-
-    # Get singleton Redis Utils
-    db_utils = get_redis_utils()
 
     try:
         # Load session state
