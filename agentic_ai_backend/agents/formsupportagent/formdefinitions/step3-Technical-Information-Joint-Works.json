@@ -216,6 +216,14 @@
       "description": "Required if the pipe extends more than 15 metres from the high water mark.",
       "default": "",
       "required": true
+    },
+    "V1PCLExistingTenureInfo": {
+      "type": "textarea",
+      "id": "V1PCLExistingTenureInfo",
+      "title": "Please provide your Tenure file number or any other information about your existing permission:",
+      "description": "Provide details of any existing Crown Land Tenure, Permit over Crown Land, or Mines Lease that covers the affected Crown Land.",
+      "default": "",
+      "required": false
     }
   }
 }
