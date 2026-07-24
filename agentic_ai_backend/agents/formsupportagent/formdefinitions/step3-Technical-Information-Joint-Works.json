@@ -167,6 +167,14 @@
       "default": "No",
       "required": false
     },
+    "V1PCLCrownLandFloodArea": {
+      "type": "text",
+      "id": "V1PCLCrownLandFloodArea",
+      "title": "Total area of Crown land to be flooded:",
+      "description": "The total crown land area that will be flooded (in hectares).",
+      "default": "",
+      "required": false
+    },
     "V1PCLWorksCrossCrownLand": {
       "type": "radio",
       "id": "V1PCLWorksCrossCrownLand",
@@ -181,7 +189,7 @@
       "id": "V1PCLLengthOfWorksOnCrownLand",
       "title": "Total length of works on Crown land:",
       "description": "Measured in metres.",
-      "default": "100.00",
+      "default": "",
       "required": false
     },
     "V1PCLWidthOfWorksOnCrownLand5m": {
@@ -189,7 +197,7 @@
       "id": "V1PCLWidthOfWorksOnCrownLand5m",
       "title": "Width of works on Crown land (minimum 5.0m):",
       "description": "The width of the area used by the works on Crown land.",
-      "default": "20.00",
+      "default": "",
       "required": false
     },
     "V1PCLNewIntakePipe": {

@@ -34,13 +34,13 @@ variable "orchestrator_agent_image" {
   type        = string
 }
 
-/*
+
 variable "api_backend_image" {
   description = "The image for the API Backend container (WebSocket gateway)"
   type        = string
   default     = ""
 }
-*/
+
 
 # Legacy variable for Container Apps compatibility - will use conversation_agent_image
 variable "api_image" {
@@ -433,4 +433,74 @@ variable "cors_allow_origins" {
   description = "Comma-separated list of allowed origins for CORS (e.g., 'http://localhost:3000,https://example.gov.bc.ca')."
   type        = string
   default     = ""
+}
+
+# Azure Cosmos DB Configuration
+variable "azure_cosmos_db_endpoint" {
+  description = "Azure Cosmos DB endpoint URL"
+  type        = string
+  default     = ""
+}
+
+variable "azure_cosmos_db_key" {
+  description = "Azure Cosmos DB read access key"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "azure_cosmos_db_database_name" {
+  description = "Azure Cosmos DB database name"
+  type        = string
+  default     = "AgentMemoryDB"
+}
+
+# Tenant Profile Configuration
+variable "tenant_profile_fresh_ttl_seconds" {
+  description = "TTL in seconds for fresh tenant profile cache"
+  type        = string
+  default     = "300"
+}
+
+variable "tenant_profile_stale_ttl_seconds" {
+  description = "TTL in seconds for stale tenant profile cache"
+  type        = string
+  default     = "86400"
+}
+
+variable "tenant_profile_lookup_timeout_seconds" {
+  description = "Timeout in seconds for tenant profile lookup"
+  type        = string
+  default     = "0.5"
+}
+
+# Cache Configuration
+variable "orchestrator_prompt_cache_ttl_seconds" {
+  description = "TTL in seconds for orchestrator prompt cache"
+  type        = string
+  default     = "300"
+}
+
+variable "conversation_prompt_cache_ttl_seconds" {
+  description = "TTL in seconds for conversation prompt cache"
+  type        = string
+  default     = "300"
+}
+
+variable "form_support_agent_cache_ttl_seconds" {
+  description = "TTL in seconds for form support agent cache"
+  type        = string
+  default     = "300"
+}
+
+variable "form_support_prompt_cache_ttl_seconds" {
+  description = "TTL in seconds for form support prompt cache"
+  type        = string
+  default     = "300"
+}
+
+variable "form_support_asset_cache_ttl_seconds" {
+  description = "TTL in seconds for form support asset cache"
+  type        = string
+  default     = "300"
 }
