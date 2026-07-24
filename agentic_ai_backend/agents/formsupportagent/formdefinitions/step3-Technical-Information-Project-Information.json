@@ -37,6 +37,18 @@
             ],
             "default": "No",
             "required": true
+        },
+        "Major Mine_RequiredQuestionResponse": {
+            "type": "radio",
+            "id": "Major Mine_RequiredQuestionResponse",
+            "title": "Is this application related to a major mine?",
+            "description": "The purpose of this application must be related with a major mine in British Columbia.",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
         }
     }
 }

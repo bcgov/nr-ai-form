@@ -148,6 +148,30 @@
       "description": "List the applications you intend to apply for:",
       "default": "",
       "required": true
+    },
+    "major-mine-number": {
+      "type": "text",
+      "id": "major-mine-number",
+      "title": "What is your Mines Act Permit Number?",
+      "description": "Please provide the Major Mine Number:",
+      "default": "",
+      "required": true
+    },
+    "major-mine-exploration": {
+      "type": "text",
+      "id": "major-mine-exploration",
+      "title": "Is this application related to exploration work?",
+      "description": "Please indicate if this application is related to exploration work for a major mine in British Columbia.",
+      "default": "",
+      "required": true
+    },
+    "major-mine-amendment": {
+      "type": "text",
+      "id": "major-mine-amendment",
+      "title": "Is this application related to a current or upcoming Mines Act Amendment Project?",
+      "description": "Please indicate if this application is related to an amendment of an existing or upcoming Mines Act Permit for a major mine in British Columbia.",
+      "default": "",
+      "required": true
     }
   }
 }
