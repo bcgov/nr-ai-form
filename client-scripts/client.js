@@ -157,8 +157,6 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
           step2eligibility: "step2-Eligibility",
           STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
           STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
-          STEP3_DAM_RESERVOIR_CONTACT_ADDRESS:
-            "step3-Dam-Reservoir-Contact-Address",
           STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL:
             "step3-Dam-Reservoir-Add-Individual",
           STEP3_DAM_RESERVOIR_ADD_ORGANIZATION:
@@ -183,26 +181,24 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
             "step3-Technical-Information-Works",
           STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
           STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD:
-            "step4-Location-Map-Files-Multi-File-Upload",
+            "shared-multifile-upoad",
           STEP4_LOCATION_OTHER_AFFECTED_LANDS:
             "step4-Location-Other-Affected-Lands",
           STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD:
-            "step4-Location-Spatial-Files-Multi-File-Upload",
+            "shared-multifile-upoad",
           STEP4_LOCATION: "step4-Location",
           STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
           STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
-          STEP7_BUSINESS_COAPPLICANT: "step7-Business-Coapplicant",
-          STEP7_COMPANY: "step7-Company",
-          STEP7_INDIVIDUAL_ADDRESS: "step7-Individual-Address",
-          STEP7_INDIVIDUAL_COAPPLICANT: "step7-Individual-Coapplicant",
-          STEP7_INDIVIDUAL: "step7-Individual",
+          SHARED_ADDRESS: "shared-address",
+          SHARED_SINGLE_FILE_UPLOAD: "shared-single-file-upload",
+          SHARED_MULTIFILE_UPOAD: "shared-multifile-upoad",
           STEP7_REFERRALS: "step7-Referral",
           STEP9_DECLARATIONS: "step9-Declarations",
-          STEP7_APPLICANT_INFORMATION: "step7-Applicant-Informationstep7-Applicant-Information",
+          STEP7_APPLICANT_INFORMATION: "step7-Applicant-Information",
           STEP8_REVIEW: "step8-Review",
           STEP7_APPLICANT_INFORMATION_MY_PROFILE: "step7-Applicant-Information-My-Profile",
-          STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT : "step7-Co-Applicant-Add-A-Business-Applicant",
-          STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL : "step7-Co-Applicant-Add-An-Individual",
+          STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT: "step7-Co-Applicant-Add-A-Business-Applicant",
+          STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL: "step7-Co-Applicant-Add-An-Induvidual",
           STEP7_CO_APPLICANTS: "step7-Co-Applicants",
           STEP9_CO_APPLICANT_SIGNATURES: "step9-Co-Applicant-Signatures",
         };
@@ -432,7 +428,7 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               wslicdamresindivcontact:
                 FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
               // Address - Reused across multiple steps
-              address: FormSteps.STEP3_DAM_RESERVOIR_CONTACT_ADDRESS,
+              address: FormSteps.SHARED_ADDRESS,
               wslicdamresbuscontact:
                 FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
               well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
@@ -446,6 +442,8 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               // Step 4 Location - Other affected land details
               vflandinfo: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
               step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
+              documentupload: FormSteps.SHARED_SINGLE_FILE_UPLOAD,
+              multifileupload: FormSteps.SHARED_MULTIFILE_UPOAD,
               step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
               applicantinformation: FormSteps.STEP7_APPLICANT_INFORMATION,
               step8review: FormSteps.STEP8_REVIEW,
@@ -455,9 +453,16 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               signaturescoapp:FormSteps.STEP9_CO_APPLICANT_SIGNATURES,
               myprofile: FormSteps.STEP7_APPLICANT_INFORMATION_MY_PROFILE,
               otherapplicantvfappclient: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
-              otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_AN_ORGANIZATION 
+              otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT 
             };
             return paneHeaderStepMap[paneHeaderText] || null;
+        }
+// todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
+        function hasMultiFileUploadWidget() {
+            return Boolean(
+                document.querySelector('#uploader .plupload_container') ||
+                document.querySelector('form[action*="UploadMulti.aspx"]')
+            );
         }
 
         function getCurrentFormStepFromDom() {
@@ -471,6 +476,11 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 );
                 if (hasAltchaValidation || hasCaptchaIframeValidation) {
                     return FormSteps.step0bot || 'step0-Bot';
+                }
+                // todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
+
+                if (hasMultiFileUploadWidget()) {
+                    return FormSteps.SHARED_MULTIFILE_UPOAD;
                 }
                 return getCurrentFormStepFromPaneHeaders();
             }
@@ -489,6 +499,11 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 );
                 if (hasAltchaValidation || hasCaptchaIframeValidation) {
                     return FormSteps.step0bot || 'step0-Bot';
+                }
+                // todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
+
+                if (hasMultiFileUploadWidget()) {
+                    return FormSteps.SHARED_MULTIFILE_UPOAD;
                 }
                 return getCurrentFormStepFromPaneHeaders();
             }
@@ -1834,3 +1849,4 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 //     )();
 
 // }
+
