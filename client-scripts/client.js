@@ -381,9 +381,9 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               wslicdamresindivcontact:
                 FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
               // Address - Reused across multiple steps
-              address: FormSteps.STEP3_DAM_RESERVOIR_CONTACT_ADDRESS,
+              address: FormSteps.SHARED_ADDRESS,
               wslicdamresbuscontact:
-                FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
+                FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION
             };
 
             return step3PaneHeaderMap[paneHeaderText] || null;
@@ -453,7 +453,9 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               signaturescoapp:FormSteps.STEP9_CO_APPLICANT_SIGNATURES,
               myprofile: FormSteps.STEP7_APPLICANT_INFORMATION_MY_PROFILE,
               otherapplicantvfappclient: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
-              otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT 
+              otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT,
+              appladdress:formsteps.SHARED_ADDRESS,
+              address:formsteps.SHARED_ADDRESS
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }
