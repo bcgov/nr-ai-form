@@ -1,6 +1,6 @@
 {
   "formName": "Step 3 - BC Hydro, Film and Housing Details for Water Licence Application",
-  "formDescription": "This step has a set of questions/fields to capture the details of BC Hydro Sustainment Project, clean energy project or film projects or part of increasing the supply of housing units within British Columbia.",
+  "formDescription": "This step has a set of questions/fields to capture the details of BC Hydro Sustainment Project, clean energy project or film projects or part of increasing the supply of housing units or major mines in British Columbia.",
   "formfields": {
     "bchydro-sustainment": {
       "type": "dropdown",
@@ -146,6 +146,32 @@
       "id": "housing-intended-list",
       "title": "Intended applications list",
       "description": "List the applications you intend to apply for:",
+      "default": "",
+      "required": true
+    },
+    "major-mine-number": {
+      "type": "text",
+      "id": "major-mine-number",
+      "title": "What is your Mines Act Permit Number?",
+      "description": "Please provide the Major Mine Number:",
+      "default": "",
+      "required": true
+    },
+    "major-mine-exploration": {
+      "type": "dropdown",
+      "id": "major-mine-exploration",
+      "title": "Is this application related to exploration work?",
+      "description": "Please indicate if this application is related to exploration work for a major mine in British Columbia.",
+      "enum": ["Yes", "No"],
+      "default": "",
+      "required": true
+    },
+    "major-mine-amendment": {
+      "type": "dropdown",
+      "id": "major-mine-amendment",
+      "title": "Is this application related to a current or upcoming Mines Act Amendment Project?",
+      "description": "Please indicate if this application is related to an amendment of an existing or upcoming Mines Act Permit for a major mine in British Columbia.",
+      "enum": ["Yes", "No"],
       "default": "",
       "required": true
     }

@@ -64,7 +64,7 @@ Therefore:
 - If the user asks to fill in the form, check the historical chats, information to return JSON as per *Decision Rules* below
 - If the user asks a contextual or informational question about the page or section (e.g. "what is this?", "what is this page for?", "what do I do here?", "what is this section about?", "can you explain this form?"), return a JSON object in this exact format:
 ```json
-{"id": "step2-Eligibility", "type": "form", "formdescription": "This is the Eligibility step of the BC Water Permit Application. On this page, you must confirm whether you are eligible to apply for a water licence in British Columbia. Eligibility includes land owners, mine operators, municipalities, government representatives, First Nations, Nisga'a citizens, and others with a substantial interest in land or an undertaking in BC. You will also be asked whether your application relates to specific priority projects such as housing development, the North Coast Transmission Line, BC Hydro Sustainment, or clean energy initiatives.", "suggestedvalue": ""}
+{"id": "step2-Eligibility", "type": "form", "formdescription": "This is the Eligibility step of the BC Water Permit Application. On this page, you must confirm whether you are eligible to apply for a water licence in British Columbia. Eligibility includes land owners, mine operators, municipalities, government representatives, First Nations, Nisga'a citizens, and others with a substantial interest in land or an undertaking in BC. You will also be asked whether your application relates to clean energy initiatives and will require additional explanation.", "suggestedvalue": ""}
 ```
 
 # Decision Rules
@@ -73,17 +73,15 @@ Therefore:
 - If the user's message addresses multiple fields, return a JSON array containing all of them.
 - If the user asks to select 'No' for ALL questions (e.g. "select no for all", "mark everything as no"), set ALL five fields to 'No' and return as a JSON array. Do NOT apply eligibility logic.
 - If the user says they are not sure about the remaining questions, or asks to mark the rest as 'No', evaluate `AnswerOnJob_eligible` normally and set the other four to 'No'. Return all five as a JSON array.
-- The four project-type fields (`AnswerOnJob_housing`, `AnswerOnJob_north-coast-line`, `AnswerOnJob_bc-hydro-sustainability`, `AnswerOnJob_clean-energy`) must NEVER be included unless the user explicitly mentioned the related topic.
+- The two project-type fields (`AnswerOnJob_housing`, `AnswerOnJob_clean-energy`) must NEVER be included unless the user explicitly mentioned the related topic.
 - If the user provides an ownership statement (farm, land, mine ownership), eligibility MUST be determined as "Yes".
 - Do NOT treat missing water-use or location details as insufficient information.
 ```
-User: "I am not sure about the other questions" / "mark the rest as No" — all five fields, return an array:
+User: "I am not sure about the other questions" / "mark the rest as No" — all the fields, return an array:
 ```json
 [
   {"id": "AnswerOnJob_eligible", "description": "Is the user eligible to apply for a water licence?", "suggestedvalue": "Yes", "type": "radio"},
   {"id": "AnswerOnJob_housing", "description": "Is this application in relation to increasing the supply of housing units within British Columbia?", "suggestedvalue": "No", "type": "radio"},
-  {"id": "AnswerOnJob_north-coast-line", "description": "Is this application related to the North Coast Transmission Line?", "suggestedvalue": "No", "type": "radio"},
-  {"id": "AnswerOnJob_bc-hydro-sustainability", "description": "Is this application related to a BC Hydro Sustainment Project?", "suggestedvalue": "No", "type": "radio"},
-  {"id": "AnswerOnJob_clean-energy", "description": "Is this application related to a clean energy project?", "suggestedvalue": "No", "type": "radio"}
+  {"id": "AnswerOnJob_clean-energy", "description": "Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024-present?", "suggestedvalue": "No", "type": "radio"}
 ]
 ```

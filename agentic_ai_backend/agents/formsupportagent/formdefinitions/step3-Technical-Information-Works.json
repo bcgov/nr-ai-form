@@ -23,6 +23,27 @@
             "default": "Not Constructed",
             "required": false
         },
+        "Selected_Balancing_Reservoir": {
+            "type": "checkbox",
+            "id": "Selected_Balancing_Reservoir",
+            "title": "Balancing Reservoir",
+            "description": "A reservoir used to balance water levels.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Balancing Reservoir": {
+            "type": "dropdown",
+            "id": "Status_Balancing Reservoir",
+            "title": "Balancing Reservoir Status",
+            "description": "Construction status of the balancing reservoir.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
         "Selected_Back_flood_control_structure": {
             "type": "checkbox",
             "id": "Selected_Back_flood_control_structure",
@@ -722,6 +743,279 @@
             "title": "Please provide details about the works selected above, and your water system:",
             "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.",
             "default": "",
+            "required": false
+        },
+        "Selected_Control_Gate": {
+            "type": "checkbox",
+            "id": "Selected_Control_Gate",
+            "title": "Control Gate",
+            "description": "A gate which controls the flow of water.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Control_Gate": {
+            "type": "dropdown",
+            "id": "Status_Control Gate",
+            "title": "Control Gate Status",
+            "description": "Construction status of the control gate.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Diversion_structure": {
+            "type": "checkbox",
+            "id": "Selected_Diversion_structure",
+            "title": "Diversion structure",
+            "description": "A structure that allows you to divert (redirect) water from one spot to another.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Diversion_structure": {
+            "type": "dropdown",
+            "id": "Status_Diversion structure",
+            "title": "Diversion structure Status",
+            "description": "Construction status of the diversion structure.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Dyke": {
+            "type": "checkbox",
+            "id": "Selected_Dyke",
+            "title": "Dyke",
+            "description": "A barrier regulating or holding back water.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Dyke": {
+            "type": "dropdown",
+            "id": "Status_Dyke",
+            "title": "Dyke Status",
+            "description": "Construction status of the dyke.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Fish_ladder": {
+            "type": "checkbox",
+            "id": "Selected_Fish_ladder",
+            "title": "Fish ladder",
+            "description": "A structure on or around an artificial barrier (e.g. a dam) that allows fish to migrate.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Fish_ladder": {
+            "type": "dropdown",
+            "id": "Status_Fish ladder",
+            "title": "Fish ladder Status",
+            "description": "Construction status of the fish ladder.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Head_Pond": {
+            "type": "checkbox",
+            "id": "Selected_Head_Pond",
+            "title": "Head Pond",
+            "description": "A reservoir designed to maintain required hydrostatic head. Please refer to the BC Dam Safety Regulation to ensure your proposed works do not constitute a dam.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Head_Pond": {
+            "type": "dropdown",
+            "id": "Status_Head Pond",
+            "title": "Head Pond Status",
+            "description": "Construction status of the head pond.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Intake": {
+            "type": "checkbox",
+            "id": "Selected_Intake",
+            "title": "Intake",
+            "description": "The intake is where you extract or divert the water from the source.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Intake": {
+            "type": "dropdown",
+            "id": "Status_Intake",
+            "title": "Intake Status",
+            "description": "Construction status of the intake.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Penstock": {
+            "type": "checkbox",
+            "id": "Selected_Penstock",
+            "title": "Penstock",
+            "description": "A penstock is a sluice or gate or intake structure that controls water flow, or an enclosed pipe that delivers water to hydraulic turbines and sewerage systems.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Penstock": {
+            "type": "dropdown",
+            "id": "Status_Penstock",
+            "title": "Penstock Status",
+            "description": "Construction status of the penstock.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Powerhouse": {
+            "type": "checkbox",
+            "id": "Selected_Powerhouse",
+            "title": "Powerhouse",
+            "description": "A structure that usually contains a generator to generate electrical power.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Powerhouse": {
+            "type": "dropdown",
+            "id": "Status_Powerhouse",
+            "title": "Powerhouse Status",
+            "description": "Construction status of the powerhouse.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Screened_Intake": {
+            "type": "checkbox",
+            "id": "Selected_Screened_Intake",
+            "title": "Screened Intake",
+            "description": "A screened intake is an intake covered by a screen which prevents fish and other wildlife to be sucked into the intake.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Screened_Intake": {
+            "type": "dropdown",
+            "id": "Status_Screened Intake",
+            "title": "Screened Intake Status",
+            "description": "Construction status of the screened intake.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Settling_pond": {
+            "type": "checkbox",
+            "id": "Selected_Settling_pond",
+            "title": "Settling pond",
+            "description": "A settling basin, settling pond or decant pond are devices used to treat turbidity in industrial wastewater. Used to control water pollution in diverse industries.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Settling_pond": {
+            "type": "dropdown",
+            "id": "Status_Settling pond",
+            "title": "Settling pond Status",
+            "description": "Construction status of the settling pond.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Switch_Yard": {
+            "type": "checkbox",
+            "id": "Selected_Switch_Yard",
+            "title": "Switch Yard",
+            "description": "A switching station with incoming and outgoing feeders but without the transformer. Connects and disconnects lines on the grid.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Switch_Yard": {
+            "type": "dropdown",
+            "id": "Status_Switch Yard",
+            "title": "Switch Yard Status",
+            "description": "Construction status of the switch yard.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Tailrace": {
+            "type": "checkbox",
+            "id": "Selected_Tailrace",
+            "title": "Tailrace",
+            "description": "A channel which conveys water away from a water-wheel or turbine.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Tailrace": {
+            "type": "dropdown",
+            "id": "Status_Tailrace",
+            "title": "Tailrace Status",
+            "description": "Construction status of the tailrace.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
+            "required": false
+        },
+        "Selected_Transmission_Line": {
+            "type": "checkbox",
+            "id": "Selected_Transmission_Line",
+            "title": "Transmission Line",
+            "description": "A cable designed to carry electricity.",
+            "default": "Y",
+            "required": false
+        },
+        "Status_Transmission_Line": {
+            "type": "dropdown",
+            "id": "Status_Transmission Line",
+            "title": "Transmission Line Status",
+            "description": "Construction status of the transmission line.",
+            "enum": [
+                "Not Constructed",
+                "Partly Constructed",
+                "Fully Constructed"
+            ],
+            "default": "Not Constructed",
             "required": false
         }
     }

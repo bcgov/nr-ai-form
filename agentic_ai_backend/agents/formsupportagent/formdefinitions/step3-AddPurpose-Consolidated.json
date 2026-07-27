@@ -56,9 +56,9 @@
             ],
             "required": true
         },
-        "InADesignatedArea": {
+        "InADesignatedAreaListedAbove": {
             "type": "radio",
-            "id": "InADesignatedAreaListedAbove_100535465_N0",
+            "id": "InADesignatedAreaListedAbove",
             "title": "Are you applying for a water licence to withdraw groundwater in a designated area?",
             "enum": [
                 "Yes",
@@ -168,7 +168,7 @@
         },
         "NumberOfDwellings": {
             "type": "number",
-            "id": "NumberOfDwellings_100536021_N0",
+            "id": "NumberOfDwellings",
             "title": "Number of dwellings:",
             "required": false,
             "maxLength": 6,
