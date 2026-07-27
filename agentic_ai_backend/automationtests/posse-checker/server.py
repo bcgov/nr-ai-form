@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 app = FastAPI()
 
 # Folder containing the JSON files
-JSON_FOLDER = Path("C:\\Users\\krish\\Downloads\\bcgov\\nr-ai-form\\agentic_ai_backend\\agents\\formsupportagent\\formdefinitions")
+JSON_FOLDER = Path("<Your Path to JSON Files>")  # Replace with the actual path to your JSON files
 
 
 @app.get("/get-json")
