@@ -454,8 +454,8 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               myprofile: FormSteps.STEP7_APPLICANT_INFORMATION_MY_PROFILE,
               otherapplicantvfappclient: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
               otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT,
-              appladdress:formsteps.SHARED_ADDRESS,
-              address:formsteps.SHARED_ADDRESS
+              appladdress: FormSteps.SHARED_ADDRESS,
+              address: FormSteps.SHARED_ADDRESS
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }
