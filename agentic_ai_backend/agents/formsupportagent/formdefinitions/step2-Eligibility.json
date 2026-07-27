@@ -1,6 +1,6 @@
 {
     "formName": "Step 2 - Eligibility Step for  Water Licence Application",
-    "formDescription": "This step has a set of questions/fields to determine if the applicant is eligible to apply for a water licence. Also there are other fields to  check whether the application is part of North Coast Transmission Line project, BC Hydro Sustainment Project, clean energy project or part of increasing the supply of housing units within British Columbia.",
+    "formDescription": "This step has a set of questions/fields to determine if the applicant is eligible to apply for a water licence. Also there are other fields to  check whether the application is part of clean energy project within British Columbia.",
     "formfields": {
         "AnswerOnJob_eligible": {
             "type": "radio",
