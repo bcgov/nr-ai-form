@@ -1,6 +1,6 @@
 {
   "formName": "Step 3 - BC Hydro, Film and Housing Details for Water Licence Application",
-  "formDescription": "This step has a set of questions/fields to capture the details of BC Hydro Sustainment Project, clean energy project or film projects or part of increasing the supply of housing units within British Columbia.",
+  "formDescription": "This step has a set of questions/fields to capture the details of BC Hydro Sustainment Project, clean energy project or film projects or part of increasing the supply of housing units or major mines in British Columbia.",
   "formfields": {
     "bchydro-sustainment": {
       "type": "dropdown",

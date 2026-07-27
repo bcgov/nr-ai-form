@@ -1,6 +1,6 @@
 {
     "formName": "Step 3 - Project Information for Water Licence Application",
-    "formDescription": "This step has a set of questions/fields to determine the nature of the project for which the applicant is seeking a water licence. Also there are other fields to  check whether the application is part of North Coast Transmission Line project, BC Hydro Sustainment Project, clean energy project or part of increasing the supply of housing units within British Columbia.",
+    "formDescription": "This step has a set of questions/fields to determine if the application is related to BC Hydro, Film production, housing, or major mines in BC.",
     "formfields": {
         "BC Hydro_RequiredQuestionResponse": {
             "type": "radio",
