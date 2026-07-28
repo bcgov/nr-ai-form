@@ -458,7 +458,8 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT,
               appladdress: FormSteps.SHARED_ADDRESS,
               address: FormSteps.SHARED_ADDRESS,
-              composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL
+              composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL,
+              pubsubmitteraddress :  FormsSteps.SHARED_ADDRESS
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }
