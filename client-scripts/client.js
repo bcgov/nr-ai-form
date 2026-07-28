@@ -201,6 +201,8 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
           STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL: "step7-Co-Applicant-Add-An-Induvidual",
           STEP7_CO_APPLICANTS: "step7-Co-Applicants",
           STEP9_CO_APPLICANT_SIGNATURES: "step9-Co-Applicant-Signatures",
+          STEP9_CO_APPLICANT_COMPOSE_EMAIL: "step9-Co-Applicant-Compose-Email"
+
         };
         //-------------------------- Steppers Ends ---------------------------//
 
@@ -455,7 +457,8 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               otherapplicantvfappclient: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
               otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT,
               appladdress: FormSteps.SHARED_ADDRESS,
-              address: FormSteps.SHARED_ADDRESS
+              address: FormSteps.SHARED_ADDRESS,
+              composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }
