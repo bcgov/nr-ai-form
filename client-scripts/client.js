@@ -459,7 +459,7 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               appladdress: FormSteps.SHARED_ADDRESS,
               address: FormSteps.SHARED_ADDRESS,
               composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL,
-              pubsubmitteraddress :  FormsSteps.SHARED_ADDRESS
+              pubsubmitteraddress :  FormSteps.SHARED_ADDRESS
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }
