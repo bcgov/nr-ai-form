@@ -1,4 +1,4 @@
-"""
+﻿"""
 FastAPI A2A Wrapper for Form Support Agent
 This is a standalone wrapper that imports and exposes the FormSupportAgent via HTTP
 """
@@ -189,11 +189,16 @@ def get_agent(step_identifier: Union[int, str], client_settings: FormSupportAgen
         )
 
         if not form_definition:
-            raise FileNotFoundError(f"Form definition not found for identifier: {step_key}")
+            # Some steps, such as Review, are prompt-only and intentionally have no JSON form definition.
+            # Warn, but let the agent continue using the step prompt template as its source of context.
+            logger.warning(
+                "Form definition not found for identifier %s; continuing with prompt template only.",
+                step_key,
+            )
 
 
         #form_context_str = get_form_context(form_definition)
-        form_context_str = json.dumps(form_definition)
+        form_context_str = json.dumps(form_definition) if form_definition else ""
 
         if not custom_instructions:
             raise FileNotFoundError(f"No prompt template found for step: {step_key}. A specialized prompt is required.")
