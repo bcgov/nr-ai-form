@@ -11,60 +11,60 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
-// /**
-//  * Allow testing of alternative javascript
-//  * if the browser's local storage has an item 'clientInstance': 'ms'
-//  * javascript in remote file (see `url`) will be loaded instead
-//  */
-// let clientInstance = localStorage.getItem('clientInstance');
-// if (clientInstance === 'ms') {
-//     var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot') {
-//     var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot-ks') {
-//     var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot-aj') {
-//     var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'css') {
-//     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
+/**
+ * Allow testing of alternative javascript
+ * if the browser's local storage has an item 'clientInstance': 'ms'
+ * javascript in remote file (see `url`) will be loaded instead
+ */
+let clientInstance = localStorage.getItem('clientInstance');
+if (clientInstance === 'ms') {
+    var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot') {
+    var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-ks') {
+    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-aj') {
+    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'css') {
+    var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
 
-// else {
+else {
 
-//     (function () {
+    (function () {
 
         // Feature flag: set to true to re-enable the guided questions UI when ready.
         const GUIDED_QUESTIONS_ENABLED = false;
         const clientId = '11111111-1111-4111-8111-111111111111';
         // TEST: const API_BACKEND_BASE_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
         // DEV : const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
-        const API_BACKEND_BASE_URL = 'http://localhost:8003';
-        // const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-commonservi-api.livelymushroom-b9ecaae0.canadacentral.azurecontainerapps.io';
-        
+        // const API_BACKEND_BASE_URL = 'http://localhost:8003';
+        const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-commonservi-api.livelymushroom-b9ecaae0.canadacentral.azurecontainerapps.io';
+
         const CONVERSATION_HISTORY_API_URL = new URL(`/tenants/${clientId}/history`, API_BACKEND_BASE_URL).toString();
         // const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, API_BACKEND_BASE_URL).toString();
         // Derive ws/wss from the API backend URL so local http uses ws and deployed
@@ -151,61 +151,61 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 
         //-------------------------- Steppers Starts ---------------------------//
         const FormSteps = {
-          step1introduction: "step1-Introduction",
-          step0bot: "step0-Bot",
-          STEP10_COMPLETE: "step10-Complete",
-          step2eligibility: "step2-Eligibility",
-          STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION:
-            "step3-Technical-Information-Project-Information",
-          STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION_QUESTIONS:
-            "step3-Technical-Information-Project-Information-Questions",
-          STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
-          STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
-          STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL:
-            "step3-Dam-Reservoir-Add-Individual",
-          STEP3_DAM_RESERVOIR_ADD_ORGANIZATION:
-            "step3-Dam-Reservoir-Add-Organization",
-          STEP3_TECHNICAL_INFORMATION_ADD_WELL:
-            "step3-Technical-Information-Add-Well",
-          STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR:
-            "step3-Technical-Information-Dam-Reservoir",
-          STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST:
-            "step3-Technical-Information-Fee-Exemption-Request",
-          STEP3_TECHNICAL_INFORMATION_JOINT_WORKS:
-            "step3-Technical-Information-Joint-Works",
-          STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION:
-            "step3-Technical-Information-Land-Tenure-Option",
-          STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS:
-            "step3-Technical-Information-Other-Authorizations",
-          STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION:
-            "step3-Technical-Information-Source-of-Water-for-Application",
-          STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION:
-            "step3-Technical-Information-Water-Diversion",
-          STEP3_TECHNICAL_INFORMATION_WORKS:
-            "step3-Technical-Information-Works",
-          STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
-          STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD:
-            "shared-multifile-upoad",
-          STEP4_LOCATION_OTHER_AFFECTED_LANDS:
-            "step4-Location-Other-Affected-Lands",
-          STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD:
-            "shared-multifile-upoad",
-          STEP4_LOCATION: "step4-Location",
-          STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
-          STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
-          SHARED_ADDRESS: "shared-address",
-          SHARED_SINGLE_FILE_UPLOAD: "shared-single-file-upload",
-          SHARED_MULTIFILE_UPOAD: "shared-multifile-upoad",
-          STEP7_REFERRALS: "step7-Referral",
-          STEP9_DECLARATIONS: "step9-Declarations",
-          STEP7_APPLICANT_INFORMATION: "step7-Applicant-Information",
-          STEP8_REVIEW: "step8-Review",
-          STEP7_APPLICANT_INFORMATION_MY_PROFILE: "step7-Applicant-Information-My-Profile",
-          STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT: "step7-Co-Applicant-Add-A-Business-Applicant",
-          STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL: "step7-Co-Applicant-Add-An-Induvidual",
-          STEP7_CO_APPLICANTS: "step7-Co-Applicants",
-          STEP9_CO_APPLICANT_SIGNATURES: "step9-Co-Applicant-Signatures",
-          STEP9_CO_APPLICANT_COMPOSE_EMAIL: "step9-Co-Applicant-Compose-Email"
+            step1introduction: "step1-Introduction",
+            step0bot: "step0-Bot",
+            STEP10_COMPLETE: "step10-Complete",
+            step2eligibility: "step2-Eligibility",
+            STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION:
+                "step3-Technical-Information-Project-Information",
+            STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION_QUESTIONS:
+                "step3-Technical-Information-Project-Information-Questions",
+            STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
+            STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
+            STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL:
+                "step3-Dam-Reservoir-Add-Individual",
+            STEP3_DAM_RESERVOIR_ADD_ORGANIZATION:
+                "step3-Dam-Reservoir-Add-Organization",
+            STEP3_TECHNICAL_INFORMATION_ADD_WELL:
+                "step3-Technical-Information-Add-Well",
+            STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR:
+                "step3-Technical-Information-Dam-Reservoir",
+            STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST:
+                "step3-Technical-Information-Fee-Exemption-Request",
+            STEP3_TECHNICAL_INFORMATION_JOINT_WORKS:
+                "step3-Technical-Information-Joint-Works",
+            STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION:
+                "step3-Technical-Information-Land-Tenure-Option",
+            STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS:
+                "step3-Technical-Information-Other-Authorizations",
+            STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION:
+                "step3-Technical-Information-Source-of-Water-for-Application",
+            STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION:
+                "step3-Technical-Information-Water-Diversion",
+            STEP3_TECHNICAL_INFORMATION_WORKS:
+                "step3-Technical-Information-Works",
+            STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
+            STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD:
+                "shared-multifile-upoad",
+            STEP4_LOCATION_OTHER_AFFECTED_LANDS:
+                "step4-Location-Other-Affected-Lands",
+            STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD:
+                "shared-multifile-upoad",
+            STEP4_LOCATION: "step4-Location",
+            STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
+            STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
+            SHARED_ADDRESS: "shared-address",
+            SHARED_SINGLE_FILE_UPLOAD: "shared-single-file-upload",
+            SHARED_MULTIFILE_UPOAD: "shared-multifile-upoad",
+            STEP7_REFERRALS: "step7-Referral",
+            STEP9_DECLARATIONS: "step9-Declarations",
+            STEP7_APPLICANT_INFORMATION: "step7-Applicant-Information",
+            STEP8_REVIEW: "step8-Review",
+            STEP7_APPLICANT_INFORMATION_MY_PROFILE: "step7-Applicant-Information-My-Profile",
+            STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT: "step7-Co-Applicant-Add-A-Business-Applicant",
+            STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL: "step7-Co-Applicant-Add-An-Induvidual",
+            STEP7_CO_APPLICANTS: "step7-Co-Applicants",
+            STEP9_CO_APPLICANT_SIGNATURES: "step9-Co-Applicant-Signatures",
+            STEP9_CO_APPLICANT_COMPOSE_EMAIL: "step9-Co-Applicant-Compose-Email"
 
         };
         //-------------------------- Steppers Ends ---------------------------//
@@ -361,33 +361,33 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
             if (!paneHeaderText) return null;
 
             const step3PaneHeaderMap = {
-              governmentandfirstnationfeeexemptionrequest:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-              waterdiversion:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
-              works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
-              jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
-              damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-              landtenure:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
-              otherauthorizations:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
-              // Add Well Popup
-              well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
-              // Add Surface Water Source Popup
-              surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-              projectinformation:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
-              // On the main form window; Not to be confused with the popup.
-              sourceofwaterforapplication:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
-              // Step 3 Dam Reservoir Individual Contact
-              wslicdamresindivcontact:
-                FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
-              // Address - Reused across multiple steps
-              address: FormSteps.SHARED_ADDRESS,
-              wslicdamresbuscontact:
-                FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION
+                governmentandfirstnationfeeexemptionrequest:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+                waterdiversion:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+                works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+                jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+                damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+                landtenure:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+                otherauthorizations:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+                // Add Well Popup
+                well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+                // Add Surface Water Source Popup
+                surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+                projectinformation:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
+                // On the main form window; Not to be confused with the popup.
+                sourceofwaterforapplication:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+                // Step 3 Dam Reservoir Individual Contact
+                wslicdamresindivcontact:
+                    FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+                // Address - Reused across multiple steps
+                address: FormSteps.SHARED_ADDRESS,
+                wslicdamresbuscontact:
+                    FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION
             };
 
             return step3PaneHeaderMap[paneHeaderText] || null;
@@ -411,72 +411,72 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
             if (!paneHeaderText) return null;
 
             const paneHeaderStepMap = {
-              introduction: FormSteps.step1introduction,
-              eligibility: FormSteps.step2eligibility,
-              governmentandfirstnationfeeexemptionrequest:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-              waterdiversion:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
-              projectinformation:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
-              projectinformationquestions:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION_QUESTIONS,
-              addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
-              step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
-              step3soureofwater:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
-              surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-              vfsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-              step3jointworks:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
-              step3damreservoir:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-              // Step 3 Dam Reservoir Individual Contact
-              wslicdamresindivcontact:
-                FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
-              // Address - Reused across multiple steps
-              address: FormSteps.SHARED_ADDRESS,
-              wslicdamresbuscontact:
-                FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
-              /**
-               * In the Add Well Popup, stepheadername is well and subheadername is waterworks.
-               * Hence, both these entries are mapped to the same step value.
-               *  */
-              well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
-              waterworks: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
-              step3landtenure:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
-              step3otherauthorizations:
-                FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
-              step4location: FormSteps.STEP4_LOCATION,
-              // Step 4 Location - Applicant's land details
-              vfapplandinfofromapp: FormSteps.STEP4_LOCATION_LAND_DETAILS,
-              // Step 4 Location - Other affected land details
-              vflandinfo: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
-              step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
-              documentupload: FormSteps.SHARED_SINGLE_FILE_UPLOAD,
-              multifileupload: FormSteps.SHARED_MULTIFILE_UPOAD,
-              step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
-              applicantinformation: FormSteps.STEP7_APPLICANT_INFORMATION,
-              step8review: FormSteps.STEP8_REVIEW,
-              referralinformation: FormSteps.STEP7_REFERRALS,
-              step9declarations: FormSteps.STEP9_DECLARATIONS,
-              step10declarations: FormSteps.STEP9_DECLARATIONS,
-              coapplicants: FormSteps.STEP7_CO_APPLICANTS,
-              signaturescoapp:FormSteps.STEP9_CO_APPLICANT_SIGNATURES,
-              myprofile: FormSteps.STEP7_APPLICANT_INFORMATION_MY_PROFILE,
-              otherapplicantvfappclient: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
-              otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT,
-              appladdress: FormSteps.SHARED_ADDRESS,
-              address: FormSteps.SHARED_ADDRESS,
-              composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL,
-              complete: FormSteps.STEP10_COMPLETE,
-              pubsubmitteraddress :  FormSteps.SHARED_ADDRESS,
-              step9signatures: FormSteps.STEP9_CO_APPLICANT_SIGNATURES
+                introduction: FormSteps.step1introduction,
+                eligibility: FormSteps.step2eligibility,
+                governmentandfirstnationfeeexemptionrequest:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+                waterdiversion:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+                projectinformation:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
+                projectinformationquestions:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION_QUESTIONS,
+                addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
+                step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
+                step3soureofwater:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+                surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+                vfsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+                step3jointworks:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+                step3damreservoir:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+                // Step 3 Dam Reservoir Individual Contact
+                wslicdamresindivcontact:
+                    FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+                // Address - Reused across multiple steps
+                address: FormSteps.SHARED_ADDRESS,
+                wslicdamresbuscontact:
+                    FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
+                /**
+                 * In the Add Well Popup, stepheadername is well and subheadername is waterworks.
+                 * Hence, both these entries are mapped to the same step value.
+                 *  */
+                well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+                waterworks: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+                step3landtenure:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+                step3otherauthorizations:
+                    FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+                step4location: FormSteps.STEP4_LOCATION,
+                // Step 4 Location - Applicant's land details
+                vfapplandinfofromapp: FormSteps.STEP4_LOCATION_LAND_DETAILS,
+                // Step 4 Location - Other affected land details
+                vflandinfo: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
+                step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
+                documentupload: FormSteps.SHARED_SINGLE_FILE_UPLOAD,
+                multifileupload: FormSteps.SHARED_MULTIFILE_UPOAD,
+                step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
+                applicantinformation: FormSteps.STEP7_APPLICANT_INFORMATION,
+                step8review: FormSteps.STEP8_REVIEW,
+                referralinformation: FormSteps.STEP7_REFERRALS,
+                step9declarations: FormSteps.STEP9_DECLARATIONS,
+                step10declarations: FormSteps.STEP9_DECLARATIONS,
+                coapplicants: FormSteps.STEP7_CO_APPLICANTS,
+                signaturescoapp: FormSteps.STEP9_CO_APPLICANT_SIGNATURES,
+                myprofile: FormSteps.STEP7_APPLICANT_INFORMATION_MY_PROFILE,
+                otherapplicantvfappclient: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
+                otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT,
+                appladdress: FormSteps.SHARED_ADDRESS,
+                address: FormSteps.SHARED_ADDRESS,
+                composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL,
+                complete: FormSteps.STEP10_COMPLETE,
+                pubsubmitteraddress: FormSteps.SHARED_ADDRESS,
+                step9signatures: FormSteps.STEP9_CO_APPLICANT_SIGNATURES
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }
-// todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
+        // todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
         function hasMultiFileUploadWidget() {
             return Boolean(
                 document.querySelector('#uploader .plupload_container') ||
@@ -1863,8 +1863,8 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 console.error('Error clearing chat storage:', e);
             }
         }
-    // }
-//     )();
+    }
+    )();
 
-// }
+}
 
