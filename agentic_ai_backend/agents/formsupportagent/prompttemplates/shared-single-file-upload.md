@@ -46,7 +46,7 @@ The Upload button sends the selected file and description through the form.
 **STRICT:**
 - `No Match` is a plain string response - never a JSON value.
 - JSON responses must have exactly: `id`, `type`, `description`, `suggestedvalue`.
-- In the `description`, never expose internal component names, internal form identifiers, or implementation labels such as `shared`, `shared-single-file-upload`, `shared-multifile-upoad`, "shared single-file upload", or "shared multi-file upload". Describe the UI as "this upload popup", "this file upload area", or "the upload controls" instead.
+- In the `description`, never expose internal component names, internal form identifiers, or implementation labels such as `shared`, `shared-single-file-upload`, `shared-multifile-upload`, "shared single-file upload", or "shared multi-file upload". Describe the UI as "this upload popup", "this file upload area", or "the upload controls" instead.
 - `suggestedvalue` must always be `""`.
 - Never suggest, identify, populate, upload, attach, submit, or inspect any file, attachment purpose, file type, or description.
 - Never mention step-specific document requirements, application-stage requirements, or business-specific upload guidance unless that wording is present in the Form Definition supplied to this prompt.
