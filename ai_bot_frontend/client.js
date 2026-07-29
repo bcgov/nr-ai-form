@@ -11,51 +11,51 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 
-// /**
-//  * Allow testing of alternative javascript
-//  * if the browser's local storage has an item 'clientInstance': 'ms'
-//  * javascript in remote file (see `url`) will be loaded instead
-//  */
-// let clientInstance = localStorage.getItem('clientInstance');
-// if (clientInstance === 'ms') {
-//     var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot') {
-//     var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot-ks') {
-//     var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot-aj') {
-//     var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'css') {
-//     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
+/**
+ * Allow testing of alternative javascript
+ * if the browser's local storage has an item 'clientInstance': 'ms'
+ * javascript in remote file (see `url`) will be loaded instead
+ */
+let clientInstance = localStorage.getItem('clientInstance');
+if (clientInstance === 'ms') {
+    var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot') {
+    var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-ks') {
+    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-aj') {
+    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'css') {
+    var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
 
-// else {
+else {
 
-//     (function () {
+    (function () {
 
         // Feature flag: set to true to re-enable the guided questions UI when ready.
         const GUIDED_QUESTIONS_ENABLED = false;
@@ -1865,8 +1865,8 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 console.error('Error clearing chat storage:', e);
             }
         }
-//     }
-//     )();
+    }
+    )();
 
-// }
+}
 
