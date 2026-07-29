@@ -185,17 +185,17 @@ else {
                 "step3-Technical-Information-Works",
             STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
             STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD:
-                "shared-multifile-upoad",
+                "shared-multifile-upload",
             STEP4_LOCATION_OTHER_AFFECTED_LANDS:
                 "step4-Location-Other-Affected-Lands",
             STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD:
-                "shared-multifile-upoad",
+                "shared-multifile-upload",
             STEP4_LOCATION: "step4-Location",
             STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
             STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
             SHARED_ADDRESS: "shared-address",
             SHARED_SINGLE_FILE_UPLOAD: "shared-single-file-upload",
-            SHARED_MULTIFILE_UPOAD: "shared-multifile-upoad",
+            SHARED_MULTIFILE_UPLOAD: "shared-multifile-upload",
             STEP7_REFERRALS: "step7-Referral",
             STEP9_DECLARATIONS: "step9-Declarations",
             STEP7_APPLICANT_INFORMATION: "step7-Applicant-Information",
@@ -455,7 +455,7 @@ else {
                 vflandinfo: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
                 step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
                 documentupload: FormSteps.SHARED_SINGLE_FILE_UPLOAD,
-                multifileupload: FormSteps.SHARED_MULTIFILE_UPOAD,
+                multifileupload: FormSteps.SHARED_MULTIFILE_UPLOAD,
                 step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
                 applicantinformation: FormSteps.STEP7_APPLICANT_INFORMATION,
                 step8review: FormSteps.STEP8_REVIEW,
@@ -499,7 +499,7 @@ else {
                 // todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
 
                 if (hasMultiFileUploadWidget()) {
-                    return FormSteps.SHARED_MULTIFILE_UPOAD;
+                    return FormSteps.SHARED_MULTIFILE_UPLOAD;
                 }
                 return getCurrentFormStepFromPaneHeaders();
             }
@@ -522,7 +522,7 @@ else {
                 // todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
 
                 if (hasMultiFileUploadWidget()) {
-                    return FormSteps.SHARED_MULTIFILE_UPOAD;
+                    return FormSteps.SHARED_MULTIFILE_UPLOAD;
                 }
                 return getCurrentFormStepFromPaneHeaders();
             }
@@ -752,7 +752,7 @@ else {
         }
 
         /** 
-         * Remove the suggestions key from sessionStorage entirely — used when the queue is fully processed.
+         * Remove the suggestions key from sessionStorage entirely � used when the queue is fully processed.
         */
         function clearPendingSuggestions() {
             sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
@@ -774,7 +774,7 @@ else {
             if (_aspNetHooked) return;
             try {
                 if (typeof Sys === 'undefined' || !Sys.WebForms) {
-                    // ScriptManager not initialized yet — retry shortly
+                    // ScriptManager not initialized yet � retry shortly
                     setTimeout(ensureAspNetHook, 500);
                     return;
                 }
@@ -824,21 +824,21 @@ else {
             var observer = null;
             try {
                 observer = new MutationObserver(function () {
-                    // DOM changed — reset the quiet timer, we're not settled yet
+                    // DOM changed � reset the quiet timer, we're not settled yet
                     clearTimeout(quietTimer);
                     quietTimer = setTimeout(finish, quietMs);
                 });
                 // Watch the entire subtree for any kind of DOM change
                 observer.observe(target, { childList: true, subtree: true, attributes: true, characterData: true });
             } catch (e) {
-                // MutationObserver not supported — proceed immediately
+                // MutationObserver not supported � proceed immediately
                 callback();
                 return;
             }
 
             // If the DOM is already quiet (no mutations happen at all), fire after quietMs
             quietTimer = setTimeout(finish, quietMs);
-            // Safety net — never wait longer than maxWaitMs regardless of ongoing mutations
+            // Safety net � never wait longer than maxWaitMs regardless of ongoing mutations
             giveUpTimer = setTimeout(finish, maxWaitMs);
         }
 
@@ -875,20 +875,20 @@ else {
             // Poll until the target element appears in the DOM.
             // After a full page reload, the script runs before ASP.NET has finished rendering all controls,
             // so the element may not exist in the DOM yet. We retry every 150ms for up to ~5 seconds.
-            const maxAttempts = 33; // 33 × 150ms ≈ 5 seconds
+            const maxAttempts = 33; // 33 � 150ms � 5 seconds
             let attempts = 0;
 
             function tryApply() {
                 const elements = findFieldElementsByIdentifier(suggestion.id);
                 if (elements.length === 0 && attempts < maxAttempts) {
-                    // Element not in DOM yet — wait and retry
+                    // Element not in DOM yet � wait and retry
                     attempts++;
                     setTimeout(tryApply, 150);
                     return;
                 }
 
                 if (elements.length === 0) {
-                    // Gave up waiting — element never appeared. Skip this field and move to the next.
+                    // Gave up waiting � element never appeared. Skip this field and move to the next.
                     console.warn(`FormSupport: element not found after retries, skipping id=${suggestion.id}`);
                     savePendingSuggestions(remaining);
                     if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
@@ -896,14 +896,14 @@ else {
                 }
 
                 // Element found in DOM. Now wait for the DOM to fully settle before applying.
-                // ASP.NET UpdatePanels can still be mid-render even after the element appears —
+                // ASP.NET UpdatePanels can still be mid-render even after the element appears �
                 // writing a value too early risks it being wiped when the panel finishes updating.
                 waitForDomSettle(null, function () {
-                    // Re-fetch the element after settling — UpdatePanel re-renders replace DOM nodes,
+                    // Re-fetch the element after settling � UpdatePanel re-renders replace DOM nodes,
                     // so the reference we had before the settle may now point to a detached element.
                     const freshElements = findFieldElementsByIdentifier(suggestion.id);
                     if (freshElements.length === 0) {
-                        // Element was removed during the panel re-render — skip and continue
+                        // Element was removed during the panel re-render � skip and continue
                         console.warn(`FormSupport: element disappeared after DOM settle, skipping id=${suggestion.id}`);
                         savePendingSuggestions(remaining);
                         if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
@@ -917,8 +917,8 @@ else {
                     savePendingSuggestions(remaining);
 
                     // Determine if this field type is known to trigger an ASP.NET postback on change.
-                    // radio/checkbox/select → ASP.NET wires these to __doPostBack, causing a page reload on change.
-                    // string/textarea → no postback by default; we nudge the next field manually after applying.
+                    // radio/checkbox/select ? ASP.NET wires these to __doPostBack, causing a page reload on change.
+                    // string/textarea ? no postback by default; we nudge the next field manually after applying.
                     //
                     // NOTE: If a textarea has AutoPostBack="true" set in ASP.NET markup (unusual but possible),
                     // it would also trigger a postback and wipe the value we just set. In that case, add 'string'
@@ -933,14 +933,14 @@ else {
                     }
 
                     if (!triggersPostback) {
-                        // text/textarea — no postback expected, nudge next field after a short settle
+                        // text/textarea � no postback expected, nudge next field after a short settle
                         if (remaining.length > 0) {
                             waitForDomSettle(null, applyNextPendingSuggestion);
                         } else {
                             clearPendingSuggestions();
                         }
                     } else if (!_aspNetHooked) {
-                        // No PageRequestManager available — fixed delay fallback
+                        // No PageRequestManager available � fixed delay fallback
                         if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
                         else setTimeout(clearPendingSuggestions, 900);
                     }
@@ -1308,7 +1308,7 @@ else {
             <div class="wp-chat-input-container">
                 <textarea class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." rows="1"></textarea>
                 <button class="wp-chat-send" id="wp-chat-send-btn" type="button">
-                <span>➤</span>
+                <span>?</span>
                 </button>
             </div>
         </div>
@@ -1763,7 +1763,7 @@ else {
                     return `\x00PLAINURL${idx}\x00`;
                 });
 
-                // Step 3: HTML-escape the remaining text (safe — placeholders use \x00 which won't be escaped)
+                // Step 3: HTML-escape the remaining text (safe � placeholders use \x00 which won't be escaped)
                 let formatted = processed
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
