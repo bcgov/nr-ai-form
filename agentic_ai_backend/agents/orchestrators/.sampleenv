@@ -20,33 +20,12 @@ REDIS_TTL_DAYS=14
 
 # --- Cache TTL (Time To Live) Settings ---
 # All values are in seconds. The cache is time-based; it has no awareness of
-# blob or Cosmos changes. Set any value to 0 to disable that cache layer.
+# blob prompt changes. Set any value to 0 to disable that cache layer.
 
-# How long tenant profiles loaded from Cosmos DB are kept in memory.
-# Fresh tier: served from memory, no Cosmos read. Default: 300 (5 min)
-TENANT_PROFILE_FRESH_TTL_SECONDS=300
-# Stale tier: used if Cosmos is temporarily unavailable. Default: 86400 (24 h)
-TENANT_PROFILE_STALE_TTL_SECONDS=86400
-# Max time to wait for a Cosmos read before falling back to stale cache. Default: 0.5
-TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS=0.5
 
 # How long dispatcher/aggregator prompts loaded from blob are cached. Default: 300
 ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS=300
 
-# --- Cosmos DB Client Profiles ---
-
-# Option 1: Endpoint + Key for emulator and non-managed-identity environments.
-AZURE_COSMOS_DB_ENDPOINT=https://localhost:8081/
-AZURE_COSMOS_DB_KEY=<local-cosmos-emulator-key>
-
-# Option 2: Managed Identity in Azure. Set endpoint and leave AZURE_COSMOS_DB_KEY unset.
-# AZURE_COSMOS_DB_ENDPOINT=https://your-cosmos-account.documents.azure.com:443/
-
-# Database name defaults to AgentMemoryDB if not set.
-AZURE_COSMOS_DB_DATABASE_NAME=AgentMemoryDB
-
-# Set to localhost only for the Cosmos emulator so local TLS verification is disabled.
-CSSAI_EXECUTION_ENV=localhost
 
 # Deployment-owned values resolved from environment, not Cosmos DB.
 # Keep tenant-specific deployment names, paths, and tuning in Cosmos.

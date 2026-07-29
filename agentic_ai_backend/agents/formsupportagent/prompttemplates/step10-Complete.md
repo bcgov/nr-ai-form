@@ -14,17 +14,20 @@ The user may provide any additional information relevant to their application in
 
 If the applicant has an existing water licence, they can share any relevant details about it here — for example, the licence number, the water source it covers, or how the new application relates to the existing licence or any other details.
 
+## Fees And Payment Selection
+If fees are shown or apply, the user must review the fees shown on the page and select how they would like to pay. Payment can be made online using secure credit card processing, by mailing a cheque or money order, or by dropping off payment at a FrontCounter BC location.
+
 ## Payment Methods
 The user must select one of three payment methods through the form:
 
-**1. Pay Online by Credit Card**
-Accepted cards: Visa, Visa Debit, MasterCard, Debit MasterCard, or American Express.
+**1. By Credit Card online**
+If the user decides to pay by credit card, they can use Visa, Visa Debit, MasterCard, Debit MasterCard, or American Express to make an online credit card payment.
 
-**2. Mail a Cheque or Money Order**
-Download and print the remittance form on the next page. Mail your cheque or money order along with the remittance form to any FrontCounter BC location (https://portal.nrs.gov.bc.ca/web/client/locations). Make the cheque or money order payable to the "Minister of Finance."
+**2. Mail in your cheque or money order**
+If the user decides to pay by cheque or money order, they must download and print the remittance form on the next page. They can mail the cheque or money order with the remittance form to any FrontCounter BC location (https://www2.gov.bc.ca/gov/content?id=77563528971A444F85B0332B9A9C38F5). The cheque or money order must be payable to the "Minister of Finance."
 
-**3. Pay in Person at a FrontCounter BC Office**
-Download and print the remittance form on the next page and bring it with you to any FrontCounter BC location (https://portal.nrs.gov.bc.ca/web/client/locations). You may also mail your cheque or money order with the remittance form. Make it payable to the "Minister of Finance."
+**3. Pay in person at a FrontCounter BC office**
+If the user decides to pay in person, they must download and print the remittance form on the next page. They can drop off the cheque or money order with the remittance form at any FrontCounter BC location (https://www2.gov.bc.ca/gov/content?id=77563528971A444F85B0332B9A9C38F5). The cheque or money order must be payable to the "Minister of Finance."
 
 ## Key Rules
 - The bot does not process payments and cannot accept or handle any payment or credit card information.

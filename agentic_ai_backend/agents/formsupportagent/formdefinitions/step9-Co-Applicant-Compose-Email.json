@@ -1,0 +1,48 @@
+{
+  "formName": "Step 9 - Co-Applicant Compose Email - Water Licence Application",
+  "formDescription": "This popup lets the user compose, preview, and send a signature request email to a co-applicant. The email request is used to obtain co-applicant approval before the application can proceed. After the user previews the email, the page can display a generated email preview as read-only context.",
+  "formfields": {
+    "EmailTo": {
+      "type": "text",
+      "id": "EmailTo",
+      "title": "Email:",
+      "description": "The co-applicant email address that will receive the signature request.",
+      "required": true
+    },
+    "PersonalMessage": {
+      "type": "textarea",
+      "id": "PersonalMessage",
+      "title": "Add a personal message:",
+      "description": "Optional message to include in the co-applicant signature request email.",
+      "required": false
+    },
+    "PreviewEmail": {
+      "type": "button",
+      "id": "PreviewEmail",
+      "title": "Preview Email",
+      "description": "Previews the email request without sending it.",
+      "required": false
+    },
+    "EmailPreview": {
+      "type": "display",
+      "id": "EmailPreview",
+      "title": "Email Preview",
+      "description": "Displays the generated co-applicant signature request email preview after the user previews the email.",
+      "required": false
+    },
+    "SendEmail": {
+      "type": "button",
+      "id": "SendEmail",
+      "title": "Send Email",
+      "description": "Sends the co-applicant signature request email.",
+      "required": false
+    },
+    "ReturnRT": {
+      "type": "button",
+      "id": "ReturnRT",
+      "title": "Return to my application",
+      "description": "Returns the user to the application without sending an email.",
+      "required": false
+    }
+  }
+}

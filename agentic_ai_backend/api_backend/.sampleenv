@@ -13,7 +13,11 @@ AZURE_COSMOS_DB_DATABASE_NAME=AgentMemoryDB
 # Set to localhost only for the Cosmos emulator so local TLS verification is disabled.
 CSSAI_EXECUTION_ENV=localhost
 
-# Tenant profile cache behavior in the API layer.
+# Tenant profile cache behavior used by clientprofiles.TenantConfigService.
+# FRESH: seconds to serve a tenant profile from this container's memory without re-reading Cosmos.
+# STALE: seconds to keep using the last cached profile if Cosmos is temporarily unavailable.
+# LOOKUP_TIMEOUT: max seconds to wait for a Cosmos profile read before falling back to stale cache or failing.
+# Set a TTL to 0 to disable that cache tier. Code defaults: fresh=300, stale=86400, lookup_timeout=0.5.
 TENANT_PROFILE_FRESH_TTL_SECONDS=300
 TENANT_PROFILE_STALE_TTL_SECONDS=86400
 TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS=0.5
