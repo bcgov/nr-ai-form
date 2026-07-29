@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 import os
 import time
@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from agents.formsupportagent.models.formsupportmodel import FormSupportAgentClientSettings
-from utils.blobservice import BlobService
+from utils.blobservice import BlobService, load_blob_text_required
 from utils.tenantsettings import settings_cache_parts
 
 logger = logging.getLogger(__name__)
@@ -71,9 +71,12 @@ class FormDefinitionService:
             if not self.blob_service or not self.container_name:
                 raise RuntimeError("Blob service is required for form definitions.")
 
-            blob_name = f"{self.directory_path.strip('/')}/{definition_name}"
-            json_content = self.blob_service.read_blob_text(self.container_name, blob_name)
-            print(f"Loaded asset from blob: container={self.container_name}, blob={blob_name}")
+            json_content = load_blob_text_required(
+                connection_string=self.blob_service.connection_string,
+                container_name=self.container_name,
+                directory=self.directory_path,
+                blob_filename=definition_name,
+            )
             form_data = json.loads(json_content)
             _FORM_DEFINITION_CACHE[cache_key] = _CachedFormDefinition(
                 value=form_data,
@@ -81,13 +84,8 @@ class FormDefinitionService:
             )
             return form_data
         except Exception as e:
-            message = str(e)
-            if "BlobNotFound" in message or "specified blob does not exist" in message:
-                print(f"Warning: form definition {definition_name} not found in blob storage.")
-                logger.warning("Form definition %s not found in blob storage: %s", definition_name, e)
-            else:
-                print(f"Error fetching form definition {definition_name}: {e}")
-                logger.warning("Error fetching form definition %s: %s", definition_name, e)
+            print(f"Error fetching form definition {definition_name}: {e}")
+            logger.warning("Error fetching form definition %s: %s", definition_name, e)
             return None
 
     def list_available_definitions(self) -> list[str]:
