@@ -1,0 +1,34 @@
+{
+  "formName": "Step 7 - Co-Applicants - Water Licence Application",
+  "formDescription": "This Step 7 Contact Information subpage is for managing co-applicants. The page tells the user that they previously indicated there is one or more co-applicant and must add each co-applicant separately. Use Add Individual for a person/individual co-applicant. Use Add Organization for a business, company, organization, or government/entity co-applicant. The page includes a co-applicants grid/table with columns for Name, Phone, Email, and Mailing Address; the grid is page context and not a form field. Existing co-applicant rows can display row-level Edit and Delete actions, but those row actions are dynamic grid controls and are not modeled as stable form fields. Due to Freedom of Information and Protection of Privacy Act regulations, individual co-applicant entry is limited to name and email address. The page also provides actions to review the application and print the page. A read-only footer can display application and associated fees.",
+  "formfields": {
+    "AddIndividual": {
+      "type": "button",
+      "id": "AddIndividual",
+      "title": "Add Individual",
+      "description": "Opens the popup to add a new individual/person co-applicant. Individual co-applicant entry is limited to name and email address due to privacy regulations.",
+      "required": false
+    },
+    "AddOrganization": {
+      "type": "button",
+      "id": "AddOrganization",
+      "title": "Add Organization",
+      "description": "Opens the popup to add a new organization, business, company, or government/entity co-applicant.",
+      "required": false
+    },
+    "JumpToReview_RT": {
+      "type": "button",
+      "id": "JumpToReview_RT",
+      "title": "Review Application",
+      "description": "Navigates to review outstanding issues on the application.",
+      "required": false
+    },
+    "PrintLink2": {
+      "type": "button",
+      "id": "PrintLink2",
+      "title": "Print Page",
+      "description": "Prints the current page.",
+      "required": false
+    }
+  }
+}

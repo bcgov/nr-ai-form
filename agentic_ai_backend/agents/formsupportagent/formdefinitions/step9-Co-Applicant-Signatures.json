@@ -1,0 +1,48 @@
+{
+  "formName": "Step 9 - Co-applicant Signatures - Water Licence Application",
+  "formDescription": "This step displays a Co-Applicants grid/table and collects approval choices before the water licence application can proceed. The grid/table itself is context, not a formfield. Available row actions include composing an approval email, opening application/approval form documents, opening an attached document, uploading a signed form, and choosing mail submission.",
+  "formfields": {
+    "ComposeEmail": {
+      "type": "button",
+      "id": "ComposeEmail",
+      "title": "Compose Email",
+      "description": "Action link/button that opens an email request for obtaining a co-applicant's approval electronically.",
+      "required": false
+    },
+    "Forms": {
+      "type": "link",
+      "id": "Forms",
+      "title": "Application Form",
+      "description": "Action icon/link for the application form document used with offline co-applicant approval.",
+      "required": false
+    },
+    "Doc_198468959": {
+      "type": "link",
+      "id": "Doc_198468959",
+      "title": "Attached Document",
+      "description": "Action link that opens the attached supporting document associated with the application or approval process.",
+      "required": false
+    },
+    "Url_ConsentForm": {
+      "type": "upload",
+      "id": "Url_ConsentForm",
+      "title": "Upload Signed Form",
+      "description": "Action link/button that opens the upload dialog for a signed co-applicant approval form.",
+      "required": false
+    },
+    "MailConsentForm": {
+      "type": "checkbox",
+      "id": "MailConsentForm",
+      "title": "Mail approval form",
+      "description": "Checkbox input indicating that the signed co-applicant approval form will be submitted by mail.",
+      "required": false
+    },
+    "report_link_198468967": {
+      "type": "link",
+      "id": "report_link_198468967",
+      "title": "Co-Applicant Approval Form",
+      "description": "Action link that opens/downloads the co-applicant approval form for another observed co-applicant row.",
+      "required": false
+    }
+  }
+}
