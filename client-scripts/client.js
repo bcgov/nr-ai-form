@@ -345,9 +345,7 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
             if (!normalized) return null;
 
             let stepKey = normalized;
-            if (stepKey === 'complete') {
-                stepKey = 'step10complete';
-            } else if (/^\d+/.test(stepKey)) {
+            if (/^\d+/.test(stepKey)) {
                 stepKey = `step${stepKey}`;
             }
 
@@ -459,7 +457,9 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               appladdress: FormSteps.SHARED_ADDRESS,
               address: FormSteps.SHARED_ADDRESS,
               composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL,
-              pubsubmitteraddress :  FormSteps.SHARED_ADDRESS
+              complete: FormSteps.STEP10_COMPLETE,
+              pubsubmitteraddress :  FormSteps.SHARED_ADDRESS,
+              step9signatures: FormSteps.STEP9_CO_APPLICANT_SIGNATURES
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }
@@ -513,7 +513,6 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 }
                 return getCurrentFormStepFromPaneHeaders();
             }
-
             const paneHeaderStep = getCurrentFormStepFromPaneHeaders();
             if (paneHeaderStep) {
                 return paneHeaderStep;
