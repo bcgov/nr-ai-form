@@ -6,7 +6,7 @@
       "type": "text",
       "id": "Line1",
       "title": "Line 1:",
-      "description": "Line 1",
+      "description": "Primary address line, such as street address or P.O. box. Typing here may provide auto-populated address recommendations.",
       "required": true,
       "maxLength": 4000
     },
@@ -14,7 +14,7 @@
       "type": "text",
       "id": "Line2",
       "title": "Line 2:",
-      "description": "additional address information",
+      "description": "Additional address information, such as suite, unit, apartment, floor, or building.",
       "required": false,
       "maxLength": 60
     },
@@ -22,7 +22,7 @@
       "type": "text",
       "id": "CityorTown",
       "title": "Municipality:",
-      "description": "the city or town of the address",
+      "description": "The city or town of the address.",
       "required": true,
       "maxLength": 100
     },
@@ -30,7 +30,7 @@
       "type": "text",
       "id": "Province",
       "title": "Province / State:",
-      "description": "Province / State",
+      "description": "The full name of the province or state. Abbreviations are not accepted for manual entries.",
       "required": false,
       "maxLength": 4000
     },
@@ -38,7 +38,7 @@
       "type": "select",
       "id": "Country",
       "title": "Country:",
-      "description": "Country dropdown/select input. Use one of the provided country options; default is Canada.",
+      "description": "Country dropdown/select input. Select the country from the provided options; Canada is the default option.",
       "required": true,
       "default": "Canada",
       "enum": [
@@ -298,7 +298,7 @@
       "type": "text",
       "id": "PostalCode",
       "title": "Postal / Zip Code:",
-      "description": "the postal or zip code of the address",
+      "description": "Postal code or ZIP code. USA residents manually entering an address must provide a 9-digit ZIP Code.",
       "required": false,
       "maxLength": 10
     }
