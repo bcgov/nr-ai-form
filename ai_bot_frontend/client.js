@@ -155,6 +155,10 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
           step0bot: "step0-Bot",
           STEP10_COMPLETE: "step10-Complete",
           step2eligibility: "step2-Eligibility",
+          STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION:
+            "step3-Technical-Information-Project-Information",
+          STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION_QUESTIONS:
+            "step3-Technical-Information-Project-Information-Questions",
           STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
           STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
           STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL:
@@ -415,11 +419,14 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
               projectinformation:
                 FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
+              projectinformationquestions:
+                FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION_QUESTIONS,
               addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
               step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
               step3soureofwater:
                 FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
               surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+              vfsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
               step3jointworks:
                 FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
               step3damreservoir:
@@ -431,7 +438,12 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
               address: FormSteps.SHARED_ADDRESS,
               wslicdamresbuscontact:
                 FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
+              /**
+               * In the Add Well Popup, stepheadername is well and subheadername is waterworks.
+               * Hence, both these entries are mapped to the same step value.
+               *  */
               well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+              waterworks: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
               step3landtenure:
                 FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
               step3otherauthorizations:
