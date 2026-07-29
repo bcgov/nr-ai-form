@@ -28,6 +28,24 @@ python -m src.red_team.cli scan --use-file --cases jailbreak_role_playing -a Cre
 
 # Multiple specific cases
 python -m src.red_team.cli scan --use-file --cases "jailbreak_role_playing,prompt_injection_sql" -a PromptSending
+
+# Quick test (1-2 minutes)
+python -m src.red_team.cli  seed-attack -l 3
+
+# Default test (5-10 minutes)
+python -m src.red_team.cli  seed-attack
+
+# All 12 datasets (15-30 minutes)
+python -m src.red_team.cli  seed-attack -d "all"
+
+# Custom threats
+python -m src.red_team.cli  seed-attack -d "violence,harassment,scams"
+
+# Verbose output
+./red-team seed-attack -v
+
+# Custom output location
+./red-team seed-attack -o "my_report.json"
 ```
 
 **Options:**

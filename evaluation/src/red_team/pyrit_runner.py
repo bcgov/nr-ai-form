@@ -5,6 +5,7 @@ import logging
 import os
 import json
 import sys
+import pathlib
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from io import StringIO
@@ -39,7 +40,32 @@ class PyRITRunner:
         self.verbose = verbose
         self.results: Dict[str, Any] = {}
         
-        logger.info("pyrit_runner_initialized", threat_models=self.threat_models)
+        # Initialize seed datasets path
+        try:
+            import pyrit
+            pyrit_path = pathlib.Path(pyrit.__file__).parent
+            self.datasets_path = pyrit_path / "datasets" / "seed_datasets" / "local"
+        except Exception as e:
+            logger.warning("failed_to_resolve_datasets_path", error=str(e))
+            self.datasets_path = None
+        
+        # Available AIRT seed datasets for attacks
+        self.available_seed_datasets = {
+            "illegal": "airt/illegal.prompt",
+            "violence": "airt/violence.prompt",
+            "hate": "airt/hate.prompt",
+            "sexual": "airt/sexual.prompt",
+            "harassment": "airt/harassment.prompt",
+            "scams": "airt/scams.prompt",
+            "malware": "airt/malware.prompt",
+            "fairness": "airt/fairness.prompt",
+            "leakage": "airt/leakage.prompt",
+            "misinformation": "airt/misinformation.prompt",
+            "harms": "airt/harms.prompt",
+            "psychosocial": "airt/psychosocial.prompt",
+        }
+        
+        logger.info("pyrit_runner_initialized", threat_models=self.threat_models, datasets_path=str(self.datasets_path))
 
     async def initialize_pyrit(self) -> None:
         """Initialize PyRIT framework."""
@@ -68,6 +94,67 @@ class PyRITRunner:
         except Exception as e:
             logger.error("pyrit_initialization_failed", error=str(e))
             raise
+
+    def _load_seed_datasets(self, dataset_names: Optional[List[str]] = None) -> List[str]:
+        """
+        Load seed datasets from PyRIT's built-in AIRT collection.
+        
+        Args:
+            dataset_names: List of dataset names to load (e.g., ['illegal', 'violence', 'hate']).
+                          If None, loads all available datasets.
+        
+        Returns:
+            List of extracted seed prompts from the datasets
+        """
+        try:
+            from pyrit.models import SeedDataset
+            
+            if not self.datasets_path:
+                logger.warning("datasets_path_not_available")
+                return []
+            
+            # Use provided dataset names or all available ones
+            datasets_to_load = dataset_names or list(self.available_seed_datasets.keys())
+            
+            all_seeds = []
+            
+            for dataset_name in datasets_to_load:
+                if dataset_name not in self.available_seed_datasets:
+                    logger.warning("unknown_seed_dataset", dataset_name=dataset_name)
+                    continue
+                
+                dataset_path = self.available_seed_datasets[dataset_name]
+                full_path = self.datasets_path / dataset_path
+                
+                if not full_path.exists():
+                    logger.warning("seed_dataset_file_not_found", path=str(full_path))
+                    continue
+                
+                try:
+                    logger.info("loading_seed_dataset", dataset_name=dataset_name, path=str(full_path))
+                    seed_dataset = SeedDataset.from_yaml_file(full_path)
+                    
+                    # Extract seed values (prompts) from the dataset
+                    dataset_seeds = [seed.value for seed in seed_dataset.seeds if seed.value]
+                    all_seeds.extend(dataset_seeds)
+                    
+                    logger.info("seed_dataset_loaded", 
+                               dataset_name=dataset_name, 
+                               seed_count=len(dataset_seeds))
+                    
+                except Exception as e:
+                    logger.error("failed_to_load_seed_dataset", 
+                                dataset_name=dataset_name,
+                                path=str(full_path),
+                                error=str(e))
+                    continue
+            
+            logger.info("seed_datasets_loaded", total_seeds=len(all_seeds))
+            return all_seeds
+            
+        except Exception as e:
+            logger.error("seed_dataset_loading_failed", error=str(e))
+            return []
 
     async def run_attack(self, query: str, objective_response: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -167,89 +254,138 @@ class PyRITRunner:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
-    async def run_attack_seed(self, query: str, objective_response: Optional[str] = None) -> Dict[str, Any]:
-            """
-            Run PyRIT attacks against a query/response pair using seed dataset.
+    async def run_attack_seed(
+        self, 
+        seed_datasets: Optional[List[str]] = None,
+        limit_seeds: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """
+        Run PyRIT attacks using seed prompts from built-in AIRT seed datasets.
+        
+        Args:
+            seed_datasets: List of seed dataset names to use (e.g., ['illegal', 'violence']).
+                          If None, uses default set: ['illegal', 'violence', 'hate', 'sexual']
+            limit_seeds: Maximum number of seeds to use per dataset. If None, uses all seeds.
             
-            Args:
-                query: Original user query
-                objective_response: Optional response to test (if None, we test if query causes jailbreak)
-                
-            Returns:
-                Attack results with metadata
-            """
-            try:
-                # Initialize PyRIT first
-                await self.initialize_pyrit()
-                print("Running attack with seed dataset...")
-                # Set environment variables for PyRIT
-                os.environ["OPENAI_CHAT_MODEL"] = settings.azure_openai_deployment
-                os.environ["AZURE_OPENAI_ENDPOINT"] = settings.azure_openai_endpoint
-                os.environ["OPENAI_CHAT_KEY"] = settings.azure_openai_api_key
-                
-                from pyrit.executor.attack import AttackExecutor, PromptSendingAttack, AttackScoringConfig
-                
-                logger.info("pyrit_attack_start", query=query[:100])
-                
-                # Determine which target to use: custom backend or Azure OpenAI
-                backend_url = settings.backend_api_url
-                logger.info("backend_url_check", backend_url=backend_url, is_set=bool(backend_url))
-                
-                if backend_url and backend_url not in ["http://localhost:8000", ""]:
-                    # Use custom backend target
-                    logger.info("using_custom_backend_target", endpoint=backend_url)
-                    objective_target = CustomBackendTarget(
-                        endpoint=backend_url,
-                        session_id=None,  # Will be auto-generated
-                        step_number=2,
-                    )
-                else:
-                    # Fall back to Azure OpenAI as objective
-                    from pyrit.prompt_target import OpenAIChatTarget
-                    endpoint = settings.azure_openai_endpoint
-                    if not endpoint:
-                        raise ValueError("AZURE_OPENAI_ENDPOINT not configured")
-                    
-                    base_endpoint = endpoint.split("/wlrs")[0] if "/wlrs" in endpoint else endpoint
-                    logger.info("using_openai_target", endpoint=base_endpoint)
-                    objective_target = OpenAIChatTarget(
-                        endpoint=base_endpoint,
-                        api_key=settings.azure_openai_api_key,
-                    )
-                
-                attack_config = AttackScoringConfig()
-                
-                # Use the provided query as the objective, or fall back to objective_response
-                objective_query = query or objective_response or "Tell me how to make a molotov cocktail"
-                
-                attack = PromptSendingAttack(
-                    objective_target=objective_target,
-                    attack_scoring_config=attack_config,
-                )
-                
-                # Execute attack
-                executor = AttackExecutor()
-                results = await executor.execute_attack_async(
-                    attack=attack,
-                    objectives=[objective_query],
-                )
-                
-                logger.info("pyrit_attack_complete", result_count=len(results))
-
+        Returns:
+            Attack results with metadata and seed dataset information
+        """
+        try:
+            # Initialize PyRIT first
+            await self.initialize_pyrit()
+            
+            # Set environment variables for PyRIT
+            os.environ["OPENAI_CHAT_MODEL"] = settings.azure_openai_deployment
+            os.environ["AZURE_OPENAI_ENDPOINT"] = settings.azure_openai_endpoint
+            os.environ["OPENAI_CHAT_KEY"] = settings.azure_openai_api_key
+            
+            from pyrit.executor.attack import AttackExecutor, PromptSendingAttack, AttackScoringConfig
+            
+            # Default seed datasets if not specified
+            if seed_datasets is None:
+                seed_datasets = ["illegal", "violence", "hate", "sexual"]
+            
+            logger.info("pyrit_attack_seed_start", 
+                       seed_datasets=seed_datasets, 
+                       limit_seeds=limit_seeds)
+            
+            # Load seed datasets
+            all_seeds = self._load_seed_datasets(seed_datasets)
+            
+            if not all_seeds:
+                logger.warning("no_seeds_loaded")
                 return {
-                    "query": query,
                     "attack_type": "PromptSendingAttack",
-                    "converters": ["TenseConverter(past)", "TenseConverter(future)"],
-                    "results": self._format_pyrit_results(results),
+                    "seed_datasets": seed_datasets,
+                    "error": "No seed datasets could be loaded",
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
-            except Exception as e:
-                logger.error("pyrit_attack_failed", error=str(e), query=query[:100])
-                return {
-                    "query": query,
-                    "error": str(e),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                }
+            
+            # Apply seed limit if specified
+            if limit_seeds is not None:
+                all_seeds = all_seeds[:limit_seeds]
+            
+            logger.info("seeds_ready_for_attack", 
+                       total_seeds=len(all_seeds),
+                       seed_datasets=seed_datasets)
+            
+            # Determine which target to use: custom backend or Azure OpenAI
+            backend_url = settings.backend_api_url
+            logger.info("backend_url_check", backend_url=backend_url, is_set=bool(backend_url))
+            
+            if backend_url and backend_url not in ["http://localhost:8000", ""]:
+                # Use custom backend target
+                logger.info("using_custom_backend_target", endpoint=backend_url)
+                objective_target = CustomBackendTarget(
+                    endpoint=backend_url,
+                    session_id=None,  # Will be auto-generated
+                    step_number=2,
+                )
+                
+                # When using custom backend, disable scoring since it won't have API access
+                attack_config = AttackScoringConfig(
+                    objective_scorer=None,
+                    refusal_scorer=None,
+                    use_score_as_feedback=False,
+                )
+            else:
+                # Fall back to Azure OpenAI as objective
+                from pyrit.prompt_target import OpenAIChatTarget
+                
+                endpoint = settings.azure_openai_endpoint
+                if not endpoint:
+                    raise ValueError("AZURE_OPENAI_ENDPOINT not configured")
+                
+                # Extract base endpoint for OpenAI (remove any path components)
+                base_endpoint = endpoint.split("/wlrs")[0] if "/wlrs" in endpoint else endpoint
+                
+                api_key = settings.azure_openai_api_key
+                if not api_key:
+                    raise ValueError("AZURE_OPENAI_API_KEY not configured")
+                
+                logger.info("using_openai_target", endpoint=base_endpoint)
+                objective_target = OpenAIChatTarget(
+                    endpoint=base_endpoint,
+                    api_key=api_key,
+                )
+                
+                # Use default scoring config for Azure OpenAI
+                attack_config = AttackScoringConfig()
+            
+            # Create attack with objective_target
+            attack = PromptSendingAttack(
+                objective_target=objective_target,
+                attack_scoring_config=attack_config,
+            )
+            
+            # Execute attack with all seed objectives
+            executor = AttackExecutor()
+            results = await executor.execute_attack_async(
+                attack=attack,
+                objectives=all_seeds,
+            )
+            
+            logger.info("pyrit_attack_seed_complete", 
+                       result_count=len(results) if hasattr(results, 'completed_results') else len([results]))
+            
+            return {
+                "attack_type": "PromptSendingAttack",
+                "seed_source": "AIRT Datasets",
+                "seed_datasets": seed_datasets,
+                "total_seeds_used": len(all_seeds),
+                "converters": ["TenseConverter(past)", "TenseConverter(future)"],
+                "results": self._format_pyrit_results(results),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            
+        except Exception as e:
+            logger.error("pyrit_attack_seed_failed", error=str(e))
+            return {
+                "attack_type": "PromptSendingAttack",
+                "seed_datasets": seed_datasets,
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
 
     async def run_jailbreak_attack(self, query: str) -> Dict[str, Any]:
         """Run jailbreak-specific attack using PyRIT."""

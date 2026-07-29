@@ -197,7 +197,8 @@ def test_query(query: str, attack_type: str):
         elif attack_type == "RedTeaming":
             result = asyncio.run(runner.run_red_team_attack(query))
         elif attack_type == "PromptSeed":
-            result = asyncio.run(runner.run_attack_seed(query))
+            # For PromptSeed, use seed datasets instead of query
+            result = asyncio.run(runner.run_attack_seed())
         else:
             result = asyncio.run(runner.run_attack(query))
         
@@ -279,6 +280,162 @@ def list_cases(filter: Optional[str]):
         
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
+        sys.exit(1)
+
+
+@main.command(name="seed-attack")
+@click.option(
+    "--datasets",
+    "-d",
+    default=None,
+    help="Comma-separated list of seed datasets (illegal,violence,hate,sexual,harassment,scams,malware,fairness,leakage,misinformation,harms,psychosocial)",
+)
+@click.option(
+    "--limit-seeds",
+    "-l",
+    type=int,
+    default=None,
+    help="Maximum number of seeds to use (None = all available)",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=Path,
+    default=None,
+    help="Output file for report (auto-generated if not provided)",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Enable verbose output",
+)
+def seed_attack(
+    datasets: Optional[str],
+    limit_seeds: Optional[int],
+    output: Optional[Path],
+    verbose: bool,
+):
+    """
+    Run security attack using AIRT seed datasets.
+    
+    Attacks using pre-curated seed prompts from 12 threat categories:
+    - illegal: Illegal activities (theft, explosives, etc.)
+    - violence: Physical violence scenarios
+    - hate: Hate speech and discrimination
+    - sexual: Sexual content and exploitation
+    - harassment: Bullying and harassment
+    - scams: Fraud and deception
+    - malware: Software exploitation
+    - fairness: Bias and discrimination
+    - leakage: Data disclosure
+    - misinformation: False information
+    - harms: General harmful content
+    - psychosocial: Psychological harm
+    
+    Examples:
+        # Default attack (4 core datasets, 20 seeds)
+        red-team seed-attack
+        
+        # Custom datasets
+        red-team seed-attack -d "violence,harassment,scams"
+        
+        # Quick test with limited seeds
+        red-team seed-attack -l 3
+        
+        # Full coverage with all datasets
+        red-team seed-attack -d "illegal,violence,hate,sexual,harassment,scams,malware,fairness,leakage,misinformation,harms,psychosocial"
+        
+        # All datasets (55 total seeds)
+        red-team seed-attack -d "all"
+    """
+    try:
+        runner = PyRITRunner(verbose=verbose)
+        
+        # Parse datasets
+        seed_datasets = None
+        if datasets:
+            if datasets.lower() == "all":
+                seed_datasets = list(runner.available_seed_datasets.keys())
+            else:
+                seed_datasets = [d.strip() for d in datasets.split(",") if d.strip()]
+        
+        # Display configuration
+        if verbose:
+            click.echo("🚀 Starting seed dataset attack...")
+            if seed_datasets:
+                click.echo(f"📊 Datasets: {', '.join(seed_datasets)}")
+            else:
+                click.echo(f"📊 Datasets: Default (illegal, violence, hate, sexual)")
+            if limit_seeds:
+                click.echo(f"📉 Seed limit: {limit_seeds}")
+            click.echo()
+        
+        # Run attack
+        if verbose:
+            click.echo("⏳ Loading seed datasets...")
+        
+        result = asyncio.run(runner.run_attack_seed(
+            seed_datasets=seed_datasets,
+            limit_seeds=limit_seeds
+        ))
+        
+        # Check for errors
+        if "error" in result:
+            click.echo(f"❌ Attack failed: {result['error']}", err=True)
+            sys.exit(1)
+        
+        # Display results
+        click.echo(f"✅ Attack completed successfully!")
+        click.echo(f"\n📋 Attack Summary:")
+        click.echo(f"  Attack Type: {result.get('attack_type')}")
+        click.echo(f"  Seed Source: {result.get('seed_source')}")
+        click.echo(f"  Datasets Used: {', '.join(result.get('seed_datasets', []))}")
+        click.echo(f"  Total Seeds: {result.get('total_seeds_used')}")
+        click.echo(f"  Converters: {', '.join(result.get('converters', []))}")
+        
+        results = result.get("results", {})
+        total_turns = results.get("total_turns", 0)
+        turns = results.get("turns", [])
+        
+        click.echo(f"  Total Turns: {total_turns}")
+        click.echo(f"  Timestamp: {result.get('timestamp')}")
+        
+        # Show sample results
+        if turns:
+            click.echo(f"\n📝 Sample Results (first 3 turns):")
+            for i, turn in enumerate(turns[:3], 1):
+                prompt = turn.get("prompt", "N/A")
+                response = turn.get("response", "N/A")
+                prompt_preview = prompt[:70] + "..." if len(prompt) > 70 else prompt
+                response_preview = response[:70] + "..." if len(response) > 70 else response
+                
+                click.echo(f"\n  Turn {i}:")
+                click.echo(f"    Prompt: {prompt_preview}")
+                click.echo(f"    Response: {response_preview}")
+        
+        # Save report if requested
+        if output:
+            with open(output, "w") as f:
+                json.dump(result, f, indent=2, default=str)
+            click.echo(f"\n💾 Report saved: {output}")
+        else:
+            # Auto-generate report path
+            results_dir = Path("results")
+            results_dir.mkdir(exist_ok=True)
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            report_path = results_dir / f"seed_attack_{timestamp}.json"
+            with open(report_path, "w") as f:
+                json.dump(result, f, indent=2, default=str)
+            click.echo(f"\n💾 Report saved: {report_path}")
+        
+        return 0
+        
+    except Exception as e:
+        click.echo(f"❌ Error: {e}", err=True)
+        if verbose:
+            import traceback
+            traceback.print_exc()
         sys.exit(1)
 
 
