@@ -62,6 +62,53 @@
                     "Provincial Crown Land"
                 ]
             }
+        },
+        "LocationDescription": {
+            "type": "textarea",
+            "id": "LocationDescription",
+            "title": "Location description of land (e.g. address, legal description, metes and bounds or other):",
+            "description": "A narrative description of the location of the affected land, including nearby landmarks or geographic features.",
+            "default": "",
+            "required": false
+        },
+        "MineralTenureNumber": {
+            "type": "text",
+            "id": "MineralTenureNumber",
+            "title": "Mineral Tenure Number:",
+            "description": "The identification number associated with mineral rights or tenure on the property.",
+            "default": "",
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "equals",
+                "value": "Provincial Crown Land"
+            }
+        },
+        "LandTenureNumber": {
+            "type": "text",
+            "id": "LandTenureNumber",
+            "title": "Lands File Number:",
+            "description": "The provincial file number associated with the land tenure.",
+            "default": "",
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "equals",
+                "value": "Provincial Crown Land"
+            }
+        },
+        "OtherPermits": {
+            "type": "text",
+            "id": "OtherPermits",
+            "title": "Other Permits (Provide Type & Number):",
+            "description": "Information regarding any other relevant provincial or local permits for the land.",
+            "default": "",
+            "required": false,
+            "visibleIf": {
+                "formField": "LandOwnershipCategory",
+                "operator": "equals",
+                "value": "Provincial Crown Land"
+            }
         }
     }
 }
