@@ -242,7 +242,7 @@
     ]
   },
   {
-    "stepIdentifier": "shared-multifile-upoad",
+    "stepIdentifier": "shared-multifile-upload",
     "shortDescription": "Uploads one or more map image or PDF files to support the application location.",
     "intentTags": [
       "map-upload",
@@ -282,7 +282,7 @@
     ]
   },
   {
-    "stepIdentifier": "shared-multifile-upoad",
+    "stepIdentifier": "shared-multifile-upload",
     "shortDescription": "Uploads GIS or spatial files that describe the application location.",
     "intentTags": [
       "spatial-upload",
@@ -308,7 +308,7 @@
     ]
   },
   {
-    "stepIdentifier": "shared-multifile-upoad",
+    "stepIdentifier": "shared-multifile-upload",
     "shortDescription": "Supports uploading multiple application files, including upload queue status, file descriptions, size limits, and accepted file guidance.",
     "intentTags": [
       "multi-file-upload",
