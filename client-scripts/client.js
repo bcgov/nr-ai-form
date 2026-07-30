@@ -1509,7 +1509,9 @@ else {
                     restorePendingGuidedQuestion();
                 }
                 // Finally render the assistant reply messages into the chat window.
-                messages.forEach((msg) => appendMessage('assistant', msg));
+                messages.forEach((msg) =>
+                  appendMessage("assistant", msg, true, true),
+                );
             }
 
             function restoreChatScrollPosition() {
@@ -1736,7 +1738,10 @@ else {
                     appendChatHistory(sessionId, role, String(text));
                 }
                 if (scroll) {
-                    scrollToBottom();
+                  msgDiv.scrollIntoView({
+                    behavior: "smooth",
+                    block: "end",
+                  });
                 }
             }
 
