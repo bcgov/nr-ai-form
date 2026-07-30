@@ -1,45 +1,48 @@
 {
-  "formName": "Step 3 - Dam Safety - Contact Individual or Organization - Water Licence Application",
-  "formDescription": "This section allows for the entry of a mailing address for a professional contact (an individual or organization). It features AddressComplete integration for auto-population. Manual entries require the full name of the province or state, and USA residents must provide a 9-digit ZIP code.",
+  "formName": "Address",
+  "formDescription": "Tips on entering an address: Use Line 1 for the street address or first address line. Use the Country dropdown/select input to change the country; Canada is the default option. When you begin typing into an address field, AddressComplete will auto-populate recommended addresses. You may select an address or continue to manually enter an address. For USA residents manually entering an address, provide the 9-digit ZIP Code. Manual entries must spell out the province/state; abbreviations are not accepted.",
   "formfields": {
     "Line1": {
       "type": "text",
       "id": "Line1",
       "title": "Line 1:",
       "description": "Primary address line (e.g., street address, P.O. box). Typing here provides auto-populated recommendations.",
-      "default": "",
-      "required": true
+      "required": true,
+      "maxLength": 4000
     },
     "Line2": {
       "type": "text",
       "id": "Line2",
       "title": "Line 2:",
       "description": "Additional address information (e.g., suite, unit, apartment).",
-      "default": "",
-      "required": false
+      "required": false,
+      "maxLength": 60
     },
     "CityorTown": {
       "type": "text",
       "id": "CityorTown",
       "title": "Municipality:",
       "description": "The city or town of the address.",
-      "default": "",
-      "required": true
+      "required": true,
+      "maxLength": 100
     },
     "Province": {
       "type": "text",
       "id": "Province",
       "title": "Province / State:",
       "description": "The full name of the province or state. Abbreviations are not accepted.",
-      "default": "",
-      "required": false
+      "required": false,
+      "maxLength": 4000
     },
     "Country": {
-      "type": "dropdown",
+      "type": "select",
       "id": "Country",
       "title": "Country:",
       "description": "Select the country. Changing this via Line 1 drop-down updates the requirements.",
+      "required": true,
+      "default": "Canada",
       "enum": [
+        "",
         "Afghanistan",
         "Åland",
         "Albania",
@@ -289,17 +292,15 @@
         "Yemen",
         "Zambia",
         "Zimbabwe"
-      ],
-      "default": "Canada",
-      "required": true
+      ]
     },
     "PostalCode": {
       "type": "text",
       "id": "PostalCode",
       "title": "Postal / Zip Code:",
       "description": "Postal code or ZIP code. USA residents must provide a 9-digit ZIP code.",
-      "default": "",
-      "required": false
+      "required": false,
+      "maxLength": 10
     }
   }
 }

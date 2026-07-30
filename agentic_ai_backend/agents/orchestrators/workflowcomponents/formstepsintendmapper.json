@@ -54,7 +54,7 @@
     "intentTags": [
       "water-use-purpose",
       "Purpose - Irrigation, Livestock",
-      "calcuate water usage", 
+      "calcuate water usage",
       "water consumption",
       "sub-purpose",
       "seasonality",
@@ -82,7 +82,7 @@
     ]
   },
   {
-    "stepIdentifier": "step3-Dam-Reservoir-Add-Individual-Mailing-Address",
+    "stepIdentifier": "shared-address",
     "shortDescription": "Captures the mailing address for an individual dam or reservoir contact.",
     "intentTags": [
       "dam-reservoir",
@@ -102,7 +102,7 @@
     ]
   },
   {
-    "stepIdentifier": "step3-Dam-Reservoir-Add-Organization-Mailing-Address",
+    "stepIdentifier": "shared-address",
     "shortDescription": "Captures the mailing address for an organization contact tied to dam or reservoir information.",
     "intentTags": [
       "dam-reservoir",
@@ -242,7 +242,7 @@
     ]
   },
   {
-    "stepIdentifier": "step4-Location-Map-Files-Multi-File-Upload",
+    "stepIdentifier": "shared-multifile-upload",
     "shortDescription": "Uploads one or more map image or PDF files to support the application location.",
     "intentTags": [
       "map-upload",
@@ -282,7 +282,7 @@
     ]
   },
   {
-    "stepIdentifier": "step4-Location-Spatial-Files-Multi-File-Upload",
+    "stepIdentifier": "shared-multifile-upload",
     "shortDescription": "Uploads GIS or spatial files that describe the application location.",
     "intentTags": [
       "spatial-upload",
@@ -292,12 +292,29 @@
     ]
   },
   {
-    "stepIdentifier": "step5-File-Upload",
-    "shortDescription": "Captures the document type and description for files uploaded with the application.",
+    "stepIdentifier": "step5-Document-Upload",
+    "shortDescription": "Captures document upload details for a supporting file, including document type, description, and upload guidance.",
     "intentTags": [
       "document-upload",
-      "supporting-documents",
+      "supporting-document",
+      "file-description",
       "document-type",
+      "attachments",
+      "private-lease",
+      "copy-of-private-lease",
+      "drawing-to-scale",
+      "joint-works-agreement",
+      "other-supporting-documents"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-multifile-upload",
+    "shortDescription": "Supports uploading multiple application files, including upload queue status, file descriptions, size limits, and accepted file guidance.",
+    "intentTags": [
+      "multi-file-upload",
+      "supporting-documents",
+      "upload-queue",
+      "file-size",
       "attachments"
     ]
   },
@@ -312,53 +329,13 @@
     ]
   },
   {
-    "stepIdentifier": "step7-Business-Coapplicant",
-    "shortDescription": "Captures a business co-applicant's organization and contact details.",
-    "intentTags": [
-      "co-applicant",
-      "business",
-      "organization-details",
-      "contact-information"
-    ]
-  },
-  {
-    "stepIdentifier": "step7-Company",
-    "shortDescription": "Captures the primary company or organization applicant type, representative relationship, and business contact details.",
-    "intentTags": [
-      "primary-applicant",
-      "company",
-      "representative-role",
-      "contact-information"
-    ]
-  },
-  {
-    "stepIdentifier": "step7-Individual",
-    "shortDescription": "Captures the primary individual applicant's personal and contact details.",
-    "intentTags": [
-      "primary-applicant",
-      "individual",
-      "personal-details",
-      "contact-information"
-    ]
-  },
-  {
-    "stepIdentifier": "step7-Individual-Address",
+    "stepIdentifier": "shared-address",
     "shortDescription": "Captures the mailing address for an individual co-applicant.",
     "intentTags": [
       "co-applicant",
       "individual",
       "mailing-address",
       "address-details"
-    ]
-  },
-  {
-    "stepIdentifier": "step7-Individual-Coapplicant",
-    "shortDescription": "Captures an individual co-applicant's personal details and email.",
-    "intentTags": [
-      "co-applicant",
-      "individual",
-      "personal-details",
-      "contact-information"
     ]
   },
   {
@@ -389,6 +366,99 @@
       "payment-method",
       "related-authorizations",
       "submission-office"
+    ]
+  },
+  {
+    "stepIdentifier": "step9-Co-Applicant-Signatures",
+    "shortDescription": "Captures approval from co-applicants before submission, including email approval requests, generated signature forms, uploads, and mail-in approval options.",
+    "intentTags": [
+      "co-applicant",
+      "signature",
+      "approval",
+      "consent",
+      "email-request",
+      "signed-form"
+    ]
+  },
+  {
+    "stepIdentifier": "step9-Co-Applicant-Compose-Email",
+    "shortDescription": "Supports composing, previewing, and sending a signature request email to a co-applicant for application approval.",
+    "intentTags": [
+      "co-applicant",
+      "compose-email",
+      "signature-request",
+      "email-approval",
+      "preview-email"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-single-file-upload",
+    "shortDescription": "Supports a generic single-file upload popup with file selection, description, accepted file extensions, size limits, and upload action.",
+    "intentTags": [
+      "single-file-upload",
+      "file-upload",
+      "file-description",
+      "upload-popup",
+      "upload-action"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Applicant-Information",
+    "shortDescription": "Captures applicant contact information, submitter or agent details, co-applicant information, and Letter of Agency requirements.",
+    "intentTags": [
+      "applicant-information",
+      "contact-information",
+      "agent",
+      "submitter",
+      "co-applicant",
+      "letter-of-agency"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Co-Applicants",
+    "shortDescription": "Explains the co-applicants section, including the co-applicant grid and actions to add individual or organization co-applicants.",
+    "intentTags": [
+      "co-applicant",
+      "co-applicants",
+      "add-individual",
+      "add-organization",
+      "contact-information",
+      "co-applicant-grid"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Applicant-Information-My-Profile",
+    "shortDescription": "Lets the applicant review and update their profile details, including legal name, contact information, relationship to applicant, and mailing address.",
+    "intentTags": [
+      "my-profile",
+      "applicant-profile",
+      "legal-name",
+      "contact-information",
+      "mailing-address",
+      "relationship-to-applicant"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Co-Applicant-Add-A-Business-Applicant",
+    "shortDescription": "Captures legal identity, contact details, registration numbers, and mailing address information for a business co-applicant.",
+    "intentTags": [
+      "co-applicant",
+      "business-applicant",
+      "organization",
+      "registration-number",
+      "contact-information",
+      "mailing-address"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Co-Applicant-Add-An-Induvidual",
+    "shortDescription": "Captures the legal name and email address for an individual co-applicant.",
+    "intentTags": [
+      "co-applicant",
+      "individual",
+      "legal-name",
+      "email-address",
+      "personal-details"
     ]
   }
 ]

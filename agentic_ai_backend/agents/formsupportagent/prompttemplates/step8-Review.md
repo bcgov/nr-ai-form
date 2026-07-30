@@ -28,7 +28,7 @@ Before continuing with the application, all outstanding issues must be resolved,
 
 2. **Raw JSON object** — only when you can answer from the form context:
    ```json
-   {"id": "step7-Referral", "type": "form", "description": "<your response>", "suggestedvalue": ""}
+   {"id": "step8-Review", "type": "form", "description": "<your response>", "suggestedvalue": ""}
    ```
 
 **STRICT:**

@@ -1,0 +1,48 @@
+{
+  "formName": "Step 7 - Co-applicant - Add an Individual - Water Licence Application",
+  "formDescription": "This popup collects the legal name and email address for an individual co-applicant. Field keys and ids use data-id values from the source HTML when present; Cancel and Save have no data-id, so their element ids are used.",
+  "formfields": {
+    "LastName": {
+      "type": "text",
+      "id": "LastName",
+      "title": "Last Name:",
+      "description": "The legal last name of the individual co-applicant.",
+      "required": true
+    },
+    "FirstName": {
+      "type": "text",
+      "id": "FirstName",
+      "title": "First Name:",
+      "description": "The legal first name of the individual co-applicant.",
+      "required": true
+    },
+    "MiddleName": {
+      "type": "text",
+      "id": "MiddleName",
+      "title": "Middle Name:",
+      "description": "The legal middle name of the individual co-applicant, if applicable.",
+      "required": false
+    },
+    "Email": {
+      "type": "text",
+      "id": "Email",
+      "title": "Email:",
+      "description": "Email address for the individual co-applicant.",
+      "required": false
+    },
+    "cphBottomFunctionBand_ctl04_hlkFunctionLink": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
+      "title": "Cancel",
+      "description": "Cancels the individual co-applicant popup/window.",
+      "required": false
+    },
+    "cphBottomFunctionBand_ctl06_Submit": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl06_Submit",
+      "title": "Save",
+      "description": "Saves the individual co-applicant details entered directly by the user.",
+      "required": false
+    }
+  }
+}
