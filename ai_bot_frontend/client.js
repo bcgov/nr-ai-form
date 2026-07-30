@@ -472,7 +472,9 @@ else {
                 composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL,
                 complete: FormSteps.STEP10_COMPLETE,
                 pubsubmitteraddress: FormSteps.SHARED_ADDRESS,
-                step9signatures: FormSteps.STEP9_CO_APPLICANT_SIGNATURES
+                step9signatures: FormSteps.STEP9_CO_APPLICANT_SIGNATURES,
+                editindividual: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
+                editorganization: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT
             };
             return paneHeaderStepMap[paneHeaderText] || null;
         }
@@ -1507,7 +1509,9 @@ else {
                     restorePendingGuidedQuestion();
                 }
                 // Finally render the assistant reply messages into the chat window.
-                messages.forEach((msg) => appendMessage('assistant', msg));
+                messages.forEach((msg) =>
+                  appendMessage("assistant", msg, true, true),
+                );
             }
 
             function restoreChatScrollPosition() {
@@ -1734,7 +1738,10 @@ else {
                     appendChatHistory(sessionId, role, String(text));
                 }
                 if (scroll) {
-                    scrollToBottom();
+                  msgDiv.scrollIntoView({
+                    behavior: "smooth",
+                    block: "end",
+                  });
                 }
             }
 
