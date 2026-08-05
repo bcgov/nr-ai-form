@@ -663,6 +663,16 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
         function applySuggestionToElements(suggestion, elements) {
             if (!elements || elements.length === 0) return false;
 
+            
+            // An empty suggestedvalue means "no suggestion" (e.g. an informational/definitional
+            // answer), not "match the option whose value/label is also blank". Without this guard,
+            // normalizeComparableValue('') can accidentally match a radio/select option that happens
+            // to have an empty value or label, silently selecting the wrong option.
+            if (String(suggestion.suggestedvalue ?? '').trim() === '') {
+                return false;
+            }
+
+
             const expected = normalizeComparableValue(suggestion.suggestedvalue);
             const type = String(suggestion.type || '').toLowerCase();
             const first = elements[0];
