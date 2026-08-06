@@ -1838,18 +1838,37 @@ else {
             resumePendingSuggestions();
         }
 
+        function startBot() {
+            if (!sessionStorage.getItem(THREAD_ID_STORAGE_KEY)) {
+            // This is a brand new session; Remove any localStorage items that
+            // might be lingering from a previous session, and start fresh.
+            clearChatStorage();
+          }
+          initBot();
+        }
+
         const isAIAssistantEnabled = Boolean(document.querySelector('[ai-mode]'));
         if (isAIAssistantEnabled) {
-            if (!sessionStorage.getItem(THREAD_ID_STORAGE_KEY)) {
-                // This is a brand new session; Remove any localStorage items that 
-                // might be lingering from a previous session, and start fresh.
-                clearChatStorage();
-            }
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initBot);
-            } else {
-                initBot();
-            }
+          startBot();
+        } else {
+          const observer = new MutationObserver(() => {
+            if (!document.querySelector('[ai-mode]')) return;
+            clearTimeout(timerId);
+            observer.disconnect();
+            startBot();
+          });
+
+          const timerId = setTimeout(
+            () => observer.disconnect(),
+            10000, // 10 seconds timeout to avoid observing indefinitely if the attribute never appears
+          );
+
+          observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["ai-mode"],
+          });
         }
         // Clears chat-related storage from sessionStorage and localStorage.
         function clearChatStorage() {
