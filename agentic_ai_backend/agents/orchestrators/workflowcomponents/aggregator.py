@@ -29,12 +29,35 @@ class Aggregator(Executor):
     Also supports a legacy `list[Any]` path (fan-in) for tests / older callers.
     """
 
+    # Hardcoded on purpose: this is the safety net for when everything else
+    # (Azure OpenAI creds, the aggregator LLM call, sub-agent calls, and any
+    # tenant blob fetch via edgecaseservice.fetch_graceful_decline_messages)
+    # has already failed, so it cannot itself depend on a prompt or blob
+    # storage. Deliberately tenant-neutral/institution-agnostic text - a
+    # tenant's own branded contact info (e.g. the water tenant's FrontCounter
+    # BC details) belongs in that tenant's gracefulDecline blob content, not
+    # here, otherwise every other tenant would inherit water's branding by
+    # default.
+    FIRST_ATTEMPT_FALLBACK = (
+        "I'm not finding a clear answer for that yet. Try rephrasing your "
+        "question."
+    )
+    SECOND_ATTEMPT_FALLBACK = (
+        "I'm still not finding a clear answer.\n\n"
+        "You can try rephrasing your question, or contact your program's support team if you need further help."
+    )
+
     def __init__(
         self,
         *args: Any,
         prompt_source: PromptSource | None = None,
         runtime_settings: OrchestratorRuntimeSettings | None = None,
         active_executor_ids: list[str] | None = None,
+        session_id: str | None = None,
+        thread_manager: Any | None = None,
+        edge_case_templates: dict[str, str] | None = None,
+        first_attempt_fallback: str | None = None,
+        second_attempt_fallback: str | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
@@ -48,6 +71,20 @@ class Aggregator(Executor):
         # Enabled executor ids for this tenant; used to reject dispatcher choices
         # that point to agents disabled in the tenant profile.
         self._active_executor_ids = active_executor_ids or []
+        # Optional: drives the "first response / second attempt" escalation
+        # tiering. Both are None for legacy/test construction, in which case
+        # every graceful-decline turn just gets the first-attempt message.
+        self._session_id = session_id
+        self._thread_manager = thread_manager
+        # Tenant-specific category templates, resolved from Azure Blob Storage
+        # per "custom"-policy tenant (see edgecaseservice.py). No tenant
+        # content lives in code: when a tenant has no override configured, or
+        # its category isn't in the tenant's own templates.json, this stays
+        # empty and handle_intent falls back to the plain first_attempt_fallback
+        # text below - never a per-category message.
+        self._edge_case_templates = edge_case_templates or {}
+        self._first_attempt_fallback = first_attempt_fallback or self.FIRST_ATTEMPT_FALLBACK
+        self._second_attempt_fallback = second_attempt_fallback or self.SECOND_ATTEMPT_FALLBACK
 
 
     def _aggregator_user_prompt_template(self) -> Template:
@@ -95,9 +132,66 @@ class Aggregator(Executor):
         unquoted = text.strip().strip('"\'').strip().lower()
         return unquoted not in ("", "no match", "{}", "[]", "null")
 
+    async def _next_no_answer_message(self) -> str:
+        """Advance the per-session consecutive-failure counter and pick the tier."""
+        if not self._session_id or not self._thread_manager:
+            return self._first_attempt_fallback
+        try:
+            count = await self._thread_manager.increment_no_answer_count(self._session_id)
+        except Exception as e:
+            logger.warning("Failed to update no-answer counter: %s", e)
+            return self._first_attempt_fallback
+        return self._first_attempt_fallback if count <= 1 else self._second_attempt_fallback
+
+    async def _reset_no_answer_count(self) -> None:
+        """Clear the consecutive-failure counter once a real answer is produced."""
+        if not self._session_id or not self._thread_manager:
+            return
+        try:
+            await self._thread_manager.reset_no_answer_count(self._session_id)
+        except Exception as e:
+            logger.warning("Failed to reset no-answer counter: %s", e)
+
+    async def _yield_graceful_decline(
+        self, ctx: WorkflowContext[Never, list[Any]], active_results: list[Any]
+    ) -> None:
+        """Yield the tiered fallback message instead of raw/empty/error content."""
+        message = await self._next_no_answer_message()
+        print("Aggregator: unable to answer confidently, returning graceful fallback.")
+        await ctx.yield_output(
+            [
+                {
+                    "source": "Aggregator",
+                    "response": message,
+                    "original_results": active_results,
+                }
+            ]
+        )
+
     @handler
     async def handle_intent(self, task: IntentListModel, ctx: WorkflowContext[Never, list[Any]]) -> None:
         """Reset state for a new turn and learn how many executor results to wait for."""
+        if task.category is not None:
+            # Fixed out-of-scope/edge-case bucket (see EdgeCaseCategory): no
+            # sub-agent is invoked for this turn (orchestratoragent.py skips
+            # them at the edge level), so respond directly instead of waiting
+            # for executor results that will never arrive.
+            self._expected_count = 0
+            self._buffered = []
+            await self._reset_no_answer_count()
+            template = self._edge_case_templates.get(task.category, self._first_attempt_fallback)
+            print(f"Aggregator: edge-case category '{task.category.value}' detected, returning fixed template.")
+            await ctx.yield_output(
+                [
+                    {
+                        "source": "Aggregator",
+                        "response": template,
+                        "category": task.category.value,
+                    }
+                ]
+            )
+            return
+
         high_conf = select_subagents(task)
         if high_conf:
             wanted = {intent.targetagent for intent in high_conf}
@@ -143,7 +237,9 @@ class Aggregator(Executor):
             if not (isinstance(result, dict) and result.get("skipped") is True)
         ]
         if not filtered_results:
-            print("Aggregator: Skipped-only result received. Nothing to aggregate.")
+            # Every executor skipped (e.g. neither agent was confident enough to
+            # take this turn). Nothing to merge - this is a "can't answer" turn.
+            await self._yield_graceful_decline(ctx, normalized_results)
             return
 
         active_results = filtered_results
@@ -154,6 +250,10 @@ class Aggregator(Executor):
 
         for res in active_results:
             if isinstance(res, dict):
+                if res.get("error") is True:
+                    # Executor-side failure (A2A/HTTP/timeout). Never treat the
+                    # exception text as usable agent content.
+                    continue
                 source = res.get("source", "")
                 if "Conversation" in source:
                     conversation_text = res.get("response", "") or ""
@@ -168,16 +268,26 @@ class Aggregator(Executor):
                     print("Form Text: ", form_text)
                     form_step = res.get("step_number", "")
 
+        has_conversation = self._has_conversation_text(conversation_text)
+        has_form = self._has_form_text(form_text)
+
+        if not has_conversation and not has_form:
+            # Both agents errored, were empty, or returned "not found"/"no
+            # match" - there is nothing valid to merge or return.
+            await self._yield_graceful_decline(ctx, active_results)
+            return
+
         # Short-circuit: only Conversation Agent returned usable content.
         # Conversation Agent already produces natural language, so there's
         # nothing for the aggregator LLM to merge - return it directly.
-        if self._has_conversation_text(conversation_text) and not self._has_form_text(form_text):
+        if has_conversation and not has_form:
             aggregated_result = {
                 "source": "Aggregator",
                 "response": conversation_text,
                 "original_results": active_results,
             }
             print("Aggregator: short-circuit (conversation-only). No LLM call.")
+            await self._reset_no_answer_count()
             await ctx.yield_output([aggregated_result])
             return
 
@@ -229,6 +339,7 @@ class Aggregator(Executor):
 
                 print("Aggregated Result: ", aggregated_result)
 
+                await self._reset_no_answer_count()
                 await ctx.yield_output([aggregated_result])
                 return
 
@@ -236,11 +347,24 @@ class Aggregator(Executor):
                 print(f"Error in Aggregator LLM call: {e}")
                 logger.warning("Aggregator LLM call failed: %s", e)
         else:
-            print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, DEPLOYMENT, or API_VERSION). Returning raw results.")
-            logger.warning("Aggregator Azure OpenAI settings are incomplete; returning raw results.")
+            print("Aggregator: Missing Azure OpenAI credentials (API_KEY, ENDPOINT, DEPLOYMENT, or API_VERSION).")
+            logger.warning("Aggregator Azure OpenAI settings are incomplete.")
 
-        print("Aggregator: Yielding raw results.")
-        await ctx.yield_output(active_results)
+        # The merge LLM is unavailable or failed, but at least one side has
+        # genuinely usable content - salvage that instead of leaking the raw,
+        # unmerged executor dicts (which may include partially-error content).
+        salvage_text = conversation_text if has_conversation else form_text
+        print("Aggregator: LLM merge unavailable, salvaging single-source content.")
+        await self._reset_no_answer_count()
+        await ctx.yield_output(
+            [
+                {
+                    "source": "Aggregator",
+                    "response": salvage_text,
+                    "original_results": active_results,
+                }
+            ]
+        )
 
     def _normalize_results(self, results: Any) -> list[Any]:
         """Normalize single-message and multi-message inputs to a list."""

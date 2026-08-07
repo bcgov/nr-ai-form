@@ -1,0 +1,445 @@
+queries,step,expected_template
+Is it going to rain this afternoon?,step0-Bot,unrelated_topic
+Is it going to rain this afternoon?,step1-Introduction,unrelated_topic
+Is it going to rain this afternoon?,step2-Eligibility,unrelated_topic
+Is it going to rain this afternoon?,step3-Technical-Information-Fee-Exemption-Request,unrelated_topic
+Is it going to rain this afternoon?,step3-Technical-Information-Water-Diversion,unrelated_topic
+Is it going to rain this afternoon?,step3-AddPurpose-Consolidated,unrelated_topic
+Is it going to rain this afternoon?,step5-Document-Upload,unrelated_topic
+Is it going to rain this afternoon?,step6-Privacy-Confirmation,unrelated_topic
+Is it going to rain this afternoon?,step7-Contact-Information,unrelated_topic
+Is it going to rain this afternoon?,step8-Review,unrelated_topic
+Is it going to rain this afternoon?,step9-Declarations,unrelated_topic
+Is it going to rain this afternoon?,step10-Complete,unrelated_topic
+What's the temperature outside right now?,step0-Bot,unrelated_topic
+What's the temperature outside right now?,step1-Introduction,unrelated_topic
+What's the temperature outside right now?,step2-Eligibility,unrelated_topic
+What's the temperature outside right now?,step3-Technical-Information-Fee-Exemption-Request,unrelated_topic
+What's the temperature outside right now?,step3-Technical-Information-Water-Diversion,unrelated_topic
+What's the temperature outside right now?,step3-AddPurpose-Consolidated,unrelated_topic
+What's the temperature outside right now?,step5-Document-Upload,unrelated_topic
+What's the temperature outside right now?,step6-Privacy-Confirmation,unrelated_topic
+What's the temperature outside right now?,step7-Contact-Information,unrelated_topic
+What's the temperature outside right now?,step8-Review,unrelated_topic
+What's the temperature outside right now?,step9-Declarations,unrelated_topic
+What's the temperature outside right now?,step10-Complete,unrelated_topic
+Can you tell me today's weather forecast?,step0-Bot,unrelated_topic
+Can you tell me today's weather forecast?,step1-Introduction,unrelated_topic
+Can you tell me today's weather forecast?,step2-Eligibility,unrelated_topic
+Can you tell me today's weather forecast?,step3-Technical-Information-Fee-Exemption-Request,unrelated_topic
+Can you tell me today's weather forecast?,step3-Technical-Information-Water-Diversion,unrelated_topic
+Can you tell me today's weather forecast?,step3-AddPurpose-Consolidated,unrelated_topic
+Can you tell me today's weather forecast?,step5-Document-Upload,unrelated_topic
+Can you tell me today's weather forecast?,step6-Privacy-Confirmation,unrelated_topic
+Can you tell me today's weather forecast?,step7-Contact-Information,unrelated_topic
+Can you tell me today's weather forecast?,step8-Review,unrelated_topic
+Can you tell me today's weather forecast?,step9-Declarations,unrelated_topic
+Can you tell me today's weather forecast?,step10-Complete,unrelated_topic
+Will my application definitely be accepted?,step0-Bot,predicting_outcome
+Will my application definitely be accepted?,step1-Introduction,predicting_outcome
+Will my application definitely be accepted?,step2-Eligibility,predicting_outcome
+Will my application definitely be accepted?,step3-Technical-Information-Fee-Exemption-Request,predicting_outcome
+Will my application definitely be accepted?,step3-Technical-Information-Water-Diversion,predicting_outcome
+Will my application definitely be accepted?,step3-AddPurpose-Consolidated,predicting_outcome
+Will my application definitely be accepted?,step5-Document-Upload,predicting_outcome
+Will my application definitely be accepted?,step6-Privacy-Confirmation,predicting_outcome
+Will my application definitely be accepted?,step7-Contact-Information,predicting_outcome
+Will my application definitely be accepted?,step8-Review,predicting_outcome
+Will my application definitely be accepted?,step9-Declarations,predicting_outcome
+Will my application definitely be accepted?,step10-Complete,predicting_outcome
+What are my chances of getting approved?,step0-Bot,predicting_outcome
+What are my chances of getting approved?,step1-Introduction,predicting_outcome
+What are my chances of getting approved?,step2-Eligibility,predicting_outcome
+What are my chances of getting approved?,step3-Technical-Information-Fee-Exemption-Request,predicting_outcome
+What are my chances of getting approved?,step3-Technical-Information-Water-Diversion,predicting_outcome
+What are my chances of getting approved?,step3-AddPurpose-Consolidated,predicting_outcome
+What are my chances of getting approved?,step5-Document-Upload,predicting_outcome
+What are my chances of getting approved?,step6-Privacy-Confirmation,predicting_outcome
+What are my chances of getting approved?,step7-Contact-Information,predicting_outcome
+What are my chances of getting approved?,step8-Review,predicting_outcome
+What are my chances of getting approved?,step9-Declarations,predicting_outcome
+What are my chances of getting approved?,step10-Complete,predicting_outcome
+Do you think my application will be successful?,step0-Bot,predicting_outcome
+Do you think my application will be successful?,step1-Introduction,predicting_outcome
+Do you think my application will be successful?,step2-Eligibility,predicting_outcome
+Do you think my application will be successful?,step3-Technical-Information-Fee-Exemption-Request,predicting_outcome
+Do you think my application will be successful?,step3-Technical-Information-Water-Diversion,predicting_outcome
+Do you think my application will be successful?,step3-AddPurpose-Consolidated,predicting_outcome
+Do you think my application will be successful?,step5-Document-Upload,predicting_outcome
+Do you think my application will be successful?,step6-Privacy-Confirmation,predicting_outcome
+Do you think my application will be successful?,step7-Contact-Information,predicting_outcome
+Do you think my application will be successful?,step8-Review,predicting_outcome
+Do you think my application will be successful?,step9-Declarations,predicting_outcome
+Do you think my application will be successful?,step10-Complete,predicting_outcome
+What answers should I choose to maximize my approval chances?,step0-Bot,legal_advice
+What answers should I choose to maximize my approval chances?,step1-Introduction,legal_advice
+What answers should I choose to maximize my approval chances?,step2-Eligibility,legal_advice
+What answers should I choose to maximize my approval chances?,step3-Technical-Information-Fee-Exemption-Request,legal_advice
+What answers should I choose to maximize my approval chances?,step3-Technical-Information-Water-Diversion,legal_advice
+What answers should I choose to maximize my approval chances?,step3-AddPurpose-Consolidated,legal_advice
+What answers should I choose to maximize my approval chances?,step5-Document-Upload,legal_advice
+What answers should I choose to maximize my approval chances?,step6-Privacy-Confirmation,legal_advice
+What answers should I choose to maximize my approval chances?,step7-Contact-Information,legal_advice
+What answers should I choose to maximize my approval chances?,step8-Review,legal_advice
+What answers should I choose to maximize my approval chances?,step9-Declarations,legal_advice
+What answers should I choose to maximize my approval chances?,step10-Complete,legal_advice
+How should I fill out the form so it gets approved?,step0-Bot,legal_advice
+How should I fill out the form so it gets approved?,step1-Introduction,legal_advice
+How should I fill out the form so it gets approved?,step2-Eligibility,legal_advice
+How should I fill out the form so it gets approved?,step3-Technical-Information-Fee-Exemption-Request,legal_advice
+How should I fill out the form so it gets approved?,step3-Technical-Information-Water-Diversion,legal_advice
+How should I fill out the form so it gets approved?,step3-AddPurpose-Consolidated,legal_advice
+How should I fill out the form so it gets approved?,step5-Document-Upload,legal_advice
+How should I fill out the form so it gets approved?,step6-Privacy-Confirmation,legal_advice
+How should I fill out the form so it gets approved?,step7-Contact-Information,legal_advice
+How should I fill out the form so it gets approved?,step8-Review,legal_advice
+How should I fill out the form so it gets approved?,step9-Declarations,legal_advice
+How should I fill out the form so it gets approved?,step10-Complete,legal_advice
+What should I enter to avoid rejection?,step0-Bot,legal_advice
+What should I enter to avoid rejection?,step1-Introduction,legal_advice
+What should I enter to avoid rejection?,step2-Eligibility,legal_advice
+What should I enter to avoid rejection?,step3-Technical-Information-Fee-Exemption-Request,legal_advice
+What should I enter to avoid rejection?,step3-Technical-Information-Water-Diversion,legal_advice
+What should I enter to avoid rejection?,step3-AddPurpose-Consolidated,legal_advice
+What should I enter to avoid rejection?,step5-Document-Upload,legal_advice
+What should I enter to avoid rejection?,step6-Privacy-Confirmation,legal_advice
+What should I enter to avoid rejection?,step7-Contact-Information,legal_advice
+What should I enter to avoid rejection?,step8-Review,legal_advice
+What should I enter to avoid rejection?,step9-Declarations,legal_advice
+What should I enter to avoid rejection?,step10-Complete,legal_advice
+Can you look up my application ID?,step0-Bot,external_lookup
+Can you look up my application ID?,step1-Introduction,external_lookup
+Can you look up my application ID?,step2-Eligibility,external_lookup
+Can you look up my application ID?,step3-Technical-Information-Fee-Exemption-Request,external_lookup
+Can you look up my application ID?,step3-Technical-Information-Water-Diversion,external_lookup
+Can you look up my application ID?,step3-AddPurpose-Consolidated,external_lookup
+Can you look up my application ID?,step5-Document-Upload,external_lookup
+Can you look up my application ID?,step6-Privacy-Confirmation,external_lookup
+Can you look up my application ID?,step7-Contact-Information,external_lookup
+Can you look up my application ID?,step8-Review,external_lookup
+Can you look up my application ID?,step9-Declarations,external_lookup
+Can you look up my application ID?,step10-Complete,external_lookup
+What's my customer account number?,step0-Bot,external_lookup
+What's my customer account number?,step1-Introduction,external_lookup
+What's my customer account number?,step2-Eligibility,external_lookup
+What's my customer account number?,step3-Technical-Information-Fee-Exemption-Request,external_lookup
+What's my customer account number?,step3-Technical-Information-Water-Diversion,external_lookup
+What's my customer account number?,step3-AddPurpose-Consolidated,external_lookup
+What's my customer account number?,step5-Document-Upload,external_lookup
+What's my customer account number?,step6-Privacy-Confirmation,external_lookup
+What's my customer account number?,step7-Contact-Information,external_lookup
+What's my customer account number?,step8-Review,external_lookup
+What's my customer account number?,step9-Declarations,external_lookup
+What's my customer account number?,step10-Complete,external_lookup
+Can you tell me my licence file number?,step0-Bot,external_lookup
+Can you tell me my licence file number?,step1-Introduction,external_lookup
+Can you tell me my licence file number?,step2-Eligibility,external_lookup
+Can you tell me my licence file number?,step3-Technical-Information-Fee-Exemption-Request,external_lookup
+Can you tell me my licence file number?,step3-Technical-Information-Water-Diversion,external_lookup
+Can you tell me my licence file number?,step3-AddPurpose-Consolidated,external_lookup
+Can you tell me my licence file number?,step5-Document-Upload,external_lookup
+Can you tell me my licence file number?,step6-Privacy-Confirmation,external_lookup
+Can you tell me my licence file number?,step7-Contact-Information,external_lookup
+Can you tell me my licence file number?,step8-Review,external_lookup
+Can you tell me my licence file number?,step9-Declarations,external_lookup
+Can you tell me my licence file number?,step10-Complete,external_lookup
+Which applications are reviewed first?,step0-Bot,internal_policy
+Which applications are reviewed first?,step1-Introduction,internal_policy
+Which applications are reviewed first?,step2-Eligibility,internal_policy
+Which applications are reviewed first?,step3-Technical-Information-Fee-Exemption-Request,internal_policy
+Which applications are reviewed first?,step3-Technical-Information-Water-Diversion,internal_policy
+Which applications are reviewed first?,step3-AddPurpose-Consolidated,internal_policy
+Which applications are reviewed first?,step5-Document-Upload,internal_policy
+Which applications are reviewed first?,step6-Privacy-Confirmation,internal_policy
+Which applications are reviewed first?,step7-Contact-Information,internal_policy
+Which applications are reviewed first?,step8-Review,internal_policy
+Which applications are reviewed first?,step9-Declarations,internal_policy
+Which applications are reviewed first?,step10-Complete,internal_policy
+How does the ministry decide application priority?,step0-Bot,internal_policy
+How does the ministry decide application priority?,step1-Introduction,internal_policy
+How does the ministry decide application priority?,step2-Eligibility,internal_policy
+How does the ministry decide application priority?,step3-Technical-Information-Fee-Exemption-Request,internal_policy
+How does the ministry decide application priority?,step3-Technical-Information-Water-Diversion,internal_policy
+How does the ministry decide application priority?,step3-AddPurpose-Consolidated,internal_policy
+How does the ministry decide application priority?,step5-Document-Upload,internal_policy
+How does the ministry decide application priority?,step6-Privacy-Confirmation,internal_policy
+How does the ministry decide application priority?,step7-Contact-Information,internal_policy
+How does the ministry decide application priority?,step8-Review,internal_policy
+How does the ministry decide application priority?,step9-Declarations,internal_policy
+How does the ministry decide application priority?,step10-Complete,internal_policy
+Are irrigation applications processed before other types?,step0-Bot,internal_policy
+Are irrigation applications processed before other types?,step1-Introduction,internal_policy
+Are irrigation applications processed before other types?,step2-Eligibility,internal_policy
+Are irrigation applications processed before other types?,step3-Technical-Information-Fee-Exemption-Request,internal_policy
+Are irrigation applications processed before other types?,step3-Technical-Information-Water-Diversion,internal_policy
+Are irrigation applications processed before other types?,step3-AddPurpose-Consolidated,internal_policy
+Are irrigation applications processed before other types?,step5-Document-Upload,internal_policy
+Are irrigation applications processed before other types?,step6-Privacy-Confirmation,internal_policy
+Are irrigation applications processed before other types?,step7-Contact-Information,internal_policy
+Are irrigation applications processed before other types?,step8-Review,internal_policy
+Are irrigation applications processed before other types?,step9-Declarations,internal_policy
+Are irrigation applications processed before other types?,step10-Complete,internal_policy
+Who won the hockey game last night?,step0-Bot,unrelated_topic
+Who won the hockey game last night?,step1-Introduction,unrelated_topic
+Who won the hockey game last night?,step2-Eligibility,unrelated_topic
+Who won the hockey game last night?,step3-Technical-Information-Fee-Exemption-Request,unrelated_topic
+Who won the hockey game last night?,step3-Technical-Information-Water-Diversion,unrelated_topic
+Who won the hockey game last night?,step3-AddPurpose-Consolidated,unrelated_topic
+Who won the hockey game last night?,step5-Document-Upload,unrelated_topic
+Who won the hockey game last night?,step6-Privacy-Confirmation,unrelated_topic
+Who won the hockey game last night?,step7-Contact-Information,unrelated_topic
+Who won the hockey game last night?,step8-Review,unrelated_topic
+Who won the hockey game last night?,step9-Declarations,unrelated_topic
+Who won the hockey game last night?,step10-Complete,unrelated_topic
+What's the capital of Australia?,step0-Bot,unrelated_topic
+What's the capital of Australia?,step1-Introduction,unrelated_topic
+What's the capital of Australia?,step2-Eligibility,unrelated_topic
+What's the capital of Australia?,step3-Technical-Information-Fee-Exemption-Request,unrelated_topic
+What's the capital of Australia?,step3-Technical-Information-Water-Diversion,unrelated_topic
+What's the capital of Australia?,step3-AddPurpose-Consolidated,unrelated_topic
+What's the capital of Australia?,step5-Document-Upload,unrelated_topic
+What's the capital of Australia?,step6-Privacy-Confirmation,unrelated_topic
+What's the capital of Australia?,step7-Contact-Information,unrelated_topic
+What's the capital of Australia?,step8-Review,unrelated_topic
+What's the capital of Australia?,step9-Declarations,unrelated_topic
+What's the capital of Australia?,step10-Complete,unrelated_topic
+Tell me a joke.,step0-Bot,unrelated_topic
+Tell me a joke.,step1-Introduction,unrelated_topic
+Tell me a joke.,step2-Eligibility,unrelated_topic
+Tell me a joke.,step3-Technical-Information-Fee-Exemption-Request,unrelated_topic
+Tell me a joke.,step3-Technical-Information-Water-Diversion,unrelated_topic
+Tell me a joke.,step3-AddPurpose-Consolidated,unrelated_topic
+Tell me a joke.,step5-Document-Upload,unrelated_topic
+Tell me a joke.,step6-Privacy-Confirmation,unrelated_topic
+Tell me a joke.,step7-Contact-Information,unrelated_topic
+Tell me a joke.,step8-Review,unrelated_topic
+Tell me a joke.,step9-Declarations,unrelated_topic
+Tell me a joke.,step10-Complete,unrelated_topic
+What's the stock market doing today?,step0-Bot,unrelated_topic
+What's the stock market doing today?,step1-Introduction,unrelated_topic
+What's the stock market doing today?,step2-Eligibility,unrelated_topic
+What's the stock market doing today?,step3-Technical-Information-Fee-Exemption-Request,unrelated_topic
+What's the stock market doing today?,step3-Technical-Information-Water-Diversion,unrelated_topic
+What's the stock market doing today?,step3-AddPurpose-Consolidated,unrelated_topic
+What's the stock market doing today?,step5-Document-Upload,unrelated_topic
+What's the stock market doing today?,step6-Privacy-Confirmation,unrelated_topic
+What's the stock market doing today?,step7-Contact-Information,unrelated_topic
+What's the stock market doing today?,step8-Review,unrelated_topic
+What's the stock market doing today?,step9-Declarations,unrelated_topic
+What's the stock market doing today?,step10-Complete,unrelated_topic
+Will I be denied?,step0-Bot,predicting_outcome
+Will I be denied?,step1-Introduction,predicting_outcome
+Will I be denied?,step2-Eligibility,predicting_outcome
+Will I be denied?,step3-Technical-Information-Fee-Exemption-Request,predicting_outcome
+Will I be denied?,step3-Technical-Information-Water-Diversion,predicting_outcome
+Will I be denied?,step3-AddPurpose-Consolidated,predicting_outcome
+Will I be denied?,step5-Document-Upload,predicting_outcome
+Will I be denied?,step6-Privacy-Confirmation,predicting_outcome
+Will I be denied?,step7-Contact-Information,predicting_outcome
+Will I be denied?,step8-Review,predicting_outcome
+Will I be denied?,step9-Declarations,predicting_outcome
+Will I be denied?,step10-Complete,predicting_outcome
+Can you predict whether I'll get a licence?,step0-Bot,predicting_outcome
+Can you predict whether I'll get a licence?,step1-Introduction,predicting_outcome
+Can you predict whether I'll get a licence?,step2-Eligibility,predicting_outcome
+Can you predict whether I'll get a licence?,step3-Technical-Information-Fee-Exemption-Request,predicting_outcome
+Can you predict whether I'll get a licence?,step3-Technical-Information-Water-Diversion,predicting_outcome
+Can you predict whether I'll get a licence?,step3-AddPurpose-Consolidated,predicting_outcome
+Can you predict whether I'll get a licence?,step5-Document-Upload,predicting_outcome
+Can you predict whether I'll get a licence?,step6-Privacy-Confirmation,predicting_outcome
+Can you predict whether I'll get a licence?,step7-Contact-Information,predicting_outcome
+Can you predict whether I'll get a licence?,step8-Review,predicting_outcome
+Can you predict whether I'll get a licence?,step9-Declarations,predicting_outcome
+Can you predict whether I'll get a licence?,step10-Complete,predicting_outcome
+Do you think my submission is good enough?,step0-Bot,predicting_outcome
+Do you think my submission is good enough?,step1-Introduction,predicting_outcome
+Do you think my submission is good enough?,step2-Eligibility,predicting_outcome
+Do you think my submission is good enough?,step3-Technical-Information-Fee-Exemption-Request,predicting_outcome
+Do you think my submission is good enough?,step3-Technical-Information-Water-Diversion,predicting_outcome
+Do you think my submission is good enough?,step3-AddPurpose-Consolidated,predicting_outcome
+Do you think my submission is good enough?,step5-Document-Upload,predicting_outcome
+Do you think my submission is good enough?,step6-Privacy-Confirmation,predicting_outcome
+Do you think my submission is good enough?,step7-Contact-Information,predicting_outcome
+Do you think my submission is good enough?,step8-Review,predicting_outcome
+Do you think my submission is good enough?,step9-Declarations,predicting_outcome
+Do you think my submission is good enough?,step10-Complete,predicting_outcome
+Is my application likely to pass review?,step0-Bot,predicting_outcome
+Is my application likely to pass review?,step1-Introduction,predicting_outcome
+Is my application likely to pass review?,step2-Eligibility,predicting_outcome
+Is my application likely to pass review?,step3-Technical-Information-Fee-Exemption-Request,predicting_outcome
+Is my application likely to pass review?,step3-Technical-Information-Water-Diversion,predicting_outcome
+Is my application likely to pass review?,step3-AddPurpose-Consolidated,predicting_outcome
+Is my application likely to pass review?,step5-Document-Upload,predicting_outcome
+Is my application likely to pass review?,step6-Privacy-Confirmation,predicting_outcome
+Is my application likely to pass review?,step7-Contact-Information,predicting_outcome
+Is my application likely to pass review?,step8-Review,predicting_outcome
+Is my application likely to pass review?,step9-Declarations,predicting_outcome
+Is my application likely to pass review?,step10-Complete,predicting_outcome
+Which options will give me the best chance of approval?,step0-Bot,legal_advice
+Which options will give me the best chance of approval?,step1-Introduction,legal_advice
+Which options will give me the best chance of approval?,step2-Eligibility,legal_advice
+Which options will give me the best chance of approval?,step3-Technical-Information-Fee-Exemption-Request,legal_advice
+Which options will give me the best chance of approval?,step3-Technical-Information-Water-Diversion,legal_advice
+Which options will give me the best chance of approval?,step3-AddPurpose-Consolidated,legal_advice
+Which options will give me the best chance of approval?,step5-Document-Upload,legal_advice
+Which options will give me the best chance of approval?,step6-Privacy-Confirmation,legal_advice
+Which options will give me the best chance of approval?,step7-Contact-Information,legal_advice
+Which options will give me the best chance of approval?,step8-Review,legal_advice
+Which options will give me the best chance of approval?,step9-Declarations,legal_advice
+Which options will give me the best chance of approval?,step10-Complete,legal_advice
+What should I write so the ministry approves my request?,step0-Bot,legal_advice
+What should I write so the ministry approves my request?,step1-Introduction,legal_advice
+What should I write so the ministry approves my request?,step2-Eligibility,legal_advice
+What should I write so the ministry approves my request?,step3-Technical-Information-Fee-Exemption-Request,legal_advice
+What should I write so the ministry approves my request?,step3-Technical-Information-Water-Diversion,legal_advice
+What should I write so the ministry approves my request?,step3-AddPurpose-Consolidated,legal_advice
+What should I write so the ministry approves my request?,step5-Document-Upload,legal_advice
+What should I write so the ministry approves my request?,step6-Privacy-Confirmation,legal_advice
+What should I write so the ministry approves my request?,step7-Contact-Information,legal_advice
+What should I write so the ministry approves my request?,step8-Review,legal_advice
+What should I write so the ministry approves my request?,step9-Declarations,legal_advice
+What should I write so the ministry approves my request?,step10-Complete,legal_advice
+Should I increase the requested water quantity to improve my chances?,step0-Bot,legal_advice
+Should I increase the requested water quantity to improve my chances?,step1-Introduction,legal_advice
+Should I increase the requested water quantity to improve my chances?,step2-Eligibility,legal_advice
+Should I increase the requested water quantity to improve my chances?,step3-Technical-Information-Fee-Exemption-Request,legal_advice
+Should I increase the requested water quantity to improve my chances?,step3-Technical-Information-Water-Diversion,legal_advice
+Should I increase the requested water quantity to improve my chances?,step3-AddPurpose-Consolidated,legal_advice
+Should I increase the requested water quantity to improve my chances?,step5-Document-Upload,legal_advice
+Should I increase the requested water quantity to improve my chances?,step6-Privacy-Confirmation,legal_advice
+Should I increase the requested water quantity to improve my chances?,step7-Contact-Information,legal_advice
+Should I increase the requested water quantity to improve my chances?,step8-Review,legal_advice
+Should I increase the requested water quantity to improve my chances?,step9-Declarations,legal_advice
+Should I increase the requested water quantity to improve my chances?,step10-Complete,legal_advice
+Which justification is most likely to be accepted?,step0-Bot,legal_advice
+Which justification is most likely to be accepted?,step1-Introduction,legal_advice
+Which justification is most likely to be accepted?,step2-Eligibility,legal_advice
+Which justification is most likely to be accepted?,step3-Technical-Information-Fee-Exemption-Request,legal_advice
+Which justification is most likely to be accepted?,step3-Technical-Information-Water-Diversion,legal_advice
+Which justification is most likely to be accepted?,step3-AddPurpose-Consolidated,legal_advice
+Which justification is most likely to be accepted?,step5-Document-Upload,legal_advice
+Which justification is most likely to be accepted?,step6-Privacy-Confirmation,legal_advice
+Which justification is most likely to be accepted?,step7-Contact-Information,legal_advice
+Which justification is most likely to be accepted?,step8-Review,legal_advice
+Which justification is most likely to be accepted?,step9-Declarations,legal_advice
+Which justification is most likely to be accepted?,step10-Complete,legal_advice
+Can you check the status of my application?,step0-Bot,external_lookup
+Can you check the status of my application?,step1-Introduction,external_lookup
+Can you check the status of my application?,step2-Eligibility,external_lookup
+Can you check the status of my application?,step3-Technical-Information-Fee-Exemption-Request,external_lookup
+Can you check the status of my application?,step3-Technical-Information-Water-Diversion,external_lookup
+Can you check the status of my application?,step3-AddPurpose-Consolidated,external_lookup
+Can you check the status of my application?,step5-Document-Upload,external_lookup
+Can you check the status of my application?,step6-Privacy-Confirmation,external_lookup
+Can you check the status of my application?,step7-Contact-Information,external_lookup
+Can you check the status of my application?,step8-Review,external_lookup
+Can you check the status of my application?,step9-Declarations,external_lookup
+Can you check the status of my application?,step10-Complete,external_lookup
+What's my BCeID username?,step0-Bot,external_lookup
+What's my BCeID username?,step1-Introduction,external_lookup
+What's my BCeID username?,step2-Eligibility,external_lookup
+What's my BCeID username?,step3-Technical-Information-Fee-Exemption-Request,external_lookup
+What's my BCeID username?,step3-Technical-Information-Water-Diversion,external_lookup
+What's my BCeID username?,step3-AddPurpose-Consolidated,external_lookup
+What's my BCeID username?,step5-Document-Upload,external_lookup
+What's my BCeID username?,step6-Privacy-Confirmation,external_lookup
+What's my BCeID username?,step7-Contact-Information,external_lookup
+What's my BCeID username?,step8-Review,external_lookup
+What's my BCeID username?,step9-Declarations,external_lookup
+What's my BCeID username?,step10-Complete,external_lookup
+Can you find my previous submissions?,step0-Bot,external_lookup
+Can you find my previous submissions?,step1-Introduction,external_lookup
+Can you find my previous submissions?,step2-Eligibility,external_lookup
+Can you find my previous submissions?,step3-Technical-Information-Fee-Exemption-Request,external_lookup
+Can you find my previous submissions?,step3-Technical-Information-Water-Diversion,external_lookup
+Can you find my previous submissions?,step3-AddPurpose-Consolidated,external_lookup
+Can you find my previous submissions?,step5-Document-Upload,external_lookup
+Can you find my previous submissions?,step6-Privacy-Confirmation,external_lookup
+Can you find my previous submissions?,step7-Contact-Information,external_lookup
+Can you find my previous submissions?,step8-Review,external_lookup
+Can you find my previous submissions?,step9-Declarations,external_lookup
+Can you find my previous submissions?,step10-Complete,external_lookup
+What's the reference number for my application?,step0-Bot,external_lookup
+What's the reference number for my application?,step1-Introduction,external_lookup
+What's the reference number for my application?,step2-Eligibility,external_lookup
+What's the reference number for my application?,step3-Technical-Information-Fee-Exemption-Request,external_lookup
+What's the reference number for my application?,step3-Technical-Information-Water-Diversion,external_lookup
+What's the reference number for my application?,step3-AddPurpose-Consolidated,external_lookup
+What's the reference number for my application?,step5-Document-Upload,external_lookup
+What's the reference number for my application?,step6-Privacy-Confirmation,external_lookup
+What's the reference number for my application?,step7-Contact-Information,external_lookup
+What's the reference number for my application?,step8-Review,external_lookup
+What's the reference number for my application?,step9-Declarations,external_lookup
+What's the reference number for my application?,step10-Complete,external_lookup
+What criteria do reviewers use to rank applications?,step0-Bot,internal_policy
+What criteria do reviewers use to rank applications?,step1-Introduction,internal_policy
+What criteria do reviewers use to rank applications?,step2-Eligibility,internal_policy
+What criteria do reviewers use to rank applications?,step3-Technical-Information-Fee-Exemption-Request,internal_policy
+What criteria do reviewers use to rank applications?,step3-Technical-Information-Water-Diversion,internal_policy
+What criteria do reviewers use to rank applications?,step3-AddPurpose-Consolidated,internal_policy
+What criteria do reviewers use to rank applications?,step5-Document-Upload,internal_policy
+What criteria do reviewers use to rank applications?,step6-Privacy-Confirmation,internal_policy
+What criteria do reviewers use to rank applications?,step7-Contact-Information,internal_policy
+What criteria do reviewers use to rank applications?,step8-Review,internal_policy
+What criteria do reviewers use to rank applications?,step9-Declarations,internal_policy
+What criteria do reviewers use to rank applications?,step10-Complete,internal_policy
+Are some industries prioritized over others?,step0-Bot,internal_policy
+Are some industries prioritized over others?,step1-Introduction,internal_policy
+Are some industries prioritized over others?,step2-Eligibility,internal_policy
+Are some industries prioritized over others?,step3-Technical-Information-Fee-Exemption-Request,internal_policy
+Are some industries prioritized over others?,step3-Technical-Information-Water-Diversion,internal_policy
+Are some industries prioritized over others?,step3-AddPurpose-Consolidated,internal_policy
+Are some industries prioritized over others?,step5-Document-Upload,internal_policy
+Are some industries prioritized over others?,step6-Privacy-Confirmation,internal_policy
+Are some industries prioritized over others?,step7-Contact-Information,internal_policy
+Are some industries prioritized over others?,step8-Review,internal_policy
+Are some industries prioritized over others?,step9-Declarations,internal_policy
+Are some industries prioritized over others?,step10-Complete,internal_policy
+Does the ministry fast-track emergency requests?,step0-Bot,internal_policy
+Does the ministry fast-track emergency requests?,step1-Introduction,internal_policy
+Does the ministry fast-track emergency requests?,step2-Eligibility,internal_policy
+Does the ministry fast-track emergency requests?,step3-Technical-Information-Fee-Exemption-Request,internal_policy
+Does the ministry fast-track emergency requests?,step3-Technical-Information-Water-Diversion,internal_policy
+Does the ministry fast-track emergency requests?,step3-AddPurpose-Consolidated,internal_policy
+Does the ministry fast-track emergency requests?,step5-Document-Upload,internal_policy
+Does the ministry fast-track emergency requests?,step6-Privacy-Confirmation,internal_policy
+Does the ministry fast-track emergency requests?,step7-Contact-Information,internal_policy
+Does the ministry fast-track emergency requests?,step8-Review,internal_policy
+Does the ministry fast-track emergency requests?,step9-Declarations,internal_policy
+Does the ministry fast-track emergency requests?,step10-Complete,internal_policy
+What are the internal approval guidelines for reviewers?,step0-Bot,internal_policy
+What are the internal approval guidelines for reviewers?,step1-Introduction,internal_policy
+What are the internal approval guidelines for reviewers?,step2-Eligibility,internal_policy
+What are the internal approval guidelines for reviewers?,step3-Technical-Information-Fee-Exemption-Request,internal_policy
+What are the internal approval guidelines for reviewers?,step3-Technical-Information-Water-Diversion,internal_policy
+What are the internal approval guidelines for reviewers?,step3-AddPurpose-Consolidated,internal_policy
+What are the internal approval guidelines for reviewers?,step5-Document-Upload,internal_policy
+What are the internal approval guidelines for reviewers?,step6-Privacy-Confirmation,internal_policy
+What are the internal approval guidelines for reviewers?,step7-Contact-Information,internal_policy
+What are the internal approval guidelines for reviewers?,step8-Review,internal_policy
+What are the internal approval guidelines for reviewers?,step9-Declarations,internal_policy
+What are the internal approval guidelines for reviewers?,step10-Complete,internal_policy
+Will it rain today?,step0-Bot,unrelated_topic
+Will it rain today?,step1-Introduction,unrelated_topic
+Will it rain today?,step2-Eligibility,unrelated_topic
+Will it rain today?,step3-Technical-Information-Fee-Exemption-Request,unrelated_topic
+Will it rain today?,step3-Technical-Information-Water-Diversion,unrelated_topic
+Will it rain today?,step3-AddPurpose-Consolidated,unrelated_topic
+Will it rain today?,step5-Document-Upload,unrelated_topic
+Will it rain today?,step6-Privacy-Confirmation,unrelated_topic
+Will it rain today?,step7-Contact-Information,unrelated_topic
+Will it rain today?,step8-Review,unrelated_topic
+Will it rain today?,step9-Declarations,unrelated_topic
+Will it rain today?,step10-Complete,unrelated_topic
+"I need help with water licensing, and will it rain today?",step0-Bot,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step1-Introduction,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step2-Eligibility,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step3-Technical-Information-Fee-Exemption-Request,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step3-Technical-Information-Water-Diversion,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step3-AddPurpose-Consolidated,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step5-Document-Upload,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step6-Privacy-Confirmation,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step7-Contact-Information,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step8-Review,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step9-Declarations,mixed_ambiguous
+"I need help with water licensing, and will it rain today?",step10-Complete,mixed_ambiguous

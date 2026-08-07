@@ -1,21 +1,23 @@
 """
-Automation runner for the orchestrator /invoke endpoint.
+Automation runner for the orchestrator /ws WebSocket endpoint.
 
-Reads a CSV of (queries, step) rows, POSTs each row to the orchestrator
-sharing a single session UUID across the whole run (so the orchestrator's
-multi-turn memory threads them as one conversation), and writes every
-response to a timestamped .txt file under `responses/`. Each block is
-separated by a line of `=`.
+Reads a CSV of (queries, step) rows, sends each row as a JSON message over a
+single WebSocket connection to the orchestrator, sharing one session UUID
+across the whole run (so the orchestrator's multi-turn memory threads them as
+one conversation), and writes every response to a timestamped .txt file
+under `responses/`. Each block is separated by a line of `=`.
 
 Usage:
     python run_automation.py
     python run_automation.py --csv testscripts1.csv --output my_run.txt
-    python run_automation.py --url http://localhost:8002/invoke --timeout 60
+    python run_automation.py --url ws://localhost:8002/ws --timeout 60
     python run_automation.py --limit 3                       # first 3 rows only
     python run_automation.py --session-id 1234-...           # reuse a specific session
+    python run_automation.py --client-id 11111111-1111-4111-8111-111111111111
 """
 
 import argparse
+import asyncio
 import csv
 import datetime
 import json
@@ -23,35 +25,38 @@ import sys
 import time
 import uuid
 from pathlib import Path
-from urllib import error as urllib_error
-from urllib import request as urllib_request
+
+import websockets
 
 
 SEPARATOR = "=" * 80
-DEFAULT_URL = "http://localhost:8002/invoke"
+DEFAULT_URL = "ws://localhost:8002/ws"
+DEFAULT_CLIENT_ID = "11111111-1111-4111-8111-111111111111"  # "Water Permit App" seed profile
 HERE = Path(__file__).parent
 
 
-def post_invoke(url: str, payload: dict, timeout: float) -> tuple[int, str]:
-    body = json.dumps(payload).encode("utf-8")
-    req = urllib_request.Request(
-        url,
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib_request.urlopen(req, timeout=timeout) as resp:
-            return resp.status, resp.read().decode("utf-8")
-    except urllib_error.HTTPError as exc:
-        return exc.code, exc.read().decode("utf-8", errors="replace")
+async def send_invoke(
+    websocket,
+    client_id: str,
+    query: str,
+    step: str,
+    session_id: str,
+    timeout: float,
+) -> str:
+    payload = {
+        "client_id": client_id,
+        "query": query,
+        "step_number": step,
+        "session_id": session_id,
+    }
+    await websocket.send(json.dumps(payload))
+    return await asyncio.wait_for(websocket.recv(), timeout=timeout)
 
 
 def format_block(
     query: str,
     step: str,
     session_id: str,
-    status: int,
     body: str,
     elapsed: float,
 ) -> str:
@@ -65,45 +70,13 @@ def format_block(
         f"QUERY:      {query}\n"
         f"STEP:       {step}\n"
         f"SESSION_ID: {session_id}\n"
-        f"STATUS:     {status}\n"
         f"ELAPSED:    {elapsed:.2f}s\n"
         f"{SEPARATOR}\n"
         f"{pretty}\n"
     )
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--csv",
-        default=str(HERE / "testscripts1.csv"),
-        help="Input CSV with `queries` and `step` columns.",
-    )
-    parser.add_argument("--url", default=DEFAULT_URL, help="Orchestrator invoke URL.")
-    parser.add_argument(
-        "--output",
-        default=None,
-        help="Output .txt path. Defaults to responses/run-<timestamp>.txt next to this script.",
-    )
-    parser.add_argument(
-        "--timeout",
-        type=float,
-        default=120.0,
-        help="HTTP timeout per request in seconds.",
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Send only the first N rows (handy for smoke tests).",
-    )
-    parser.add_argument(
-        "--session-id",
-        default=None,
-        help="Override the session UUID. Defaults to a fresh uuid4 used for every row.",
-    )
-    args = parser.parse_args()
-
+async def run(args) -> int:
     session_id = args.session_id or str(uuid.uuid4())
 
     csv_path = Path(args.csv)
@@ -129,34 +102,75 @@ def main() -> int:
         rows = rows[: args.limit]
 
     print(f"Loaded {len(rows)} queries from {csv_path}")
-    print(f"POSTing to {args.url}")
+    print(f"Connecting to {args.url}")
+    print(f"Client ID: {args.client_id}")
     print(f"Session ID (shared across all rows): {session_id}")
     print(f"Writing responses to {out_path}\n")
 
     with out_path.open("w", encoding="utf-8") as out:
         out.write(f"SESSION_ID: {session_id}\n\n")
-        for index, row in enumerate(rows, start=1):
-            query = row["query"]
-            step = row["step"]
-            payload = {"query": query, "step_number": step, "session_id": session_id}
+        async with websockets.connect(args.url, open_timeout=args.timeout) as websocket:
+            for index, row in enumerate(rows, start=1):
+                query = row["query"]
+                step = row["step"]
 
-            print(f"[{index}/{len(rows)}] {query!r} step={step}")
-            t0 = time.monotonic()
-            try:
-                status, body = post_invoke(args.url, payload, args.timeout)
-            except Exception as exc:
-                status, body = 0, f"<request failed: {exc!r}>"
-            elapsed = time.monotonic() - t0
-            print(f"    -> status {status} in {elapsed:.2f}s")
+                print(f"[{index}/{len(rows)}] {query!r} step={step}")
+                t0 = time.monotonic()
+                try:
+                    body = await send_invoke(
+                        websocket, args.client_id, query, step, session_id, args.timeout
+                    )
+                except Exception as exc:
+                    body = f"<request failed: {exc!r}>"
+                elapsed = time.monotonic() - t0
+                print(f"    -> received in {elapsed:.2f}s")
 
-            out.write(format_block(query, step, session_id, status, body, elapsed))
-            out.write("\n")
-            out.flush()
+                out.write(format_block(query, step, session_id, body, elapsed))
+                out.write("\n")
+                out.flush()
 
     print(f"\nDone. Wrote {out_path}")
     return 0
 
 
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--csv",
+        default=str(HERE / "testscripts2-edgecases.csv"),
+        help="Input CSV with `queries` and `step` columns.",
+    )
+    parser.add_argument("--url", default=DEFAULT_URL, help="Orchestrator WebSocket URL.")
+    parser.add_argument(
+        "--client-id",
+        default=DEFAULT_CLIENT_ID,
+        help="Tenant client_id required by the /ws route (see clientprofiles/seed/client_profiles.json).",
+    )
+    parser.add_argument(
+        "--output",
+        default=None,
+        help="Output .txt path. Defaults to responses/run-<timestamp>.txt next to this script.",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=120.0,
+        help="Timeout per request in seconds.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Send only the first N rows (handy for smoke tests).",
+    )
+    parser.add_argument(
+        "--session-id",
+        default=None,
+        help="Override the session UUID. Defaults to a fresh uuid4 used for every row.",
+    )
+    args = parser.parse_args()
+    return asyncio.run(run(args))
+
+
 if __name__ == "__main__":
     sys.exit(main())
-    

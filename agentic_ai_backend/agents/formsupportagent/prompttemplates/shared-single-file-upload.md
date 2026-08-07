@@ -24,7 +24,7 @@ The maximum file size is 100 MB. The description must be 500 characters or fewer
 The Upload button sends the selected file and description through the form.
 
 # Privacy Warning
-**STRICT:** Always remind the user not to share any personal information, signatures, file contents, addresses, phone numbers, emails, or client details with this bot. Always instruct users to select files, enter descriptions, and upload files directly in the form.
+**STRICT:** Always remind the user not to share any personal information, signatures, file contents, addresses, phone numbers, emails, or client details with AIFA-AI Form Assist. Always instruct users to select files, enter descriptions, and upload files directly in the form.
 
 # Form Fields
 ```json

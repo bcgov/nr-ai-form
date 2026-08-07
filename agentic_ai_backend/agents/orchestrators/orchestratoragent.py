@@ -19,6 +19,7 @@ from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExe
 from workflowcomponents.formsupportagentexecutor import FormSupportAgentA2AExecutor
 from workflowcomponents.dispatcher import Dispatcher
 from workflowcomponents.aggregator import Aggregator
+from workflowcomponents.edgecaseservice import fetch_edge_case_templates, fetch_graceful_decline_messages
 from workflowcomponents.promptsource import PromptSource
 from workflowcomponents.routing import get_primary_intent, select_subagents
 from clientprofiles import TenantAgentSettings
@@ -29,9 +30,31 @@ FORM_SUPPORT_AGENT_COSMOS_NAME = "formSupportAgent"
 
 logger = logging.getLogger(__name__)
 
+def _has_edge_case_category(intent_list: Any) -> bool:
+    """True when the Dispatcher flagged a fixed out-of-scope/edge-case bucket.
+
+    The Aggregator answers these directly (see EdgeCaseCategory and this
+    tenant's edgeCases blob templates), so no sub-agent needs to run for this turn.
+    """
+    return isinstance(intent_list, IntentListModel) and intent_list.category is not None
+
+
+def _should_invoke_single_executor(intent_list: Any) -> bool:
+    """Edge condition for the single-enabled-agent tenant case.
+
+    A `FanOutEdgeGroup`/selection-func requires at least two configured
+    targets, so the multi-selection mechanism below can't be reused for a
+    tenant with only one sub-agent enabled - this plain edge condition keeps
+    the same "skip on edge-case category" behavior for that case.
+    """
+    return not _has_edge_case_category(intent_list)
+
+
 def _select_target_executors(intent_list: Any, target_ids: list[str]) -> list[str]:
     """Pick which sub-agent executors should run for a given dispatcher classification.
 
+    - If the Dispatcher flagged a fixed edge-case category, no sub-agent runs -
+      the Aggregator answers directly from `IntentListModel.category`.
     - If any intent is at or above the high-confidence threshold, route only to those
       agents (one or both, depending on the IntentListModel).
     - If nothing crosses the threshold, route to the highest-confidence agent, but
@@ -39,6 +62,9 @@ def _select_target_executors(intent_list: Any, target_ids: list[str]) -> list[st
     """
     if not isinstance(intent_list, IntentListModel):
         return list(target_ids)
+
+    if intent_list.category is not None:
+        return []
 
     high_conf = select_subagents(intent_list)
     if high_conf:
@@ -165,12 +191,39 @@ async def orchestrate_a2a(query: str,
     a2a_timeout_seconds = runtime_settings.a2aClientTimeoutSeconds
 
     orchestrator_prompts = tenant_settings.orchestrator_prompts
+    blob_connection_string = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
+    blob_container_name = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
     prompt_source = PromptSource(
-        connection_string=os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING"),
-        container_name=os.getenv("AZURE_BLOBSTORAGE_CONTAINER"),
+        connection_string=blob_connection_string,
+        container_name=blob_container_name,
         prompt_directories=orchestrator_prompts.prompt_directories,
         cache_namespace=tenant_settings.config_fingerprint,
     )
+
+    # Edge-case categories/templates are only resolved for "custom"-policy
+    # tenants (see edgeCasePolicy); a None result means Aggregator has no
+    # per-category text at all and falls back to its plain first-attempt
+    # fallback for every category. Graceful-decline copy is independent of
+    # that policy - any tenant may configure it via gracefulDeclinePromptPath.
+    edge_case_policy = runtime_settings.edgeCasePolicy
+    edge_case_templates = None
+    if edge_case_policy == "custom":
+        edge_case_templates = fetch_edge_case_templates(
+            connection_string=blob_connection_string,
+            container_name=blob_container_name,
+            directory=orchestrator_prompts.edgeCasesPromptPath,
+            client_id=tenant_settings.client_id,
+            config_fingerprint=tenant_settings.config_fingerprint,
+        )
+
+    graceful_decline_messages = fetch_graceful_decline_messages(
+        connection_string=blob_connection_string,
+        container_name=blob_container_name,
+        directory=orchestrator_prompts.gracefulDeclinePromptPath,
+        client_id=tenant_settings.client_id,
+        config_fingerprint=tenant_settings.config_fingerprint,
+    )
+    first_attempt_fallback, second_attempt_fallback = graceful_decline_messages or (None, None)
 
     conversation_agent_enabled = tenant_settings.conversation.enabled if tenant_settings.conversation else None
     form_support_agent_enabled = tenant_settings.form_support.enabled if tenant_settings.form_support else None
@@ -218,6 +271,7 @@ async def orchestrate_a2a(query: str,
         prompt_source=prompt_source,
         runtime_settings=runtime_settings,
         active_executor_ids=active_executor_ids,
+        edge_case_policy=edge_case_policy,
     )
 
     #Aggregator is attached with an LLM at the moment, for message curation, and upadte for Multi-turn conversatin .
@@ -228,6 +282,11 @@ async def orchestrate_a2a(query: str,
         prompt_source=prompt_source,
         runtime_settings=runtime_settings,
         active_executor_ids=active_executor_ids,
+        session_id=effective_session_id,
+        thread_manager=db_utils,
+        edge_case_templates=edge_case_templates,
+        first_attempt_fallback=first_attempt_fallback,
+        second_attempt_fallback=second_attempt_fallback,
     )
 
     # Build workflow with dynamic sub-agent routing:
@@ -239,7 +298,7 @@ async def orchestrate_a2a(query: str,
     # 5. Aggregator processes results and generates the final response
     workflow_builder = WorkflowBuilder(start_executor=dispatcher).add_edge(dispatcher, aggregator)
     if len(executors) == 1:
-        workflow_builder.add_edge(dispatcher, executors[0])
+        workflow_builder.add_edge(dispatcher, executors[0], condition=_should_invoke_single_executor)
     else:
         workflow_builder.add_multi_selection_edge_group(dispatcher, executors, _select_target_executors)
 

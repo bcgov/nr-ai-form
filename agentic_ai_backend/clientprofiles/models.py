@@ -70,6 +70,7 @@ class OrchestratorRuntimeSettings(BaseModel):
     azureOpenAIAggregatorMaxCompletionTokens: int | None = None
     formStepNumber: str | None = None
     a2aClientTimeoutSeconds: int | None = None
+    edgeCasePolicy: Literal["default", "custom"] = "default"
 
     @field_validator("azureOpenAIAggregatorMaxCompletionTokens", "a2aClientTimeoutSeconds", mode="before")
     @classmethod
@@ -87,10 +88,17 @@ class OrchestratorRuntimeSettings(BaseModel):
 
 
 class OrchestratorPrompts(BaseModel):
-    """Paths to orchestrator-level prompt templates in blob storage."""
+    """Paths to orchestrator-level prompt/asset templates in blob storage."""
 
     dispatcher: str
     aggregator: str
+    # Structured JSON assets (not LLM prompt Markdown): edgeCases holds this
+    # tenant's category-template blob directory, required only when
+    # edgeCasePolicy is "custom". gracefulDecline holds the no-answer
+    # first/second-attempt copy and is optional for every tenant regardless
+    # of edgeCasePolicy.
+    edgeCases: str | None = None
+    gracefulDecline: str | None = None
 
 
 class TenantResources(BaseModel):

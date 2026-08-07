@@ -67,7 +67,8 @@ def get_dispatcher_skill(prompt_source: PromptSource | None = None) -> Dispatche
         description=(
             "Intent classifier for the BC water permit orchestrator. Decides whether to "
             "route the user query to FormSupportAgentA2A, ConversationAgentA2A, or both, "
-            "with a 0-10 confidence score per agent."
+            "with a 0-10 confidence score per agent. Also flags fixed out-of-scope/edge-case "
+            "categories (see EdgeCaseCategory) that bypass sub-agent routing entirely."
         ),
         content=_dispatcher_content(prompt_source),
     )

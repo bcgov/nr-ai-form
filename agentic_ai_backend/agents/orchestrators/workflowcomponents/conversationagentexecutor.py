@@ -89,5 +89,6 @@ class ConversationAgentA2AExecutor(Executor):
                 "source": self.id,
                 "response": error_msg,
                 "confidence": intent.confidence,
+                "error": True,
             }
             await ctx.send_message(error_with_source)
