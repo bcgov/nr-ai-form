@@ -18,11 +18,17 @@ If the applicant is not logged in and the application has co-applicants, the pag
 ## Co-Applicants Grid
 The Co-Applicants grid/table is page context that lists co-applicants and row-level approval options. It is not itself a form field.
 
+## Approval Request Options
+The preferred online option is to use Compose Email to send the co-applicant approval request through the system. The applicant can also use the Application Form or Co-Applicant Approval Form links to download or print the approval documents and get the co-applicant signature outside the system. Although the page labels this as hand delivery, the applicant may provide the downloaded form to the co-applicant by any suitable offline method, such as printing it or sending it with their own email. The important requirement is that the completed signed approval form is returned and submitted using the available upload or mail option.
+
 ## Request Via Email
 The Compose Email option can be used to request approval from a co-applicant by email.
 
 ## Hand Delivery
 The Application Form and Co-Applicant Approval Form links are used when the user needs printable documents for hand delivery or offline signing.
+
+## Mail Approval Form And Online Submission
+If the applicant selects Mail approval form, they can still complete and submit the application online. The mailed signed Co-Applicant Approval Form must still be received before the application can move forward.
 
 ## Signed Form Submission
 The user can submit a signed co-applicant approval form by uploading the signed form or by indicating that the approval form will be mailed.
