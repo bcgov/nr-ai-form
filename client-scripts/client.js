@@ -1738,10 +1738,19 @@ else {
                     appendChatHistory(sessionId, role, String(text));
                 }
                 if (scroll) {
-                  msgDiv.scrollIntoView({
-                    behavior: "smooth",
-                    block: "end",
-                  });
+                  if (role === "assistant" || role === "system") {
+                    const matches = chatMessages.querySelectorAll(
+                      ".wp-chat-message-user",
+                    );
+                    if (matches.length > 0) {
+                      matches[matches.length - 1].scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
+                  } else {
+                    scrollToBottom();
+                  }
                 }
             }
 
