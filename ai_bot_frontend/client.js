@@ -1738,10 +1738,22 @@ else {
                     appendChatHistory(sessionId, role, String(text));
                 }
                 if (scroll) {
-                  msgDiv.scrollIntoView({
-                    behavior: "smooth",
-                    block: "end",
-                  });
+                  // If an assistant or system message was just added, scroll to the last user message so the user sees their own question above the reply.
+                  if (role === "assistant" || role === "system") {
+                    const matches = chatMessages.querySelectorAll(
+                      ".wp-chat-message-user",
+                    );
+                    if (matches.length > 0) {
+                      // Scroll to the last user message so the user sees their own question above the assistant reply.
+                      matches[matches.length - 1].scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
+                  } else {
+                    // If a user message was just added, scroll to the bottom so the user sees their own message.
+                    scrollToBottom();
+                  }
                 }
             }
 
