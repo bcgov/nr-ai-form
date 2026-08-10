@@ -29,15 +29,16 @@ class Aggregator(Executor):
     Also supports a legacy `list[Any]` path (fan-in) for tests / older callers.
     """
 
-    # Hardcoded on purpose: this is the safety net for when everything else
-    # (Azure OpenAI creds, the aggregator LLM call, sub-agent calls, and any
-    # tenant blob fetch via edgecaseservice.fetch_graceful_decline_messages)
-    # has already failed, so it cannot itself depend on a prompt or blob
-    # storage. Deliberately tenant-neutral/institution-agnostic text - a
-    # tenant's own branded contact info (e.g. the water tenant's FrontCounter
-    # BC details) belongs in that tenant's gracefulDecline blob content, not
-    # here, otherwise every other tenant would inherit water's branding by
-    # default.
+    # Last-resort decline text. Hardcoded on purpose, for two reasons:
+    #
+    # 1. It runs when everything else has already failed - the LLM calls,
+    #    the sub-agent calls, and the tenant's own message fetch. So it must
+    #    not itself depend on config, network, or blob storage; those are
+    #    exactly what failed to get us here.
+    # 2. It is the default for every tenant, so the wording stays generic.
+    #    Program-specific text (contact numbers, office names, branding)
+    #    belongs in that tenant's gracefulDecline blob - put it here and
+    #    every other tenant inherits it.
     FIRST_ATTEMPT_FALLBACK = (
         "I'm not finding a clear answer for that yet. Try rephrasing your "
         "question."
