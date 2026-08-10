@@ -29,7 +29,7 @@ class Aggregator(Executor):
     Also supports a legacy `list[Any]` path (fan-in) for tests / older callers.
     """
 
-    # Last-resort decline text. Hardcoded on purpose, for two reasons:
+    # Default msg, for two reasons:
     #
     # 1. It runs when everything else has already failed - the LLM calls,
     #    the sub-agent calls, and the tenant's own message fetch. So it must
