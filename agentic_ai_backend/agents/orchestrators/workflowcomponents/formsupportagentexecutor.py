@@ -110,5 +110,6 @@ class FormSupportAgentA2AExecutor(Executor):
                 "response": error_msg,
                 "step_number": self.step_number,
                 "confidence": intent.confidence,
+                "error": True,
             }
             await ctx.send_message(error_with_source)

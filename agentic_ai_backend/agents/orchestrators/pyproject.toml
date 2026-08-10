@@ -26,5 +26,14 @@ dependencies = [
 utils = { path = "../../utils" }
 clientprofiles = { path = "../../clientprofiles" }
 
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
+
 [tool.uv]
 override-dependencies = ["aiohttp==3.13.5"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

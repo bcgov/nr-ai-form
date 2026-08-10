@@ -109,6 +109,29 @@ class redisdbutils(IThreadManager):
         except Exception as e:
             print(f"Error saving thread state to Redis: {e}")
 
+    @staticmethod
+    def _no_answer_key(thread_id: str) -> str:
+        return f"noanswer:{thread_id}"
+
+    async def get_no_answer_count(self, thread_id: str) -> int:
+        """Return how many consecutive turns this session has failed to produce a real answer."""
+        if not thread_id:
+            return 0
+        return await self.redis_service.get_int(self._no_answer_key(thread_id))
+
+    async def increment_no_answer_count(self, thread_id: str) -> int:
+        """Increment and return the consecutive no-answer counter for this session."""
+        if not thread_id:
+            return 1
+        new_count = await self.get_no_answer_count(thread_id) + 1
+        await self.redis_service.set_int(self._no_answer_key(thread_id), new_count)
+        return new_count
+
+    async def reset_no_answer_count(self, thread_id: str) -> None:
+        """Reset the consecutive no-answer counter once a real answer is produced."""
+        if thread_id:
+            await self.redis_service.set_int(self._no_answer_key(thread_id), 0)
+
     async def close(self):
         if self.redis_service:
             await self.redis_service.close()

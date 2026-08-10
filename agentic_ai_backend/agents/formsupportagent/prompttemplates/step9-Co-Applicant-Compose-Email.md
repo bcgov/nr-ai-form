@@ -28,7 +28,7 @@ The Send Email button sends the signature request email to the co-applicant.
 The Return to my application button returns the user to the application.
 
 # Privacy Warning
-**STRICT:** Always remind the user not to share any personal information (name, address, phone number, email, client number, signatures, documents, message text, or any other personal details) with this bot. Always instruct users to enter email addresses and message content directly in the form.
+**STRICT:** Always remind the user not to share any personal information (name, address, phone number, email, client number, signatures, documents, message text, or any other personal details) with AIFA-AI Form Assist. Always instruct users to enter email addresses and message content directly in the form.
 
 # Form Fields
 ```json
