@@ -157,6 +157,72 @@ Required values fail fast during tenant config resolution, before the workflow o
 
 ---
 
+## Tenant Blob Storage Content (Dispatcher/Aggregator Prompts, Edge Cases, Graceful Decline)
+
+`tenantResources.prompts` on the Cosmos `ClientProfile` only stores blob **paths** - the actual Markdown/JSON content must be uploaded to Azure Blob Storage separately. Nothing in this repo automates that upload (no seed/Terraform script writes blob content); it is a manual step per tenant.
+
+`workflowcomponents/skills-local/` mirrors what should exist in blob storage for the Water Permit tenant, for reference only - it is **not read at runtime** (`PromptSource.load_prompt`'s `local_rel_path` argument is explicitly ignored; there is no local-file fallback). Use it as the source of truth for what to upload, not as something the app reads directly.
+
+| `tenantResources.prompts` field | Blob content | Local mirror | Required when |
+|---|---|---|---|
+| `dispatcher` | `system.md` (LLM prompt) | `skills-local/dispatcher/system.md` | Always |
+| `aggregator` | `system.md` + `user.md` (LLM prompts) | `skills-local/aggregator/` | Always |
+| `edgeCases` | `templates.json` (`{category_key: reply_markdown}`) | `skills-local/edgecases/templates.json` | Only when `tenantResources.config.edgeCasePolicy == "custom"` |
+| `gracefulDecline` | `messages.json` (`{"first_attempt": "...", "second_attempt": "..."}`) | `skills-local/gracefuldecline/messages.json` | Optional for every tenant, regardless of `edgeCasePolicy` |
+
+### Runtime decision flow: edge case vs. graceful decline
+
+These are two independent mechanisms, decided by two different components at two different points in the request, and it's easy to conflate them - the diagram and table below make the split explicit.
+
+```mermaid
+flowchart TD
+    A[User query] --> B["Dispatcher LLM classification<br/>(dispatcher/system.md)"]
+    B --> C{"edgeCasePolicy == 'custom'<br/>AND category set?"}
+    C -->|Yes| D["Aggregator.handle_intent:<br/>return this tenant's fixed template<br/>(edgeCases/templates.json, or generic fallback)"]
+    D --> E["No sub-agent is ever invoked"]
+    C -->|"No (default policy, or no category)"| F["Normal confidence-based routing<br/>(routing.py: select_subagents / get_primary_intent)"]
+    F --> G["Sub-agent(s) invoked over A2A<br/>(ConversationAgentA2A / FormSupportAgentA2A)"]
+    G --> H{"Any usable result?<br/>(not skipped, not error,<br/>not empty/No Match)"}
+    H -->|Yes| I["Aggregator merges/salvages result<br/>-> real answer returned"]
+    H -->|No| J["Aggregator._yield_graceful_decline"]
+    J --> K["first_attempt / second_attempt text<br/>(gracefulDecline/messages.json, or generic fallback)<br/>tier picked by per-session fail counter in Redis"]
+```
+
+| | Edge case | Graceful decline |
+|---|---|---|
+| Decided by | Dispatcher (LLM), before dispatch | Aggregator, after dispatch |
+| Based on | *What the query is about* (topic classification) | *Whether anything usable came back* (absence of an answer) |
+| Sub-agents invoked? | Never | Yes - always attempted first |
+| Tenant knob | `edgeCasePolicy` (`"default"`/`"custom"`) | `gracefulDecline` blob path (always optional, independent) |
+
+A query can hit graceful decline for reasons that have nothing to do with edge cases at all - e.g. a perfectly on-topic question that both sub-agents simply couldn't answer confidently.
+
+### `edgeCasePolicy` ("default" | "custom")
+
+Controls whether the Dispatcher's LLM classification is allowed to flag one of the six fixed `EdgeCaseCategory` buckets (`predicting_outcome`, `legal_advice`, `external_lookup`, `internal_policy`, `out_of_scope_subject`, `unrelated_topic`) for a turn, bypassing the sub-agents with a fixed reply instead.
+
+- **`"default"`** (the implicit default if the field is omitted) - no category classification happens for this tenant at all; `Dispatcher._apply_edge_case_policy` clears `category` even if a stray LLM response sets one. This is the pre-edge-case behavior - safe for a new tenant with no onboarding work needed.
+- **`"custom"`** - this tenant's own `edgeCases` blob content is loaded per request (cached by `configFingerprint`, see the cache table below). Requires `edgeCasesPromptPath` to be set - tenant profile validation fails fast otherwise. The tenant's own `dispatcher/system.md` should also describe which buckets apply and when (see `skills-local/dispatcher/system.md` for the Water tenant's "Edge-Case Category Check" section as a template).
+
+No per-category reply text lives in code - `Aggregator` only ever holds two plain, tenant-neutral fallback strings (`FIRST_ATTEMPT_FALLBACK`/`SECOND_ATTEMPT_FALLBACK`, see the `gracefulDecline` section below). If a tenant has no `edgeCases` blob configured, or a classified category is missing from that tenant's `templates.json`, the Aggregator falls back to that plain first-attempt text rather than erroring or showing another tenant's wording.
+
+### `gracefulDecline` (independent of `edgeCasePolicy`)
+
+Covers the separate "I can't find a confident answer" no-answer escalation (first attempt vs. repeated-failure second attempt) - this fires whenever both sub-agents skip/error/return nothing usable, unrelated to whether the tenant uses edge-case categories at all. Any tenant may set `gracefulDecline` to get branded copy (e.g. their own support contact info) without opting into `edgeCasePolicy: "custom"`.
+
+- If `second_attempt` is omitted from `messages.json`, it defaults to `first_attempt` (a tenant can configure one shared message for both tiers).
+- If `gracefulDecline` is unset, or the blob fetch fails for any reason, both tiers fall back to `Aggregator.FIRST_ATTEMPT_FALLBACK` / `SECOND_ATTEMPT_FALLBACK` - deliberately generic, institution-agnostic text. Never rely on those hardcoded strings for tenant-specific branding; that always belongs in the tenant's own `messages.json`.
+
+### Onboarding checklist for a new tenant
+
+1. Upload `dispatcher/system.md` and `aggregator/{system,user}.md` to that tenant's blob paths (always required).
+2. Decide `edgeCasePolicy`. Leave it unset/`"default"` unless this tenant specifically needs fixed-template short-circuiting for out-of-scope questions.
+3. If `"custom"`, author and upload `edgeCases/templates.json`, and update `dispatcher/system.md` to tell the classifier when to set each category.
+4. Optionally author and upload `gracefulDecline/messages.json` for branded no-answer copy - independent of step 2/3.
+5. Add the tenant's `ClientProfile` document (Cosmos) with the corresponding `tenantResources.prompts` paths and `tenantResources.config.edgeCasePolicy`, then run/re-seed as described below.
+
+---
+
 ## Runtime Caches
 
 All caches are process-local and short TTL. Use distributed cache/session storage later if multiple replicas need shared state.
@@ -166,6 +232,7 @@ All caches are process-local and short TTL. Use distributed cache/session storag
 | Tenant config | `client_id` | `TENANT_PROFILE_FRESH_TTL_SECONDS=300` |
 | Stale tenant fallback | `client_id` | `TENANT_PROFILE_STALE_TTL_SECONDS=86400` |
 | Orchestrator prompts | `configFingerprint + container + prompt path + file` | `ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS=300` |
+| Edge-case templates / graceful-decline messages | `clientId + configFingerprint + directory + file` | `EDGE_CASE_ASSET_CACHE_TTL_SECONDS=300` |
 | Form definitions | `clientId + configFingerprint + folder + file` | `FORM_SUPPORT_ASSET_CACHE_TTL_SECONDS=300` |
 | Form step prompts | `clientId + configFingerprint + folder + file` | `FORM_SUPPORT_ASSET_CACHE_TTL_SECONDS=300` |
 | FormSupportAgent instances | `clientId + configFingerprint + step_id` | `FORM_SUPPORT_AGENT_CACHE_TTL_SECONDS=300` |

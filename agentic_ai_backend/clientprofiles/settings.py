@@ -42,10 +42,18 @@ class FormSupportAgentSettings(AgentSettings):
 
 
 class OrchestratorPromptSettings(BaseModel):
-    """Tenant-specific prompt paths for dispatcher and aggregator prompts."""
+    """Tenant-specific prompt/asset paths for the orchestrator.
+
+    dispatcherPromptPath/aggregatorPromptPath are LLM prompt Markdown, loaded
+    via PromptSource. edgeCasesPromptPath/gracefulDeclinePromptPath are
+    structured JSON asset directories, loaded via edgecaseservice - they are
+    not part of prompt_directories/PromptSource.
+    """
 
     dispatcherPromptPath: str | None = None
     aggregatorPromptPath: str | None = None
+    edgeCasesPromptPath: str | None = None
+    gracefulDeclinePromptPath: str | None = None
 
     @property
     def prompt_directories(self) -> dict[str, str]:
@@ -136,12 +144,20 @@ def _validate_form_support(settings: FormSupportAgentSettings) -> None:
         _require_config_field(settings.config, field_name, "formSupportAgent")
 
 
-def _validate_orchestrator_prompts(settings: OrchestratorPromptSettings) -> None:
+def _validate_orchestrator_prompts(
+    settings: OrchestratorPromptSettings, runtime_settings: OrchestratorRuntimeSettings
+) -> None:
     for field_name in (
         "dispatcherPromptPath",
         "aggregatorPromptPath",
     ):
         _require_value(getattr(settings, field_name), f"orchestratorPrompts.{field_name}")
+
+    # edgeCasesPromptPath is only required when this tenant opts into custom
+    # edge-case categories/templates. gracefulDeclinePromptPath stays optional
+    # for every tenant, regardless of edgeCasePolicy.
+    if runtime_settings.edgeCasePolicy == "custom":
+        _require_value(settings.edgeCasesPromptPath, "orchestratorPrompts.edgeCasesPromptPath")
 
 
 def _validate_orchestrator_runtime(settings: OrchestratorRuntimeSettings) -> None:
@@ -181,13 +197,15 @@ def build_tenant_agent_settings(profile: ClientProfile) -> TenantAgentSettings:
         orchestrator_prompts=OrchestratorPromptSettings(
             dispatcherPromptPath=prompts.get("dispatcher"),
             aggregatorPromptPath=prompts.get("aggregator"),
+            edgeCasesPromptPath=prompts.get("edgeCases"),
+            gracefulDeclinePromptPath=prompts.get("gracefulDecline"),
         ),
         orchestrator_runtime=OrchestratorRuntimeSettings.model_validate(runtime_config),
     )
 
     _validate_conversation(settings.conversation)
     _validate_form_support(settings.form_support)
-    _validate_orchestrator_prompts(settings.orchestrator_prompts)
+    _validate_orchestrator_prompts(settings.orchestrator_prompts, settings.orchestrator_runtime)
     _validate_orchestrator_runtime(settings.orchestrator_runtime)
     return settings
 

@@ -37,7 +37,7 @@ The user can submit a signed co-applicant approval form by uploading the signed 
 The page may list attached documents related to the application or approval process.
 
 # Privacy Warning
-**STRICT:** Always remind the user not to share any personal information (name, address, phone number, email, client number, signatures, documents, or any other personal details) with this bot. Always instruct users to complete signature, upload, mail, and approval actions directly in the form.
+**STRICT:** Always remind the user not to share any personal information (name, address, phone number, email, client number, signatures, documents, or any other personal details) with AIFA-AI Form Assist. Always instruct users to complete signature, upload, mail, and approval actions directly in the form.
 
 # Form Fields
 ```json

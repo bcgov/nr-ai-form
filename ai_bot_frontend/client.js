@@ -663,6 +663,14 @@ else {
         function applySuggestionToElements(suggestion, elements) {
             if (!elements || elements.length === 0) return false;
 
+            // An empty suggestedvalue means "no suggestion" (e.g. an informational/definitional
+            // answer), not "match the option whose value/label is also blank". Without this guard,
+            // normalizeComparableValue('') can accidentally match a radio/select option that happens
+            // to have an empty value or label, silently selecting the wrong option.
+            if (String(suggestion.suggestedvalue ?? '').trim() === '') {
+                return false;
+            }
+
             const expected = normalizeComparableValue(suggestion.suggestedvalue);
             const type = String(suggestion.type || '').toLowerCase();
             const first = elements[0];
@@ -1700,7 +1708,10 @@ else {
                 if (typeof response === 'string') {
                     return [response];
                 }
-                return [JSON.stringify(response)];
+                // Last resort: the backend should always include an
+                // 'Aggregator'-sourced item, so this should be unreachable in
+                // practice. Never surface the raw response object to the user.
+                return ["Sorry, I wasn't able to process that response. Please try rephrasing your question."];
             }
 
             function appendMessage(role, text, persist = true, scroll = true, options = {}) {

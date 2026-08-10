@@ -68,6 +68,28 @@ class RedisService:
         except Exception as e:
             raise RuntimeError(f"Failed to save thread to Redis: {e}")
 
+    async def get_int(self, key: str) -> int:
+        """Reads a plain integer counter from Redis, defaulting to 0 if missing/unreadable."""
+        try:
+            if not self.client:
+                await self.connect()
+
+            data = await self.client.get(key)
+            return int(data) if data else 0
+        except Exception as e:
+            print(f"Failed to get counter {key} from Redis: {e}")
+            return 0
+
+    async def set_int(self, key: str, value: int):
+        """Writes a plain integer counter to Redis with the service's default TTL."""
+        try:
+            if not self.client:
+                await self.connect()
+
+            await self.client.set(key, str(value), ex=self.ttl)
+        except Exception as e:
+            print(f"Failed to set counter {key} in Redis: {e}")
+
     async def close(self):
         """Closes the Redis connection."""
         if self.client:
