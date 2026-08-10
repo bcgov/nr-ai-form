@@ -63,6 +63,12 @@
         "application_fees": "250"
       },
       {
+        "name": "dogs",
+        "description": "Dogs as livestock under various purposes including Boarding, Kennels, companionship, security, or work",
+        "water_consumption_m3_per_day": 0.008,
+        "application_fees": "250"
+      },
+      {
         "name": "sheep",
         "description": "Sheep used for wool, milk, or meat",
         "water_consumption_m3_per_day": 0.008,
