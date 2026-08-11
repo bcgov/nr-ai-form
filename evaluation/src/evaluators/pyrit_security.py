@@ -2,10 +2,12 @@
 
 import logging
 import asyncio
+import concurrent.futures
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 
 from src.evaluators.base import BaseEvaluator, SKIPPED_SCORE
+from src.client import BackendClient
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +66,7 @@ class PyRITSecurityEvaluator(BaseEvaluator):
                 "PyRIT is required for security evaluation. Install with: pip install pyrit"
             )
         
-        self.threat_models = threat_models or ["jailbreak", "prompt_injection"]
+        self.threat_models = threat_models or ["jailbreak", "prompt_injection", "data_exfiltration"]
         self.max_iterations = max_iterations
         self.timeout_seconds = timeout_seconds
         self.attack_results: List[AttackResult] = []
@@ -88,12 +90,16 @@ class PyRITSecurityEvaluator(BaseEvaluator):
         """
         try:
             # Check if we're already in an event loop
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
             # We're in an event loop - run in a thread pool executor
-            import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(
-                    self._run_attacks_in_new_loop, query, response
+                    self._run_attacks_in_new_loop,
+                    query,
+                    response,
+                    self.threat_models,
+                    self.max_iterations,
+                    self.timeout_seconds,
                 )
                 return future.result(timeout=self.timeout_seconds)
         except RuntimeError:
@@ -101,20 +107,79 @@ class PyRITSecurityEvaluator(BaseEvaluator):
             return asyncio.run(self._run_attacks(query, response))
 
     @staticmethod
-    def _run_attacks_in_new_loop(query: str, response: str) -> List[AttackResult]:
+    def _run_attacks_in_new_loop(
+        query: str,
+        response: str,
+        threat_models: List[str],
+        max_iterations: int,
+        timeout_seconds: int,
+    ) -> List[AttackResult]:
         """Run attacks in a separate event loop."""
         new_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(new_loop)
         try:
+            asyncio.set_event_loop(new_loop)
             # Create a minimal evaluator instance just to run the attacks
             temp_evaluator = PyRITSecurityEvaluator.__new__(PyRITSecurityEvaluator)
-            temp_evaluator.threat_models = ["jailbreak", "prompt_injection"]
-            temp_evaluator.max_iterations = 5
-            temp_evaluator.timeout_seconds = 300
+            temp_evaluator.threat_models = threat_models
+            temp_evaluator.max_iterations = max_iterations
+            temp_evaluator.timeout_seconds = timeout_seconds
             temp_evaluator.attack_results = []
             return new_loop.run_until_complete(temp_evaluator._run_attacks(query, response))
         finally:
+            asyncio.set_event_loop(None)
             new_loop.close()
+
+    @staticmethod
+    async def _execute_backend_attack(original_query: str, attack_prompt: str) -> str:
+        """Send an attack prompt to the backend to score real attack behavior."""
+        merged_prompt = (
+            f"Original user request:\n{original_query}\n\n"
+            f"Adversarial follow-up instruction:\n{attack_prompt}"
+        )
+
+        async with BackendClient() as backend:
+            response = await backend.invoke(query=merged_prompt)
+
+        return PyRITSecurityEvaluator._extract_response_text(response)
+
+    @staticmethod
+    def _extract_response_text(obj: Any) -> str:
+        """Extract text from backend response shape used by /invoke."""
+        if isinstance(obj, str):
+            return obj
+
+        if isinstance(obj, list):
+            return PyRITSecurityEvaluator._extract_from_list(obj)
+
+        if isinstance(obj, dict):
+            return PyRITSecurityEvaluator._extract_from_dict(obj)
+
+        return str(obj)
+
+    @staticmethod
+    def _extract_from_list(items: List[Any]) -> str:
+        """Extract response text from a list-shaped backend payload."""
+        if not items:
+            return ""
+
+        first = items[0]
+        if isinstance(first, dict) and "response" in first:
+            return str(first["response"])
+        return str(first)
+
+    @staticmethod
+    def _extract_from_dict(payload: Dict[str, Any]) -> str:
+        """Extract response text from a dict-shaped backend payload."""
+        if "response" in payload:
+            response_value = payload["response"]
+            if isinstance(response_value, list):
+                return PyRITSecurityEvaluator._extract_from_list(response_value)
+            return str(response_value)
+
+        if "text" in payload:
+            return str(payload["text"])
+
+        return str(payload)
 
     def __call__(self, response: str, query: str = "", context: str = "", **kwargs) -> Dict[str, Any]:
         """
@@ -210,16 +275,19 @@ class PyRITSecurityEvaluator(BaseEvaluator):
                 continue
             
             try:
-                scenario = scenario_class(max_iterations=self.max_iterations)
+                scenario = scenario_class(
+                    max_iterations=self.max_iterations,
+                    execute_attack=self._execute_backend_attack,
+                )
                 attack_results = await asyncio.wait_for(
                     scenario.run(query, response),
-                    timeout=self.timeout_seconds
+                    timeout=self.timeout_seconds,
                 )
                 results.extend(attack_results)
             except asyncio.TimeoutError:
                 logger.warning(f"Attack scenario timed out: {threat_model}")
             except Exception as e:
-                logger.error(f"Error running {threat_model} scenario: {e}")
+                logger.exception(f"Error running {threat_model} scenario: {e}")
         
         self.attack_results = results
         return results

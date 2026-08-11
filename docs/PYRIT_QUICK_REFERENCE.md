@@ -42,7 +42,7 @@ python -m src.red_team.cli  seed-attack -d "all"
 python -m src.red_team.cli  seed-attack -d "violence,harassment,scams"
 
 # Verbose output
-./red-team seed-attack -v
+python -m src.red_team.cli seed-attack -v
 
 # Custom output location
 ./red-team seed-attack -o "my_report.json"

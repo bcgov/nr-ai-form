@@ -12,6 +12,9 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+MAX_BACKEND_RETRIES = 2
+RETRYABLE_STATUS_CODES = {500, 502, 503, 504}
+
 
 class CustomBackendTarget(PromptTarget):
     """
@@ -108,57 +111,80 @@ class CustomBackendTarget(PromptTarget):
                 session_id=self.session_id
             )
             
-            # Make async HTTP POST request
+            # Make async HTTP POST request with retry for transient infrastructure failures.
             async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    invoke_url,
-                    json=request_payload,
-                    timeout=aiohttp.ClientTimeout(total=30),
-                ) as response:
-                    if response.status == 200:
-                        response_data = await response.json()
-                        
-                        # Extract response text from backend format
-                        response_text = self._extract_response(response_data)
-                        
-                        logger.info(
-                            "backend_response_received",
-                            status=response.status,
-                            session_id=self.session_id,
-                            response_length=len(response_text)
-                        )
-                        
-                        # Return list of Message objects in PyRIT format
-                        response_message = Message.from_prompt(
-                            prompt=response_text,
-                            role="assistant"
-                        )
-                        return [response_message]
-                    else:
-                        error_text = await response.text()
+                for attempt in range(MAX_BACKEND_RETRIES + 1):
+                    try:
+                        async with session.post(
+                            invoke_url,
+                            json=request_payload,
+                            timeout=aiohttp.ClientTimeout(total=30),
+                        ) as response:
+                            if response.status == 200:
+                                response_data = await response.json()
+
+                                # Extract response text from backend format
+                                response_text = self._extract_response(response_data)
+
+                                logger.info(
+                                    "backend_response_received",
+                                    status=response.status,
+                                    session_id=self.session_id,
+                                    response_length=len(response_text)
+                                )
+
+                                # Return list of Message objects in PyRIT format
+                                response_message = Message.from_prompt(
+                                    prompt=response_text,
+                                    role="assistant"
+                                )
+                                return [response_message]
+
+                            error_text = await response.text()
+                            logger.error(
+                                "backend_error",
+                                status=response.status,
+                                error=error_text,
+                                attempt=attempt + 1,
+                            )
+
+                            should_retry = (
+                                response.status in RETRYABLE_STATUS_CODES
+                                and attempt < MAX_BACKEND_RETRIES
+                            )
+                            if should_retry:
+                                await asyncio.sleep(0.5 * (attempt + 1))
+                                continue
+
+                            error_response = Message.from_prompt(
+                                prompt=(
+                                    "INFRA_ERROR::BACKEND_HTTP_"
+                                    f"{response.status}::{error_text[:300]}"
+                                ),
+                                role="assistant"
+                            )
+                            return [error_response]
+                    except asyncio.TimeoutError:
                         logger.error(
-                            "backend_error",
-                            status=response.status,
-                            error=error_text
+                            "backend_timeout",
+                            endpoint=self.endpoint,
+                            session_id=self.session_id,
+                            attempt=attempt + 1,
                         )
-                        
+                        if attempt < MAX_BACKEND_RETRIES:
+                            await asyncio.sleep(0.5 * (attempt + 1))
+                            continue
+
                         error_response = Message.from_prompt(
-                            prompt=f"Error {response.status}: {error_text}",
+                            prompt="INFRA_ERROR::BACKEND_TIMEOUT",
                             role="assistant"
                         )
                         return [error_response]
                         
-        except asyncio.TimeoutError:
-            logger.error("backend_timeout", endpoint=self.endpoint, session_id=self.session_id)
-            error_response = Message.from_prompt(
-                prompt="Timeout connecting to backend",
-                role="assistant"
-            )
-            return [error_response]
         except Exception as e:
             logger.error("backend_connection_error", error=str(e), endpoint=self.endpoint)
             error_response = Message.from_prompt(
-                prompt=f"Connection error: {str(e)}",
+                prompt=f"INFRA_ERROR::BACKEND_CONNECTION::{str(e)}",
                 role="assistant"
             )
             return [error_response]
