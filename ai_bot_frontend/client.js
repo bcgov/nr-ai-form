@@ -1368,10 +1368,8 @@ else {
                 onQuestionClick: handleGuidedQuestionClick
             });
             saveThreadId(sessionId);
-            /** We need to save the application ID to sessionStorage at the time the assistant initializes.
-             * This is because, application ID is present in the DOM on the main window but in popups, there is no applicationId anywhere in the DOM. 
-             * 
-             * So, we need to save the applicationId to sessionStorage when the assistant initializes. Because our first step is always in the main window, we are guaranteed to have access to the application ID in the popups.
+            /** We need to save the application ID to sessionStorage at the time the assistant initializes because, 
+             * application ID is present in the DOM on the main window but absent in popups. 
              * */
             saveApplicationIdtoSessionStorage();
 
