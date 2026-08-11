@@ -53,6 +53,14 @@ else if (clientInstance === 'css') {
     document.head.appendChild(script);
 }
 
+else if (clientInstance === 'jatinder') {
+    var url = 'https://jatindersingh93.github.io/nr-ai-form/client-scripts/stepmappers.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+
 else {
 
     (function () {
