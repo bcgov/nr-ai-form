@@ -49,9 +49,20 @@ COSMOS_CONTAINER_ID="${COSMOS_DB_ID}/containers/ClientProfiles"
 CA_ENV_NAME="${APP_NAME}-${app_env}-containerenv"
 CA_ENV_ID="${RG_ID}/providers/Microsoft.App/managedEnvironments/${CA_ENV_NAME}"
 
+# Backend Container App name — must match local.container_app_name in
+# infra/modules/container-apps/main.tf:
+#   dev       → "{stack_prefix}-{branch_slug}-api"  (each branch gets its own app)
+#   test/prod → "{app_name}-api"
+if [ "${app_env}" = "dev" ]; then
+  CA_APP_NAME="${stack_prefix}-${branch_slug:-master}-api"
+else
+  CA_APP_NAME="${APP_NAME}-api"
+fi
+
 # Print derived names for debugging
 echo "==> Resource name mapping:"
 echo "  APP_NAME (stack_prefix-app_env):  ${APP_NAME}   ← used for app resources (monitoring, cosmos, ACA)"
+echo "  CA_APP_NAME (backend Container App): ${CA_APP_NAME}"
 echo "  RG_NAME  (repo_name-app_env):     ${RG_NAME}    ← used for NSG names, resource group"
 echo "  vnet_resource_group_name:         ${vnet_resource_group_name:-not set} ← networking RG (NSGs, subnets)"
 echo "  vnet_name:                        ${vnet_name:-not set}"
@@ -220,17 +231,17 @@ fi
 #    Only import if it's NOT already in state and does exist in Azure
 #    The backend ACA is named using the APP_NAME (stack prefix + environment)
 if ! echo "$STATE" | grep -q 'module\.container_apps\.azurerm_container_app\.backend'; then
-  echo "  Checking Azure for Backend Container App: ${APP_NAME}-api..."
+  echo "  Checking Azure for Backend Container App: ${CA_APP_NAME}..."
   EXISTING_CA=$(az containerapp show \
-    --name "${APP_NAME}-api" \
+    --name "${CA_APP_NAME}" \
     --resource-group "${RG_NAME}" \
     --query id -o tsv 2>/dev/null || true)
   if [ -n "$EXISTING_CA" ]; then
     # Azure CLI returns ID with lowercase "containerapps", but Terraform expects camelCase "containerApps"
     # Fix the casing so Terraform can parse the ID correctly
     EXISTING_CA_FIXED=$(echo "$EXISTING_CA" | sed 's|/containerapps/|/containerApps/|g')
-    
-    echo "  Importing Backend Container App (${APP_NAME}-api)..."
+
+    echo "  Importing Backend Container App (${CA_APP_NAME})..."
     if terragrunt import -lock=false \
       "module.container_apps.azurerm_container_app.backend" \
       "${EXISTING_CA_FIXED}" 2>&1; then
