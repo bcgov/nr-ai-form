@@ -193,7 +193,7 @@ async def _process_ws_request(
     # key for backend memory so tenants cannot collide on the same session id.
     session_id = _public_session_id(client_id, request.get("session_id"))
     tenant_session_id = _tenant_session_id(client_id, session_id)
-    application_id = request.get("application_id") or tenant_settings.orchestrator_runtime.applicationId
+    application_id = request.get("application_id") or "unknown"
     step_number = request.get("step_number") or tenant_settings.orchestrator_runtime.formStepNumber
 
     if not request.get("query"):
