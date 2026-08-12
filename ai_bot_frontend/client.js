@@ -262,11 +262,13 @@ else {
         }
 
         function saveApplicationIdtoSessionStorage() {
-            if (sessionStorage.getItem(APPLICATION_ID_STORAGE_PREFIX)) {
-                // If the application ID is already in sessionStorage, we don't need to set it in the storage again.
+            const applicationIdInDOM = parseApplicationIdFromDOM();
+            const applicationIdInSessionStorage = sessionStorage.getItem(APPLICATION_ID_STORAGE_PREFIX);
+            if (applicationIdInSessionStorage && applicationIdInSessionStorage === applicationIdInDOM) {
+                // If the application ID in sessionStorage matches the one in the DOM, we don't need to set it in the storage again.
                 return;
             }
-            sessionStorage.setItem(APPLICATION_ID_STORAGE_PREFIX, parseApplicationIdFromDOM());
+            sessionStorage.setItem(APPLICATION_ID_STORAGE_PREFIX, applicationIdInDOM);
         }
 
         function getHistoryStorageKey(threadId) {
