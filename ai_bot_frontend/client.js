@@ -263,12 +263,25 @@ else {
 
         function saveApplicationIdtoSessionStorage() {
             const applicationIdInDOM = parseApplicationIdFromDOM();
-            const applicationIdInSessionStorage = sessionStorage.getItem(APPLICATION_ID_STORAGE_PREFIX);
-            if (applicationIdInSessionStorage && applicationIdInSessionStorage === applicationIdInDOM) {
-                // If the application ID in sessionStorage matches the one in the DOM, we don't need to set it in the storage again.
-                return;
+            const applicationIdInSessionStorage = sessionStorage.getItem(
+              APPLICATION_ID_STORAGE_PREFIX,
+            );
+            if (
+              applicationIdInSessionStorage &&
+              applicationIdInSessionStorage === applicationIdInDOM
+            ) {
+              // If the application ID in sessionStorage matches the one in the DOM, we don't need to set it in the storage again.
+              return;
             }
-            sessionStorage.setItem(APPLICATION_ID_STORAGE_PREFIX, applicationIdInDOM);
+            // On a popup, applicationIdInDOM is always null.
+            // So, we need to prevent overwriting the sessionStorage value with null when the popup is opened.
+            if (applicationIdInDOM) {
+              sessionStorage.setItem(
+                APPLICATION_ID_STORAGE_PREFIX,
+                applicationIdInDOM,
+              );
+            }
+            
         }
 
         function getHistoryStorageKey(threadId) {
