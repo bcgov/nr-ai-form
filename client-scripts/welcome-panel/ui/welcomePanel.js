@@ -7,21 +7,9 @@
  * the starter chips stay clickable. Messages are appended below it, so it scrolls
  * out of view naturally as the conversation grows.
  *
- * What does change once messages exist is the surface: the message list only wears
- * the white welcome background while the panel is the sole content. See syncSurface.
- *
  * It is content-driven: pass a different `content` object to reuse the same markup
  * and styles for another product or another set of starter chips.
  */
-
-/**
- * Bubble variant that dresses a chat message as a welcome-panel card.
- *
- * client.js turns this into the class `wp-chat-bubble-welcome-card`; the matching
- * rules live in welcomePanelStyles.js next to the card they copy, so the two cannot
- * drift apart.
- */
-export const WELCOME_CARD_BUBBLE_VARIANT = 'welcome-card';
 
 /**
  * Product name, interpolated everywhere the copy refers to the assistant by name.
@@ -55,19 +43,16 @@ export const WELCOME_PANEL_CONTENT = {
      *              and `query` is never sent. Use this for fixed product copy that
      *              must read the same every time - a round trip would risk the
      *              assistant rewording it, and there is nothing to look up.
-     * - `variant`  optional bubble style for that answer. Omit for a normal reply.
      *
-     * `response` is rendered through the chat's own formatMessage(), so it takes the
-     * same Markdown subset as any assistant reply: **bold**, [text](url), blank lines
-     * between paragraphs. A leading **bold** line becomes the card heading under the
-     * welcome-card variant, which is why it is joined to its paragraph with a single
-     * newline - see the `strong + br` rule in welcomePanelStyles.js.
+     * A `response` is rendered exactly like a live assistant reply - same bubble,
+     * same Markdown subset: a leading **bold** line reads as the section heading,
+     * "- " lines become a bulleted list, [text](url) becomes a link, and a blank
+     * line starts a new section.
      */
     chips: [
         {
             label: `About ${PRODUCT_NAME}`,
             query: `What is ${PRODUCT_NAME} and what can it do for me?`,
-            variant: WELCOME_CARD_BUBBLE_VARIANT,
             response: [
                 `**About ${PRODUCT_NAME}**\n${PRODUCT_NAME} provides plain-language explanations and guidance to help you understand questions and prepare information for a new water licence application.`,
                 'It is designed to support surface water livestock and animal and irrigation applications. Guidance for other application types may be limited.',
@@ -77,7 +62,6 @@ export const WELCOME_PANEL_CONTENT = {
         {
             label: 'Data Privacy',
             query: 'How is the information I enter into this assistant used and protected?',
-            variant: WELCOME_CARD_BUBBLE_VARIANT,
             response: [
                 `**How is your data handled**\n${PRODUCT_NAME} uses the information you enter only to provide guidance during your current session. Your chat session ends when your form session ends, and ${PRODUCT_NAME} does not store or reuse your personal information.`,
                 `Any technical data collected by ${PRODUCT_NAME} (e.g. browser type or questions asked) is handled under the [Freedom of Information and Protection of Privacy Act](https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/96165_00) (FOIPPA). To learn more about how the Province protects your privacy, visit the [B.C. Government Website Privacy Statement](https://www2.gov.bc.ca/gov/content/home/privacy).`
@@ -86,7 +70,6 @@ export const WELCOME_PANEL_CONTENT = {
         {
             label: 'Tips',
             query: 'What tips do you have for completing this application?',
-            variant: WELCOME_CARD_BUBBLE_VARIANT,
             // Stored as plain newline-separated lines; the leading "- " marks a list
             // item and the renderer groups runs of them into a <ul>, so the bullet
             // glyphs come from real list markup rather than characters in the copy.
@@ -177,7 +160,7 @@ export function buildWelcomePanelHtml(content = WELCOME_PANEL_CONTENT) {
  * @param {HTMLElement} options.chatMessages - the `.wp-chat-messages` scroll container
  * @param {(query: string, label: string, chip: object|null) => void} options.onChipClick
  * @param {object} [options.content] - the content object the panel was built from
- * @returns {{ isVisible: () => boolean, syncSurface: () => void, dismiss: () => void }}
+ * @returns {{ isVisible: () => boolean, dismiss: () => void }}
  */
 export function createWelcomePanel({ chatMessages, onChipClick, content = WELCOME_PANEL_CONTENT }) {
     function getPanel() {
@@ -185,29 +168,12 @@ export function createWelcomePanel({ chatMessages, onChipClick, content = WELCOM
     }
 
     /**
-     * Repaint the message list for the current content.
-     *
-     * The panel itself is never removed, so this cannot key off its presence alone:
-     * the white surface is for the empty state only. Once the first message lands,
-     * the list returns to the normal chat grey and the panel keeps its own white
-     * background, reading as the first card in the thread.
-     *
-     * Call this after appending or removing messages.
-     */
-    function syncSurface() {
-        if (!chatMessages) return;
-        const hasMessages = Boolean(chatMessages.querySelector('.wp-chat-message'));
-        chatMessages.classList.toggle('wp-chat-messages-welcome', Boolean(getPanel()) && !hasMessages);
-    }
-
-    /**
-     * Remove the panel outright. Not part of the normal message flow any more -
-     * kept for callers that need to reclaim the space (e.g. a compact layout).
+     * Remove the panel outright. Not part of the normal message flow - kept for
+     * callers that need to reclaim the space (e.g. a compact layout).
      */
     function dismiss() {
         const panel = getPanel();
         if (panel) panel.remove();
-        syncSurface();
     }
 
     const panel = getPanel();
@@ -220,11 +186,9 @@ export function createWelcomePanel({ chatMessages, onChipClick, content = WELCOM
             });
         });
     }
-    syncSurface();
 
     return {
         isVisible: () => Boolean(getPanel()),
-        syncSurface,
         dismiss
     };
 }

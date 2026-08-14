@@ -11,7 +11,7 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 import { WELCOME_PANEL_STYLES } from '../client-scripts/welcome-panel/styles/welcomePanelStyles.js';
-import { buildWelcomePanelHtml, createWelcomePanel, WELCOME_CARD_BUBBLE_VARIANT } from '../client-scripts/welcome-panel/ui/welcomePanel.js';
+import { buildWelcomePanelHtml, createWelcomePanel } from '../client-scripts/welcome-panel/ui/welcomePanel.js';
 
 // /**
 //  * Allow testing of alternative javascript
@@ -307,12 +307,10 @@ function loadChatHistory(threadId) {
     }
 }
 
-function appendChatHistory(threadId, role, text, variant) {
+function appendChatHistory(threadId, role, text) {
     try {
         const history = loadChatHistory(threadId);
-        // `variant` is only written when a message carries one, so entries saved by
-        // earlier versions (and every server-sourced entry) stay shape-compatible.
-        history.push(variant ? { role, text, variant } : { role, text });
+        history.push({ role, text });
         localStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
     } catch (error) {
         console.error("Error appending chat history:", error);
@@ -1045,7 +1043,7 @@ function injectStyles() {
             gap: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: var(--wp-welcome-font);
         }
 
         .wp-chat-button:hover {
@@ -1067,7 +1065,10 @@ function injectStyles() {
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             flex-direction: column;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            /* BC Sans for the whole widget - header, messages, chips and input -
+               so nothing falls back to the system stack. The face is loaded by the
+               @font-face rules in WELCOME_PANEL_STYLES. */
+            font-family: var(--wp-welcome-font);
         }
 
         .wp-chat-modal.open {
@@ -1121,14 +1122,19 @@ function injectStyles() {
             transform: rotate(90deg);
         }
 
+        /* The message list is the design's outer container: white, 16px frame,
+           12px between items. Everything inside sits on that surface, so the
+           welcome panel, a chip answer and a live assistant reply all read as the
+           same kind of block. Tokens come from WELCOME_PANEL_STYLES below, which
+           declares them on .wp-chat-modal. */
         .wp-chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
+            padding: var(--wp-welcome-padding);
+            background: var(--wp-welcome-surface);
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: var(--wp-welcome-gap);
         }
 
         ${WELCOME_PANEL_STYLES}
@@ -1149,36 +1155,62 @@ function injectStyles() {
             justify-content: center;
         }
 
+        /* Shared bubble shape. Both speakers use the same 10px padding, 4px radius
+           and type scale; only the fill and the sizing differ below. */
         .wp-chat-bubble {
-            max-width: 75%;
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 10px;
+            border-radius: var(--wp-welcome-radius);
+            border: 1px solid var(--wp-welcome-card-border);
+            box-sizing: border-box;
             word-wrap: break-word;
-            line-height: 1.5;
+            color: var(--wp-welcome-text);
+            font-family: var(--wp-welcome-font);
+            font-size: var(--wp-welcome-font-size);
+            line-height: var(--wp-welcome-line-height);
         }
 
+        /* The user's own message hugs its content and sits right. */
         .wp-chat-message-user .wp-chat-bubble {
-            background: #003366;
-            color: white;
-            border-bottom-right-radius: 4px;
+            max-width: 75%;
+            background: var(--wp-welcome-user-bubble-bg);
+            line-height: 27px;
         }
 
+        /* An assistant reply fills the column, matching the welcome card above it.
+           The column layout spaces multi-section answers by the card's own 8px. */
         .wp-chat-message-assistant .wp-chat-bubble {
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            background: var(--wp-welcome-card-bg);
         }
 
+        /* System notices are chrome, not conversation - no card, no border. */
         .wp-chat-message-system .wp-chat-bubble {
             background: transparent;
+            border: none;
             color: #666;
             font-size: 12px;
+            line-height: 1.5;
             padding: 6px 10px;
         }
 
+        .wp-chat-bubble a {
+            color: var(--wp-welcome-accent);
+            text-decoration: underline;
+        }
+
+        /* One section of a reply - a heading with its paragraphs or list. Sections
+           are the bubble's flex children, so the gap above separates them while
+           lines within one stay tight, mirroring .wp-welcome-section. */
+        .wp-chat-block p {
+            margin: 0;
+        }
+
+        /* The <ul> draws the bullet glyphs; no bullet characters live in the text. */
         .wp-chat-bubble ul {
-            margin: 8px 0;
+            margin: 4px 0 0;
             padding-left: 20px;
         }
 
@@ -1375,14 +1407,13 @@ function initBot() {
 
     // The welcome panel ships in the initial markup and stays at the top of the
     // message list for the whole conversation; messages are appended below it.
-    // Only the list background changes once messages exist (welcomePanel.syncSurface).
     const welcomePanel = createWelcomePanel({
         chatMessages,
         onChipClick: (query, label, chip) => {
             // Chips carrying a `response` are fixed product copy - answer them here
             // instead of asking the assistant to restate something already written.
             if (chip && chip.response) {
-                appendChipReply(label, chip.response, chip.variant);
+                appendChipReply(label, chip.response);
                 return;
             }
             sendMessage(query);
@@ -1407,9 +1438,7 @@ function initBot() {
         if (!Array.isArray(historyEntries) || historyEntries.length === 0) return;
         historyEntries.forEach((entry) => {
             if (entry && typeof entry.role === 'string') {
-                // Replay the saved bubble variant so a card-styled chip answer comes
-                // back looking the same after a reload.
-                appendMessage(entry.role, entry.text ?? '', persist, false, { variant: entry.variant });
+                appendMessage(entry.role, entry.text ?? '', persist, false);
             }
         });
     }
@@ -1704,9 +1733,9 @@ function initBot() {
      * reads no differently from an assistant reply. Nothing is sent over the socket,
      * so there is no typing indicator and the input is never disabled.
      */
-    function appendChipReply(label, response, variant) {
+    function appendChipReply(label, response) {
         appendMessage('user', label, true, true, { placeAfterGuidedQuestions: true });
-        appendMessage('assistant', response, true, true, { variant });
+        appendMessage('assistant', response, true, true);
     }
 
     async function sendMessage(prefilledText = null) {
@@ -1780,14 +1809,12 @@ function initBot() {
         const msgDiv = document.createElement('div');
         msgDiv.className = `wp-chat-message wp-chat-message-${role}`;
         const bubble = document.createElement('div');
-        // options.variant restyles the bubble without changing how the text is
-        // rendered - e.g. 'welcome-card' makes a canned chip answer look like the
-        // welcome panel card. It is persisted with the message so a reload keeps it.
-        bubble.className = options.variant
-            ? `wp-chat-bubble wp-chat-bubble-${options.variant}`
-            : 'wp-chat-bubble';
-        bubble.innerHTML = options.variant === WELCOME_CARD_BUBBLE_VARIANT
-            ? formatCardMessage(String(text))
+        bubble.className = 'wp-chat-bubble';
+        // Assistant replies get the block renderer because they are the ones that
+        // carry headings and lists; the user's own text and system notices are
+        // single-voice strings that only need inline formatting.
+        bubble.innerHTML = role === 'assistant'
+            ? formatMessageBlocks(String(text))
             : formatMessage(String(text));
         msgDiv.appendChild(bubble);
 
@@ -1814,11 +1841,8 @@ function initBot() {
         if (!shouldPlaceAfterGuidedQuestions && guidedQuestionsContainer && guidedQuestionsContainer.style.display !== 'none') {
             chatMessages.appendChild(guidedQuestionsContainer);
         }
-        // The welcome panel stays put, but the list is no longer in its empty state,
-        // so drop the white welcome surface back to the normal chat background.
-        welcomePanel.syncSurface();
         if (persist) {
-            appendChatHistory(sessionId, role, String(text), options.variant);
+            appendChatHistory(sessionId, role, String(text));
         }
         if (scroll) {
             // If an assistant or system message was just added, scroll to the last user message so the user sees their own question above the reply.
@@ -1887,13 +1911,13 @@ function initBot() {
     }
 
     /**
-     * Block-level renderer for welcome-card bubbles.
+     * Block-level renderer for assistant replies.
      *
      * formatMessage() is inline-only for this purpose: it turns newlines into <br>
      * before its bullet regex runs, so the ^ anchor can only match the very first
      * line, and anything it does match wraps the whole message - headings included -
-     * in one <ul>. Card content is several headed sections each with its own list,
-     * so the structure has to be built here instead.
+     * in one <ul>. Replies are commonly several headed sections each with a list, so
+     * the structure has to be built here instead.
      *
      * Shape of the source text:
      *   - a blank line starts a new section (rendered tight inside, spaced between)
@@ -1902,10 +1926,11 @@ function initBot() {
      *   - every other line is a paragraph
      *
      * Inline formatting (escaping, **bold**, links) is delegated to formatMessage so
-     * both bubble styles treat the text identically. Rendering is a pure function of
-     * the stored text, so a reload reproduces it exactly - see the persisted variant.
+     * both renderers treat the text identically. Output is a pure function of the
+     * message text and role, both of which are persisted, so a reload reproduces the
+     * reply exactly.
      */
-    function formatCardMessage(text) {
+    function formatMessageBlocks(text) {
         return String(text)
             .split(/\n\s*\n/)
             .map((section) => {
@@ -1932,7 +1957,7 @@ function initBot() {
                 });
                 flushList();
 
-                return html ? `<div class="wp-welcome-card-block">${html}</div>` : '';
+                return html ? `<div class="wp-chat-block">${html}</div>` : '';
             })
             .join('');
     }
