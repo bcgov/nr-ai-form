@@ -11,7 +11,7 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 import { WELCOME_PANEL_STYLES } from '../client-scripts/welcome-panel/styles/welcomePanelStyles.js';
-import { buildWelcomePanelHtml, createWelcomePanel } from '../client-scripts/welcome-panel/ui/welcomePanel.js';
+import { buildWelcomePanelHtml, createWelcomePanel, WELCOME_CARD_BUBBLE_VARIANT } from '../client-scripts/welcome-panel/ui/welcomePanel.js';
 
 // /**
 //  * Allow testing of alternative javascript
@@ -307,10 +307,12 @@ function loadChatHistory(threadId) {
     }
 }
 
-function appendChatHistory(threadId, role, text) {
+function appendChatHistory(threadId, role, text, variant) {
     try {
         const history = loadChatHistory(threadId);
-        history.push({ role, text });
+        // `variant` is only written when a message carries one, so entries saved by
+        // earlier versions (and every server-sourced entry) stay shape-compatible.
+        history.push(variant ? { role, text, variant } : { role, text });
         localStorage.setItem(getHistoryStorageKey(threadId), JSON.stringify(history));
     } catch (error) {
         console.error("Error appending chat history:", error);
@@ -1371,11 +1373,18 @@ function initBot() {
         onQuestionClick: handleGuidedQuestionClick
     });
 
-    // The welcome panel ships in the initial markup and is shown only until the
-    // first message exists — either restored history or a newly sent message.
+    // The welcome panel ships in the initial markup and stays at the top of the
+    // message list for the whole conversation; messages are appended below it.
+    // Only the list background changes once messages exist (welcomePanel.syncSurface).
     const welcomePanel = createWelcomePanel({
         chatMessages,
-        onChipClick: (query) => {
+        onChipClick: (query, label, chip) => {
+            // Chips carrying a `response` are fixed product copy - answer them here
+            // instead of asking the assistant to restate something already written.
+            if (chip && chip.response) {
+                appendChipReply(label, chip.response, chip.variant);
+                return;
+            }
             sendMessage(query);
         }
     });
@@ -1396,10 +1405,11 @@ function initBot() {
 
     function renderHistoryEntries(historyEntries, persist = false) {
         if (!Array.isArray(historyEntries) || historyEntries.length === 0) return;
-        welcomePanel.dismiss();
         historyEntries.forEach((entry) => {
             if (entry && typeof entry.role === 'string') {
-                appendMessage(entry.role, entry.text ?? '', persist, false);
+                // Replay the saved bubble variant so a card-styled chip answer comes
+                // back looking the same after a reload.
+                appendMessage(entry.role, entry.text ?? '', persist, false, { variant: entry.variant });
             }
         });
     }
@@ -1686,15 +1696,25 @@ function initBot() {
         }
     }
 
+    /**
+     * Render a welcome-chip exchange that is answered locally.
+     *
+     * Both halves go in exactly as a real exchange would - same bubbles, same
+     * Markdown rendering, same persistence - so the answer survives a reload and
+     * reads no differently from an assistant reply. Nothing is sent over the socket,
+     * so there is no typing indicator and the input is never disabled.
+     */
+    function appendChipReply(label, response, variant) {
+        appendMessage('user', label, true, true, { placeAfterGuidedQuestions: true });
+        appendMessage('assistant', response, true, true, { variant });
+    }
+
     async function sendMessage(prefilledText = null) {
         // sendMessage supports both user-typed text and auto-sent guided questions.
         // If prefilledText is passed in, use it as the outgoing message; otherwise
         // read the current value from the chat input.
         let text = typeof prefilledText === 'string' ? prefilledText.trim() : chatInput.value.trim();
         if (!text) return;
-
-        // The conversation has started, so the first-open welcome panel is no longer relevant.
-        welcomePanel.dismiss();
 
         // Add the outgoing user message to the chat immediately so the UI updates
         // before the network request completes.
@@ -1760,8 +1780,15 @@ function initBot() {
         const msgDiv = document.createElement('div');
         msgDiv.className = `wp-chat-message wp-chat-message-${role}`;
         const bubble = document.createElement('div');
-        bubble.className = 'wp-chat-bubble';
-        bubble.innerHTML = formatMessage(String(text));
+        // options.variant restyles the bubble without changing how the text is
+        // rendered - e.g. 'welcome-card' makes a canned chip answer look like the
+        // welcome panel card. It is persisted with the message so a reload keeps it.
+        bubble.className = options.variant
+            ? `wp-chat-bubble wp-chat-bubble-${options.variant}`
+            : 'wp-chat-bubble';
+        bubble.innerHTML = options.variant === WELCOME_CARD_BUBBLE_VARIANT
+            ? formatCardMessage(String(text))
+            : formatMessage(String(text));
         msgDiv.appendChild(bubble);
 
         // During the loading state for a clicked prompt, place the outgoing user message
@@ -1787,8 +1814,11 @@ function initBot() {
         if (!shouldPlaceAfterGuidedQuestions && guidedQuestionsContainer && guidedQuestionsContainer.style.display !== 'none') {
             chatMessages.appendChild(guidedQuestionsContainer);
         }
+        // The welcome panel stays put, but the list is no longer in its empty state,
+        // so drop the white welcome surface back to the normal chat background.
+        welcomePanel.syncSurface();
         if (persist) {
-            appendChatHistory(sessionId, role, String(text));
+            appendChatHistory(sessionId, role, String(text), options.variant);
         }
         if (scroll) {
             // If an assistant or system message was just added, scroll to the last user message so the user sees their own question above the reply.
@@ -1854,6 +1884,57 @@ function initBot() {
             formatted = `<ul>${formatted}</ul>`;
         }
         return formatted;
+    }
+
+    /**
+     * Block-level renderer for welcome-card bubbles.
+     *
+     * formatMessage() is inline-only for this purpose: it turns newlines into <br>
+     * before its bullet regex runs, so the ^ anchor can only match the very first
+     * line, and anything it does match wraps the whole message - headings included -
+     * in one <ul>. Card content is several headed sections each with its own list,
+     * so the structure has to be built here instead.
+     *
+     * Shape of the source text:
+     *   - a blank line starts a new section (rendered tight inside, spaced between)
+     *   - a line opening with "- " or "* " is a list item; consecutive items group
+     *     into one <ul>, which is what draws the bullet markers
+     *   - every other line is a paragraph
+     *
+     * Inline formatting (escaping, **bold**, links) is delegated to formatMessage so
+     * both bubble styles treat the text identically. Rendering is a pure function of
+     * the stored text, so a reload reproduces it exactly - see the persisted variant.
+     */
+    function formatCardMessage(text) {
+        return String(text)
+            .split(/\n\s*\n/)
+            .map((section) => {
+                let html = '';
+                let listItems = [];
+
+                function flushList() {
+                    if (listItems.length === 0) return;
+                    html += `<ul>${listItems.join('')}</ul>`;
+                    listItems = [];
+                }
+
+                section.split('\n').forEach((line) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return;
+                    const listItem = trimmed.match(/^[-*•]\s+(.*)$/);
+                    if (listItem) {
+                        listItems.push(`<li>${formatMessage(listItem[1])}</li>`);
+                        return;
+                    }
+                    // A paragraph closes any run of items above it.
+                    flushList();
+                    html += `<p>${formatMessage(trimmed)}</p>`;
+                });
+                flushList();
+
+                return html ? `<div class="wp-welcome-card-block">${html}</div>` : '';
+            })
+            .join('');
     }
 
     function showTyping(show) {

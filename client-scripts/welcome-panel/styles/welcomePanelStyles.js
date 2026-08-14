@@ -6,6 +6,38 @@
  * overriding the variables instead of forking these rules.
  */
 export const WELCOME_PANEL_STYLES = `
+        /* BC Sans web font ---------------------------------------------------------
+           The host Posse form does not ship BC Sans, so the panel loads it itself
+           from the official @bcgov/bc-sans package (version pinned so a package
+           release cannot change the rendering underneath us).
+
+           The URLs must stay absolute: the package's own BCSans.css references
+           '../fonts/*' relative to itself, and those paths would resolve against the
+           host page once these rules are inlined into the widget's <style> block.
+
+           Only the two faces the panel actually uses are loaded - 400 for body copy
+           and 700 for .wp-welcome-heading. font-display: swap keeps the text
+           readable in the fallback face while the font downloads. If the host adds
+           a Content-Security-Policy that blocks the CDN, self-host these files and
+           swap the URLs; the rest of the panel needs no change. */
+        @font-face {
+            font-family: 'BCSans';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('https://cdn.jsdelivr.net/npm/@bcgov/bc-sans@2.1.0/fonts/BCSans-Regular.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/npm/@bcgov/bc-sans@2.1.0/fonts/BCSans-Regular.woff') format('woff');
+        }
+
+        @font-face {
+            font-family: 'BCSans';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url('https://cdn.jsdelivr.net/npm/@bcgov/bc-sans@2.1.0/fonts/BCSans-Bold.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/npm/@bcgov/bc-sans@2.1.0/fonts/BCSans-Bold.woff') format('woff');
+        }
+
         /* Design tokens ------------------------------------------------------------
            Declared on the widget root so both the panel and its host container can
            read them, and on the panel itself so it still themes correctly when
@@ -20,7 +52,9 @@ export const WELCOME_PANEL_STYLES = `
             --wp-welcome-chip-bg: #F7F8FA;
             --wp-welcome-chip-border: #1A5A96;
             --wp-welcome-chip-text: #313132;
-            --wp-welcome-font: 'Open Sans', 'BCSans', 'Noto Sans', Verdana, Arial, sans-serif;
+            /* BCSans leads the stack so the loaded web font wins; the rest are
+               fallbacks for the swap period and for a blocked/failed font load. */
+            --wp-welcome-font: 'BCSans', 'Open Sans', 'Noto Sans', Verdana, Arial, sans-serif;
             --wp-welcome-font-size: 16px;
             --wp-welcome-line-height: 24px;
             --wp-welcome-gap: 12px;
@@ -89,6 +123,59 @@ export const WELCOME_PANEL_STYLES = `
             height: 12px;
             flex-shrink: 0;
             fill: currentColor;
+        }
+
+        /* 2b. Card-styled chat bubble --------------------------------------------
+           A chat message answered locally by a welcome chip, dressed as the card
+           above so the canned copy reads as part of the same panel rather than as a
+           normal assistant reply. Applied by client.js via the 'welcome-card' bubble
+           variant (see WELCOME_CARD_BUBBLE_VARIANT).
+
+           The tokens resolve because .wp-chat-modal declares them too, so this works
+           outside .wp-welcome-panel. Specificity beats the plain assistant-bubble
+           rule in client.js regardless of which stylesheet block comes first. */
+        .wp-chat-message-assistant .wp-chat-bubble.wp-chat-bubble-welcome-card {
+            display: flex;
+            flex-direction: column;
+            /* Same column-with-gap construction as .wp-welcome-card, so sections sit
+               apart by exactly the spacing the panel uses. */
+            gap: 8px;
+            max-width: 100%;
+            padding: 10px;
+            background: var(--wp-welcome-card-bg);
+            border: 1px solid var(--wp-welcome-card-border);
+            border-radius: var(--wp-welcome-radius);
+            box-shadow: none;
+            color: var(--wp-welcome-text);
+            font-family: var(--wp-welcome-font);
+            font-size: var(--wp-welcome-font-size);
+            line-height: var(--wp-welcome-line-height);
+        }
+
+        /* Inline links in the copy pick up the panel's accent and underline rather
+           than the browser default, matching .wp-welcome-link. */
+        .wp-chat-bubble-welcome-card a {
+            color: var(--wp-welcome-accent);
+            text-decoration: underline;
+        }
+
+        /* One section of card copy - a heading plus its paragraphs or list. Sections
+           are the bubble's flex children, so the 8px gap above separates them while
+           lines inside a section stay tight together, mirroring .wp-welcome-section. */
+        .wp-chat-bubble-welcome-card .wp-welcome-card-block p {
+            margin: 0;
+        }
+
+        /* The <ul> is what renders the bullet glyphs; the copy itself holds no
+           bullet characters. Doubled class beats the generic .wp-chat-bubble ul/li
+           rules in client.js, which would otherwise win on source order. */
+        .wp-chat-bubble.wp-chat-bubble-welcome-card ul {
+            margin: 4px 0 0;
+            padding-left: 20px;
+        }
+
+        .wp-chat-bubble.wp-chat-bubble-welcome-card li {
+            margin: 4px 0;
         }
 
         /* 3. Option buttons (chips) --------------------------------------------- */
