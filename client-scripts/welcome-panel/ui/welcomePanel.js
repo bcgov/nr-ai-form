@@ -23,6 +23,12 @@
  */
 export const WELCOME_CARD_BUBBLE_VARIANT = 'welcome-card';
 
+/**
+ * Product name, interpolated everywhere the copy refers to the assistant by name.
+ * Kept in one place so a rename is a single edit rather than a hunt through prose.
+ */
+const PRODUCT_NAME = 'AIFA: AI Form Assist';
+
 /** Default copy + chips. Override any field by passing your own object through. */
 export const WELCOME_PANEL_CONTENT = {
     sections: [
@@ -59,13 +65,13 @@ export const WELCOME_PANEL_CONTENT = {
      */
     chips: [
         {
-            label: 'About Form Helper',
-            query: 'What is the Form Helper and what can it do for me?',
+            label: `About ${PRODUCT_NAME}`,
+            query: `What is ${PRODUCT_NAME} and what can it do for me?`,
             variant: WELCOME_CARD_BUBBLE_VARIANT,
             response: [
-                '**About Form Helper**\nForm Helper provides plain-language explanations and guidance to help you understand questions and prepare information for a new water licence application.',
+                `**About ${PRODUCT_NAME}**\n${PRODUCT_NAME} provides plain-language explanations and guidance to help you understand questions and prepare information for a new water licence application.`,
                 'It is designed to support surface water livestock and animal and irrigation applications. Guidance for other application types may be limited.',
-                'Form Helper supports understanding and drafting only. You are responsible for reviewing and confirming that your application information is accurate and complete.'
+                `${PRODUCT_NAME} supports understanding and drafting only. You are responsible for reviewing and confirming that your application information is accurate and complete.`
             ].join('\n\n')
         },
         {
@@ -73,8 +79,8 @@ export const WELCOME_PANEL_CONTENT = {
             query: 'How is the information I enter into this assistant used and protected?',
             variant: WELCOME_CARD_BUBBLE_VARIANT,
             response: [
-                '**How is your data handled**\n[Form Helper] uses the information you enter only to provide guidance during your current session. Your chat session ends when your form session ends, and [Form Helper] does not store or reuse your personal information.',
-                'Any technical data collected by [Form Helper] (e.g. browser type or questions asked) is handled under the [Freedom of Information and Protection of Privacy Act](https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/96165_00) (FOIPPA). To learn more about how the Province protects your privacy, visit the [B.C. Government Website Privacy Statement](https://www2.gov.bc.ca/gov/content/home/privacy).'
+                `**How is your data handled**\n${PRODUCT_NAME} uses the information you enter only to provide guidance during your current session. Your chat session ends when your form session ends, and ${PRODUCT_NAME} does not store or reuse your personal information.`,
+                `Any technical data collected by ${PRODUCT_NAME} (e.g. browser type or questions asked) is handled under the [Freedom of Information and Protection of Privacy Act](https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/96165_00) (FOIPPA). To learn more about how the Province protects your privacy, visit the [B.C. Government Website Privacy Statement](https://www2.gov.bc.ca/gov/content/home/privacy).`
             ].join('\n\n')
         },
         {
@@ -86,7 +92,7 @@ export const WELCOME_PANEL_CONTENT = {
             // glyphs come from real list markup rather than characters in the copy.
             response: [
                 [
-                    '**Tips for using Form Helper**',
+                    `**Tips for using ${PRODUCT_NAME}**`,
                     "- Ask questions related to the step you're on",
                     "- Describe what you're planning to do in your own words",
                     '- Share details such as water source, purpose, and timing',
@@ -94,13 +100,13 @@ export const WELCOME_PANEL_CONTENT = {
                     '- Include all relevant information in your message rather than splitting information across multiple questions'
                 ].join('\n'),
                 [
-                    '**What Form Helper can do**',
+                    `**What ${PRODUCT_NAME} can do**`,
                     '- Explain water licence terms and questions',
                     '- Help draft your water use plan for review',
                     '- Support pilot scenarios, including surface water livestock and animal watering, with basic calculations'
                 ].join('\n'),
                 [
-                    '**What Form Helper does not do**',
+                    `**What ${PRODUCT_NAME} does not do**`,
                     '- Decide whether your application will be approved',
                     '- Give a definite answer about eligibility or outcomes',
                     '- Submit your application or replace ministry review or professional advice'
