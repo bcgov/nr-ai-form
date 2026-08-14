@@ -10,6 +10,8 @@ import {
 } from './guided-questions/utils/guidedQuestionLifecycle.js';
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
+import { WELCOME_PANEL_STYLES } from './welcome-panel/styles/welcomePanelStyles.js';
+import { buildWelcomePanelHtml, createWelcomePanel } from './welcome-panel/ui/welcomePanel.js';
 
 // /**
 //  * Allow testing of alternative javascript
@@ -1090,20 +1092,7 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
             gap: 12px;
         }
 
-        .wp-chat-welcome {
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .wp-chat-welcome p {
-            margin: 0;
-        }
-            
-        .wp-chat-welcome p {
-            margin: 0 0 12px 0;
-        }
+        ${WELCOME_PANEL_STYLES}
 
         .wp-chat-message {
             display: flex;
@@ -1301,22 +1290,7 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 </button>
             </div>
 
-            <div class="wp-chat-messages" id="wp-chat-messages">
-                <div class="wp-chat-welcome">
-                    <div class="wp-chat-welcome">
-                        <p><strong>How I can help</strong></p>
-                        <p>I'm an AI assistant here to support you with your water licence application. 
-                        I can explain terms, clarify what information is needed, and suggest relevant resources based on what you share.
-                        </p>
-                        <p><strong>Disclaimer</strong></p>
-                        <p>I don't provide legal advice and I'm not a substitute for guidance from FrontCounter 
-                        BC staff or qualified professionals. You're responsible for ensuring your submission 
-                        is accurate and complete. Please don't share personal information. 
-                        Your questions may be stored to help improve this service.
-                        By using this assistant, you acknowledge and accept these terms.
-                        </p>
-                    </div>
-                </div>
+            <div class="wp-chat-messages" id="wp-chat-messages">${buildWelcomePanelHtml()}
 
                 <div class="wp-chat-guided-questions" id="wp-chat-guided-questions" aria-live="polite"></div>
             </div>
@@ -1359,6 +1333,16 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 chatMessages,
                 onQuestionClick: handleGuidedQuestionClick
             });
+
+            // The welcome panel ships in the initial markup and is shown only until the
+            // first message exists — either restored history or a newly sent message.
+            const welcomePanel = createWelcomePanel({
+                chatMessages,
+                onChipClick: (query) => {
+                    sendMessage(query);
+                }
+            });
+
             saveThreadId(sessionId);
             const existingHistory = loadChatHistory(sessionId);
             if (existingHistory.length > 0) {
@@ -1370,8 +1354,7 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 
             function renderHistoryEntries(historyEntries, persist = false) {
                 if (!Array.isArray(historyEntries) || historyEntries.length === 0) return;
-                const welcome = chatMessages.querySelector('.wp-chat-welcome');
-                if (welcome) welcome.remove();
+                welcomePanel.dismiss();
                 historyEntries.forEach((entry) => {
                     if (entry && typeof entry.role === 'string') {
                         appendMessage(entry.role, entry.text ?? '', persist, false);
@@ -1667,6 +1650,9 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 // read the current value from the chat input.
                 let text = typeof prefilledText === 'string' ? prefilledText.trim() : chatInput.value.trim();
                 if (!text) return;
+
+                // The conversation has started, so the first-open welcome panel is no longer relevant.
+                welcomePanel.dismiss();
 
                 // Add the outgoing user message to the chat immediately so the UI updates
                 // before the network request completes.
