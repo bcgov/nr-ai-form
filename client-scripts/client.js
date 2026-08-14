@@ -10,11 +10,13 @@ import {
 } from './guided-questions/utils/guidedQuestionLifecycle.js';
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
+import { WELCOME_PANEL_STYLES } from '../client-scripts/welcome-panel/styles/welcomePanelStyles.js';
+import { buildWelcomePanelHtml, createWelcomePanel } from '../client-scripts/welcome-panel/ui/welcomePanel.js';
 
 // /**
-//  * Allow testing of alternative javascript 
+//  * Allow testing of alternative javascript
 //  * if the browser's local storage has an item 'clientInstance': 'ms'
-//  * javascript in remote file (see `url`) will be loaded instead  
+//  * javascript in remote file (see `url`) will be loaded instead
 //  */
 // let clientInstance = localStorage.getItem('clientInstance');
 // if (clientInstance === 'ms') {
@@ -59,21 +61,30 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
-const CLIENT_ID_DICT = {
-    "water_license_app": "11111111-1111-4111-8111-111111111111"
-}
+const clientId = '11111111-1111-4111-8111-111111111111';
+// TEST: const API_BACKEND_BASE_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
+// DEV : const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
+const API_BACKEND_BASE_URL = 'http://localhost:8003';
+// dev
+// const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-commonservi-api.livelymushroom-b9ecaae0.canadacentral.azurecontainerapps.io';
+// test
+// const API_BACKEND_BASE_URL = 'https://nraif-671b-test-api.redground-c9aa9e63.canadacentral.azurecontainerapps.io'
 
-//-------------------------- Services Starts ---------------------------//
-// TEST URL
-// const ORCHESTRATOR_API_URL = `https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
+const CONVERSATION_HISTORY_API_URL = new URL(`/tenants/${clientId}/history`, API_BACKEND_BASE_URL).toString();
+// const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, API_BACKEND_BASE_URL).toString();
+// Derive ws/wss from the API backend URL so local http uses ws and deployed
+// https uses wss without maintaining a second host setting.
+const WEBSOCKET_BASE_URL = (() => {
+    const url = new URL('/ws', API_BACKEND_BASE_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return url.toString();
+})();
 
-// DEV URL
-// const ORCHESTRATOR_API_URL = `https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
-const ORCHESTRATOR_API_URL = `http://localhost:8002/tenants/${CLIENT_ID_DICT["water_license_app"] || null}/invoke`;
-// Guided questions live on the same backend host as the chat/orchestrator API.
-
-// TODO: add the correct url for the guided questions API
-const GUIDED_QUESTIONS_API_URL = new URL('/guided-questions', ORCHESTRATOR_API_URL).toString();
+let socket = null;
+let socketOpenPromise = null;
+// Keep the chat UI request/response model aligned with the backend's serialized
+// shared websocket request handling.
+let requestInFlight = false;
 
 let livestockPurposehtml = `<tr class="possegrid">
                                 <td class="possegrid" valign="middle" colspan="1" rowspan="1" style="text-align: left" nowrap=""><span id="PurposeEdit_100536361_100379172_173010900_sp" name="PurposeEdit_100536361_100379172_173010900_sp" class="possegrid" style="text-align: left"><a data-id="PurposeEdit_Livestock and Animal_200_m3/year_173010900" id="PurposeEdit_100536361_100379172_173010900" name="PurposeEdit_100536361_100379172_173010900" class="possegrid" tabindex="14" title="Edit" target="_self" href="javascript:PossePopup('PurposeEdit_100536361_100379172_173010900',
@@ -88,34 +99,59 @@ let livestockPurposehtml = `<tr class="possegrid">
 
 
 
-async function invokeOrchestrator(query, step_number, session_id = null) {
-    const payload = {
-        query: query,
-        step_number: step_number,
-        session_id: session_id
-        // client_id: CLIENT_ID_DICT["WATER-LICENSE-APP"] || null
-    };
+async function getConversationHistory(session_id = null) {
+    const threadId = session_id || localStorage.getItem(THREAD_ID_STORAGE_KEY);
+    if (!threadId) return [];
 
     try {
-        const response = await fetch(ORCHESTRATOR_API_URL, {
-            method: "POST",
+        const response = await fetch(`${CONVERSATION_HISTORY_API_URL}/${encodeURIComponent(threadId)}`, {
+            method: "GET",
             headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
+                "Accept": "application/json"
+            }
         });
-// TODO: ANN CAPTURE COSMOD DB ERRORS AND PRINT
+
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Orchestrator API error: ${response.status} ${response.statusText} - ${errorText}`);
+            throw new Error(`Unable to load conversation history: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
         const data = await response.json();
-        return data;
+        return Array.isArray(data) ? data : [];
     } catch (error) {
-        console.error("Error invoking Orchestrator Agent:", error);
-        throw error;
+        console.error("Error loading conversation history", error);
+        return [];
     }
+}
+
+function getWebSocketUrl(session_id = null) {
+    // Keep session_id as a query parameter; client_id stays in the first JSON
+    // message so the browser always connects to the same API backend /ws route.
+    const url = new URL(WEBSOCKET_BASE_URL);
+    if (session_id) {
+        url.searchParams.set('session_id', session_id);
+    }
+    return url.toString();
+}
+
+function invokeAPIWithWS(query, step_number, session_id = null) {
+    const body = {
+        client_id: clientId,
+        query,
+        step_number,
+        session_id,
+        application_id: sessionStorage.getItem(APPLICATION_ID_STORAGE_PREFIX),
+    };
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        throw new Error("WebSocket not connected, cannot connect with AI services");
+    }
+    if (requestInFlight) {
+        throw new Error("A chat request is already in progress.");
+    }
+
+    requestInFlight = true;
+    socket.send(JSON.stringify(body));
 }
 //-------------------------- Services Ends ---------------------------//
 
@@ -125,42 +161,77 @@ const FormSteps = {
     step0bot: "step0-Bot",
     STEP10_COMPLETE: "step10-Complete",
     step2eligibility: "step2-Eligibility",
+    STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION:
+        "step3-Technical-Information-Project-Information",
+    STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION_QUESTIONS:
+        "step3-Technical-Information-Project-Information-Questions",
     STEP3_ADD_SURFACE_WATER_SOURCE: "step3-Add-Surface-Water-Source",
     STEP3_ADDPURPOSE_CONSOLIDATED: "step3-AddPurpose-Consolidated",
-    STEP3_DAM_RESERVOIR_CONTACT_ADDRESS: "step3-Dam-Reservoir-Contact-Address",
-    STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL: "step3-Dam-Reservoir-Add-Individual",
-    STEP3_DAM_RESERVOIR_ADD_ORGANIZATION: "step3-Dam-Reservoir-Add-Organization",
-    STEP3_TECHNICAL_INFORMATION_ADD_WELL: "step3-Technical-Information-Add-Well",
-    STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR: "step3-Technical-Information-Dam-Reservoir",
-    STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST: "step3-Technical-Information-Fee-Exemption-Request",
-    STEP3_TECHNICAL_INFORMATION_JOINT_WORKS: "step3-Technical-Information-Joint-Works",
-    STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION: "step3-Technical-Information-Land-Tenure-Option",
-    STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS: "step3-Technical-Information-Other-Authorizations",
-    STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION: "step3-Technical-Information-Source-of-Water-for-Application",
-    STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION: "step3-Technical-Information-Water-Diversion",
-    STEP3_TECHNICAL_INFORMATION_WORKS: "step3-Technical-Information-Works",
+    STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL:
+        "step3-Dam-Reservoir-Add-Individual",
+    STEP3_DAM_RESERVOIR_ADD_ORGANIZATION:
+        "step3-Dam-Reservoir-Add-Organization",
+    STEP3_TECHNICAL_INFORMATION_ADD_WELL:
+        "step3-Technical-Information-Add-Well",
+    STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR:
+        "step3-Technical-Information-Dam-Reservoir",
+    STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST:
+        "step3-Technical-Information-Fee-Exemption-Request",
+    STEP3_TECHNICAL_INFORMATION_JOINT_WORKS:
+        "step3-Technical-Information-Joint-Works",
+    STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION:
+        "step3-Technical-Information-Land-Tenure-Option",
+    STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS:
+        "step3-Technical-Information-Other-Authorizations",
+    STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION:
+        "step3-Technical-Information-Source-of-Water-for-Application",
+    STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION:
+        "step3-Technical-Information-Water-Diversion",
+    STEP3_TECHNICAL_INFORMATION_WORKS:
+        "step3-Technical-Information-Works",
     STEP4_LOCATION_LAND_DETAILS: "step4-Location-Land-Details",
-    STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD: "step4-Location-Map-Files-Multi-File-Upload",
-    STEP4_LOCATION_OTHER_AFFECTED_LANDS: "step4-Location-Other-Affected-Lands",
-    STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD: "step4-Location-Spatial-Files-Multi-File-Upload",
+    STEP4_LOCATION_MAP_FILES_MULTI_FILE_UPLOAD:
+        "shared-multifile-upload",
+    STEP4_LOCATION_OTHER_AFFECTED_LANDS:
+        "step4-Location-Other-Affected-Lands",
+    STEP4_LOCATION_SPATIAL_FILES_MULTI_FILE_UPLOAD:
+        "shared-multifile-upload",
     STEP4_LOCATION: "step4-Location",
     STEP5_DOCUMENT_UPLOAD: "step5-Document-Upload",
     STEP6_PRIVACY_CONFIRMATION: "step6-Privacy-Confirmation",
-    STEP7_BUSINESS_COAPPLICANT: "step7-Business-Coapplicant",
-    STEP7_COMPANY: "step7-Company",
-    STEP7_INDIVIDUAL_ADDRESS: "step7-Individual-Address",
-    STEP7_INDIVIDUAL_COAPPLICANT: "step7-Individual-Coapplicant",
-    STEP7_INDIVIDUAL: "step7-Individual",
+    SHARED_ADDRESS: "shared-address",
+    SHARED_SINGLE_FILE_UPLOAD: "shared-single-file-upload",
+    SHARED_MULTIFILE_UPLOAD: "shared-multifile-upload",
     STEP7_REFERRALS: "step7-Referral",
     STEP9_DECLARATIONS: "step9-Declarations",
-    STEP7_CONTACT_INFORMATION: "step7-Contact-Information",
-    STEP8_REVIEW: "step8-Review"
+    STEP7_APPLICANT_INFORMATION: "step7-Applicant-Information",
+    STEP8_REVIEW: "step8-Review",
+    STEP7_APPLICANT_INFORMATION_MY_PROFILE: "step7-Applicant-Information-My-Profile",
+    STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT: "step7-Co-Applicant-Add-A-Business-Applicant",
+    STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL: "step7-Co-Applicant-Add-An-Induvidual",
+    STEP7_CO_APPLICANTS: "step7-Co-Applicants",
+    STEP9_CO_APPLICANT_SIGNATURES: "step9-Co-Applicant-Signatures",
+    STEP9_CO_APPLICANT_COMPOSE_EMAIL: "step9-Co-Applicant-Compose-Email"
+
 };
 //-------------------------- Steppers Ends ---------------------------//
+
+function parseApplicationIdFromDOM() {
+    const el = document.querySelector("span.title");
+    if (!el) {
+        console.warn("Application ID not found in the DOM.");
+        // This is not a catastrophic error, so we will return null instead of throwing an error.
+        return null;
+    }
+    // We will retrieve the application ID from the text content of the span.title element, which is expected to be in the format "Water Licence Application (123456)".
+    const match = el.textContent.match(/\((\d+)\)/);
+    return match ? match[1] : null;
+}
 
 const THREAD_ID_STORAGE_KEY = 'nrAiForm_threadId';
 const CHAT_HISTORY_STORAGE_PREFIX = 'nrAiForm_chatHistory';
 const CHAT_SCROLL_STORAGE_PREFIX = 'nrAiForm_chatScroll';
+const APPLICATION_ID_STORAGE_PREFIX = 'nrAiForm_applicationId';
 
 function createFallbackThreadId() {
     const randomBytes = new Uint8Array(16);
@@ -193,6 +264,29 @@ function saveThreadId(threadId) {
     } catch (error) {
         console.error("Unable to save thread ID to localStorage and sessionStorage:", error);
     }
+}
+
+function saveApplicationIdtoSessionStorage() {
+    const applicationIdInDOM = parseApplicationIdFromDOM();
+    const applicationIdInSessionStorage = sessionStorage.getItem(
+        APPLICATION_ID_STORAGE_PREFIX,
+    );
+    if (
+        applicationIdInSessionStorage &&
+        applicationIdInSessionStorage === applicationIdInDOM
+    ) {
+        // If the application ID in sessionStorage matches the one in the DOM, we don't need to set it in the storage again.
+        return;
+    }
+    // On a popup, applicationIdInDOM is always null.
+    // So, we need to prevent overwriting the sessionStorage value with null when the popup is opened.
+    if (applicationIdInDOM) {
+        sessionStorage.setItem(
+            APPLICATION_ID_STORAGE_PREFIX,
+            applicationIdInDOM,
+        );
+    }
+
 }
 
 function getHistoryStorageKey(threadId) {
@@ -297,9 +391,7 @@ function normalizeStepLabelToStepValue(label) {
     if (!normalized) return null;
 
     let stepKey = normalized;
-    if (stepKey === 'complete') {
-        stepKey = 'step10complete';
-    } else if (/^\d+/.test(stepKey)) {
+    if (/^\d+/.test(stepKey)) {
         stepKey = `step${stepKey}`;
     }
 
@@ -311,20 +403,33 @@ function getStep3SubstepFromPaneHeader() {
     if (!paneHeaderText) return null;
 
     const step3PaneHeaderMap = {
-        governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        governmentandfirstnationfeeexemptionrequest:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+        waterdiversion:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
         works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
         jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
         damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-        landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
-        otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+        landtenure:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+        otherauthorizations:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
         // Add Well Popup
         well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
         // Add Surface Water Source Popup
         surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-        
+        projectinformation:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
         // On the main form window; Not to be confused with the popup.
-        sourceofwaterforapplication: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+        sourceofwaterforapplication:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+        // Step 3 Dam Reservoir Individual Contact
+        wslicdamresindivcontact:
+            FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+        // Address - Reused across multiple steps
+        address: FormSteps.SHARED_ADDRESS,
+        wslicdamresbuscontact:
+            FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION
     };
 
     return step3PaneHeaderMap[paneHeaderText] || null;
@@ -350,31 +455,77 @@ function getCurrentFormStepFromPaneHeaders() {
     const paneHeaderStepMap = {
         introduction: FormSteps.step1introduction,
         eligibility: FormSteps.step2eligibility,
-        governmentandfirstnationfeeexemptionrequest: FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
-        waterdiversion: FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        governmentandfirstnationfeeexemptionrequest:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_FEE_EXEMPTION_REQUEST,
+        waterdiversion:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_WATER_DIVERSION,
+        projectinformation:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION,
+        projectinformationquestions:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_PROJECT_INFORMATION_QUESTIONS,
         addapurpose: FormSteps.STEP3_ADDPURPOSE_CONSOLIDATED,
         step3works: FormSteps.STEP3_TECHNICAL_INFORMATION_WORKS,
-        step3soureofwater: FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
-        step3addsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
-        step3jointworks: FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
-        step3damreservoir: FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
-        step3damreservoircontactindividual: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
-        step3damreservoircontactindividualmailingaddress: FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL_MAILING_ADDRESS,
-        step3damreservoircontactorganization: FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
-        step3addwell: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
-        step3landtenure: FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
-        step3otherauthorizations: FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
+        step3soureofwater:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_SOURCE_OF_WATER_FOR_APPLICATION,
+        surfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+        vfsurfacewatersource: FormSteps.STEP3_ADD_SURFACE_WATER_SOURCE,
+        step3jointworks:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_JOINT_WORKS,
+        step3damreservoir:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_DAM_RESERVOIR,
+        // Step 3 Dam Reservoir Individual Contact
+        wslicdamresindivcontact:
+            FormSteps.STEP3_DAM_RESERVOIR_ADD_INDIVIDUAL,
+        // Address - Reused across multiple steps
+        address: FormSteps.SHARED_ADDRESS,
+        wslicdamresbuscontact:
+            FormSteps.STEP3_DAM_RESERVOIR_ADD_ORGANIZATION,
+        /**
+         * In the Add Well Popup, stepheadername is well and subheadername is waterworks.
+         * Hence, both these entries are mapped to the same step value.
+         *  */
+        well: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+        waterworks: FormSteps.STEP3_TECHNICAL_INFORMATION_ADD_WELL,
+        step3landtenure:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_LAND_TENURE_OPTION,
+        step3otherauthorizations:
+            FormSteps.STEP3_TECHNICAL_INFORMATION_OTHER_AUTHORIZATIONS,
         step4location: FormSteps.STEP4_LOCATION,
-        step4locationlanddetails: FormSteps.STEP4_LOCATION_LAND_DETAILS,
-        step4locationotheraffectedlands: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
+        // Step 4 Location - Applicant's land details
+        vfapplandinfofromapp: FormSteps.STEP4_LOCATION_LAND_DETAILS,
+        // Step 4 Location - Other affected land details
+        vflandinfo: FormSteps.STEP4_LOCATION_OTHER_AFFECTED_LANDS,
         step5documentupload: FormSteps.STEP5_DOCUMENT_UPLOAD,
+        documentupload: FormSteps.SHARED_SINGLE_FILE_UPLOAD,
+        multifileupload: FormSteps.SHARED_MULTIFILE_UPLOAD,
         step6privacydeclaration: FormSteps.STEP6_PRIVACY_CONFIRMATION,
-        step7contactinformation: FormSteps.STEP7_CONTACT_INFORMATION,
+        applicantinformation: FormSteps.STEP7_APPLICANT_INFORMATION,
         step8review: FormSteps.STEP8_REVIEW,
-        step7referrals: FormSteps.STEP7_REFERRALS,
-        step9declarations: FormSteps.STEP9_DECLARATIONS
+        referralinformation: FormSteps.STEP7_REFERRALS,
+        step9declarations: FormSteps.STEP9_DECLARATIONS,
+        step10declarations: FormSteps.STEP9_DECLARATIONS,
+        coapplicants: FormSteps.STEP7_CO_APPLICANTS,
+        signaturescoapp: FormSteps.STEP9_CO_APPLICANT_SIGNATURES,
+        myprofile: FormSteps.STEP7_APPLICANT_INFORMATION_MY_PROFILE,
+        otherapplicantvfappclient: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
+        otherapplicantvfappbusiness: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT,
+        appladdress: FormSteps.SHARED_ADDRESS,
+        address: FormSteps.SHARED_ADDRESS,
+        composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL,
+        complete: FormSteps.STEP10_COMPLETE,
+        pubsubmitteraddress: FormSteps.SHARED_ADDRESS,
+        step9signatures: FormSteps.STEP9_CO_APPLICANT_SIGNATURES,
+        editindividual: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
+        editorganization: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT
     };
     return paneHeaderStepMap[paneHeaderText] || null;
+}
+// todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
+function hasMultiFileUploadWidget() {
+    return Boolean(
+        document.querySelector('#uploader .plupload_container') ||
+        document.querySelector('form[action*="UploadMulti.aspx"]')
+    );
 }
 
 function getCurrentFormStepFromDom() {
@@ -388,6 +539,11 @@ function getCurrentFormStepFromDom() {
         );
         if (hasAltchaValidation || hasCaptchaIframeValidation) {
             return FormSteps.step0bot || 'step0-Bot';
+        }
+        // todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
+
+        if (hasMultiFileUploadWidget()) {
+            return FormSteps.SHARED_MULTIFILE_UPLOAD;
         }
         return getCurrentFormStepFromPaneHeaders();
     }
@@ -407,9 +563,13 @@ function getCurrentFormStepFromDom() {
         if (hasAltchaValidation || hasCaptchaIframeValidation) {
             return FormSteps.step0bot || 'step0-Bot';
         }
+        // todo: remove after posse update. work around till the stepheadernam is added for multi file upload step
+
+        if (hasMultiFileUploadWidget()) {
+            return FormSteps.SHARED_MULTIFILE_UPLOAD;
+        }
         return getCurrentFormStepFromPaneHeaders();
     }
-
     const paneHeaderStep = getCurrentFormStepFromPaneHeaders();
     if (paneHeaderStep) {
         return paneHeaderStep;
@@ -545,6 +705,14 @@ function applyPurposeTableSuggestion(suggestion) {
 function applySuggestionToElements(suggestion, elements) {
     if (!elements || elements.length === 0) return false;
 
+    // An empty suggestedvalue means "no suggestion" (e.g. an informational/definitional
+    // answer), not "match the option whose value/label is also blank". Without this guard,
+    // normalizeComparableValue('') can accidentally match a radio/select option that happens
+    // to have an empty value or label, silently selecting the wrong option.
+    if (String(suggestion.suggestedvalue ?? '').trim() === '') {
+        return false;
+    }
+
     const expected = normalizeComparableValue(suggestion.suggestedvalue);
     const type = String(suggestion.type || '').toLowerCase();
     const first = elements[0];
@@ -636,7 +804,7 @@ function loadPendingSuggestions() {
 }
 
 /** 
- * Remove the suggestions key from sessionStorage entirely — used when the queue is fully processed.
+ * Remove the suggestions key from sessionStorage entirely � used when the queue is fully processed.
 */
 function clearPendingSuggestions() {
     sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
@@ -658,7 +826,7 @@ function ensureAspNetHook() {
     if (_aspNetHooked) return;
     try {
         if (typeof Sys === 'undefined' || !Sys.WebForms) {
-            // ScriptManager not initialized yet — retry shortly
+            // ScriptManager not initialized yet � retry shortly
             setTimeout(ensureAspNetHook, 500);
             return;
         }
@@ -708,21 +876,21 @@ function waitForDomSettle(root, callback, quietMs, maxWaitMs) {
     var observer = null;
     try {
         observer = new MutationObserver(function () {
-            // DOM changed — reset the quiet timer, we're not settled yet
+            // DOM changed � reset the quiet timer, we're not settled yet
             clearTimeout(quietTimer);
             quietTimer = setTimeout(finish, quietMs);
         });
         // Watch the entire subtree for any kind of DOM change
         observer.observe(target, { childList: true, subtree: true, attributes: true, characterData: true });
     } catch (e) {
-        // MutationObserver not supported — proceed immediately
+        // MutationObserver not supported � proceed immediately
         callback();
         return;
     }
 
     // If the DOM is already quiet (no mutations happen at all), fire after quietMs
     quietTimer = setTimeout(finish, quietMs);
-    // Safety net — never wait longer than maxWaitMs regardless of ongoing mutations
+    // Safety net � never wait longer than maxWaitMs regardless of ongoing mutations
     giveUpTimer = setTimeout(finish, maxWaitMs);
 }
 
@@ -759,20 +927,20 @@ function applyNextPendingSuggestion() {
     // Poll until the target element appears in the DOM.
     // After a full page reload, the script runs before ASP.NET has finished rendering all controls,
     // so the element may not exist in the DOM yet. We retry every 150ms for up to ~5 seconds.
-    const maxAttempts = 33; // 33 × 150ms ≈ 5 seconds
+    const maxAttempts = 33; // 33 � 150ms � 5 seconds
     let attempts = 0;
 
     function tryApply() {
         const elements = findFieldElementsByIdentifier(suggestion.id);
         if (elements.length === 0 && attempts < maxAttempts) {
-            // Element not in DOM yet — wait and retry
+            // Element not in DOM yet � wait and retry
             attempts++;
             setTimeout(tryApply, 150);
             return;
         }
 
         if (elements.length === 0) {
-            // Gave up waiting — element never appeared. Skip this field and move to the next.
+            // Gave up waiting � element never appeared. Skip this field and move to the next.
             console.warn(`FormSupport: element not found after retries, skipping id=${suggestion.id}`);
             savePendingSuggestions(remaining);
             if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
@@ -780,14 +948,14 @@ function applyNextPendingSuggestion() {
         }
 
         // Element found in DOM. Now wait for the DOM to fully settle before applying.
-        // ASP.NET UpdatePanels can still be mid-render even after the element appears —
+        // ASP.NET UpdatePanels can still be mid-render even after the element appears �
         // writing a value too early risks it being wiped when the panel finishes updating.
         waitForDomSettle(null, function () {
-            // Re-fetch the element after settling — UpdatePanel re-renders replace DOM nodes,
+            // Re-fetch the element after settling � UpdatePanel re-renders replace DOM nodes,
             // so the reference we had before the settle may now point to a detached element.
             const freshElements = findFieldElementsByIdentifier(suggestion.id);
             if (freshElements.length === 0) {
-                // Element was removed during the panel re-render — skip and continue
+                // Element was removed during the panel re-render � skip and continue
                 console.warn(`FormSupport: element disappeared after DOM settle, skipping id=${suggestion.id}`);
                 savePendingSuggestions(remaining);
                 if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
@@ -801,8 +969,8 @@ function applyNextPendingSuggestion() {
             savePendingSuggestions(remaining);
 
             // Determine if this field type is known to trigger an ASP.NET postback on change.
-            // radio/checkbox/select → ASP.NET wires these to __doPostBack, causing a page reload on change.
-            // string/textarea → no postback by default; we nudge the next field manually after applying.
+            // radio/checkbox/select ? ASP.NET wires these to __doPostBack, causing a page reload on change.
+            // string/textarea ? no postback by default; we nudge the next field manually after applying.
             //
             // NOTE: If a textarea has AutoPostBack="true" set in ASP.NET markup (unusual but possible),
             // it would also trigger a postback and wipe the value we just set. In that case, add 'string'
@@ -817,14 +985,14 @@ function applyNextPendingSuggestion() {
             }
 
             if (!triggersPostback) {
-                // text/textarea — no postback expected, nudge next field after a short settle
+                // text/textarea � no postback expected, nudge next field after a short settle
                 if (remaining.length > 0) {
                     waitForDomSettle(null, applyNextPendingSuggestion);
                 } else {
                     clearPendingSuggestions();
                 }
             } else if (!_aspNetHooked) {
-                // No PageRequestManager available — fixed delay fallback
+                // No PageRequestManager available � fixed delay fallback
                 if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
                 else setTimeout(clearPendingSuggestions, 900);
             }
@@ -961,20 +1129,7 @@ function injectStyles() {
             gap: 12px;
         }
 
-        .wp-chat-welcome {
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .wp-chat-welcome p {
-            margin: 0;
-        }
-            
-        .wp-chat-welcome p {
-            margin: 0 0 12px 0;
-        }
+        ${WELCOME_PANEL_STYLES}
 
         .wp-chat-message {
             display: flex;
@@ -1104,6 +1259,15 @@ function injectStyles() {
             cursor: pointer;
             font-size: 18px;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wp-chat-send-icon {
+            display: block;
+            width: 20px;
+            height: 20px;
         }
 
         .wp-chat-send-ready, .wp-chat-send:hover {
@@ -1163,22 +1327,7 @@ function initBot() {
                 </button>
             </div>
 
-            <div class="wp-chat-messages" id="wp-chat-messages">
-                <div class="wp-chat-welcome">
-                    <div class="wp-chat-welcome">
-                        <p><strong>How I can help</strong></p>
-                        <p>I'm an AI assistant here to support you with your water licence application. 
-                        I can explain terms, clarify what information is needed, and suggest relevant resources based on what you share.
-                        </p>
-                        <p><strong>Disclaimer</strong></p>
-                        <p>I don't provide legal advice and I'm not a substitute for guidance from FrontCounter 
-                        BC staff or qualified professionals. You're responsible for ensuring your submission 
-                        is accurate and complete. Please don't share personal information. 
-                        Your questions may be stored to help improve this service.
-                        By using this assistant, you acknowledge and accept these terms.
-                        </p>
-                    </div>
-                </div>
+            <div class="wp-chat-messages" id="wp-chat-messages">${buildWelcomePanelHtml()}
 
                 <div class="wp-chat-guided-questions" id="wp-chat-guided-questions" aria-live="polite"></div>
             </div>
@@ -1191,8 +1340,10 @@ function initBot() {
 
             <div class="wp-chat-input-container">
                 <textarea class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." rows="1"></textarea>
-                <button class="wp-chat-send" id="wp-chat-send-btn" type="button">
-                <span>➤</span>
+                <button class="wp-chat-send" id="wp-chat-send-btn" type="button" aria-label="Send message" title="Send message">
+                <svg class="wp-chat-send-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false">
+                    <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.996.996 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"></path>
+                </svg>
                 </button>
             </div>
         </div>
@@ -1219,16 +1370,195 @@ function initBot() {
         chatMessages,
         onQuestionClick: handleGuidedQuestionClick
     });
+
+    // The welcome panel ships in the initial markup and is shown only until the
+    // first message exists — either restored history or a newly sent message.
+    const welcomePanel = createWelcomePanel({
+        chatMessages,
+        onChipClick: (query) => {
+            sendMessage(query);
+        }
+    });
+
     saveThreadId(sessionId);
+    /** We need to save the application ID to sessionStorage at the time the assistant initializes because, 
+     * application ID is present in the DOM on the main window but absent in popups. 
+     * */
+    saveApplicationIdtoSessionStorage();
+
     const existingHistory = loadChatHistory(sessionId);
     if (existingHistory.length > 0) {
-        const welcome = chatMessages.querySelector('.wp-chat-welcome');
-        if (welcome) welcome.remove();
-        existingHistory.forEach((entry) => {
+        renderHistoryEntries(existingHistory, false);
+    }
+
+    initWebSocket(sessionId);
+    restoreConversationHistoryFromBackend(existingHistory.length > 0);
+
+    function renderHistoryEntries(historyEntries, persist = false) {
+        if (!Array.isArray(historyEntries) || historyEntries.length === 0) return;
+        welcomePanel.dismiss();
+        historyEntries.forEach((entry) => {
             if (entry && typeof entry.role === 'string') {
-                appendMessage(entry.role, entry.text ?? '', false, false);
+                appendMessage(entry.role, entry.text ?? '', persist, false);
             }
         });
+    }
+
+    async function restoreConversationHistoryFromBackend(hasLocalHistory) {
+        if (hasLocalHistory) return;
+        const serverHistory = await getConversationHistory(sessionId);
+        if (serverHistory.length === 0 || loadChatHistory(sessionId).length > 0) return;
+        renderHistoryEntries(serverHistory, true);
+        requestAnimationFrame(restoreChatScrollPosition);
+    }
+
+    function initWebSocket(currentSessionId) {
+        // Create the browser-to-API-backend WebSocket connection used for chat.
+        // This follows the feature-branch flow, but the URL always targets the
+        // API backend gateway instead of the orchestrator or sub-agents directly.
+        if (socket) {
+            // Clear handlers before closing an older socket so its close/error event
+            // does not affect the new connection or current chat request state.
+            socket.onclose = null;
+            socket.onerror = null;
+            socket.onmessage = null;
+            try {
+                socket.close();
+            } catch (error) {
+                console.warn("[WebSocket] Error closing existing connection", error);
+            }
+        }
+
+        console.log("[WebSocket] Connecting to " + WEBSOCKET_BASE_URL + " with session ID:", currentSessionId);
+        // Keep session_id in the query string just like the feature branch did,
+        // but build the URL through getWebSocketUrl() so ws/wss and encoding stay consistent.
+        socket = new WebSocket(getWebSocketUrl(currentSessionId));
+
+        // Store the open promise so sendMessage() can wait for CONNECTING sockets
+        // instead of falling back to the removed legacy HTTP invoke path.
+        socketOpenPromise = new Promise((resolve, reject) => {
+            socket.onopen = function () {
+                console.log("[WebSocket] Connection established for session:", currentSessionId);
+                resolve(socket);
+            };
+
+            socket.onerror = function () {
+                // If a request is already in flight, fail it immediately so the UI
+                // can clear typing state and restore any pending guided question.
+                const error = new Error("WebSocket error connecting to API backend");
+                console.error("[WebSocket] Error occurred", error);
+                if (requestInFlight) {
+                    handleRequestFailure(error);
+                }
+                reject(error);
+            };
+        });
+
+        socket.onmessage = function (event) {
+            // All assistant responses, session-init system messages, and gateway
+            // errors come back on the same WebSocket connection.
+            console.log(`[WebSocket] Data received:`, event.data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log('ws response: ', data);
+
+                if (data.event === "session_init") {
+                    // When no session_id was supplied in the URL, the API backend
+                    // creates one and sends it here before normal assistant responses.
+                    console.log("[WebSocket] Backend assigned new session ID:", data.session_id);
+                    if (data.session_id && data.session_id !== sessionId) {
+                        // Move any local UI state saved under the temporary session id
+                        // to the backend-assigned session id so refresh/history still works.
+                        migrateChatHistory(sessionId, data.session_id);
+                        migrateChatScrollPosition(sessionId, data.session_id);
+                        sessionId = data.session_id;
+                        restoredScrollTop = loadChatScrollPosition(sessionId);
+                        saveThreadId(sessionId);
+                    }
+                    return;
+                }
+
+                if (data.error) {
+                    // Gateway/orchestrator validation errors are returned as JSON on
+                    // the socket, not as rejected fetch responses.
+                    handleRequestFailure(new Error(String(data.error)));
+                    return;
+                }
+
+                processAssistantResponse(data);
+            } catch (err) {
+                // Malformed JSON from the gateway is treated as a failed request so
+                // the chat UI does not stay disabled or stuck in typing state.
+                handleRequestFailure(err);
+            }
+        };
+
+        socket.onclose = function (event) {
+            console.log("[WebSocket] Connection closed", event.code, event.reason || "");
+            // Clear the open promise so the next send creates a fresh WebSocket.
+            socketOpenPromise = null;
+            if (requestInFlight) {
+                handleRequestFailure(new Error("WebSocket connection closed before the assistant replied."));
+            }
+        };
+    }
+
+    async function ensureWebSocketConnection() {
+        // The old HTTP fallback has been removed. This helper guarantees that
+        // sendMessage() either has an open WebSocket or fails through the normal
+        // request error path.
+        if (socket && socket.readyState === WebSocket.OPEN) return socket;
+        if (socket && socket.readyState === WebSocket.CONNECTING && socketOpenPromise) {
+            // Reuse the pending connection attempt instead of opening duplicates.
+            return socketOpenPromise;
+        }
+        // CLOSED, CLOSING, or missing socket: start a fresh gateway connection.
+        initWebSocket(sessionId);
+        return socketOpenPromise;
+    }
+
+    function handleRequestFailure(error) {
+        // Centralized failure cleanup for socket errors, gateway validation errors,
+        // malformed responses, and unexpected connection closes.
+        requestInFlight = false;
+        restorePendingGuidedQuestion();
+        showTyping(false);
+        appendMessage('system', "Sorry, I encountered an error connecting to the server.");
+        console.error(error);
+    }
+
+    function processAssistantResponse(response) {
+        // Successful response path for normal orchestrator replies over WebSocket.
+        requestInFlight = false;
+        applyFormSupportSuggestionsFromResponse(response);
+        const serverThreadId = extractThreadIdFromResponse(response);
+        if (serverThreadId && serverThreadId !== sessionId) {
+            migrateChatHistory(sessionId, serverThreadId);
+            migrateChatScrollPosition(sessionId, serverThreadId);
+            sessionId = serverThreadId;
+            restoredScrollTop = loadChatScrollPosition(sessionId);
+        }
+        saveThreadId(sessionId);
+        showTyping(false);
+
+        // Convert the backend/orchestrator response into the assistant message array that
+        // will be rendered in the chat, then use that same array to determine whether a
+        // clicked guided question was actually answered.
+        const messages = extractAssistantMessages(response);
+        const hasAssistantReply = hasUsableAssistantReply(messages);
+        if (pendingGuidedQuestion && hasAssistantReply) {
+            // A prompt only becomes permanent once the assistant actually answered it.
+            pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
+        }
+        if (pendingGuidedQuestion && !hasAssistantReply) {
+            // If the request completed but did not return a usable answer, treat the prompt
+            // as unanswered and show it again for the current step.
+            restorePendingGuidedQuestion();
+        }
+        // Finally render the assistant reply messages into the chat window.
+        messages.forEach((msg) =>
+            appendMessage("assistant", msg, true, true),
+        );
     }
 
     function restoreChatScrollPosition() {
@@ -1363,6 +1693,9 @@ function initBot() {
         let text = typeof prefilledText === 'string' ? prefilledText.trim() : chatInput.value.trim();
         if (!text) return;
 
+        // The conversation has started, so the first-open welcome panel is no longer relevant.
+        welcomePanel.dismiss();
+
         // Add the outgoing user message to the chat immediately so the UI updates
         // before the network request completes.
         // placeAfterGuidedQuestions keeps the just-clicked prompt visually below the
@@ -1383,34 +1716,10 @@ function initBot() {
                 text = `Human verification form query : ${text}`;
             }
 
-            const response = await invokeOrchestrator(text, currentStep, sessionId);
-            applyFormSupportSuggestionsFromResponse(response);
-            const serverThreadId = extractThreadIdFromResponse(response);
-            if (serverThreadId && serverThreadId !== sessionId) {
-                migrateChatHistory(sessionId, serverThreadId);
-                migrateChatScrollPosition(sessionId, serverThreadId);
-                sessionId = serverThreadId;
-                restoredScrollTop = loadChatScrollPosition(sessionId);
-            }
-            saveThreadId(sessionId);
-            showTyping(false);
-
-            // Convert the backend/orchestrator response into the assistant message array that
-            // will be rendered in the chat, then use that same array to determine whether a
-            // clicked guided question was actually answered.
-            const messages = extractAssistantMessages(response);
-            const hasAssistantReply = hasUsableAssistantReply(messages);
-            if (pendingGuidedQuestion && hasAssistantReply) {
-                // A prompt only becomes permanent once the assistant actually answered it.
-                pendingGuidedQuestion = completePendingGuidedQuestion(sessionId, pendingGuidedQuestion);
-            }
-            if (pendingGuidedQuestion && !hasAssistantReply) {
-                // If the request completed but did not return a usable answer, treat the prompt
-                // as unanswered and show it again for the current step.
-                restorePendingGuidedQuestion();
-            }
-            // Finally render the assistant reply messages into the chat window.
-            messages.forEach((msg) => appendMessage('assistant', msg));
+            // Always send through WebSocket. The legacy HTTP invoke fallback was
+            // removed so the frontend talks only to the API backend gateway.
+            await ensureWebSocketConnection();
+            invokeAPIWithWS(text, currentStep, sessionId);
 
         } catch (error) {
             // Request-level failure:
@@ -1441,7 +1750,10 @@ function initBot() {
         if (typeof response === 'string') {
             return [response];
         }
-        return [JSON.stringify(response)];
+        // Last resort: the backend should always include an
+        // 'Aggregator'-sourced item, so this should be unreachable in
+        // practice. Never surface the raw response object to the user.
+        return ["Sorry, I wasn't able to process that response. Please try rephrasing your question."];
     }
 
     function appendMessage(role, text, persist = true, scroll = true, options = {}) {
@@ -1479,7 +1791,22 @@ function initBot() {
             appendChatHistory(sessionId, role, String(text));
         }
         if (scroll) {
-            scrollToBottom();
+            // If an assistant or system message was just added, scroll to the last user message so the user sees their own question above the reply.
+            if (role === "assistant" || role === "system") {
+                const matches = chatMessages.querySelectorAll(
+                    ".wp-chat-message-user",
+                );
+                if (matches.length > 0) {
+                    // Scroll to the last user message so the user sees their own question above the assistant reply.
+                    matches[matches.length - 1].scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                    });
+                }
+            } else {
+                // If a user message was just added, scroll to the bottom so the user sees their own message.
+                scrollToBottom();
+            }
         }
     }
 
@@ -1508,7 +1835,7 @@ function initBot() {
             return `\x00PLAINURL${idx}\x00`;
         });
 
-        // Step 3: HTML-escape the remaining text (safe — placeholders use \x00 which won't be escaped)
+        // Step 3: HTML-escape the remaining text (safe � placeholders use \x00 which won't be escaped)
         let formatted = processed
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -1589,26 +1916,34 @@ if (isAIAssistantEnabled) {
         initBot();
     }
 }
-    // Clears chat-related storage from sessionStorage and localStorage.
-    function clearChatStorage() {
-        clearPendingSuggestions();
-        try {
-            localStorage.removeItem(THREAD_ID_STORAGE_KEY);
-            sessionStorage.removeItem(THREAD_ID_STORAGE_KEY);
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (!key) continue;
-                if (key === THREAD_ID_STORAGE_KEY || key.startsWith(CHAT_HISTORY_STORAGE_PREFIX) || key.startsWith(CHAT_SCROLL_STORAGE_PREFIX)) {
-                    keysToRemove.push(key);
-                }
+// Clears chat-related storage from sessionStorage and localStorage.
+function clearChatStorage() {
+    clearPendingSuggestions();
+    try {
+        localStorage.removeItem(THREAD_ID_STORAGE_KEY);
+        sessionStorage.removeItem(THREAD_ID_STORAGE_KEY);
+
+        /**
+         * We do not have to clear the application ID from sessionStorage because, user may
+         * start a new chat session by manually clearing the chat session for the same applicationId.
+         * *  
+         * */
+
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+            if (key === THREAD_ID_STORAGE_KEY || key.startsWith(CHAT_HISTORY_STORAGE_PREFIX) || key.startsWith(CHAT_SCROLL_STORAGE_PREFIX)) {
+                keysToRemove.push(key);
             }
-            keysToRemove.forEach((k) => localStorage.removeItem(k));
-        } catch (e) {
-            console.error('Error clearing chat storage:', e);
         }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch (e) {
+        console.error('Error clearing chat storage:', e);
     }
+}
 //     }
 //     )();
 
 // }
+
