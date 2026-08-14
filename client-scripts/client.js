@@ -63,7 +63,10 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
         // TEST: const API_BACKEND_BASE_URL = 'https://nraif-671b-test-api.ambitiousmeadow-949bd8c6.canadacentral.azurecontainerapps.io';
         // DEV : const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-api.icymushroom-bc5ec66d.canadacentral.azurecontainerapps.io';
         const API_BACKEND_BASE_URL = 'http://localhost:8003';
+        // dev
         // const API_BACKEND_BASE_URL = 'https://nraif-671b-dev-commonservi-api.livelymushroom-b9ecaae0.canadacentral.azurecontainerapps.io';
+        // test
+        // const API_BACKEND_BASE_URL = 'https://nraif-671b-test-api.redground-c9aa9e63.canadacentral.azurecontainerapps.io'
 
         const CONVERSATION_HISTORY_API_URL = new URL(`/tenants/${clientId}/history`, API_BACKEND_BASE_URL).toString();
         // const GUIDED_QUESTIONS_API_URL = new URL(`/tenants/${clientId}/guided-questions`, API_BACKEND_BASE_URL).toString();
@@ -472,7 +475,7 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 composeemailforsignaturerequest: FormSteps.STEP9_CO_APPLICANT_COMPOSE_EMAIL,
                 complete: FormSteps.STEP10_COMPLETE,
                 pubsubmitteraddress: FormSteps.SHARED_ADDRESS,
-                step9signatures: FormSteps.STEP9_CO_APPLICANT_SIGNATURES,   
+                step9signatures: FormSteps.STEP9_CO_APPLICANT_SIGNATURES,
                 editindividual: FormSteps.STEP7_CO_APPLICANT_ADD_AN_INDIVIDUAL,
                 editorganization: FormSteps.STEP7_CO_APPLICANT_ADD_A_BUSINESS_APPLICANT
             };
@@ -663,7 +666,6 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
         function applySuggestionToElements(suggestion, elements) {
             if (!elements || elements.length === 0) return false;
 
-            
             // An empty suggestedvalue means "no suggestion" (e.g. an informational/definitional
             // answer), not "match the option whose value/label is also blank". Without this guard,
             // normalizeComparableValue('') can accidentally match a radio/select option that happens
@@ -671,7 +673,6 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
             if (String(suggestion.suggestedvalue ?? '').trim() === '') {
                 return false;
             }
-
 
             const expected = normalizeComparableValue(suggestion.suggestedvalue);
             const type = String(suggestion.type || '').toLowerCase();
@@ -1232,6 +1233,15 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
             cursor: pointer;
             font-size: 18px;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wp-chat-send-icon {
+            display: block;
+            width: 20px;
+            height: 20px;
         }
 
         .wp-chat-send-ready, .wp-chat-send:hover {
@@ -1319,8 +1329,10 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
 
             <div class="wp-chat-input-container">
                 <textarea class="wp-chat-input" id="wp-chat-input" placeholder="Type your message..." rows="1"></textarea>
-                <button class="wp-chat-send" id="wp-chat-send-btn" type="button">
-                <span>?</span>
+                <button class="wp-chat-send" id="wp-chat-send-btn" type="button" aria-label="Send message" title="Send message">
+                <svg class="wp-chat-send-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false">
+                    <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.996.996 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"></path>
+                </svg>
                 </button>
             </div>
         </div>
@@ -1519,7 +1531,9 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                     restorePendingGuidedQuestion();
                 }
                 // Finally render the assistant reply messages into the chat window.
-                messages.forEach((msg) => appendMessage('assistant', msg));
+                messages.forEach((msg) =>
+                  appendMessage("assistant", msg, true, true),
+                );
             }
 
             function restoreChatScrollPosition() {
@@ -1708,7 +1722,10 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                 if (typeof response === 'string') {
                     return [response];
                 }
-                return [JSON.stringify(response)];
+                // Last resort: the backend should always include an
+                // 'Aggregator'-sourced item, so this should be unreachable in
+                // practice. Never surface the raw response object to the user.
+                return ["Sorry, I wasn't able to process that response. Please try rephrasing your question."];
             }
 
             function appendMessage(role, text, persist = true, scroll = true, options = {}) {
@@ -1746,7 +1763,22 @@ import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuest
                     appendChatHistory(sessionId, role, String(text));
                 }
                 if (scroll) {
+                  // If an assistant or system message was just added, scroll to the last user message so the user sees their own question above the reply.
+                  if (role === "assistant" || role === "system") {
+                    const matches = chatMessages.querySelectorAll(
+                      ".wp-chat-message-user",
+                    );
+                    if (matches.length > 0) {
+                      // Scroll to the last user message so the user sees their own question above the assistant reply.
+                      matches[matches.length - 1].scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
+                  } else {
+                    // If a user message was just added, scroll to the bottom so the user sees their own message.
                     scrollToBottom();
+                  }
                 }
             }
 
