@@ -134,7 +134,7 @@
     "V1PCLStatement1": {
       "type": "radio",
       "id": "V1PCLStatement1",
-      "title": "Do any of the Crown Land occupation criteria apply?",
+      "title": "For any works that cross or otherwise affect (e.g. flood) Crown land, you will require permission. A Permit Over Crown Land (PCL) means an authority issued under the Water Sustainability Act which allows you to construct, maintain, or operate works on Crown land or to flood Crown land. Please answer the following questions to determine whether an authorization to occupy Crown Land will be required with your Water application. If a Permit Over Crown land is required, the applicable fee, if any, will be automatically calculated and added to your application. You should indicate 'Yes' to the following question if any of the following circumstances apply to your application:any of your works will be located on or crossing Crown land, your well is or will be located on Crown Land, you are proposing to flood Crown Land. Do any of the above apply to your application?",
       "description": "Criteria include: works located on/crossing Crown land, well located on Crown land, or proposed flooding of Crown land.",
       "enum": ["Yes", "No"],
       "default": "Yes",
@@ -143,7 +143,7 @@
     "V1PCLStatement2": {
       "type": "radio",
       "id": "V1PCLStatement2",
-      "title": "Do any Land Act tenure criteria apply?",
+      "title": "For certain activities or works a Land Act tenure is required. You should indicate 'Yes' to the following question if any one of the following conditions apply to the proposed use of Crown land:the purpose for the use of water is either 'Power Commercial' or 'Power General' based on the Water Use Purpose definitions;any of the works are consider major works (meaning for conveyance of 0.01 m3/s or more, for waterworks purpose or industrial purpose);your works include a dam higher than 9 metres or storage greater than 1,000,000 m3; or your works include a permanent access road, a power house, or transmission lines. Do any of the above apply to your application?",
       "description": "Criteria include: Power purposes, major works (conveyance > 0.01 m3/s), dams > 9m, storage > 1,000,000 m3, or permanent roads/transmission lines.",
       "enum": ["Yes", "No"],
       "default": "No",

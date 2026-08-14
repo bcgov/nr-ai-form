@@ -69,3 +69,12 @@ User: "My mines act permit number is 1234567. My application relates to the amen
   {"id": "major-mine-amendment", "description": "Is this application related to a current or upcoming Mines Act Amendment Project?", "suggestedvalue": "Yes", "type": "dropdown"}
 ]
 ```
+
+User: "We're filming a Hollywood movie and are building a set for the shoot." — three fields are determinable, return an array:
+```json
+[
+  {"id": "film-related", "description": "Is the project a major production (movie or tv series)?", "suggestedvalue": "Yes", "type": "dropdown"},
+  {"id": "film-scale", "description": "Is the project an independent film, documentary or small-scale production?", "suggestedvalue": "No", "type": "dropdown"},
+  {"id": "film-commercial", "description": "Is the project a television commercial?", "suggestedvalue": "No", "type": "dropdown"}
+]
+```
