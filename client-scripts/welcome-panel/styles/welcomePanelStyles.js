@@ -42,6 +42,7 @@ export const WELCOME_PANEL_STYLES = `
            Declared on the widget root so both the panel and its host container can
            read them, and on the panel itself so it still themes correctly when
            reused outside the chat modal. */
+        .wp-chat-button,
         .wp-chat-modal,
         .wp-welcome-panel {
             --wp-welcome-surface: #FFFFFF;
@@ -49,6 +50,7 @@ export const WELCOME_PANEL_STYLES = `
             --wp-welcome-card-border: #F2F2F2;
             --wp-welcome-text: #474D53;
             --wp-welcome-accent: #1A5A96;
+            --wp-welcome-user-bubble-bg: #D9EAF7;
             --wp-welcome-chip-bg: #F7F8FA;
             --wp-welcome-chip-border: #1A5A96;
             --wp-welcome-chip-text: #313132;
@@ -62,22 +64,20 @@ export const WELCOME_PANEL_STYLES = `
             --wp-welcome-radius: 4px;
         }
 
-        /* 1. Container (outer frame) ------------------------------------------- */
+        /* 1. Container (outer frame) -------------------------------------------
+           The panel is a plain flex item in the message list: the list already
+           supplies the white surface and the 16px frame padding, so adding either
+           here would double them. Its only job is to space the card from the chips
+           by the same 12px the list uses between messages. */
         .wp-welcome-panel {
             display: flex;
             flex-direction: column;
             gap: var(--wp-welcome-gap);
-            padding: var(--wp-welcome-padding);
-            background: var(--wp-welcome-surface);
+            padding: 0;
+            background: transparent;
             border-radius: 0;
             box-sizing: border-box;
             font-family: var(--wp-welcome-font);
-        }
-
-        /* While the welcome panel is the only content, the message list adopts the
-           panel surface so the card and chips sit on white instead of the chat grey. */
-        .wp-chat-messages.wp-chat-messages-welcome {
-            background: var(--wp-welcome-surface);
         }
 
         /* 2. Message card -------------------------------------------------------- */
@@ -123,59 +123,6 @@ export const WELCOME_PANEL_STYLES = `
             height: 12px;
             flex-shrink: 0;
             fill: currentColor;
-        }
-
-        /* 2b. Card-styled chat bubble --------------------------------------------
-           A chat message answered locally by a welcome chip, dressed as the card
-           above so the canned copy reads as part of the same panel rather than as a
-           normal assistant reply. Applied by client.js via the 'welcome-card' bubble
-           variant (see WELCOME_CARD_BUBBLE_VARIANT).
-
-           The tokens resolve because .wp-chat-modal declares them too, so this works
-           outside .wp-welcome-panel. Specificity beats the plain assistant-bubble
-           rule in client.js regardless of which stylesheet block comes first. */
-        .wp-chat-message-assistant .wp-chat-bubble.wp-chat-bubble-welcome-card {
-            display: flex;
-            flex-direction: column;
-            /* Same column-with-gap construction as .wp-welcome-card, so sections sit
-               apart by exactly the spacing the panel uses. */
-            gap: 8px;
-            max-width: 100%;
-            padding: 10px;
-            background: var(--wp-welcome-card-bg);
-            border: 1px solid var(--wp-welcome-card-border);
-            border-radius: var(--wp-welcome-radius);
-            box-shadow: none;
-            color: var(--wp-welcome-text);
-            font-family: var(--wp-welcome-font);
-            font-size: var(--wp-welcome-font-size);
-            line-height: var(--wp-welcome-line-height);
-        }
-
-        /* Inline links in the copy pick up the panel's accent and underline rather
-           than the browser default, matching .wp-welcome-link. */
-        .wp-chat-bubble-welcome-card a {
-            color: var(--wp-welcome-accent);
-            text-decoration: underline;
-        }
-
-        /* One section of card copy - a heading plus its paragraphs or list. Sections
-           are the bubble's flex children, so the 8px gap above separates them while
-           lines inside a section stay tight together, mirroring .wp-welcome-section. */
-        .wp-chat-bubble-welcome-card .wp-welcome-card-block p {
-            margin: 0;
-        }
-
-        /* The <ul> is what renders the bullet glyphs; the copy itself holds no
-           bullet characters. Doubled class beats the generic .wp-chat-bubble ul/li
-           rules in client.js, which would otherwise win on source order. */
-        .wp-chat-bubble.wp-chat-bubble-welcome-card ul {
-            margin: 4px 0 0;
-            padding-left: 20px;
-        }
-
-        .wp-chat-bubble.wp-chat-bubble-welcome-card li {
-            margin: 4px 0;
         }
 
         /* 3. Option buttons (chips) --------------------------------------------- */
