@@ -52,6 +52,18 @@ class Settings(BaseSettings):
         validation_alias="BACKEND_API_URL",
     )
     backend_api_timeout: int = Field(default=30, validation_alias="BACKEND_API_TIMEOUT")
+    backend_client_id: str = Field(
+        default="11111111-1111-4111-8111-111111111111",
+        validation_alias="BACKEND_CLIENT_ID",
+    )
+    backend_application_id: int = Field(
+        default=234554,
+        validation_alias="BACKEND_APPLICATION_ID",
+    )
+    backend_step_number: str = Field(
+        default="step2-Eligibility",
+        validation_alias="BACKEND_STEP_NUMBER",
+    )
 
     # Evaluation Configuration
     evaluation_run_name: str = Field(

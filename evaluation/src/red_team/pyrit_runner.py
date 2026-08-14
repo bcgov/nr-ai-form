@@ -15,6 +15,7 @@ import structlog
 from src.config import settings
 from src.red_team.custom_backend_target import CustomBackendTarget
 from src.red_team.crescendo_step_capture import CrescendoMemoryTracer
+from src.red_team.custom_backend_target import BACKEND_META_MARKER
 
 logger = structlog.get_logger(__name__)
 
@@ -130,11 +131,13 @@ class PyRITRunner:
             if role == "user":
                 user_message = content
             elif role == "assistant" and user_message:
+                response_text, backend_meta = PyRITRunner._split_response_and_backend_meta(str(content))
                 turns.append(
                     {
                         "prompt": str(user_message)[:500],
-                        "response": str(content)[:500],
+                        "response": response_text[:500],
                         "outcome": str(outcome),
+                        **backend_meta,
                     }
                 )
                 user_message = None
@@ -149,11 +152,14 @@ class PyRITRunner:
         if last_response:
             response_text = getattr(last_response, "converted_value", "") or getattr(last_response, "original_value", "")
 
+        parsed_response_text, backend_meta = PyRITRunner._split_response_and_backend_meta(str(response_text))
+
         turn_data = {
             "prompt": str(objective)[:500],
-            "response": str(response_text)[:500],
+            "response": parsed_response_text[:500],
             "outcome": str(outcome),
             "turns_executed": executed_turns,
+            **backend_meta,
         }
 
         response_text_str = str(response_text)
@@ -177,6 +183,23 @@ class PyRITRunner:
         return turn_data
 
     @staticmethod
+    def _split_response_and_backend_meta(response_text: str) -> tuple[str, Dict[str, Any]]:
+        if BACKEND_META_MARKER not in response_text:
+            return response_text, {}
+
+        base_text, _, raw_meta = response_text.partition(BACKEND_META_MARKER)
+        try:
+            parsed = json.loads(raw_meta.strip()) if raw_meta.strip() else {}
+            meta: Dict[str, Any] = {}
+            for key in ("thread_id", "session_id", "category", "source"):
+                value = parsed.get(key)
+                if isinstance(value, str) and value:
+                    meta[key] = value
+            return base_text.strip(), meta
+        except Exception:
+            return base_text.strip(), {}
+
+    @staticmethod
     def _get_memory_if_available() -> Any:
         from pyrit.memory.central_memory import CentralMemory
 
@@ -197,7 +220,9 @@ class PyRITRunner:
             return CustomBackendTarget(
                 endpoint=backend_url,
                 session_id=None,
-                step_number=2,
+                step_number=settings.backend_step_number,
+                client_id=settings.backend_client_id,
+                application_id=settings.backend_application_id,
             )
 
         from pyrit.prompt_target import OpenAIChatTarget
@@ -287,7 +312,9 @@ class PyRITRunner:
             objective_target = CustomBackendTarget(
                 endpoint=backend_url,
                 session_id=None,
-                step_number=2,
+                step_number=settings.backend_step_number,
+                client_id=settings.backend_client_id,
+                application_id=settings.backend_application_id,
             )
             attack_config = AttackScoringConfig(
                 objective_scorer=None,
@@ -406,7 +433,7 @@ class PyRITRunner:
         """Initialize PyRIT framework."""
         try:
             from pyrit.setup import initialize_pyrit_async
-            from pyrit.setup.initializers import SimpleInitializer
+            from pyrit.setup.initializers import TargetInitializer
             
             # Set environment variables for PyRIT
             # SimpleInitializer requires OPENAI_CHAT_ENDPOINT, OPENAI_CHAT_KEY, and OPENAI_CHAT_MODEL
@@ -421,10 +448,16 @@ class PyRITRunner:
                 os.environ["AZURE_OPENAI_API_KEY"] = settings.azure_openai_api_key
             
             logger.info("initializing_pyrit")
-            await initialize_pyrit_async(
-                memory_db_type="InMemory",
-                initializers=[SimpleInitializer()],
-            )
+            try:
+                # PyRIT >= 0.10 removed SimpleInitializer; TargetInitializer is the
+                # compatible replacement for registering env-driven targets.
+                await initialize_pyrit_async(
+                    memory_db_type="InMemory",
+                    initializers=[TargetInitializer()],
+                )
+            except TypeError:
+                # Fallback for older/newer API variants: initialize core memory only.
+                await initialize_pyrit_async(memory_db_type="InMemory")
             logger.info("pyrit_initialized")
         except Exception as e:
             logger.error("pyrit_initialization_failed", error=str(e))
@@ -523,7 +556,9 @@ class PyRITRunner:
                 objective_target = CustomBackendTarget(
                     endpoint=backend_url,
                     session_id=None,  # Will be auto-generated
-                    step_number=2,
+                    step_number=settings.backend_step_number,
+                    client_id=settings.backend_client_id,
+                    application_id=settings.backend_application_id,
                 )
                 
                 # When using custom backend, disable scoring since it won't have API access
@@ -650,7 +685,9 @@ class PyRITRunner:
                 objective_target = CustomBackendTarget(
                     endpoint=backend_url,
                     session_id=None,  # Will be auto-generated
-                    step_number=2,
+                    step_number=settings.backend_step_number,
+                    client_id=settings.backend_client_id,
+                    application_id=settings.backend_application_id,
                 )
                 
                 # When using custom backend, disable scoring since it won't have API access
