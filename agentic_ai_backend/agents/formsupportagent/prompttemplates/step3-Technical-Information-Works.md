@@ -59,7 +59,24 @@ User: "I am planning a dugout that will be 15 metres long, 10 metres wide, and 3
 [
   {"id": "Selected_Dugout", "description": "A dugout is an excavation in the ground that holds water. Provide length, width and depth in the comments.", "suggestedvalue": "Y", "type": "checkbox"},
   {"id": "Status_Dugout", "description": "Construction status of the dugout.", "suggestedvalue": "Not Constructed", "type": "dropdown"},
-  {"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "15 metres long, 10 metres wide, and 3 metres deep.", "type": "textarea"}
+  {"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "The dugout to be constructed is 15 metres long, 10 metres wide, and 3 metres deep.", "type": "textarea"}
 ]
+```
+
+User: "I am planning to build 2 dams on my land to support water storage during summer. Also, what is a diversion channel? Do I need it?" — Only two fields related to the dam are determinable. The rest of the question is open ended and hence you cannot make suggestions on them. Return an array:
+
+```json
+[
+  {"id": "Selected_Dam", "description": "A dam is any barrier that impounds water.", "suggestedvalue": "Y", "type": "checkbox"},
+  {"id": "Status_Dam", "description": "Construction status of the dam.", "suggestedvalue": "Not Constructed", "type": "dropdown"},
+  {"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "The applicant is planning to build 2 dams to support water storage during summer.", "type": "textarea"}
+]
+```
+
+
+User: "I don't have any works." / "None of these apply to me." — return a single object:
+
+```json
+{"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "The applicant does not have any works to be highlighted in their application.", "type": "textarea"}
 ```
 
