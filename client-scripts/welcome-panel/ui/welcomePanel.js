@@ -1,13 +1,27 @@
 /**
- * First-open welcome panel.
+ * Welcome panel.
  *
- * Rendered inside `.wp-chat-messages` whenever the bot opens with no chat history.
+ * Rendered inside `.wp-chat-messages` as the first item in the list and kept there
+ * for the life of the conversation - the guidance (what the assistant does, the
+ * accuracy caveat, the privacy warning) stays relevant after the chat starts, and
+ * the starter chips stay clickable. Messages are appended below it, so it scrolls
+ * out of view naturally as the conversation grows.
+ *
+ * What does change once messages exist is the surface: the message list only wears
+ * the white welcome background while the panel is the sole content. See syncSurface.
+ *
  * It is content-driven: pass a different `content` object to reuse the same markup
  * and styles for another product or another set of starter chips.
- *
- * The root keeps the legacy `wp-chat-welcome` class because client.js removes the
- * welcome block by that selector once history is rendered.
  */
+
+/**
+ * Bubble variant that dresses a chat message as a welcome-panel card.
+ *
+ * client.js turns this into the class `wp-chat-bubble-welcome-card`; the matching
+ * rules live in welcomePanelStyles.js next to the card they copy, so the two cannot
+ * drift apart.
+ */
+export const WELCOME_CARD_BUBBLE_VARIANT = 'welcome-card';
 
 /** Default copy + chips. Override any field by passing your own object through. */
 export const WELCOME_PANEL_CONTENT = {
@@ -25,15 +39,74 @@ export const WELCOME_PANEL_CONTENT = {
             body: 'Do not enter personal information (e.g. Social Insurance Number, financial details). Questions may be used to improve the service.'
         }
     ],
-    link: {
-        label: 'Learn more',
-        href: 'https://www2.gov.bc.ca/gov/content/industry/natural-resource-use/natural-resource-permits'
-    },
-    // `query` is what gets sent to the assistant; `label` is what the chip shows.
+    // No `link` here on purpose - the panel renders one only when content supplies it.
+    /**
+     * Chip options.
+     *
+     * - `label`    what the chip shows, and what the outgoing user bubble reads.
+     * - `query`    sent to the assistant when the chip has no `response`.
+     * - `response` optional canned answer. When present the chip is answered locally
+     *              and `query` is never sent. Use this for fixed product copy that
+     *              must read the same every time - a round trip would risk the
+     *              assistant rewording it, and there is nothing to look up.
+     * - `variant`  optional bubble style for that answer. Omit for a normal reply.
+     *
+     * `response` is rendered through the chat's own formatMessage(), so it takes the
+     * same Markdown subset as any assistant reply: **bold**, [text](url), blank lines
+     * between paragraphs. A leading **bold** line becomes the card heading under the
+     * welcome-card variant, which is why it is joined to its paragraph with a single
+     * newline - see the `strong + br` rule in welcomePanelStyles.js.
+     */
     chips: [
-        { label: 'About Form Helper', query: 'What is the Form Helper and what can it do for me?' },
-        { label: 'Data Privacy', query: 'How is the information I enter into this assistant used and protected?' },
-        { label: 'Tips', query: 'What tips do you have for completing this application?' }
+        {
+            label: 'About Form Helper',
+            query: 'What is the Form Helper and what can it do for me?',
+            variant: WELCOME_CARD_BUBBLE_VARIANT,
+            response: [
+                '**About Form Helper**\nForm Helper provides plain-language explanations and guidance to help you understand questions and prepare information for a new water licence application.',
+                'It is designed to support surface water livestock and animal and irrigation applications. Guidance for other application types may be limited.',
+                'Form Helper supports understanding and drafting only. You are responsible for reviewing and confirming that your application information is accurate and complete.'
+            ].join('\n\n')
+        },
+        {
+            label: 'Data Privacy',
+            query: 'How is the information I enter into this assistant used and protected?',
+            variant: WELCOME_CARD_BUBBLE_VARIANT,
+            response: [
+                '**How is your data handled**\n[Form Helper] uses the information you enter only to provide guidance during your current session. Your chat session ends when your form session ends, and [Form Helper] does not store or reuse your personal information.',
+                'Any technical data collected by [Form Helper] (e.g. browser type or questions asked) is handled under the [Freedom of Information and Protection of Privacy Act](https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/96165_00) (FOIPPA). To learn more about how the Province protects your privacy, visit the [B.C. Government Website Privacy Statement](https://www2.gov.bc.ca/gov/content/home/privacy).'
+            ].join('\n\n')
+        },
+        {
+            label: 'Tips',
+            query: 'What tips do you have for completing this application?',
+            variant: WELCOME_CARD_BUBBLE_VARIANT,
+            // Stored as plain newline-separated lines; the leading "- " marks a list
+            // item and the renderer groups runs of them into a <ul>, so the bullet
+            // glyphs come from real list markup rather than characters in the copy.
+            response: [
+                [
+                    '**Tips for using Form Helper**',
+                    "- Ask questions related to the step you're on",
+                    "- Describe what you're planning to do in your own words",
+                    '- Share details such as water source, purpose, and timing',
+                    '- Ask complete and specific questions about the application form',
+                    '- Include all relevant information in your message rather than splitting information across multiple questions'
+                ].join('\n'),
+                [
+                    '**What Form Helper can do**',
+                    '- Explain water licence terms and questions',
+                    '- Help draft your water use plan for review',
+                    '- Support pilot scenarios, including surface water livestock and animal watering, with basic calculations'
+                ].join('\n'),
+                [
+                    '**What Form Helper does not do**',
+                    '- Decide whether your application will be approved',
+                    '- Give a definite answer about eligibility or outcomes',
+                    '- Submit your application or replace ministry review or professional advice'
+                ].join('\n')
+            ].join('\n\n')
+        }
     ]
 };
 
@@ -71,9 +144,11 @@ export function buildWelcomePanelHtml(content = WELCOME_PANEL_CONTENT) {
                         </p>`
         : '';
 
+    // The index lets the click handler recover the whole chip object (including any
+    // multi-paragraph `response`) instead of round-tripping it through an attribute.
     const chips = (content.chips || [])
-        .map((chip) => `
-                        <button class="wp-welcome-chip" type="button" data-wp-welcome-query="${escapeHtml(chip.query || chip.label)}">${escapeHtml(chip.label)}</button>`)
+        .map((chip, index) => `
+                        <button class="wp-welcome-chip" type="button" data-wp-welcome-index="${index}" data-wp-welcome-query="${escapeHtml(chip.query || chip.label)}">${escapeHtml(chip.label)}</button>`)
         .join('');
 
     return `
@@ -86,25 +161,43 @@ export function buildWelcomePanelHtml(content = WELCOME_PANEL_CONTENT) {
 }
 
 /**
- * Bind chip clicks and expose dismissal.
+ * Bind chip clicks and expose surface syncing.
+ *
+ * `content` must be the same object that was passed to buildWelcomePanelHtml(): chips
+ * are matched back to it by their rendered position, so a mismatched list would hand
+ * the wrong chip to onChipClick.
  *
  * @param {object} options
  * @param {HTMLElement} options.chatMessages - the `.wp-chat-messages` scroll container
- * @param {(query: string, label: string) => void} options.onChipClick
- * @returns {{ isVisible: () => boolean, dismiss: () => void }}
+ * @param {(query: string, label: string, chip: object|null) => void} options.onChipClick
+ * @param {object} [options.content] - the content object the panel was built from
+ * @returns {{ isVisible: () => boolean, syncSurface: () => void, dismiss: () => void }}
  */
-export function createWelcomePanel({ chatMessages, onChipClick }) {
+export function createWelcomePanel({ chatMessages, onChipClick, content = WELCOME_PANEL_CONTENT }) {
     function getPanel() {
         return chatMessages ? chatMessages.querySelector(WELCOME_PANEL_SELECTOR) : null;
     }
 
+    /**
+     * Repaint the message list for the current content.
+     *
+     * The panel itself is never removed, so this cannot key off its presence alone:
+     * the white surface is for the empty state only. Once the first message lands,
+     * the list returns to the normal chat grey and the panel keeps its own white
+     * background, reading as the first card in the thread.
+     *
+     * Call this after appending or removing messages.
+     */
     function syncSurface() {
         if (!chatMessages) return;
-        // Only paint the message list white while the welcome panel is the sole content;
-        // once a conversation starts the list returns to the normal chat background.
-        chatMessages.classList.toggle('wp-chat-messages-welcome', Boolean(getPanel()));
+        const hasMessages = Boolean(chatMessages.querySelector('.wp-chat-message'));
+        chatMessages.classList.toggle('wp-chat-messages-welcome', Boolean(getPanel()) && !hasMessages);
     }
 
+    /**
+     * Remove the panel outright. Not part of the normal message flow any more -
+     * kept for callers that need to reclaim the space (e.g. a compact layout).
+     */
     function dismiss() {
         const panel = getPanel();
         if (panel) panel.remove();
@@ -113,9 +206,11 @@ export function createWelcomePanel({ chatMessages, onChipClick }) {
 
     const panel = getPanel();
     if (panel && typeof onChipClick === 'function') {
-        panel.querySelectorAll('.wp-welcome-chip').forEach((chip) => {
-            chip.addEventListener('click', () => {
-                onChipClick(chip.dataset.wpWelcomeQuery || chip.textContent.trim(), chip.textContent.trim());
+        panel.querySelectorAll('.wp-welcome-chip').forEach((chipElement) => {
+            chipElement.addEventListener('click', () => {
+                const label = chipElement.textContent.trim();
+                const chip = (content.chips || [])[Number(chipElement.dataset.wpWelcomeIndex)] || null;
+                onChipClick(chipElement.dataset.wpWelcomeQuery || label, label, chip);
             });
         });
     }
@@ -123,6 +218,7 @@ export function createWelcomePanel({ chatMessages, onChipClick }) {
 
     return {
         isVisible: () => Boolean(getPanel()),
+        syncSurface,
         dismiss
     };
 }
