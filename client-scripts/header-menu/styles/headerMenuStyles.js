@@ -17,6 +17,8 @@ export const HEADER_MENU_STYLES = `
             display: flex;
         }
 
+        /* Shared shape for the icon buttons in the header (expand, menu). */
+        .wp-chat-header-button,
         .wp-chat-menu-button {
             display: flex;
             align-items: center;
@@ -30,11 +32,23 @@ export const HEADER_MENU_STYLES = `
             cursor: pointer;
         }
 
+        .wp-chat-header-icon,
         .wp-chat-menu-icon {
             display: block;
             width: 20px;
             height: 20px;
             fill: currentColor;
+        }
+
+        /* The toggle carries both icons and the window's own state decides which one
+           shows, so the button cannot end up disagreeing with the window. */
+        .wp-chat-icon-contract,
+        .wp-chat-modal-expanded .wp-chat-icon-expand {
+            display: none;
+        }
+
+        .wp-chat-modal-expanded .wp-chat-icon-contract {
+            display: block;
         }
 
         /* 2. Dropdown -----------------------------------------------------------

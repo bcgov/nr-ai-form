@@ -10,11 +10,10 @@
 /** Default copy. Pass your own object to reuse the dialog for another action. */
 export const DELETE_CHAT_DIALOG_CONTENT = {
     title: 'Delete chat',
-    // Rendered as two lines, matching the design.
-    lines: [
-        'This will delete the messages in this conversation.',
-        "Your application and form progress won't be affected."
-    ],
+    // One flowing paragraph, not two lines with a hard break. At the design's 504px
+    // each sentence happens to fill a line, but the dialog is narrower inside this
+    // modal - a hard break there would wrap both halves and read as two paragraphs.
+    description: "This will delete the messages in this conversation. Your application and form progress won't be affected.",
     confirmLabel: 'Delete Chat',
     cancelLabel: 'Cancel'
 };
@@ -30,14 +29,12 @@ function escapeHtml(value) {
 
 /** Build the overlay + dialog markup for inlining into the modal template. */
 export function buildDeleteChatDialogHtml(content = DELETE_CHAT_DIALOG_CONTENT) {
-    const lines = (content.lines || []).map(escapeHtml).join('<br>');
-
     return `
             <div class="wp-chat-dialog-overlay" id="wp-chat-delete-overlay">
                 <div class="wp-chat-dialog" role="dialog" aria-modal="true" aria-labelledby="wp-chat-delete-title">
                     <div>
                         <h2 class="wp-chat-dialog-title" id="wp-chat-delete-title">${escapeHtml(content.title)}</h2>
-                        <p class="wp-chat-dialog-text">${lines}</p>
+                        <p class="wp-chat-dialog-text">${escapeHtml(content.description)}</p>
                     </div>
                     <div class="wp-chat-dialog-actions">
                         <button class="wp-chat-dialog-button wp-chat-dialog-confirm" id="wp-chat-delete-confirm" type="button">${escapeHtml(content.confirmLabel)}</button>
