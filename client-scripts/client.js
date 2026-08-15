@@ -15,6 +15,7 @@ import { buildWelcomePanelHtml, createWelcomePanel, WELCOME_PANEL_CONTENT } from
 import { HEADER_MENU_STYLES } from '../client-scripts/header-menu/styles/headerMenuStyles.js';
 import { buildHeaderMenuHtml, createHeaderMenu, DELETE_CHAT_MENU_ID } from '../client-scripts/header-menu/ui/headerMenu.js';
 import { buildDeleteChatDialogHtml, createDeleteChatDialog } from '../client-scripts/header-menu/ui/deleteChatDialog.js';
+import { buildExpandToggleHtml, createExpandToggle } from '../client-scripts/header-menu/ui/expandToggle.js';
 
 // /**
 //  * Allow testing of alternative javascript
@@ -1078,6 +1079,16 @@ function injectStyles() {
             display: flex;
         }
 
+        /* Expanded window. The bottom and right offsets are untouched, so the window
+           grows up and to the left; 60px of height is given back as the 40px gap the
+           design leaves at the top plus the existing 20px at the bottom. !important
+           mirrors the base rule, which needs it to beat the host page's own styles.
+           The max-width/max-height above still cap this on small viewports. */
+        .wp-chat-modal.wp-chat-modal-expanded {
+            width: 680px!important;
+            height: calc(100vh - 60px)!important;
+        }
+
         .wp-chat-header {
             padding: 16px 20px;
             background: #003366;
@@ -1346,14 +1357,23 @@ function injectStyles() {
         }
 
         @media (max-width: 768px) {
-            .wp-chat-modal {
+            /* The window is already full-screen here, so there is nothing to expand
+               into. The expanded selector is repeated with !important purely to
+               outrank the expanded rule above, which needs !important of its own. */
+            .wp-chat-modal,
+            .wp-chat-modal.wp-chat-modal-expanded {
                 bottom: 0;
                 right: 0;
-                width: 100%;
-                height: 100%;
+                width: 100%!important;
+                height: 100%!important;
                 max-width: 100%;
                 max-height: 100%;
                 border-radius: 0;
+            }
+
+            /* Nothing to toggle at this size. */
+            .wp-chat-expand-button {
+                display: none;
             }
 
             .wp-chat-header {
@@ -1398,7 +1418,7 @@ function initBot() {
                     />
                     <span>AI Assistant</span>
                 </div>
-                <div class="wp-chat-header-actions">${buildHeaderMenuHtml(menuItems)}
+                <div class="wp-chat-header-actions">${buildExpandToggleHtml()}${buildHeaderMenuHtml(menuItems)}
                     <button class="wp-chat-close" id="wp-chat-close" type="button">
                         &times;
                     </button>
@@ -1464,6 +1484,10 @@ ${buildDeleteChatDialogHtml()}
             sendMessage(query);
         }
     });
+
+    // The window keeps whatever size the user chose for as long as the page lives,
+    // including across close/reopen, so nothing here needs the returned handle.
+    createExpandToggle({ root: chatModal, modal: chatModal });
 
     const deleteChatDialog = createDeleteChatDialog({
         root: chatModal,
