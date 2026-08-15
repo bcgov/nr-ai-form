@@ -11,7 +11,10 @@ import {
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
 import { WELCOME_PANEL_STYLES } from '../client-scripts/welcome-panel/styles/welcomePanelStyles.js';
-import { buildWelcomePanelHtml, createWelcomePanel } from '../client-scripts/welcome-panel/ui/welcomePanel.js';
+import { buildWelcomePanelHtml, createWelcomePanel, WELCOME_PANEL_CONTENT } from '../client-scripts/welcome-panel/ui/welcomePanel.js';
+import { HEADER_MENU_STYLES } from '../client-scripts/header-menu/styles/headerMenuStyles.js';
+import { buildHeaderMenuHtml, createHeaderMenu, DELETE_CHAT_MENU_ID } from '../client-scripts/header-menu/ui/headerMenu.js';
+import { buildDeleteChatDialogHtml, createDeleteChatDialog } from '../client-scripts/header-menu/ui/deleteChatDialog.js';
 
 // /**
 //  * Allow testing of alternative javascript
@@ -1106,6 +1109,12 @@ function injectStyles() {
             flex-shrink: 0;
         }
 
+        .wp-chat-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .wp-chat-close {
             background: none;
             border: none;
@@ -1201,6 +1210,17 @@ function injectStyles() {
             text-decoration: underline;
         }
 
+        /* The same ExtJS reset that flattens list markers also lists strong among
+           the elements it forces back to normal weight, so a heading rendered from
+           **bold** arrives unstyled unless the weight is restated here. Matches
+           .wp-welcome-heading, which sets its weight explicitly for that reason.
+           (The reset clears font-style on em too - worth restating the same way if
+           italics ever start appearing in replies.) */
+        .wp-chat-bubble strong,
+        .wp-chat-bubble b {
+            font-weight: 700;
+        }
+
         /* One section of a reply - a heading with its paragraphs or list. Sections
            are the bubble's flex children, so the gap above separates them while
            lines within one stay tight, mirroring .wp-welcome-section. */
@@ -1208,14 +1228,23 @@ function injectStyles() {
             margin: 0;
         }
 
-        /* The <ul> draws the bullet glyphs; no bullet characters live in the text. */
+        /* The <ul> draws the bullet glyphs; no bullet characters live in the text.
+           The host form loads ExtJS, whose stylesheet carries a bare element-level
+           reset setting list-style to none on every li. Inheriting the marker from
+           the ul is not enough to beat a rule that targets li directly, so both the
+           list and the item restate it - these selectors outrank a bare element
+           selector. display: list-item guards against a host reset that would
+           otherwise flatten items to blocks. */
         .wp-chat-bubble ul {
             margin: 4px 0 0;
             padding-left: 20px;
+            list-style: disc outside;
         }
 
         .wp-chat-bubble li {
             margin: 4px 0;
+            display: list-item;
+            list-style: disc outside;
         }
 
         .wp-chat-typing {
@@ -1224,6 +1253,8 @@ function injectStyles() {
             gap: 10px;
             align-items: center;
         }
+
+        ${HEADER_MENU_STYLES}
 
         ${GUIDED_QUESTIONS_STYLES}
 
@@ -1343,6 +1374,17 @@ function initBot() {
         return;
     }
 
+    // Menu rows that answer a question are the welcome chips, in the order the menu
+    // design lists them. Looking them up by id keeps the two views of the same copy
+    // in step - relabel a chip and the menu row relabels with it.
+    const menuChips = ['tips', 'about', 'privacy']
+        .map((id) => (WELCOME_PANEL_CONTENT.chips || []).find((chip) => chip.id === id))
+        .filter(Boolean);
+    const menuItems = [
+        ...menuChips.map((chip) => ({ id: chip.id, label: chip.label })),
+        { id: DELETE_CHAT_MENU_ID, label: 'Delete chat' }
+    ];
+
     const container = document.createElement('div');
     container.innerHTML = `
         <button class="wp-chat-button" id="wp-chat-button">Assistant</button>
@@ -1356,9 +1398,11 @@ function initBot() {
                     />
                     <span>AI Assistant</span>
                 </div>
-                <button class="wp-chat-close" id="wp-chat-close" type="button">
-                    &times;
-                </button>
+                <div class="wp-chat-header-actions">${buildHeaderMenuHtml(menuItems)}
+                    <button class="wp-chat-close" id="wp-chat-close" type="button">
+                        &times;
+                    </button>
+                </div>
             </div>
 
             <div class="wp-chat-messages" id="wp-chat-messages">${buildWelcomePanelHtml()}
@@ -1380,6 +1424,7 @@ function initBot() {
                 </svg>
                 </button>
             </div>
+${buildDeleteChatDialogHtml()}
         </div>
     `;
     document.body.appendChild(container);
@@ -1420,8 +1465,55 @@ function initBot() {
         }
     });
 
+    const deleteChatDialog = createDeleteChatDialog({
+        root: chatModal,
+        onConfirm: deleteChat
+    });
+
+    createHeaderMenu({
+        root: chatModal,
+        onSelect: (id) => {
+            if (id === DELETE_CHAT_MENU_ID) {
+                deleteChatDialog.open();
+                return;
+            }
+            // Everything else is a welcome chip reached by a different route, so it
+            // takes the same path a chip click takes.
+            const chip = menuChips.find((item) => item.id === id);
+            if (!chip) return;
+            if (chip.response) appendChipReply(chip.label, chip.response);
+            else sendMessage(chip.query);
+        }
+    });
+
+    /**
+     * Wipe the conversation and start a fresh one.
+     *
+     * Storage is cleared by the same clearChatStorage() used when a brand new browser
+     * session is detected, so there is one definition of what "chat state" means.
+     * Beyond that this has to reset what storage does not own: the rendered messages,
+     * the in-memory session id, and the socket - without a new id the backend would
+     * happily keep replying into the deleted thread.
+     *
+     * The welcome panel is deliberately left in place: it is not a message, and the
+     * emptied chat should look like a freshly opened one.
+     */
+    function deleteChat() {
+        clearChatStorage();
+        chatMessages.querySelectorAll('.wp-chat-message').forEach((message) => message.remove());
+
+        sessionId = getStoredThreadId();
+        saveThreadId(sessionId);
+        restoredScrollTop = 0;
+        chatMessages.scrollTop = 0;
+        pendingGuidedQuestion = null;
+
+        initWebSocket(sessionId);
+        refreshGuidedQuestions();
+    }
+
     saveThreadId(sessionId);
-    /** We need to save the application ID to sessionStorage at the time the assistant initializes because, 
+    /** We need to save the application ID to sessionStorage at the time the assistant initializes because,
      * application ID is present in the DOM on the main window but absent in popups. 
      * */
     saveApplicationIdtoSessionStorage();
