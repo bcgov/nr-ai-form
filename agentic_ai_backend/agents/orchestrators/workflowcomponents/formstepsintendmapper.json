@@ -72,6 +72,16 @@
     ]
   },
   {
+    "stepIdentifier": "step3-Technical-Information-Add-Well",
+    "shortDescription": "Captures specific data for an individual well, including identification numbers, physical dimensions, geographic coordinates, and operational status (such as artesian flow or wellhead configuration)..",
+    "intentTags": [
+      "well-information",
+      "add-well",
+      "well-location",
+      "well"
+    ]
+  },
+  {
     "stepIdentifier": "step3-Dam-Reservoir-Add-Individual",
     "shortDescription": "Captures an individual contact associated with dam or reservoir information.",
     "intentTags": [
