@@ -37,6 +37,8 @@ export const WELCOME_PANEL_CONTENT = {
     /**
      * Chip options.
      *
+     * - `id`       stable key. The header menu offers the same answers in its own
+     *              order, and looks them up by this rather than by label text.
      * - `label`    what the chip shows, and what the outgoing user bubble reads.
      * - `query`    sent to the assistant when the chip has no `response`.
      * - `response` optional canned answer. When present the chip is answered locally
@@ -51,6 +53,7 @@ export const WELCOME_PANEL_CONTENT = {
      */
     chips: [
         {
+            id: 'about',
             label: `About ${PRODUCT_NAME}`,
             query: `What is ${PRODUCT_NAME} and what can it do for me?`,
             response: [
@@ -60,6 +63,7 @@ export const WELCOME_PANEL_CONTENT = {
             ].join('\n\n')
         },
         {
+            id: 'privacy',
             label: 'Data Privacy',
             query: 'How is the information I enter into this assistant used and protected?',
             response: [
@@ -68,6 +72,7 @@ export const WELCOME_PANEL_CONTENT = {
             ].join('\n\n')
         },
         {
+            id: 'tips',
             label: 'Tips',
             query: 'What tips do you have for completing this application?',
             // Stored as plain newline-separated lines; the leading "- " marks a list
