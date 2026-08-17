@@ -42,7 +42,7 @@ export const WELCOME_PANEL_STYLES = `
            Declared on the widget root so both the panel and its host container can
            read them, and on the panel itself so it still themes correctly when
            reused outside the chat modal. */
-        .wp-chat-button,
+        .wp-chat-launcher,
         .wp-chat-modal,
         .wp-welcome-panel {
             --wp-welcome-surface: #FFFFFF;
