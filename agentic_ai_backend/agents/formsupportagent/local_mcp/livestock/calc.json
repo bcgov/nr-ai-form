@@ -53,13 +53,13 @@
       {
         "name": "poultry_broiler",
         "description": "Broiler chickens raised for meat",
-        "water_consumption_m3_per_day": 0.00017,
+        "water_consumption_m3_per_day": 0.00037,
         "application_fees": "250"
       },
       {
         "name": "poultry_laying",
         "description": "Laying hens used for egg production",
-        "water_consumption_m3_per_day": 0.00009,
+        "water_consumption_m3_per_day": 0.00025,
         "application_fees": "250"
       },
       {
@@ -83,7 +83,7 @@
       {
         "name": "turkey",
         "description": "Turkeys raised for meat production",
-        "water_consumption_m3_per_day": 0.00036,
+        "water_consumption_m3_per_day": 0.00072,
         "application_fees": "250"
       }
     ]
