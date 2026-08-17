@@ -45,8 +45,14 @@
         "application_fees": "250"
       },
       {
-        "name": "llama_alpaca",
-        "description": "Llamas or alpacas used for fiber or livestock",
+        "name": "llama",
+        "description": "Llamas used for fiber or livestock",
+        "water_consumption_m3_per_day": 0.016,
+        "application_fees": "250"
+      },
+      {
+        "name": "alpaca",
+        "description": "Alpacas used for fiber or livestock",
         "water_consumption_m3_per_day": 0.016,
         "application_fees": "250"
       },
