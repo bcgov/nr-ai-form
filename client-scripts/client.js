@@ -16,6 +16,8 @@ import { HEADER_MENU_STYLES } from '../client-scripts/header-menu/styles/headerM
 import { buildHeaderMenuHtml, createHeaderMenu, DELETE_CHAT_MENU_ID } from '../client-scripts/header-menu/ui/headerMenu.js';
 import { buildDeleteChatDialogHtml, createDeleteChatDialog } from '../client-scripts/header-menu/ui/deleteChatDialog.js';
 import { buildExpandToggleHtml, createExpandToggle } from '../client-scripts/header-menu/ui/expandToggle.js';
+import { LAUNCHER_STYLES } from '../client-scripts/launcher/styles/launcherStyles.js';
+import { buildLauncherHtml, createLauncher } from '../client-scripts/launcher/ui/launcher.js';
 
 // /**
 //  * Allow testing of alternative javascript
@@ -1029,31 +1031,7 @@ function injectStyles() {
     const style = document.createElement('style');
     style.id = 'wp-chat-styles';
     style.textContent = `
-        .wp-chat-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 99998;
-            padding: 14px 24px;
-            background: #003366;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            font-family: var(--wp-welcome-font);
-        }
-
-        .wp-chat-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-        }
+        ${LAUNCHER_STYLES}
 
         .wp-chat-modal {
             display: none;
@@ -1150,11 +1128,18 @@ function injectStyles() {
         .wp-chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: var(--wp-welcome-padding);
-            background: var(--wp-welcome-surface);
+            /* Literal fallbacks are not decoration. If a custom property fails to
+               resolve, the declaration is invalid at computed-value time and the
+               property falls back to its initial value - which for padding and gap
+               is 0, not "the value we meant". A stale cached copy of the stylesheet
+               module that predates a token is enough to trigger it, and the failure
+               is silent. The fallback pins the design value either way. */
+            padding: var(--wp-welcome-padding, 16px);
+            background: var(--wp-welcome-surface, #FFFFFF);
             display: flex;
             flex-direction: column;
-            gap: var(--wp-welcome-gap);
+            gap: var(--wp-welcome-gap, 12px);
+            box-sizing: border-box;
         }
 
         ${WELCOME_PANEL_STYLES}
@@ -1380,7 +1365,7 @@ function injectStyles() {
                 border-radius: 0;
             }
 
-            .wp-chat-button {
+            .wp-chat-launcher {
                 bottom: 16px;
                 right: 16px;
             }
@@ -1407,7 +1392,7 @@ function initBot() {
 
     const container = document.createElement('div');
     container.innerHTML = `
-        <button class="wp-chat-button" id="wp-chat-button">Assistant</button>
+${buildLauncherHtml()}
         <div class="wp-chat-modal" id="wp-chat-modal">
             <div class="wp-chat-header">
                 <div class="wp-chat-title">
@@ -1452,6 +1437,10 @@ ${buildDeleteChatDialogHtml()}
     injectStyles();
 
     const chatButton = document.getElementById('wp-chat-button');
+    // The launcher wrapper holds the button and its helper message, and is the
+    // element actually pinned to the corner - so it is what gets hidden while the
+    // chat is open, otherwise a stray tooltip would be left floating on its own.
+    const chatLauncher = document.getElementById('wp-chat-launcher');
     const chatModal = document.getElementById('wp-chat-modal');
     const closeBtn = document.getElementById('wp-chat-close');
     const chatInput = document.getElementById('wp-chat-input');
@@ -1488,6 +1477,9 @@ ${buildDeleteChatDialogHtml()}
     // The window keeps whatever size the user chose for as long as the page lives,
     // including across close/reopen, so nothing here needs the returned handle.
     createExpandToggle({ root: chatModal, modal: chatModal });
+
+    // Shows the first-visit helper message and retires it on the first interaction.
+    createLauncher({ root: chatLauncher });
 
     const deleteChatDialog = createDeleteChatDialog({
         root: chatModal,
@@ -1732,13 +1724,13 @@ ${buildDeleteChatDialogHtml()}
             // 4. refresh guided questions for the current step,
             // 5. move keyboard focus into the input so the user can type immediately.
             chatModal.classList.add('open');
-            chatButton.style.display = 'none';
+            chatLauncher.style.display = 'none';
             requestAnimationFrame(restoreChatScrollPosition);
             refreshGuidedQuestions();
             chatInput.focus();
         } else {
             chatModal.classList.remove('open');
-            chatButton.style.display = 'flex';
+            chatLauncher.style.display = 'flex';
         }
     }
 

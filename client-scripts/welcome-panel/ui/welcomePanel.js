@@ -10,12 +10,7 @@
  * It is content-driven: pass a different `content` object to reuse the same markup
  * and styles for another product or another set of starter chips.
  */
-
-/**
- * Product name, interpolated everywhere the copy refers to the assistant by name.
- * Kept in one place so a rename is a single edit rather than a hunt through prose.
- */
-const PRODUCT_NAME = 'AIFA: AI Form Assist';
+import { PRODUCT_NAME } from '../../shared/productName.js';
 
 /** Default copy + chips. Override any field by passing your own object through. */
 export const WELCOME_PANEL_CONTENT = {
