@@ -18,6 +18,8 @@ import { buildDeleteChatDialogHtml, createDeleteChatDialog } from '../client-scr
 import { buildExpandToggleHtml, createExpandToggle } from '../client-scripts/header-menu/ui/expandToggle.js';
 import { LAUNCHER_STYLES } from '../client-scripts/launcher/styles/launcherStyles.js';
 import { buildLauncherHtml, createLauncher } from '../client-scripts/launcher/ui/launcher.js';
+import { FORM_OVERLAY_STYLES } from '../client-scripts/form-overlay/styles/formOverlayStyles.js';
+import { showFormOverlay, hideFormOverlay } from '../client-scripts/form-overlay/ui/formOverlay.js';
 
 // /**
 //  * Allow testing of alternative javascript
@@ -812,6 +814,19 @@ function loadPendingSuggestions() {
 /** 
  * Remove the suggestions key from sessionStorage entirely � used when the queue is fully processed.
 */
+/**
+ * The queue is finished: forget it and give the form back to the user.
+ *
+ * The pipeline has several ways to end - queue drained, target element never
+ * appeared, element vanished during a re-render - and each one has to release the
+ * overlay. Routing them all through here means a new exit path cannot leave the form
+ * covered, which is the failure that would matter most.
+ */
+function finishPendingSuggestions() {
+    clearPendingSuggestions();
+    hideFormOverlay();
+}
+
 function clearPendingSuggestions() {
     sessionStorage.removeItem(PENDING_SUGGESTIONS_KEY);
 }
@@ -841,6 +856,9 @@ function ensureAspNetHook() {
             // We wait for DOM to settle first because the UpdatePanel may still be re-rendering.
             const pending = loadPendingSuggestions();
             if (pending.length > 0) waitForDomSettle(null, applyNextPendingSuggestion);
+            // The last field's own postback lands here with an empty queue - that is
+            // the completion signal for a partial refresh, so release the form.
+            else finishPendingSuggestions();
         });
         _aspNetHooked = true;
     } catch (e) { }
@@ -924,7 +942,12 @@ function applyFormSupportSuggestionsFromResponse(response) {
 */
 function applyNextPendingSuggestion() {
     const suggestions = loadPendingSuggestions();
-    if (suggestions.length === 0) { clearPendingSuggestions(); return; }
+    if (suggestions.length === 0) { finishPendingSuggestions(); return; }
+
+    // Cover the form for this step. Re-showing on every step is deliberate: it keeps
+    // the overlay up across postbacks and re-arms the stall timer while work is
+    // genuinely progressing.
+    showFormOverlay();
 
     // Take the first suggestion off the queue
     const suggestion = suggestions[0];
@@ -950,6 +973,7 @@ function applyNextPendingSuggestion() {
             console.warn(`FormSupport: element not found after retries, skipping id=${suggestion.id}`);
             savePendingSuggestions(remaining);
             if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
+            else finishPendingSuggestions();
             return;
         }
 
@@ -965,6 +989,7 @@ function applyNextPendingSuggestion() {
                 console.warn(`FormSupport: element disappeared after DOM settle, skipping id=${suggestion.id}`);
                 savePendingSuggestions(remaining);
                 if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 100);
+                else finishPendingSuggestions();
                 return;
             }
 
@@ -995,12 +1020,12 @@ function applyNextPendingSuggestion() {
                 if (remaining.length > 0) {
                     waitForDomSettle(null, applyNextPendingSuggestion);
                 } else {
-                    clearPendingSuggestions();
+                    finishPendingSuggestions();
                 }
             } else if (!_aspNetHooked) {
                 // No PageRequestManager available � fixed delay fallback
                 if (remaining.length > 0) setTimeout(applyNextPendingSuggestion, 900);
-                else setTimeout(clearPendingSuggestions, 900);
+                else setTimeout(finishPendingSuggestions, 900);
             }
             // else: page reloads after postback, resumePendingSuggestions handles next field on reload
             // OR endRequest hook fires after partial postback and calls applyNextPendingSuggestion
@@ -1018,6 +1043,10 @@ function applyNextPendingSuggestion() {
 function resumePendingSuggestions() {
     const pending = loadPendingSuggestions();
     if (pending.length === 0) return;
+    // Cover the form straight away rather than after the settle below: the work is
+    // already in progress from the user's point of view, and the gap is where a
+    // stray click would land on a field about to be written to.
+    showFormOverlay();
     // Try to register the partial postback hook (Sys may now be available after full page load)
     ensureAspNetHook();
     // Wait for the page DOM to fully settle before starting to apply fields
@@ -1032,6 +1061,8 @@ function injectStyles() {
     style.id = 'wp-chat-styles';
     style.textContent = `
         ${LAUNCHER_STYLES}
+
+        ${FORM_OVERLAY_STYLES}
 
         .wp-chat-modal {
             display: none;
