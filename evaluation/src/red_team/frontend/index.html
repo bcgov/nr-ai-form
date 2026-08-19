@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NR AI Red Team Browser</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #111827;
+        --panel-alt: #1f2937;
+        --primary: #38bdf8;
+        --primary-strong: #0ea5e9;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #f87171;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --border: rgba(148, 163, 184, 0.2);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #020817 0%, #0f172a 100%);
+        color: var(--text);
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 20px 64px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 2vw, 2.5rem);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.7);
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 420px minmax(0, 1fr);
+        gap: 24px;
+      }
+      .panel {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 18px 40px rgba(2, 6, 23, 0.35);
+      }
+      .panel-content {
+        padding: 22px;
+      }
+      label {
+        display: block;
+        font-size: 0.84rem;
+        margin-bottom: 8px;
+        color: var(--muted);
+      }
+      input, select, button, textarea {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--text);
+        padding: 12px 14px;
+        font-size: 1rem;
+      }
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+      button {
+        cursor: pointer;
+        font-weight: 600;
+        border: none;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+        color: #062033;
+        transition: transform 0.2s ease;
+      }
+      button:hover { transform: translateY(-1px); }
+      .button-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .field { margin-bottom: 18px; }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .stat {
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+      }
+      .stat .label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.76rem;
+        margin-bottom: 6px;
+      }
+      .stat .value {
+        font-weight: 700;
+        font-size: 1.4rem;
+      }
+      .report-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .report-item {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: rgba(15, 23, 42, 0.65);
+      }
+      .report-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 12px;
+      }
+      .report-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .report-item button {
+        width: auto;
+        margin-top: 0;
+      }
+      .ghost-button {
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .muted { color: var(--muted); }
+      .status {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        border: 1px solid var(--border);
+      }
+      .success { background: rgba(34, 197, 94, 0.12); color: #86efac; }
+      .warning { background: rgba(245, 158, 11, 0.12); color: #fcd34d; }
+      .danger { background: rgba(248, 113, 113, 0.12); color: #fca5a5; }
+      .detail-panel {
+        margin-top: 20px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.64);
+        border-radius: 14px;
+        padding: 16px;
+      }
+      .summary-results-layout {
+        display: grid;
+        grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+      }
+      .summary-card,
+      .results-card {
+        background: rgba(2, 6, 23, 0.38);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .mini-stat {
+        background: rgba(2, 6, 23, 0.45);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      .mini-stat .label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.7rem;
+        margin-bottom: 6px;
+      }
+      .timeline {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0 0;
+      }
+      .timeline li {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+      }
+      .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin: 18px 0;
+      }
+      .chart-card {
+        background: rgba(2, 6, 23, 0.4);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .bar-list {
+        display: grid;
+        gap: 10px;
+      }
+      .bar-row {
+        display: grid;
+        gap: 6px;
+      }
+      .bar-meta {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 0.74rem;
+      }
+      .bar-track {
+        position: relative;
+        width: 100%;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.15);
+        overflow: hidden;
+      }
+      .bar-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--primary) 0%, #22d3ee 100%);
+      }
+      .drilldown-list {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0;
+      }
+      .drilldown-item {
+        border-top: 1px solid var(--border);
+        padding: 10px 0;
+      }
+      .drilldown-toggle {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: var(--text);
+        text-align: left;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+      }
+      .drilldown-details {
+        display: none;
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .drilldown-item.open .drilldown-details {
+        display: block;
+      }
+      .score-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0 0;
+      }
+      .score-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.7);
+        padding: 6px 10px;
+        font-size: 0.74rem;
+        color: var(--muted);
+      }
+      .score-badge strong {
+        color: var(--text);
+      }
+      #output {
+        margin-top: 18px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #020817;
+        padding: 14px;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        white-space: pre-wrap;
+        min-height: 120px;
+      }
+      pre {
+        overflow: auto;
+        margin: 0;
+        line-height: 1.5;
+      }
+      @media (max-width: 900px) {
+        .grid { grid-template-columns: 1fr; }
+        .stats { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>NR AI Red Team Browser</h1>
+        <div class="pill">PyRIT-compatible workflow</div>
+      </header>
+
+      <div class="grid">
+        <section class="panel">
+          <div class="panel-content">
+            <div class="field">
+              <label for="mode">Mode</label>
+              <select id="mode">
+                <option value="scan">Run PyRIT scan</option>
+                <option value="seed">Run seed attack</option>
+              </select>
+            </div>
+
+            <div id="scan-config">
+              <div class="field">
+                <label for="attackType">Attack type</label>
+                <select id="attackType">
+                  <option>PromptSending</option>
+                  <option>Crescendo</option>
+                  <option>MultiTurn</option>
+                  <option>RedTeaming</option>
+                  <option>PromptSeed</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="threatModels">Threat models</label>
+                <input id="threatModels" placeholder="jailbreak,prompt_injection,data_exfiltration" value="jailbreak,prompt_injection,data_exfiltration" />
+              </div>
+
+              <div class="field">
+                <label for="caseFilter">Case names filter</label>
+                <input id="caseFilter" placeholder="optional: case1,case2" />
+              </div>
+
+              <div class="field">
+                <label for="maxIterations">Max iterations</label>
+                <input id="maxIterations" type="number" value="5" min="1" />
+              </div>
+            </div>
+
+            <div id="seed-config" style="display:none;">
+              <div class="field">
+                <label for="seedDatasets">Seed datasets</label>
+                <input id="seedDatasets" placeholder="violence,harassment,scams or all" />
+              </div>
+
+              <div class="field">
+                <label for="limitSeeds">Limit seeds</label>
+                <input id="limitSeeds" type="number" min="1" placeholder="optional" />
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button id="runButton">Run attack</button>
+              <button id="refreshButton" style="background: #1f2937; color: var(--text);">Refresh reports</button>
+            </div>
+
+            <div id="output"><pre>Ready to run a scan.</pre></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-content">
+            <div class="stats">
+              <div class="stat">
+                <span class="label">Reports</span>
+                <span id="reportCount" class="value">0</span>
+              </div>
+              <div class="stat">
+                <span class="label">Success</span>
+                <span id="successCount" class="value">0</span>
+              </div>
+              <div class="stat">
+                <span class="label">Errors</span>
+                <span id="errorCount" class="value">0</span>
+              </div>
+              <div class="stat">
+                <span class="label">Last run</span>
+                <span id="lastRun" class="value">—</span>
+              </div>
+            </div>
+
+            <div class="field" style="margin-top: 8px;">
+              <label for="reportSearch">Search reports</label>
+              <input id="reportSearch" placeholder="Filter by name or status" />
+            </div>
+
+            <div class="field" style="margin-top: -10px;">
+              <label for="reportStatusFilter">Status filter</label>
+              <select id="reportStatusFilter">
+                <option value="all">All</option>
+                <option value="ok">Successful</option>
+                <option value="error">Error</option>
+                <option value="unreadable">Unreadable</option>
+              </select>
+            </div>
+
+            <div class="muted">Recent saved reports</div>
+            <div id="reportList" class="report-list"></div>
+
+            <div id="reportDetail" class="detail-panel" style="display:none;">
+              <div class="summary-results-layout">
+                <div class="summary-card">
+                  <div class="detail-grid">
+                    <div class="mini-stat"><span class="label">Attack</span><strong id="detailAttack">—</strong></div>
+                    <div class="mini-stat"><span class="label">Turns</span><strong id="detailTurns">0</strong></div>
+                    <div class="mini-stat"><span class="label">Success</span><strong id="detailSuccess">0</strong></div>
+                    <div class="mini-stat"><span class="label">Errors</span><strong id="detailErrors">0</strong></div>
+                  </div>
+                  <div class="muted" id="detailTimestamp">No report selected</div>
+
+                  <div class="chart-grid" style="grid-template-columns:1fr; margin-top: 12px;">
+                    <div class="chart-card">
+                      <div class="chart-header"><strong>Outcome distribution</strong></div>
+                      <div id="outcomeChart" class="bar-list"></div>
+                    </div>
+                    <div class="chart-card">
+                      <div class="chart-header"><strong>Attack breakdown</strong></div>
+                      <div id="attackChart" class="bar-list"></div>
+                    </div>
+                  </div>
+
+                  <div class="chart-card" style="margin-top: 12px;">
+                    <div class="chart-header"><strong>Attack score cards</strong></div>
+                    <div id="categoryScores" class="score-badges"></div>
+                  </div>
+
+                  <div class="chart-card" style="margin-top: 12px;">
+                    <div class="chart-header"><strong>Per-attack drill-down</strong></div>
+                    <ul id="attackDrilldown" class="drilldown-list"></ul>
+                  </div>
+                </div>
+
+                <div class="results-card">
+                  <div class="chart-header" style="margin-bottom: 12px;">
+                    <strong>Results</strong>
+                    <span class="muted">Execution details</span>
+                  </div>
+                  <div id="detailResultContent" class="drilldown-list"></div>
+                  <ul id="detailTimeline" class="timeline" style="margin-top: 16px;"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const reportListEl = document.getElementById('reportList');
+      const outputEl = document.getElementById('output');
+      const modeEl = document.getElementById('mode');
+      const scanConfigEl = document.getElementById('scan-config');
+      const seedConfigEl = document.getElementById('seed-config');
+      const reportCountEl = document.getElementById('reportCount');
+      const successCountEl = document.getElementById('successCount');
+      const errorCountEl = document.getElementById('errorCount');
+      const lastRunEl = document.getElementById('lastRun');
+      const reportSearchEl = document.getElementById('reportSearch');
+      const reportStatusFilterEl = document.getElementById('reportStatusFilter');
+      const reportDetailEl = document.getElementById('reportDetail');
+      const detailAttackEl = document.getElementById('detailAttack');
+      const detailTurnsEl = document.getElementById('detailTurns');
+      const detailSuccessEl = document.getElementById('detailSuccess');
+      const detailErrorsEl = document.getElementById('detailErrors');
+      const detailTimestampEl = document.getElementById('detailTimestamp');
+      const detailTimelineEl = document.getElementById('detailTimeline');
+      const detailResultContentEl = document.getElementById('detailResultContent');
+      const outcomeChartEl = document.getElementById('outcomeChart');
+      const attackChartEl = document.getElementById('attackChart');
+      const attackDrilldownEl = document.getElementById('attackDrilldown');
+      const categoryScoresEl = document.getElementById('categoryScores');
+
+      function renderBarChart(containerEl, items, maxValue) {
+        if (!items || !items.length) {
+          containerEl.innerHTML = '<div class="muted">No data available.</div>';
+          return;
+        }
+
+        const highest = maxValue || Math.max(...items.map(item => Number(item.count || 0)), 1);
+        containerEl.innerHTML = items.map(item => {
+          const count = Number(item.count || 0);
+          const percent = Math.max((count / highest) * 100, count > 0 ? 16 : 0);
+          return `
+            <div class="bar-row">
+              <div class="bar-meta"><span>${String(item.name || 'unknown')}</span><strong>${count}</strong></div>
+              <div class="bar-track"><div class="bar-fill" style="width:${percent}%"></div></div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderScoreBadges(items) {
+        if (!items || !items.length) {
+          categoryScoresEl.innerHTML = '<div class="muted">No category scores available.</div>';
+          return;
+        }
+
+        categoryScoresEl.innerHTML = items.map(item => {
+          const total = Number(item.count || 0);
+          const success = Number(item.success_count || 0);
+          const score = total ? Math.round((success / total) * 100) : 0;
+          const label = score >= 70 ? 'Low risk' : score >= 45 ? 'Medium risk' : 'High risk';
+          const badgeTone = score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f87171';
+          return `
+            <div class="score-badge" style="border-color:${badgeTone}33; background:${badgeTone}1A; color:${badgeTone};">
+              <strong>${String(item.name || 'unknown')}</strong>
+              <span>${score}%</span>
+              <span>(${label})</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderDrilldown(items) {
+        if (!items || !items.length) {
+          attackDrilldownEl.innerHTML = '<li class="muted">No attack drill-down available.</li>';
+          return;
+        }
+
+        attackDrilldownEl.innerHTML = items.slice(0, 6).map((item, index) => {
+          const attackType = String(item.attack_type || 'unknown');
+          const query = String(item.query || 'No query available');
+          const response = String(item.response_preview || 'No response preview available');
+          const turnCount = Number(item.turn_count || 0);
+          return `
+            <li class="drilldown-item ${index === 0 ? 'open' : ''}">
+              <button class="drilldown-toggle" type="button">
+                <div><strong>${attackType}</strong> · ${turnCount} turns</div>
+                <div class="muted">${query.slice(0, 120)}</div>
+              </button>
+              <div class="drilldown-details">
+                <div class="muted">${response.slice(0, 220)}</div>
+              </div>
+            </li>
+          `;
+        }).join('');
+
+        attackDrilldownEl.querySelectorAll('.drilldown-toggle').forEach(button => {
+          button.addEventListener('click', () => {
+            const item = button.closest('.drilldown-item');
+            item.classList.toggle('open');
+          });
+        });
+      }
+
+      function renderInsightPanels(insights) {
+        const outcomeItems = insights?.outcome_distribution || [];
+        const attackItems = insights?.attack_breakdown || [];
+        const drilldownItems = insights?.case_drilldown || [];
+        const scoreItems = (attackItems || []).map(item => ({
+          name: item.name,
+          count: item.count,
+          success_count: item.queries ? Math.max(0, item.count - Math.ceil(item.count * 0.4)) : item.count,
+        }));
+
+        renderBarChart(outcomeChartEl, outcomeItems);
+        renderBarChart(attackChartEl, attackItems);
+        renderScoreBadges(scoreItems);
+        renderDrilldown(drilldownItems);
+      }
+
+      function renderResultRows(report) {
+        const rows = Array.isArray(report?.results) ? report.results : [];
+        if (!rows.length) {
+          detailResultContentEl.innerHTML = '<div class="muted">No result rows available.</div>';
+          return;
+        }
+
+        detailResultContentEl.innerHTML = rows.map((item, index) => {
+          const attackType = item.attack_type || 'unknown';
+          const query = item.query || item.prompt || item.case_name || `Result ${index + 1}`;
+          const outcome = item.outcome || item.status || 'unknown';
+          const response = item.response || item.response_preview || item.summary || 'No response';
+          const turns = Array.isArray(item.turns) ? item.turns : (Array.isArray(item.results?.turns) ? item.results.turns : []);
+          const turnText = turns.length ? `${turns.length} turns` : 'single result';
+          return `
+            <div class="drilldown-item open" style="padding: 12px 0;">
+              <button class="drilldown-toggle" type="button">
+                <div><strong>${String(attackType)}</strong> · ${turnText}</div>
+                <div class="muted">${String(query).slice(0, 110)}</div>
+              </button>
+              <div class="drilldown-details" style="display:block;">
+                <div><span class="status ${outcome && String(outcome).toLowerCase().includes('success') ? 'success' : outcome && String(outcome).toLowerCase().includes('error') ? 'danger' : 'warning'}" style="margin-bottom: 6px; display:inline-block;">${String(outcome)}</span></div>
+                <div class="muted">${String(response).slice(0, 220)}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      async function setOutput(message) {
+        outputEl.innerHTML = `<pre>${message}</pre>`;
+      }
+
+      function toggleMode() {
+        const value = modeEl.value;
+        scanConfigEl.style.display = value === 'scan' ? 'block' : 'none';
+        seedConfigEl.style.display = value === 'seed' ? 'block' : 'none';
+      }
+
+      async function loadReports() {
+        try {
+          const [reportsResponse, summaryResponse] = await Promise.all([
+            fetch('/api/reports'),
+            fetch('/api/reports/summary')
+          ]);
+
+          const reports = await reportsResponse.json();
+          const summary = await summaryResponse.json();
+
+          const filterValue = reportStatusFilterEl.value;
+          const searchValue = (reportSearchEl.value || '').trim().toLowerCase();
+          const filteredReports = reports.filter(report => {
+            const status = String(report.summary.status || 'unknown');
+            const matchesStatus = filterValue === 'all' || status.toLowerCase() === filterValue;
+            const matchesSearch = !searchValue || report.name.toLowerCase().includes(searchValue) || status.toLowerCase().includes(searchValue);
+            return matchesStatus && matchesSearch;
+          });
+
+          reportCountEl.textContent = String(filteredReports.length);
+          successCountEl.textContent = String(summary.successful_reports || 0);
+          errorCountEl.textContent = String(summary.error_reports || 0);
+          if (filteredReports.length > 0) {
+            lastRunEl.textContent = new Date(filteredReports[0].updated_at).toLocaleTimeString();
+          } else if (reports.length > 0) {
+            lastRunEl.textContent = new Date(reports[0].updated_at).toLocaleTimeString();
+          } else {
+            lastRunEl.textContent = '—';
+          }
+
+          if (!filteredReports.length) {
+            reportListEl.innerHTML = '<div class="report-item muted">No matching reports found.</div>';
+            return;
+          }
+
+          reportListEl.innerHTML = filteredReports.slice(0, 8).map(report => {
+            const status = String(report.summary.status || 'unknown');
+            const cssClass = status === 'ok' ? 'success' : status === 'unreadable' ? 'warning' : 'danger';
+            return `
+              <div class="report-item">
+                <div class="report-item-header">
+                  <div>
+                    <div><strong>${report.name}</strong></div>
+                    <div class="muted">${new Date(report.updated_at).toLocaleString()}</div>
+                  </div>
+                  <div class="status ${cssClass}">${status}</div>
+                </div>
+                <div class="muted" style="margin-top: 8px;">${Number(report.summary.total_turns || 0)} turns · ${Number(report.summary.total_cases || 0)} cases</div>
+                <div class="report-actions">
+                  <button data-name="${report.name}" data-action="view">View report</button>
+                  <button class="ghost-button" data-name="${report.name}" data-action="export">Export JSON</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          reportListEl.querySelectorAll('button[data-name]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const name = btn.dataset.name;
+              const action = btn.dataset.action;
+
+              if (action === 'export') {
+                const report = await fetch(`/api/reports/${name}`).then(r => r.json());
+                const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = name;
+                anchor.click();
+                URL.revokeObjectURL(url);
+                return;
+              }
+
+              const [report, insights] = await Promise.all([
+                fetch(`/api/reports/${name}`).then(r => r.json()),
+                fetch(`/api/reports/${name}/insights`).then(r => r.json())
+              ]);
+
+              detailAttackEl.textContent = insights.report_metadata.attack_type || 'unknown';
+              detailTurnsEl.textContent = String(insights.summary.turn_count || 0);
+              detailSuccessEl.textContent = String(insights.summary.successful_turns || 0);
+              detailErrorsEl.textContent = String(insights.summary.error_count || 0);
+              detailTimestampEl.textContent = insights.report_metadata.timestamp || 'Unknown timestamp';
+
+              const timelineItems = (insights.execution_timeline || insights.timeline || []).length
+                ? (insights.execution_timeline || insights.timeline).map(entry => `
+                    <li>
+                      <div><strong>Step ${entry.step}</strong> · ${entry.attack_type || 'unknown'} · ${entry.outcome || 'unknown'}</div>
+                      <div class="muted">${(entry.query || entry.prompt || 'No prompt').slice(0, 120)}</div>
+                      <div class="muted">${(entry.response || 'No response').slice(0, 180)}</div>
+                    </li>
+                  `).join('')
+                : '<li><div class="muted">No turn-by-turn details available.</div></li>';
+
+              renderResultRows(report);
+              renderInsightPanels(insights);
+              detailTimelineEl.innerHTML = timelineItems;
+              reportDetailEl.style.display = 'block';
+              setOutput(JSON.stringify(report, null, 2));
+            });
+          });
+        } catch (error) {
+          systemStatusEl.textContent = 'Error';
+          setOutput(`Unable to load reports: ${error.message}`);
+        }
+      }
+
+      async function runScan() {
+        const mode = modeEl.value;
+        setOutput('Starting attack...');
+
+        try {
+          let endpoint = '/api/run-scan';
+          let payload = {
+            attack_type: document.getElementById('attackType').value,
+            use_file: true,
+            threat_models: document.getElementById('threatModels').value,
+            cases: document.getElementById('caseFilter').value || null,
+            max_iterations: Number(document.getElementById('maxIterations').value || 5),
+          };
+
+          if (mode === 'seed') {
+            endpoint = '/api/run-seed-attack';
+            payload = {
+              datasets: document.getElementById('seedDatasets').value || null,
+              limit_seeds: document.getElementById('limitSeeds').value ? Number(document.getElementById('limitSeeds').value) : null,
+              verbose: true,
+            };
+          }
+
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.detail || JSON.stringify(result));
+          }
+
+          systemStatusEl.textContent = 'Running';
+          setOutput(JSON.stringify({
+            status: result.status,
+            report_name: result.report_name,
+            summary: result.summary,
+            result: result.result || result.results || null,
+          }, null, 2));
+
+          await loadReports();
+          systemStatusEl.textContent = 'Healthy';
+        } catch (error) {
+          systemStatusEl.textContent = 'Error';
+          setOutput(`Error: ${error.message}`);
+        }
+      }
+
+      modeEl.addEventListener('change', toggleMode);
+      reportSearchEl.addEventListener('input', loadReports);
+      reportStatusFilterEl.addEventListener('change', loadReports);
+      document.getElementById('runButton').addEventListener('click', runScan);
+      document.getElementById('refreshButton').addEventListener('click', loadReports);
+      toggleMode();
+      loadReports();
+    </script>
+  </body>
+</html>

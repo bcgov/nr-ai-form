@@ -3,9 +3,11 @@
 import asyncio
 import inspect
 import json
+import os
 import websockets
 from typing import Any
 import uuid
+from urllib.parse import urlparse
 from pyrit.prompt_target import PromptTarget
 from pyrit.prompt_target.common.target_configuration import TargetConfiguration
 from pyrit.prompt_target.common.target_capabilities import TargetCapabilities
@@ -20,6 +22,18 @@ MAX_BACKEND_RETRIES = 2
 RETRYABLE_EXCEPTIONS = (
     websockets.exceptions.WebSocketException,
     asyncio.TimeoutError,
+)
+LOCAL_PROXY_ENV_VARS = (
+    "ALL_PROXY",
+    "all_proxy",
+    "HTTP_PROXY",
+    "http_proxy",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "WS_PROXY",
+    "ws_proxy",
+    "WSS_PROXY",
+    "wss_proxy",
 )
 
 
@@ -136,6 +150,25 @@ class CustomBackendTarget(PromptTarget):
         
         return ws_endpoint
 
+    @staticmethod
+    def _is_local_endpoint(endpoint: str) -> bool:
+        """Return True when the endpoint points to a local host that should bypass proxy env vars."""
+        if not endpoint:
+            return False
+        try:
+            host = urlparse(endpoint).hostname or ""
+        except ValueError:
+            return False
+        normalized = host.lower()
+        return normalized in {"localhost", "127.0.0.1", "0.0.0.0", "::1"} or normalized.startswith("localhost.")
+
+    def _disable_proxy_for_local_endpoint(self) -> None:
+        """Clear inherited proxy variables for localhost traffic so SOCKS settings don't intercept local backend calls."""
+        if not self._is_local_endpoint(self.endpoint):
+            return
+        for key in LOCAL_PROXY_ENV_VARS:
+            os.environ.pop(key, None)
+
     async def _ensure_websocket_connected(self) -> None:
         """
         Ensure WebSocket connection is established.
@@ -144,6 +177,8 @@ class CustomBackendTarget(PromptTarget):
         if self._websocket is not None:
             # Connection already established
             return
+
+        self._disable_proxy_for_local_endpoint()
         
         try:
             logger.info(
