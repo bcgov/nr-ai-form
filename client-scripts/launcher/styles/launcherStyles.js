@@ -25,7 +25,6 @@ export const LAUNCHER_STYLES = `
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
             padding: 12px 16px;
             background: #00528D;
             color: #FFFFFF;
@@ -45,9 +44,6 @@ export const LAUNCHER_STYLES = `
 
         .wp-chat-button:hover {
             background: #3470B1;
-            /* The design pairs the larger hover icon with no gap, which keeps the
-               button close to its resting width instead of jumping under the cursor. */
-            gap: 0;
         }
 
         /* Focus is called out separately from hover: keyboard users need the same
@@ -56,21 +52,6 @@ export const LAUNCHER_STYLES = `
             outline: 3px solid #FFFFFF;
             outline-offset: -6px;
             background: #3470B1;
-        }
-
-        .wp-chat-button-icon {
-            display: block;
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-            flex-shrink: 0;
-            transition: width 0.2s ease, height 0.2s ease;
-        }
-
-        .wp-chat-button:hover .wp-chat-button-icon,
-        .wp-chat-button:focus-visible .wp-chat-button-icon {
-            width: 28px;
-            height: 28px;
         }
 
         /* 3. Helper message -----------------------------------------------------
@@ -88,6 +69,20 @@ export const LAUNCHER_STYLES = `
 
         .wp-chat-launcher-tooltip[hidden] {
             display: none;
+        }
+
+        /* Bring the message back on hover, and on keyboard focus so it is not
+           pointer-only. This deliberately overrides the [hidden] attribute rather
+           than clearing it: the attribute records that the first-visit showing is
+           over, and hovering should not rewrite that history - it just borrows the
+           message for as long as the pointer stays.
+
+           The wrapper is the trigger, not the button, so the message keeps itself
+           open once it appears above the cursor. It grows upward from the fixed
+           bottom edge, so nothing below it shifts. */
+        .wp-chat-launcher:hover .wp-chat-launcher-tooltip[hidden],
+        .wp-chat-launcher:focus-within .wp-chat-launcher-tooltip[hidden] {
+            display: block;
         }
 
         .wp-chat-launcher-tooltip-body {

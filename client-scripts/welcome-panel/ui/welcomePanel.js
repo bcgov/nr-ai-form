@@ -10,7 +10,7 @@
  * It is content-driven: pass a different `content` object to reuse the same markup
  * and styles for another product or another set of starter chips.
  */
-import { PRODUCT_NAME } from '../../shared/productName.js';
+import { PRODUCT_NAME, PRODUCT_SHORT_NAME } from '../../shared/productName.js';
 
 /** Default copy + chips. Override any field by passing your own object through. */
 export const WELCOME_PANEL_CONTENT = {
@@ -50,6 +50,9 @@ export const WELCOME_PANEL_CONTENT = {
         {
             id: 'about',
             label: `About ${PRODUCT_NAME}`,
+            // The header menu is a narrow card, so it uses the short name; the chip
+            // in the panel has room for the full one.
+            menuLabel: `About ${PRODUCT_SHORT_NAME}`,
             query: `What is ${PRODUCT_NAME} and what can it do for me?`,
             response: [
                 `**About ${PRODUCT_NAME}**\n${PRODUCT_NAME} provides plain-language explanations and guidance to help you understand questions and prepare information for a new water licence application.`,
