@@ -10,7 +10,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Access_Road": {
+        "Status_Access Road": {
             "type": "dropdown",
             "id": "Status_Access Road",
             "title": "Access Road Status",
@@ -52,7 +52,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Back_flood_control_structure": {
+        "Status_Back flood control structure": {
             "type": "dropdown",
             "id": "Status_Back flood control structure",
             "title": "Back flood control structure Status",
@@ -115,7 +115,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Deep_intake": {
+        "Status_Deep intake": {
             "type": "dropdown",
             "id": "Status_Deep intake",
             "title": "Deep intake Status",
@@ -136,7 +136,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Distribution_system": {
+        "Status_Distribution system": {
             "type": "dropdown",
             "id": "Status_Distribution system",
             "title": "Distribution system Status",
@@ -178,7 +178,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Diversion_channel": {
+        "Status_Diversion channel": {
             "type": "dropdown",
             "id": "Status_Diversion channel",
             "title": "Diversion channel Status",
@@ -220,7 +220,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Erosion_Protection": {
+        "Status_Erosion Protection": {
             "type": "dropdown",
             "id": "Status_Erosion Protection",
             "title": "Erosion Protection Status",
@@ -241,7 +241,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Fire_Suppression_System": {
+        "Status_Fire Suppression System": {
             "type": "dropdown",
             "id": "Status_Fire Suppression System",
             "title": "Fire Suppression System Status",
@@ -262,7 +262,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Flow_measuring_device": {
+        "Status_Flow measuring device": {
             "type": "dropdown",
             "id": "Status_Flow measuring device",
             "title": "Flow measuring device Status",
@@ -304,7 +304,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Heat_exchanger": {
+        "Status_Heat exchanger": {
             "type": "dropdown",
             "id": "Status_Heat exchanger",
             "title": "Heat exchanger Status",
@@ -338,7 +338,7 @@
             "default": "Not Constructed",
             "required": false
         },
-        "Selected_Infiltration_chamber_gallery": {
+        "Selected_Infiltration_chamber/gallery": {
             "type": "checkbox",
             "id": "Selected_Infiltration_chamber/gallery",
             "title": "Infiltration chamber/gallery",
@@ -346,7 +346,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Infiltration_chamber_gallery": {
+        "Status_Infiltration chamber/gallery": {
             "type": "dropdown",
             "id": "Status_Infiltration chamber/gallery",
             "title": "Infiltration chamber/gallery Status",
@@ -367,7 +367,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Irrigation_System": {
+        "Status_Irrigation System": {
             "type": "dropdown",
             "id": "Status_Irrigation System",
             "title": "Irrigation System Status",
@@ -472,7 +472,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Pressure_tank": {
+        "Status_Pressure tank": {
             "type": "dropdown",
             "id": "Status_Pressure tank",
             "title": "Pressure tank Status",
@@ -653,7 +653,7 @@
             "default": "Not Constructed",
             "required": false
         },
-        "Selected_Treatment_facility_system": {
+        "Selected_Treatment_facility/system": {
             "type": "checkbox",
             "id": "Selected_Treatment_facility/system",
             "title": "Treatment facility/system",
@@ -661,7 +661,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Treatment_facility_system": {
+        "Status_Treatment facility/system": {
             "type": "dropdown",
             "id": "Status_Treatment facility/system",
             "title": "Treatment facility/system Status",
@@ -753,7 +753,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Control_Gate": {
+        "Status_Control Gate": {
             "type": "dropdown",
             "id": "Status_Control Gate",
             "title": "Control Gate Status",
@@ -774,7 +774,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Diversion_structure": {
+        "Status_Diversion structure": {
             "type": "dropdown",
             "id": "Status_Diversion structure",
             "title": "Diversion structure Status",
@@ -816,7 +816,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Fish_ladder": {
+        "Status_Fish ladder": {
             "type": "dropdown",
             "id": "Status_Fish ladder",
             "title": "Fish ladder Status",
@@ -837,7 +837,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Head_Pond": {
+        "Status_Head Pond": {
             "type": "dropdown",
             "id": "Status_Head Pond",
             "title": "Head Pond Status",
@@ -921,7 +921,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Screened_Intake": {
+        "Status_Screened Intake": {
             "type": "dropdown",
             "id": "Status_Screened Intake",
             "title": "Screened Intake Status",
@@ -942,7 +942,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Settling_pond": {
+        "Status_Settling pond": {
             "type": "dropdown",
             "id": "Status_Settling pond",
             "title": "Settling pond Status",
@@ -963,7 +963,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Switch_Yard": {
+        "Status_Switch Yard": {
             "type": "dropdown",
             "id": "Status_Switch Yard",
             "title": "Switch Yard Status",
@@ -1005,7 +1005,7 @@
             "default": "Y",
             "required": false
         },
-        "Status_Transmission_Line": {
+        "Status_Transmission Line": {
             "type": "dropdown",
             "id": "Status_Transmission Line",
             "title": "Transmission Line Status",
