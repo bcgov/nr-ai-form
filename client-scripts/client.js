@@ -10,62 +10,71 @@ import {
 } from './guided-questions/utils/guidedQuestionLifecycle.js';
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
-import { WELCOME_PANEL_STYLES } from '../client-scripts/welcome-panel/styles/welcomePanelStyles.js';
-import { buildWelcomePanelHtml, createWelcomePanel, WELCOME_PANEL_CONTENT } from '../client-scripts/welcome-panel/ui/welcomePanel.js';
-import { HEADER_MENU_STYLES } from '../client-scripts/header-menu/styles/headerMenuStyles.js';
-import { buildHeaderMenuHtml, createHeaderMenu, DELETE_CHAT_MENU_ID } from '../client-scripts/header-menu/ui/headerMenu.js';
-import { buildDeleteChatDialogHtml, createDeleteChatDialog } from '../client-scripts/header-menu/ui/deleteChatDialog.js';
-import { buildExpandToggleHtml, createExpandToggle } from '../client-scripts/header-menu/ui/expandToggle.js';
-import { LAUNCHER_STYLES } from '../client-scripts/launcher/styles/launcherStyles.js';
-import { buildLauncherHtml, createLauncher } from '../client-scripts/launcher/ui/launcher.js';
-import { FORM_OVERLAY_STYLES } from '../client-scripts/form-overlay/styles/formOverlayStyles.js';
-import { showFormOverlay, hideFormOverlay } from '../client-scripts/form-overlay/ui/formOverlay.js';
+import { WELCOME_PANEL_STYLES } from './welcome-panel/styles/welcomePanelStyles.js';
+import { buildWelcomePanelHtml, createWelcomePanel, WELCOME_PANEL_CONTENT } from './welcome-panel/ui/welcomePanel.js';
+import { HEADER_MENU_STYLES } from './header-menu/styles/headerMenuStyles.js';
+import { buildHeaderMenuHtml, createHeaderMenu, DELETE_CHAT_MENU_ID } from './header-menu/ui/headerMenu.js';
+import { buildDeleteChatDialogHtml, createDeleteChatDialog } from './header-menu/ui/deleteChatDialog.js';
+import { buildExpandToggleHtml, createExpandToggle } from './header-menu/ui/expandToggle.js';
+import { LAUNCHER_STYLES } from './launcher/styles/launcherStyles.js';
+import { buildLauncherHtml, createLauncher } from './launcher/ui/launcher.js';
+import { FORM_OVERLAY_STYLES } from './form-overlay/styles/formOverlayStyles.js';
+import { showFormOverlay, hideFormOverlay } from './form-overlay/ui/formOverlay.js';
+import { PRODUCT_NAME } from './shared/productName.js';
 
-// /**
-//  * Allow testing of alternative javascript
-//  * if the browser's local storage has an item 'clientInstance': 'ms'
-//  * javascript in remote file (see `url`) will be loaded instead
-//  */
-// let clientInstance = localStorage.getItem('clientInstance');
-// if (clientInstance === 'ms') {
-//     var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot') {
-//     var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot-ks') {
-//     var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'aot-aj') {
-//     var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
-// else if (clientInstance === 'css') {
-//     var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
-//     var script = document.createElement("script");
-//     script.src = url;
-//     script.type = "module";
-//     document.head.appendChild(script);
-// }
+/**
+ * Allow testing of alternative javascript
+ * if the browser's local storage has an item 'clientInstance': 'ms'
+ * javascript in remote file (see `url`) will be loaded instead
+ */
+let clientInstance = localStorage.getItem('clientInstance');
+if (clientInstance === 'ms') {
+    var url = 'https://fastboatsmojito.github.io/nr-ai-form-client-scripts/client-scripts/client.js'
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot') {
+    var url = 'https://abin-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-ks') {
+    var url = 'https://krishnan-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Krishnan S javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'aot-aj') {
+    var url = 'https://ann-aot.github.io/nr-ai-form/client-scripts/client.js' // url to aot's Ann J javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
+else if (clientInstance === 'css') {
+    var url = 'https://timcsaky.github.io/nr-ai-form/client-scripts/client.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
 
-// else {
+else if (clientInstance === 'jatinder') {
+    var url = 'https://jatindersingh93.github.io/nr-ai-form/client-scripts/stepmappers.js' // url to aot's javascript
+    var script = document.createElement("script");
+    script.src = url;
+    script.type = "module";
+    document.head.appendChild(script);
+}
 
-//     (function () {
+else {
+
+    (function () {
 
 // Feature flag: set to true to re-enable the guided questions UI when ready.
 const GUIDED_QUESTIONS_ENABLED = false;
@@ -90,6 +99,14 @@ const WEBSOCKET_BASE_URL = (() => {
 
 let socket = null;
 let socketOpenPromise = null;
+// Reject handle for socketOpenPromise. Tearing a socket down has to settle its
+// pending open promise as well - a sendMessage() awaiting it would otherwise hang
+// forever, because the teardown drops the handlers that would have settled it.
+let socketOpenReject = null;
+// Bumped whenever the conversation is discarded (delete chat). A send that was
+// already under way compares the generation it started in against this one, so a
+// late reply or failure from the abandoned request cannot touch the fresh chat.
+let chatGeneration = 0;
 // Keep the chat UI request/response model aligned with the backend's serialized
 // shared websocket request handling.
 let requestInFlight = false;
@@ -645,6 +662,12 @@ function parseFormSupportSuggestions(response) {
             const parsedItems = Array.isArray(parsed) ? parsed : [parsed];
             parsedItems.forEach((parsedItem) => {
                 if (!parsedItem || !parsedItem.id) return;
+                // An empty suggestedvalue means "no suggestion" - the agent answered
+                // informationally rather than proposing a value for the field. Those
+                // entries are dropped here rather than downstream so they never reach
+                // the queue at all: no DOM polling, and no busy overlay raised over a
+                // response that was never going to change the form.
+                if (String(parsedItem.suggestedvalue ?? '').trim() === '') return;
                 suggestions.push({
                     id: parsedItem.id,
                     type: String(parsedItem.type || '').toLowerCase(),
@@ -1116,18 +1139,6 @@ function injectStyles() {
             font-weight: 600;
         }
 
-        .wp-chat-title span {
-            padding-top: 12px
-        }
-
-        .wp-chat-title-image {
-            display: block;
-            height: 32px;
-            width: auto;
-            max-width: 140px;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
 
         .wp-chat-header-actions {
             display: flex;
@@ -1135,21 +1146,6 @@ function injectStyles() {
             gap: 8px;
         }
 
-        .wp-chat-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 32px;
-            cursor: pointer;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            line-height: 1;
-        }
-
-        .wp-chat-close:hover {
-            transform: rotate(90deg);
-        }
 
         /* The message list is the design's outer container: white, 16px frame,
            12px between items. Everything inside sits on that surface, so the
@@ -1185,6 +1181,7 @@ function injectStyles() {
 
         .wp-chat-message-assistant {
             justify-content: flex-start;
+            padding: 0 16px 16px 16px;
         }
 
         .wp-chat-message-system {
@@ -1372,7 +1369,15 @@ function injectStyles() {
             opacity: 0.7;
         }
 
-        @media (max-width: 768px) {
+        /* Phone-sized viewports only.
+           This threshold is deliberately below tablet width. The form opens child
+           popups around 700px wide, and users resize the main window - both are
+           small viewports but neither is a phone. Treating them as one took the
+           window full-screen and hid the toggle below, leaving no way back to the
+           floating size without maximising the window. Everything above this width
+           keeps the floating window, which the max-width/max-height caps on
+           .wp-chat-modal already shrink to fit. */
+        @media (max-width: 480px) {
             /* The window is already full-screen here, so there is nothing to expand
                into. The expanded selector is repeated with !important purely to
                outrank the expanded rule above, which needs !important of its own. */
@@ -1417,7 +1422,8 @@ function initBot() {
         .map((id) => (WELCOME_PANEL_CONTENT.chips || []).find((chip) => chip.id === id))
         .filter(Boolean);
     const menuItems = [
-        ...menuChips.map((chip) => ({ id: chip.id, label: chip.label })),
+        // menuLabel lets a row read shorter than its chip where the card is tight.
+        ...menuChips.map((chip) => ({ id: chip.id, label: chip.menuLabel || chip.label })),
         { id: DELETE_CHAT_MENU_ID, label: 'Delete chat' }
     ];
 
@@ -1427,16 +1433,11 @@ ${buildLauncherHtml()}
         <div class="wp-chat-modal" id="wp-chat-modal">
             <div class="wp-chat-header">
                 <div class="wp-chat-title">
-                    <img
-                        class="wp-chat-title-image"
-                        src="https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Images/banners/vfcbc_banner.png?v=5797"
-                        alt="AI Assistant"
-                    />
-                    <span>AI Assistant</span>
+                    <span>${PRODUCT_NAME}</span>
                 </div>
                 <div class="wp-chat-header-actions">${buildExpandToggleHtml()}${buildHeaderMenuHtml(menuItems)}
-                    <button class="wp-chat-close" id="wp-chat-close" type="button">
-                        &times;
+                    <button class="wp-chat-header-button" id="wp-chat-close" type="button" aria-label="Close chat" title="Close chat">
+                        <svg class="wp-chat-header-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>
                     </button>
                 </div>
             </div>
@@ -1546,6 +1547,15 @@ ${buildDeleteChatDialogHtml()}
      * emptied chat should look like a freshly opened one.
      */
     function deleteChat() {
+        // A reply still in flight belongs to the thread being discarded, and
+        // initWebSocket() below drops the old socket's onmessage/onclose handlers -
+        // the only two paths that clear the loading state. Retire the request here or
+        // the typing dots animate forever, the input stays disabled, and every later
+        // send is refused by the "already in progress" guard until a page reload.
+        chatGeneration += 1;
+        requestInFlight = false;
+        showTyping(false);
+
         clearChatStorage();
         chatMessages.querySelectorAll('.wp-chat-message').forEach((message) => message.remove());
 
@@ -1597,6 +1607,7 @@ ${buildDeleteChatDialogHtml()}
         if (socket) {
             // Clear handlers before closing an older socket so its close/error event
             // does not affect the new connection or current chat request state.
+            socket.onopen = null;
             socket.onclose = null;
             socket.onerror = null;
             socket.onmessage = null;
@@ -1604,6 +1615,13 @@ ${buildDeleteChatDialogHtml()}
                 socket.close();
             } catch (error) {
                 console.warn("[WebSocket] Error closing existing connection", error);
+            }
+            // With those handlers gone nothing is left to settle the previous open
+            // promise, so settle it here. A send that landed mid-connect unblocks
+            // through its normal error path instead of awaiting a promise forever.
+            if (socketOpenReject) {
+                socketOpenReject(new Error("WebSocket replaced before it finished connecting."));
+                socketOpenReject = null;
             }
         }
 
@@ -1615,6 +1633,7 @@ ${buildDeleteChatDialogHtml()}
         // Store the open promise so sendMessage() can wait for CONNECTING sockets
         // instead of falling back to the removed legacy HTTP invoke path.
         socketOpenPromise = new Promise((resolve, reject) => {
+            socketOpenReject = reject;
             socket.onopen = function () {
                 console.log("[WebSocket] Connection established for session:", currentSessionId);
                 resolve(socket);
@@ -1631,6 +1650,11 @@ ${buildDeleteChatDialogHtml()}
                 reject(error);
             };
         });
+
+        // Mark the rejection as handled. Callers that need the outcome still await
+        // this promise through ensureWebSocketConnection() and still see the failure;
+        // this only stops an unawaited teardown from logging an unhandled rejection.
+        socketOpenPromise.catch(() => {});
 
         socket.onmessage = function (event) {
             // All assistant responses, session-init system messages, and gateway
@@ -1896,6 +1920,11 @@ ${buildDeleteChatDialogHtml()}
         // Show the loading state and temporarily disable interaction until the request finishes.
         showTyping(true);
 
+        // The conversation can be deleted while this send is still awaiting the
+        // socket, so anything past the await has to confirm it is still the current
+        // chat before touching shared request state or the message list.
+        const generation = chatGeneration;
+
         try {
             const currentStep = getCurrentFormStepFromDom();
             console.log(`Invoking orchestrator with sessionId=${sessionId}, step=${currentStep}, query=${text}`);
@@ -1907,9 +1936,17 @@ ${buildDeleteChatDialogHtml()}
             // Always send through WebSocket. The legacy HTTP invoke fallback was
             // removed so the frontend talks only to the API backend gateway.
             await ensureWebSocketConnection();
+            if (generation !== chatGeneration) return;
             invokeAPIWithWS(text, currentStep, sessionId);
 
         } catch (error) {
+            if (generation !== chatGeneration) {
+                // The chat this send belonged to was deleted mid-flight. Its failure is
+                // expected, and deleteChat() has already cleared the loading state, so
+                // this must not add an error bubble to the fresh conversation.
+                console.warn("[WebSocket] Discarded a request from a deleted chat", error);
+                return;
+            }
             // Request-level failure:
             // restore the clicked guided question because it was never successfully answered,
             // reset the loading state, and show a generic system error in the chat.
@@ -2187,8 +2224,8 @@ function clearChatStorage() {
         console.error('Error clearing chat storage:', e);
     }
 }
-//     }
-//     )();
+    }
+    )();
 
-// }
+}
 

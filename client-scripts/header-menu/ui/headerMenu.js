@@ -12,7 +12,7 @@
 /** Menu row that opens the delete-chat confirmation rather than answering. */
 export const DELETE_CHAT_MENU_ID = 'delete-chat';
 
-const MENU_ICON = `<svg class="wp-chat-menu-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>`;
+const MENU_ICON = `<svg class="wp-chat-header-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>`;
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -36,7 +36,7 @@ export function buildHeaderMenuHtml(items = []) {
 
     return `
                 <div class="wp-chat-menu">
-                    <button class="wp-chat-menu-button" id="wp-chat-menu-button" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu" title="Menu">${MENU_ICON}</button>
+                    <button class="wp-chat-header-button" id="wp-chat-menu-button" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu" title="Menu">${MENU_ICON}</button>
                     <div class="wp-chat-menu-dropdown" id="wp-chat-menu-dropdown" role="menu">${menuItems}
                     </div>
                 </div>`;

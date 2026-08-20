@@ -17,23 +17,34 @@ export const HEADER_MENU_STYLES = `
             display: flex;
         }
 
-        /* Shared shape for the icon buttons in the header (expand, menu). */
-        .wp-chat-header-button,
-        .wp-chat-menu-button {
+        /* Shared shape for every icon button in the header - expand, menu, close.
+           One class so the three cannot drift apart; each only differs by its glyph. */
+        .wp-chat-header-button {
             display: flex;
             align-items: center;
             justify-content: center;
             width: 32px;
             height: 32px;
             padding: 0;
-            background: none;
+            background: transparent;
             border: none;
+            border-radius: 2px;
             color: #FFFFFF;
             cursor: pointer;
         }
 
-        .wp-chat-header-icon,
-        .wp-chat-menu-icon {
+        /* Only the container tints on hover; the glyph stays white in both states.
+           Focus shares the treatment rather than drawing a separate ring, so keyboard
+           users see exactly the highlight pointer users get. */
+        .wp-chat-header-button:hover,
+        .wp-chat-header-button:focus-visible {
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        /* 20px on a 24-unit viewBox lands the glyph ink at the sizes the design calls
+           for: 15x10 for the menu bars, 15x15 for the expand arrows. */
+        .wp-chat-header-icon {
             display: block;
             width: 20px;
             height: 20px;
@@ -60,7 +71,17 @@ export const HEADER_MENU_STYLES = `
             top: calc(100% + 4px);
             right: 0;
             z-index: 1;
-            width: 168px;
+            /* The card hugs its longest row. The design's 168px is deliberately not
+               a floor here: with the short "About AIFA" label nothing reaches that
+               width, so a minimum would only show as dead space to the right of
+               every row. Sizing to content keeps the card correct whichever way the
+               labels change. */
+            width: max-content;
+            /* A ceiling in absolute units, not a percentage: the positioning parent
+               is only as wide as the 32px button, so a percentage would collapse the
+               card rather than cap it. 320px keeps the menu inside the narrow
+               (420px) window; anything longer ellipses on the row below. */
+            max-width: 320px;
             padding: 2px 0;
             background: #FFFFFF;
             border-radius: var(--wp-welcome-radius);
@@ -73,9 +94,12 @@ export const HEADER_MENU_STYLES = `
             display: block;
         }
 
+        /* A block, not a flex row: text-overflow only ellipses a block container, and
+           a label longer than the card's ceiling has to truncate rather than spill.
+           The 27px line-height centres the text in the 35px row that flex alignment
+           would otherwise have handled. */
         .wp-chat-menu-item {
-            display: flex;
-            align-items: center;
+            display: block;
             width: 100%;
             height: 35px;
             padding: 4px 12px;
@@ -88,6 +112,8 @@ export const HEADER_MENU_STYLES = `
             line-height: 27px;
             text-align: left;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             cursor: pointer;
             box-sizing: border-box;
         }
