@@ -3,7 +3,11 @@
 import asyncio
 import aiohttp
 import json
+import tempfile
+from pathlib import Path
 from typing import Optional
+from pyrit.memory.central_memory import CentralMemory
+from pyrit.memory.sqlite_memory import SQLiteMemory
 from pyrit.prompt_target import PromptTarget
 from pyrit.prompt_target.common.target_configuration import TargetConfiguration
 from pyrit.prompt_target.common.target_capabilities import TargetCapabilities
@@ -25,8 +29,21 @@ class CustomAzureOpenAITarget(PromptTarget):
         )
     )
 
+    @staticmethod
+    def _ensure_memory_initialized() -> None:
+        """Initialize PyRIT central memory if it is not already configured."""
+        try:
+            CentralMemory.get_memory_instance()
+            return
+        except ValueError:
+            pass
+
+        db_path = Path(tempfile.gettempdir()) / "pyrit-central-memory.sqlite"
+        CentralMemory.set_memory_instance(SQLiteMemory(db_path=db_path, silent=True))
+
     def __init__(
         self,
+        *,
         endpoint: str,
         api_key: str,
         deployment: str = "gpt-5.1",
@@ -43,6 +60,7 @@ class CustomAzureOpenAITarget(PromptTarget):
             api_version: Azure API version
             timeout: Request timeout in seconds
         """
+        self._ensure_memory_initialized()
         super().__init__()
         self.endpoint = endpoint.rstrip("/")
         self.api_key = api_key

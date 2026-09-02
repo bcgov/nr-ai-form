@@ -4,10 +4,14 @@ import asyncio
 import inspect
 import json
 import os
+import tempfile
 import websockets
+from pathlib import Path
 from typing import Any
 import uuid
 from urllib.parse import urlparse
+from pyrit.memory.central_memory import CentralMemory
+from pyrit.memory.sqlite_memory import SQLiteMemory
 from pyrit.prompt_target import PromptTarget
 from pyrit.prompt_target.common.target_configuration import TargetConfiguration
 from pyrit.prompt_target.common.target_capabilities import TargetCapabilities
@@ -54,6 +58,18 @@ class CustomBackendTarget(PromptTarget):
         )
     )
 
+    @staticmethod
+    def _ensure_memory_initialized() -> None:
+        """Initialize PyRIT central memory if it is not already configured."""
+        try:
+            CentralMemory.get_memory_instance()
+            return
+        except ValueError:
+            pass
+
+        db_path = Path(tempfile.gettempdir()) / "pyrit-central-memory.sqlite"
+        CentralMemory.set_memory_instance(SQLiteMemory(db_path=db_path, silent=True))
+
     def __init__(
         self,
         *,
@@ -75,6 +91,7 @@ class CustomBackendTarget(PromptTarget):
             application_id: Application identifier required by backend
             origin: Origin header for WebSocket handshake (default: https://train.j200.gov.bc.ca)
         """
+        self._ensure_memory_initialized()
         super().__init__()
         
         # Convert HTTP endpoint to WebSocket if needed
