@@ -6,7 +6,7 @@
             "type": "radio",
             "id": "BC Hydro_RequiredQuestionResponse",
             "title": "Are you a BC Hydro employee or agent applying on behalf of BC Hydro?",
-            "description": "The purpose of this application must be related with BC Hydro Sustainment Project.",
+            "description": " Update here The purpose of this application must be related with BC Hydro Sustainment Project.",
             "enum": [
                 "Yes",
                 "No"

@@ -196,6 +196,10 @@ async def _process_ws_request(
     application_id = request.get("application_id") or "unknown"
     step_number = request.get("step_number") or tenant_settings.orchestrator_runtime.formStepNumber
 
+    form_data = request.get("form_data")
+    if not isinstance(form_data, dict) or not form_data:
+        form_data = None
+
     if not request.get("query"):
         await websocket.send_json({"error": "query is required", "session_id": session_id})
         return
@@ -209,6 +213,7 @@ async def _process_ws_request(
             conversation_agent_url=os.getenv("CONVERSATION_AGENT_A2A_URL", "http://localhost:8000"),
             form_support_agent_url=os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001"),
             step_number=step_number,
+            form_data=form_data,
             session_id=tenant_session_id,
             tenant_settings=tenant_settings,
         )

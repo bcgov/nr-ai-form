@@ -17,7 +17,7 @@
         "AnswerOnJob_clean-energy": {
             "type": "radio",
             "id": "AnswerOnJob_clean-energy",
-            "title": "Is this application related to a clean energy project that received a new Energy Purchase Agreement from BC Hydro between 2024-present?",
+            "title": "Solar wind quesition",
             "description": "The purpose of this application must be related with clean energy project like wind or solar activities",
             "enum": [
                 "Yes",

@@ -169,6 +169,7 @@ async def orchestrate_a2a(query: str,
                           form_support_agent_url: str = "http://localhost:8001",
                           step_number: Union[int, str, None] = None,
                           session_id: Optional[str] = None,
+                          form_data: Optional[dict] = None,
                           *,
                           tenant_settings: TenantAgentSettings):
     """
@@ -253,6 +254,7 @@ async def orchestrate_a2a(query: str,
             step_number=effective_step_number,
             session_id=effective_session_id,
             history=prior_history,
+            form_data=form_data,
             client_settings=form_support_settings,
             timeout=a2a_timeout_seconds
         )

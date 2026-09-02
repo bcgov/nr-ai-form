@@ -160,6 +160,30 @@ async def _send_to_orchestrator(payload: dict) -> str:
             await agent_ws.send(json.dumps(payload))
             return await agent_ws.recv()
 
+def _sanitize_form_data(message: dict) -> dict:
+    """Validate/normalize form_data in place, dropping it if unusable.
+
+    A bad form scrape shouldn't kill the chat, so this drops the field and
+    logs rather than closing the socket.
+    """
+    raw = message.get("form_data")
+    MAX_FORM_DATA_BYTES = 64 * 1024
+    if raw is None:
+        message.pop("form_data", None)
+        return message
+
+    if not isinstance(raw, dict):
+        logger.warning("Dropping non-object form_data type=%s", type(raw).__name__)
+        message.pop("form_data")
+        return message
+
+    encoded = json.dumps(raw, separators=(",", ":"))
+    if len(encoded.encode("utf-8")) > MAX_FORM_DATA_BYTES:
+        logger.warning("Dropping oversized form_data bytes=%d", len(encoded))
+        message.pop("form_data")
+
+    return message
+
 
 async def _proxy_to_orchestrator(
     websocket: WebSocket,
@@ -172,7 +196,9 @@ async def _proxy_to_orchestrator(
     if initial_message is not None:
         # websocket_endpoint already consumed the first browser message to resolve
         # tenant config, so forward that same message before entering the receive loop.
-        payload = _attach_tenant_context(initial_message, session_id, client_id, tenant_context)
+        payload = _attach_tenant_context(
+            _sanitize_form_data(initial_message), session_id, client_id, tenant_context
+        )
         await websocket.send_text(await _send_to_orchestrator(payload))
 
     while True:
@@ -185,7 +211,9 @@ async def _proxy_to_orchestrator(
             await websocket.send_text(json.dumps({"error": "Invalid JSON"}))
             continue
 
-        payload = _attach_tenant_context(message, session_id, client_id, tenant_context)
+        payload = _attach_tenant_context(
+            _sanitize_form_data(message), session_id, client_id, tenant_context
+        )
         await websocket.send_text(await _send_to_orchestrator(payload))
 
 # --- Lifecycle ---
@@ -220,8 +248,6 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
-
-
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, session_id: Optional[str] = None):
