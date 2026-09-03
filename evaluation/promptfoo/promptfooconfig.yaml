@@ -1,0 +1,55 @@
+# promptfoo configuration for the nr-ai-form water-permit assistant.
+# Docs: https://promptfoo.dev/docs/configuration/guide
+#
+# Roles:
+#   - System under test (providers): the GPT-5.1-powered orchestrator backend,
+#     reached through providers/backend_provider.py -> POST /invoke.
+#   - Judge/grader (defaultTest.options.provider): Azure OpenAI GPT-4.1. We do
+#     NOT grade with GPT-5.1 (avoids Azure AI Foundry's GPT-5.1 grader limitation
+#     and the self-grading bias of judge == system-under-test).
+#
+# Test cases are generated from the human PoC spreadsheet by
+# datasets/build_golden.py (golden_tests.yaml) and re-run against the live backend.
+
+description: "nr-ai-form water permit assistant — per-step golden evaluation"
+
+# ---- System under test -------------------------------------------------------
+providers:
+  - id: file://providers/backend_provider.py
+    label: orchestrator-gpt51
+
+# The provider reads structured vars, so the prompt is a passthrough.
+prompts:
+  - "{{query}}"
+
+# ---- Judge model + default assertions ---------------------------------------
+defaultTest:
+  options:
+    # Grader = GPT-5.1 on the Azure AI Foundry endpoint, authenticated with
+    # Azure AD (az login). Do NOT set AZURE_OPENAI_API_KEY and promptfoo will
+    # use DefaultAzureCredential automatically.
+    provider:
+      id: azureopenai:chat:${FOUNDRY_MODEL}
+      config:
+        apiHost: ${AZURE_OPENAI_ENDPOINT_HOST}
+        apiVersion: ${AZURE_OPENAI_API_VERSION}
+  assert:
+    # Cheap deterministic guards that run on every case in addition to the
+    # per-case llm-rubric emitted into golden_tests.yaml.
+    - type: not-empty
+    - type: llm-rubric
+      value: >
+        The response must not fabricate specific dollar fees, water rates,
+        legal citations, or eligibility rules that are not part of BC water
+        licensing policy. If it is unsure it should say so or point to an
+        authoritative BC source rather than inventing details.
+
+# ---- Golden test set (generated from the xlsx) ------------------------------
+tests: file://../datasets/golden_tests.yaml
+
+# ---- Output ------------------------------------------------------------------
+outputPath: results/latest.json
+
+# CI gating: fail the run if the pass rate drops below the human PoC baseline.
+# (avg human accuracy ~3.46/5 ≈ 0.69). Tune as the assistant improves.
+# Enforced in CI via: promptfoo eval --fail-on-threshold 0.69

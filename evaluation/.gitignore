@@ -1,0 +1,18 @@
+# env / secrets
+.env
+
+# generated eval outputs
+results/
+**/results/
+.deepeval/
+.deepeval-cache.json
+.promptfoo/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# node
+node_modules/
