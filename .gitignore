@@ -170,3 +170,8 @@ dmypy.json
 .ipynb_checkpoints/
 uv.lock
 docs/*
+
+# Golden/red-team datasets carry real PIDs and tester PII - never commit them.
+# The generator script is tracked; developers supply the source xlsx locally.
+evaluation/datasets/*
+!evaluation/datasets/build_golden.py
