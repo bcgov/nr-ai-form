@@ -552,7 +552,7 @@
           return;
         }
 
-        attackDrilldownEl.innerHTML = items.slice(0, 6).map((item, index) => {
+        attackDrilldownEl.innerHTML = items.slice(0, 17).map((item, index) => {
           const attackType = String(item.attack_type || 'unknown');
           const query = String(item.query || 'No query available');
           const response = String(item.response_preview || 'No response preview available');
