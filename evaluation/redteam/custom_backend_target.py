@@ -14,6 +14,10 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+# PyRIT requires an assistant message even on failure, so transport failures are
+# returned as text. This marker lets the runner tell them apart from real answers.
+INFRA_ERROR_PREFIX = "INFRA_ERROR::"
+
 
 class CustomBackendTarget(PromptTarget):
     """
@@ -96,7 +100,7 @@ class CustomBackendTarget(PromptTarget):
             
             if not last_message:
                 error_response = Message.from_prompt(
-                    prompt="No user message found in conversation",
+                    prompt=f"{INFRA_ERROR_PREFIX}NO_USER_MESSAGE::No user message found in conversation",
                     role="assistant"
                 )
                 return [error_response]
@@ -167,7 +171,7 @@ class CustomBackendTarget(PromptTarget):
                         )
                         
                         error_response = Message.from_prompt(
-                            prompt=f"Error {response.status}: {error_text}",
+                            prompt=f"{INFRA_ERROR_PREFIX}BACKEND_HTTP_{response.status}::Error {response.status}: {error_text}",
                             role="assistant"
                         )
                         return [error_response]
@@ -175,14 +179,14 @@ class CustomBackendTarget(PromptTarget):
         except asyncio.TimeoutError:
             logger.error("backend_timeout", endpoint=self.endpoint, session_id=self.session_id)
             error_response = Message.from_prompt(
-                prompt="Timeout connecting to backend",
+                prompt=f"{INFRA_ERROR_PREFIX}BACKEND_TIMEOUT::Timeout connecting to backend",
                 role="assistant"
             )
             return [error_response]
         except Exception as e:
             logger.error("backend_connection_error", error=str(e), endpoint=self.endpoint)
             error_response = Message.from_prompt(
-                prompt=f"Connection error: {str(e)}",
+                prompt=f"{INFRA_ERROR_PREFIX}BACKEND_CONNECTION::Connection error: {str(e)}",
                 role="assistant"
             )
             return [error_response]

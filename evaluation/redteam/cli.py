@@ -70,6 +70,12 @@ def main():
     default=None,
     help="Comma-separated test case names to run (use --list-cases to see available)",
 )
+@click.option(
+    "--show-steps",
+    is_flag=True,
+    default=False,
+    help="Capture PyRIT's intermediate turns (incl. adversarial escalation) and write them to a .md file",
+)
 def scan(
     threat_models: Optional[str],
     max_iterations: Optional[int],
@@ -77,6 +83,7 @@ def scan(
     output: Optional[Path],
     use_file: bool,
     cases: Optional[str],
+    show_steps: bool,
 ):
     """
     Run security scan using PyRIT framework.
@@ -112,7 +119,8 @@ def scan(
         runner = PyRITRunner(
             threat_models=models,
             max_iterations=max_iter,
-            verbose=True
+            verbose=True,
+            capture_steps=show_steps,
         )
         
         click.echo("Starting PyRIT security red-team scan...")
@@ -147,8 +155,21 @@ def scan(
         )
         
         # Print summary
-        successful = sum(1 for r in results if "error" not in r)
+        def _has_transport_error(result):
+            return any(turn.get("transport_error") for turn in result.get("turns", []))
+
+        transport_failed = [r for r in results if _has_transport_error(r)]
+        errored = [r for r in results if "error" in r]
+        successful = len(results) - len(transport_failed) - len(errored)
+
         click.echo(f"\n✅ Completed {successful}/{len(results)} attacks successfully")
+        if transport_failed:
+            click.echo(
+                f"⚠️  {len(transport_failed)} case(s) never reached the model "
+                f"(backend transport failure) — these are NOT valid results"
+            )
+        if errored:
+            click.echo(f"❌ {len(errored)} case(s) failed with harness errors")
         
         # Save report
         report_path = _save_pyrit_report(runner, output)
@@ -165,9 +186,45 @@ def scan(
             except Exception as e:
                 click.echo(f"Warning: Could not save detailed results: {e}")
         
+        if show_steps and results:
+            steps_path = Path(report_path).with_name(
+                Path(report_path).stem.replace("pyrit_report", "pyrit_steps") + ".md"
+            )
+            _write_steps(results, steps_path)
+            click.echo(f"Intermediate steps saved: {steps_path}")
+        
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
         sys.exit(1)
+
+
+def _write_steps(results, steps_path: Path) -> None:
+    """Write PyRIT's per-turn record, falling back to structured turns if rendering failed."""
+    sections = []
+    for i, result in enumerate(results, 1):
+        steps = result.get("steps") or {}
+        header = f"# Case {i}: {str(result.get('query', ''))[:120]}"
+
+        rendered = steps.get("rendered", "").strip()
+        if rendered:
+            sections.append(f"{header}\n\n{rendered}")
+            continue
+
+        lines = [header, ""]
+        for conv in steps.get("conversations", []):
+            lines.append(f"**Outcome:** {conv.get('outcome')} | **Turns:** {conv.get('executed_turns')}")
+            for label in ("adversarial_conversation", "objective_conversation"):
+                turns = conv.get(label) or []
+                if not turns:
+                    continue
+                lines.append(f"\n## {label.replace('_', ' ').title()}")
+                for turn in turns:
+                    flag = " ⚠️ TRANSPORT ERROR" if turn.get("transport_error") else ""
+                    lines.append(f"\n**{turn.get('role')}**{flag}\n\n{turn.get('content', '')}")
+        sections.append("\n".join(lines))
+
+    steps_path.parent.mkdir(parents=True, exist_ok=True)
+    steps_path.write_text("\n\n---\n\n".join(sections), encoding="utf-8")
 
 
 @main.command()

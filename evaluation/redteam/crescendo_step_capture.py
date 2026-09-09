@@ -96,7 +96,8 @@ class CrescendoMemoryTracer:
         the cumulative state after all internal escalations led to this prompt.
         """
         try:
-            messages = self.memory.get_conversation(conversation_id=conversation_id)
+            getter = getattr(self.memory, "get_conversation_messages", None) or self.memory.get_conversation
+            messages = getter(conversation_id=conversation_id)
             
             escalations = []
             user_prompts = []
