@@ -13,8 +13,13 @@ All values come from evaluation/.env (see .env.example).
 
 from __future__ import annotations
 
+from dotenv import load_dotenv
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# pydantic-settings populates Settings only; modules that read os.getenv
+# (e.g. the WebSocket target) need the values in the process environment too.
+load_dotenv(".env")
 
 
 class Settings(BaseSettings):

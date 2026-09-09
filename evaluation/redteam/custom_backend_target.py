@@ -2,6 +2,7 @@
 
 import asyncio
 import aiohttp
+import json
 from typing import Any
 import uuid
 import os
@@ -56,6 +57,12 @@ class CustomBackendTarget(PromptTarget):
         self.step_number = step_number
         self.timeout = timeout or int(os.getenv("BACKEND_API_TIMEOUT", "180"))
         self._conversation_id = str(uuid.uuid4())
+        # The public gateway speaks WebSocket; the orchestrator speaks HTTP /invoke.
+        self.is_websocket = str(self.endpoint or "").startswith(("ws://", "wss://"))
+        self.ws_origin = os.getenv("BACKEND_WS_ORIGIN", "")
+        self.ws_step = os.getenv("BACKEND_WS_STEP", "step2-Eligibility")
+        self.ws_client_id = os.getenv("BACKEND_WS_CLIENT_ID", str(uuid.uuid4()))
+        self.ws_application_id = int(os.getenv("BACKEND_WS_APPLICATION_ID", "234554"))
         
         logger.info(
             "custom_backend_target_initialized",
@@ -113,7 +120,18 @@ class CustomBackendTarget(PromptTarget):
                 query_length=len(prompt),
                 session_id=self.session_id
             )
-            
+
+            if self.is_websocket:
+                response_data = await self._invoke_websocket(prompt)
+                response_text = self._extract_response(response_data)
+                logger.info(
+                    "backend_response_received",
+                    transport="websocket",
+                    session_id=self.session_id,
+                    response_length=len(response_text),
+                )
+                return [Message.from_prompt(prompt=response_text, role="assistant")]
+
             # Make async HTTP POST request
             async with aiohttp.ClientSession() as session:
                 async with session.post(
@@ -168,6 +186,47 @@ class CustomBackendTarget(PromptTarget):
                 role="assistant"
             )
             return [error_response]
+
+    async def _invoke_websocket(self, prompt: str) -> dict:
+        """Send one turn over the WebSocket gateway and return the answer frame.
+
+        The gateway emits a `session_init` frame first and assigns its own
+        session id, which we adopt so multi-turn attacks stay on one thread.
+        """
+        payload = {
+            "client_id": self.ws_client_id,
+            "query": prompt,
+            "step_number": self.ws_step,
+            "session_id": self.session_id,
+            "application_id": self.ws_application_id,
+        }
+        headers = {"Origin": self.ws_origin} if self.ws_origin else None
+
+        async with aiohttp.ClientSession() as session:
+            async with session.ws_connect(
+                self.endpoint,
+                headers=headers,
+                timeout=aiohttp.ClientWSTimeout(ws_close=self.timeout),
+                heartbeat=None,
+            ) as ws:
+                await ws.send_json(payload)
+                deadline = asyncio.get_running_loop().time() + self.timeout
+                while True:
+                    remaining = deadline - asyncio.get_running_loop().time()
+                    if remaining <= 0:
+                        raise asyncio.TimeoutError("no answer frame before timeout")
+                    msg = await asyncio.wait_for(ws.receive(), timeout=remaining)
+                    if msg.type is not aiohttp.WSMsgType.TEXT:
+                        raise ConnectionError(
+                            f"websocket closed: {msg.type.name} "
+                            f"code={msg.data!r} reason={msg.extra!r}"
+                        )
+                    frame = json.loads(msg.data)
+                    if frame.get("event") == "session_init":
+                        self.session_id = frame.get("session_id", self.session_id)
+                        continue
+                    if "response" in frame:
+                        return frame
 
     def _extract_response(self, response_data: dict) -> str:
         """
