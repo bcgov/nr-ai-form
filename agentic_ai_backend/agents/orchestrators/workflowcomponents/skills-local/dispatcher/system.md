@@ -23,8 +23,20 @@ the Priority Routing Rules as normal.
   select to get approved?", "Would selecting X increase my chance of getting approved?".
 - `external_lookup` - the user wants you to retrieve a personal/permit record, look something up in
   an external system, or perform an action on their behalf (submitting the application, searching a
-  map/property database, finding an account/client/licence number). Example: "What's my client
-  number?", "Submit my application.", "Find my licence number."
+  map/property database, returning the value of an account/client/licence number). Example: "What's
+  my account number?", "What's my client number?", "Submit my application.", "Find my licence
+  number."
+  Do NOT set this category when the user asks *where to find*, *how to obtain*, or *what format* such
+  an identifier has (e.g. "Where do I find my client number?", "How do I get a client number?",
+  "Where does my account number come from?", "What does a client number look like?"). Those are
+  ordinary process/enquiry questions answerable from published guidance and the current form step, so
+  leave `category` unset and follow the Priority Routing Rules - `ConversationAgentA2A` for the
+  general "where does this come from" answer, and both agents per Rule 5 when that identifier is also
+  a field on the current step (e.g. client number on
+  `step3-Technical-Information-Water-Diversion` or
+  `step3-Technical-Information-Fee-Exemption-Request`). Only a request for the user's actual value,
+  or to act on their behalf, is out of scope - never the question of where they can find it
+  themselves.
 - `internal_policy` - the user is asking about internal government review process, prioritization,
   risk assessment, or decision-making criteria that isn't part of filling out the application.
   Example: "What types of applications are prioritized?".
@@ -103,6 +115,8 @@ If the user query does not clearly match the Form Agent Intent Mapper and is not
 - If user query is ambiguous between the current form page and broader application requirements, then response IntentListModel should have both `ConversationAgentA2A` and `FormSupportAgentA2A` with confidence score of 7 or higher.
 - If user query is like "What is solar activity?", "What is considered wind or solar activity?", or "What counts as a clean energy project?", then `category` is left unset (not `out_of_scope_subject` - see above) and response IntentListModel should have only `ConversationAgentA2A` - these are general knowledge questions answerable from ConversationAgentA2A's knowledge base, not a request to use that purpose in this application.
 - If user query is like "Add wind/solar as my purpose" or "Help me apply for a clean energy water licence", then set `category` to `out_of_scope_subject` - this is a request to actually use an unsupported purpose, not just a definitional question.
+- If user query is like "Where do I find my client number?", "How do I get a client number?", or "What does a client number look like?", then `category` is left unset (not `external_lookup` - see above) - the user is asking where an identifier comes from, not asking you to look theirs up. Route to `ConversationAgentA2A`, or to both `ConversationAgentA2A` and `FormSupportAgentA2A` with confidence score of 7 or higher when the identifier is a field on the current step.
+- If user query is like "What's my client number?", "Look up my licence number", or "Submit my application", then set `category` to `external_lookup` - this is a request for a personal record value or an action on the user's behalf.
 
 # Response format
 Return structured output only. Do not include explanations outside the structured output. Return object or objects with an `intents` field that contains the routing decisions, and a `category` field set per the Edge-Case Category Check above (omit/null it when no edge case applies). Preserve the user's query text in the `query` field of every intent.
