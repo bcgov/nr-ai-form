@@ -21,7 +21,7 @@ jobs:
       matrix:
         package:
           - name: conversation_agent
-            context: ./agentic_ai_backend/agents
+            context: ./agentic_ai_backend
             dockerfile: ./agentic_ai_backend/agents/conversationagent/Dockerfile
           - name: formsupport_agent
             context: ./agentic_ai_backend
@@ -29,9 +29,9 @@ jobs:
           - name: orchestrator_agent
             context: ./agentic_ai_backend
             dockerfile: ./agentic_ai_backend/agents/orchestrators/Dockerfile
-          # - name: api_backend
-          #   context: ./agentic_ai_backend
-          #   dockerfile: ./agentic_ai_backend/api_backend/Dockerfile
+          - name: api_backend
+            context: ./agentic_ai_backend
+            dockerfile: ./agentic_ai_backend/api_backend/Dockerfile
     steps:
       - uses: actions/checkout@v4
 

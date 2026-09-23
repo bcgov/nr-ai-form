@@ -1,7 +1,7 @@
 {
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Technical Information - Water Diversion",
-    "properties": {
+    "formfields": {
         "WSLICDoYouHoldAnotherLicense": {
             "type": "radio",
             "enum": [

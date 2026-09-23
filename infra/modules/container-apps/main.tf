@@ -123,6 +123,11 @@ resource "azurerm_container_app" "backend" {
   }
 
   secret {
+    name  = "azure-cosmos-db-key"
+    value = var.azure_cosmos_db_key
+  }
+
+  secret {
     name  = "redis-password"
     value = var.redis_password
   }
@@ -169,10 +174,10 @@ resource "azurerm_container_app" "backend" {
         value = tostring(var.orchestrator_agent_port)
       }
 
-      env {
-        name  = "LOG_LEVEL"
-        value = var.log_level
-      }
+      # env {
+      #   name  = "LOG_LEVEL"
+      #   value = var.log_level
+      # }
 
       # A2A URLs - use localhost since all containers are in the same pod
       env {
@@ -183,12 +188,6 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "FORM_SUPPORT_AGENT_A2A_URL"
         value = "http://localhost:${var.formsupport_agent_port}"
-      }
-
-      # Front Door validation (empty when Front Door is disabled)
-      env {
-        name  = "AZURE_FRONTDOOR_ID"
-        value = var.enable_front_door ? var.api_frontdoor_resource_guid : ""
       }
 
       # Application Insights
@@ -202,22 +201,6 @@ resource "azurerm_container_app" "backend" {
         secret_name = "appinsights-instrumentation-key"
       }
 
-      # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
-      }
-
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
-      }
-
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
-      }
-
       # Azure OpenAI Configuration
       env {
         name        = "AZURE_OPENAI_API_KEY"
@@ -229,120 +212,6 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_openai_endpoint
       }
 
-      env {
-        name  = "AZURE_OPENAI_API_VERSION"
-        value = var.azure_openai_api_version
-      }
-
-      env {
-        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
-        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
-      }
-
-      # Azure Search Configuration
-      env {
-        name  = "AZURE_SEARCH_ENDPOINT"
-        value = var.azure_search_endpoint
-      }
-
-      env {
-        name        = "AZURE_SEARCH_API_KEY"
-        secret_name = "azure-search-api-key"
-      }
-
-      env {
-        name  = "AZURE_SEARCH_INDEX_NAME"
-        value = var.azure_search_index_name
-      }
-
-      env {
-        name  = "AZURE_SEARCH_TOP"
-        value = tostring(var.azure_search_top)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_TRIM_LENGTH"
-        value = tostring(var.azure_search_trim_length)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
-        value = tostring(var.azure_search_enable_trimming)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
-        value = tostring(var.azure_search_include_total_count)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_TYPE"
-        value = var.azure_search_query_type
-      }
-
-      env {
-        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
-        value = var.azure_search_semantic_configuration
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_CAPTION"
-        value = var.azure_search_query_caption
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER"
-        value = var.azure_search_query_answer
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
-        value = tostring(var.azure_search_query_answer_count)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
-        value = var.azure_search_query_language
-      }
-
-      # Agent Configuration
-      env {
-        name  = "AGENT_TEMPERATURE"
-        value = tostring(var.agent_temperature)
-      }
-
-      env {
-        name  = "AGENT_MAX_TOKENS"
-        value = tostring(var.agent_max_tokens)
-      }
-
-      # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
-      }
-
-      env {
-        name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-        secret_name = "azure-document-intelligence-key"
-      }
-
-      # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
-      }
-
-      env {
-        name        = "AZURE_STORAGE_ACCOUNT_KEY"
-        secret_name = "azure-storage-account-key"
-      }
-
-      env {
-        name  = "AZURE_STORAGE_CONTAINER_NAME"
-        value = var.azure_storage_container_name
-      }
-
       # Azure Blob Storage Configuration
       env {
         name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
@@ -352,6 +221,12 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_BLOBSTORAGE_CONTAINER"
         value = var.azure_blobstorage_container
+      }
+
+      # Orchestrator Prompt Cache Configuration
+      env {
+        name  = "ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS"
+        value = tostring(var.orchestrator_prompt_cache_ttl_seconds)
       }
 
       # Redis Configuration
@@ -419,8 +294,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "LOG_LEVEL"
-        value = var.log_level
+        name  = "HOST"
+        value = "0.0.0.0"
       }
 
       # Application Insights
@@ -434,22 +309,6 @@ resource "azurerm_container_app" "backend" {
         secret_name = "appinsights-instrumentation-key"
       }
 
-      # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
-      }
-
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
-      }
-
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
-      }
-
       # Azure OpenAI Configuration
       env {
         name        = "AZURE_OPENAI_API_KEY"
@@ -459,16 +318,6 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_OPENAI_ENDPOINT"
         value = var.azure_openai_endpoint
-      }
-
-      env {
-        name  = "AZURE_OPENAI_API_VERSION"
-        value = var.azure_openai_api_version
-      }
-
-      env {
-        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
-        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
       }
 
       # Azure Search Configuration
@@ -482,99 +331,6 @@ resource "azurerm_container_app" "backend" {
         secret_name = "azure-search-api-key"
       }
 
-      env {
-        name  = "AZURE_SEARCH_INDEX_NAME"
-        value = var.azure_search_index_name
-      }
-
-      env {
-        name  = "AZURE_SEARCH_TOP"
-        value = tostring(var.azure_search_top)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_TRIM_LENGTH"
-        value = tostring(var.azure_search_trim_length)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
-        value = tostring(var.azure_search_enable_trimming)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
-        value = tostring(var.azure_search_include_total_count)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_TYPE"
-        value = var.azure_search_query_type
-      }
-
-      env {
-        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
-        value = var.azure_search_semantic_configuration
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_CAPTION"
-        value = var.azure_search_query_caption
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER"
-        value = var.azure_search_query_answer
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
-        value = tostring(var.azure_search_query_answer_count)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
-        value = var.azure_search_query_language
-      }
-
-      # Agent Configuration
-      env {
-        name  = "AGENT_TEMPERATURE"
-        value = tostring(var.agent_temperature)
-      }
-
-      env {
-        name  = "AGENT_MAX_TOKENS"
-        value = tostring(var.agent_max_tokens)
-      }
-
-      # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
-      }
-
-      env {
-        name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-        secret_name = "azure-document-intelligence-key"
-      }
-
-      # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
-      }
-
-      env {
-        name        = "AZURE_STORAGE_ACCOUNT_KEY"
-        secret_name = "azure-storage-account-key"
-      }
-
-      env {
-        name  = "AZURE_STORAGE_CONTAINER_NAME"
-        value = var.azure_storage_container_name
-      }
-
       # Azure Blob Storage Configuration
       env {
         name        = "AZURE_BLOBSTORAGE_CONNECTIONSTRING"
@@ -586,30 +342,10 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_blobstorage_container
       }
 
-      # Redis Configuration
+      # Conversation Agent Prompt Cache Configuration
       env {
-        name  = "REDIS_HOST"
-        value = var.redis_host
-      }
-
-      env {
-        name  = "REDIS_PORT"
-        value = tostring(var.redis_port)
-      }
-
-      env {
-        name        = "REDIS_PASSWORD"
-        secret_name = "redis-password"
-      }
-
-      env {
-        name  = "REDIS_SSL"
-        value = tostring(var.redis_ssl)
-      }
-
-      env {
-        name  = "REDIS_TTL_DAYS"
-        value = tostring(var.redis_ttl_days)
+        name  = "CONVERSATION_PROMPT_CACHE_TTL_SECONDS"
+        value = tostring(var.conversation_prompt_cache_ttl_seconds)
       }
     }
 
@@ -651,8 +387,8 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "LOG_LEVEL"
-        value = var.log_level
+        name  = "HOST"
+        value = "0.0.0.0"
       }
 
       # Application Insights
@@ -666,22 +402,6 @@ resource "azurerm_container_app" "backend" {
         secret_name = "appinsights-instrumentation-key"
       }
 
-      # Cosmos DB Configuration
-      env {
-        name  = "COSMOS_DB_ENDPOINT"
-        value = var.cosmosdb_endpoint
-      }
-
-      env {
-        name  = "COSMOS_DB_DATABASE_NAME"
-        value = var.cosmosdb_db_name
-      }
-
-      env {
-        name  = "COSMOS_DB_CONTAINER_NAME"
-        value = var.cosmosdb_container_name
-      }
-
       # Azure OpenAI Configuration
       env {
         name        = "AZURE_OPENAI_API_KEY"
@@ -691,120 +411,6 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "AZURE_OPENAI_ENDPOINT"
         value = var.azure_openai_endpoint
-      }
-
-      env {
-        name  = "AZURE_OPENAI_API_VERSION"
-        value = var.azure_openai_api_version
-      }
-
-      env {
-        name  = "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
-        value = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
-      }
-
-      # Azure Search Configuration
-      env {
-        name  = "AZURE_SEARCH_ENDPOINT"
-        value = var.azure_search_endpoint
-      }
-
-      env {
-        name        = "AZURE_SEARCH_API_KEY"
-        secret_name = "azure-search-api-key"
-      }
-
-      env {
-        name  = "AZURE_SEARCH_INDEX_NAME"
-        value = var.azure_search_index_name
-      }
-
-      env {
-        name  = "AZURE_SEARCH_TOP"
-        value = tostring(var.azure_search_top)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_TRIM_LENGTH"
-        value = tostring(var.azure_search_trim_length)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_ENABLE_TRIMMING"
-        value = tostring(var.azure_search_enable_trimming)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_INCLUDE_TOTAL_COUNT"
-        value = tostring(var.azure_search_include_total_count)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_TYPE"
-        value = var.azure_search_query_type
-      }
-
-      env {
-        name  = "AZURE_SEARCH_SEMANTIC_CONFIGURATION"
-        value = var.azure_search_semantic_configuration
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_CAPTION"
-        value = var.azure_search_query_caption
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER"
-        value = var.azure_search_query_answer
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_ANSWER_COUNT"
-        value = tostring(var.azure_search_query_answer_count)
-      }
-
-      env {
-        name  = "AZURE_SEARCH_QUERY_LANGUAGE"
-        value = var.azure_search_query_language
-      }
-
-      # Agent Configuration
-      env {
-        name  = "AGENT_TEMPERATURE"
-        value = tostring(var.agent_temperature)
-      }
-
-      env {
-        name  = "AGENT_MAX_TOKENS"
-        value = tostring(var.agent_max_tokens)
-      }
-
-      # Azure Document Intelligence Configuration
-      env {
-        name  = "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
-        value = var.azure_document_intelligence_endpoint
-      }
-
-      env {
-        name        = "AZURE_DOCUMENT_INTELLIGENCE_KEY"
-        secret_name = "azure-document-intelligence-key"
-      }
-
-      # Azure Storage Configuration
-      env {
-        name  = "AZURE_STORAGE_ACCOUNT_NAME"
-        value = var.azure_storage_account_name
-      }
-
-      env {
-        name        = "AZURE_STORAGE_ACCOUNT_KEY"
-        secret_name = "azure-storage-account-key"
-      }
-
-      env {
-        name  = "AZURE_STORAGE_CONTAINER_NAME"
-        value = var.azure_storage_container_name
       }
 
       # Azure Blob Storage Configuration
@@ -818,114 +424,122 @@ resource "azurerm_container_app" "backend" {
         value = var.azure_blobstorage_container
       }
 
-      # Redis Configuration
+      # Form Support Agent Cache Configuration
       env {
-        name  = "REDIS_HOST"
-        value = var.redis_host
+        name  = "FORM_SUPPORT_AGENT_CACHE_TTL_SECONDS"
+        value = tostring(var.form_support_agent_cache_ttl_seconds)
       }
 
       env {
-        name  = "REDIS_PORT"
-        value = tostring(var.redis_port)
+        name  = "FORM_SUPPORT_PROMPT_CACHE_TTL_SECONDS"
+        value = tostring(var.form_support_prompt_cache_ttl_seconds)
       }
 
       env {
-        name        = "REDIS_PASSWORD"
-        secret_name = "redis-password"
-      }
-
-      env {
-        name  = "REDIS_SSL"
-        value = tostring(var.redis_ssl)
-      }
-
-      env {
-        name  = "REDIS_TTL_DAYS"
-        value = tostring(var.redis_ttl_days)
+        name  = "FORM_SUPPORT_ASSET_CACHE_TTL_SECONDS"
+        value = tostring(var.form_support_asset_cache_ttl_seconds)
       }
     }
-    /*
+    
     # API Backend Container - Public-facing WebSocket gateway to orchestrator
-    container {
-      name   = "api-backend"
-      image  = var.api_backend_image
-      cpu    = var.container_cpu
-      memory = var.container_memory
+    # Only deploy if api_backend_image is provided
+    dynamic "container" {
+      for_each = var.api_backend_image != "" ? [1] : []
+      content {
+        name   = "api-backend"
+        image  = var.api_backend_image
+        cpu    = var.container_cpu
+        memory = var.container_memory
 
-      startup_probe {
-        transport = "HTTP"
-        path      = "/health"
-        port      = var.api_backend_port
-        timeout   = 5
-      }
+        startup_probe {
+          transport = "HTTP"
+          path      = "/health"
+          port      = var.api_backend_port
+          timeout   = 5
+        }
 
-      readiness_probe {
-        transport               = "HTTP"
-        path                    = "/health"
-        port                    = var.api_backend_port
-        timeout                 = 5
-        failure_count_threshold = 3
-      }
+        readiness_probe {
+          transport               = "HTTP"
+          path                    = "/health"
+          port                    = var.api_backend_port
+          timeout                 = 5
+          failure_count_threshold = 3
+        }
 
-      liveness_probe {
-        transport               = "HTTP"
-        path                    = "/health"
-        port                    = var.api_backend_port
-        timeout                 = 5
-        failure_count_threshold = 3
-      }
+        liveness_probe {
+          transport               = "HTTP"
+          path                    = "/health"
+          port                    = var.api_backend_port
+          timeout                 = 5
+          failure_count_threshold = 3
+        }
 
-      env {
-        name  = "PORT"
-        value = tostring(var.api_backend_port)
-      }
+        env {
+          name  = "PORT"
+          value = tostring(var.api_backend_port)
+        }
 
-      env {
-        name  = "ORCHESTRATOR_AGENT_WS_URL"
-        value = "ws://localhost:${var.orchestrator_agent_port}/ws"
-      }
+        env {
+          name  = "ORCHESTRATOR_AGENT_WS_URL"
+          value = "ws://orchestrator-agent:${var.orchestrator_agent_port}/ws"
+        }
 
-      env {
-        name  = "LOG_LEVEL"
-        value = var.log_level
-      }
+        env {
+          name  = "AZURE_COSMOS_DB_ENDPOINT"
+          value = var.azure_cosmos_db_endpoint
+        }
 
-      env {
-        name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
-        secret_name = "appinsights-connection-string"
-      }
+        env {
+          name        = "AZURE_COSMOS_DB_KEY"
+          secret_name = "azure-cosmos-db-key"
+        }
 
-      env {
-        name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
-        secret_name = "appinsights-instrumentation-key"
-      }
+        env {
+          name  = "AZURE_COSMOS_DB_DATABASE_NAME"
+          value = var.azure_cosmos_db_database_name
+        }
 
-      env {
-        name  = "REDIS_HOST"
-        value = var.redis_host
-      }
+        env {
+          name  = "TENANT_PROFILE_FRESH_TTL_SECONDS"
+          value = tostring(var.tenant_profile_fresh_ttl_seconds)
+        }
 
-      env {
-        name  = "REDIS_PORT"
-        value = tostring(var.redis_port)
-      }
+        env {
+          name  = "TENANT_PROFILE_STALE_TTL_SECONDS"
+          value = tostring(var.tenant_profile_stale_ttl_seconds)
+        }
 
-      env {
-        name        = "REDIS_PASSWORD"
-        secret_name = "redis-password"
-      }
+        env {
+          name  = "TENANT_PROFILE_LOOKUP_TIMEOUT_SECONDS"
+          value = tostring(var.tenant_profile_lookup_timeout_seconds)
+        }
 
-      env {
-        name  = "REDIS_SSL"
-        value = tostring(var.redis_ssl)
-      }
+        env {
+          name  = "REDIS_HOST"
+          value = var.redis_host
+        }
 
-      env {
-        name  = "REDIS_TTL_DAYS"
-        value = tostring(var.redis_ttl_days)
+        env {
+          name  = "REDIS_PORT"
+          value = tostring(var.redis_port)
+        }
+
+        env {
+          name        = "REDIS_PASSWORD"
+          secret_name = "redis-password"
+        }
+
+        env {
+          name  = "REDIS_SSL"
+          value = tostring(var.redis_ssl)
+        }
+
+        env {
+          name  = "REDIS_TTL_DAYS"
+          value = tostring(var.redis_ttl_days)
+        }
       }
     }
-    */
 
     # HTTP scaling rule - scale based on concurrent requests
     http_scale_rule {
@@ -935,8 +549,8 @@ resource "azurerm_container_app" "backend" {
   }
 
   ingress {
-    external_enabled           = true                        # Must be true for Front Door to reach the public orchestrator endpoint
-    target_port                = var.orchestrator_agent_port # Orchestrator Agent is the public-facing ACA endpoint
+    external_enabled           = true                        # Must be true for Front Door to reach the public endpoint
+    target_port                = var.api_backend_image != "" ? var.api_backend_port : var.orchestrator_agent_port # If api_backend is deployed, it's the public-facing endpoint; otherwise orchestrator is
     transport                  = "auto"                      # Allows HTTPS from Front Door, HTTP internally
     allow_insecure_connections = false
 

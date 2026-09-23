@@ -1,0 +1,36 @@
+{
+  "formName": "Multi-File Upload",
+  "formDescription": "Multi-file upload widget. Users click Add files to choose one or more files, optionally enter a per-file Description after files are queued, and click Start upload to upload the queue. Empty queue state displays Drag files here, Start upload is disabled, total status is 0%, and size is 0 b. Queued file state shows rows with Filename, Status, Size, and a dynamic Description input; the footer can show text like Uploaded 0/1 files.",
+  "formfields": {
+    "AddFiles": {
+      "type": "button",
+      "id": "AddFiles",
+      "title": "Add files",
+      "description": "Button that opens the file picker to add one or more files to the upload queue.",
+      "required": false
+    },
+    "StartUpload": {
+      "type": "button",
+      "id": "StartUpload",
+      "title": "Start upload",
+      "description": "Button that starts uploading queued files. It may be disabled when no files are queued.",
+      "required": false
+    },
+    "p1juinteh9bbn9hkvbf4cr1dn00_html5": {
+      "type": "file",
+      "id": "p1juinteh9bbn9hkvbf4cr1dn00_html5",
+      "title": "HTML5 file input",
+      "description": "Underlying file input used by the widget to select multiple files.",
+      "multiple": true,
+      "required": false
+    },
+    "Description_p1juio06vo156t15k84m9105n15d54": {
+      "type": "text",
+      "id": "Description_p1juio06vo156t15k84m9105n15d54",
+      "title": "Description",
+      "description": "Dynamic per-file Description input shown after a file is queued. The data-id includes the generated queued-file id and changes per file.",
+      "dynamic": true,
+      "required": false
+    }
+  }
+}

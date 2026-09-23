@@ -1,7 +1,7 @@
 {
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Add Purpose - Consolidated (Domestic, Industrial, Irrigation, Livestock)",
-    "properties": {
+    "formfields": {
         "PurposeUseSector": {
             "type": "select",
             "id": "PurposeUseSector",
@@ -56,9 +56,9 @@
             ],
             "required": true
         },
-        "InADesignatedArea": {
+        "InADesignatedAreaListedAbove": {
             "type": "radio",
-            "id": "InADesignatedAreaListedAbove_100535465_N0",
+            "id": "InADesignatedAreaListedAbove",
             "title": "Are you applying for a water licence to withdraw groundwater in a designated area?",
             "enum": [
                 "Yes",
@@ -77,7 +77,7 @@
             ],
             "required": true
         },
-        "UseOfWaterFromMonth": {
+        "WSLICUseOfWaterFromMonth": {
             "type": "select",
             "id": "WSLICUseOfWaterFromMonth",
             "description": "Select the month from which you want to start(from) using the water.",
@@ -99,7 +99,7 @@
             ],
             "required": true
         },
-        "UseOfWaterToMonth": {
+        "WSLICUseOfWaterToMonth": {
             "type": "select",
             "id": "WSLICUseOfWaterToMonth",
             "description": "Select the month to which you want to end(to) using the water.",
@@ -130,9 +130,9 @@
             "units": "m3/day",
             "maxLength": 17
         },
-        "IrrigationArea": {
+        "Irrigation03AArea": {
             "type": "number",
-            "id": "Irrigation03AArea_100534394_N0",
+            "id": "Irrigation03AArea",
             "title": "Area to be irrigated:",
             "units": "ha",
             "maxLength": 16,
@@ -168,7 +168,7 @@
         },
         "NumberOfDwellings": {
             "type": "number",
-            "id": "NumberOfDwellings_100536021_N0",
+            "id": "NumberOfDwellings",
             "title": "Number of dwellings:",
             "required": false,
             "maxLength": 6,

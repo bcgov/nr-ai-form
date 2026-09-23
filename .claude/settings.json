@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(uv sync)",
+      "Bash(uv sync --frozen)",
+      "Bash(uv lock)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run python:*)",
+      "Bash(uv run uvicorn:*)",
+      "Bash(uv add:*)",
+      "Bash(uv remove:*)",
+      "Bash(uv pip list)",
+      "Bash(uv pip show:*)",
+      "Bash(uv tree)",
+      "Bash(pytest:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(docker-compose ps)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose config)",
+      "Bash(docker ps)",
+      "Bash(docker images)",
+      "Bash(docker logs:*)",
+      "Bash(curl http://localhost:*)",
+      "Bash(curl -s http://localhost:*)",
+      "PowerShell(uv sync)",
+      "PowerShell(uv lock)",
+      "PowerShell(uv run pytest:*)",
+      "PowerShell(uv run python:*)",
+      "PowerShell(uv run uvicorn:*)",
+      "PowerShell(Invoke-WebRequest http://localhost:*)",
+      "PowerShell(Test-NetConnection localhost:*)",
+      "Read(//**)",
+      "Glob(**)",
+      "Grep(**)"
+    ],
+    "ask": [
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker build:*)",
+      "Bash(docker run:*)",
+      "Bash(uv run python.*orchestrator_agent_server.py)",
+      "Bash(uv run python.*conversation_agent_a2a_server.py)",
+      "Bash(uv run python.*formsupport_agent_a2a_server.py)",
+      "Bash(terraform:*)",
+      "Bash(terragrunt:*)",
+      "Bash(az:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(**/.env)",
+      "Read(**/dev.env)",
+      "Read(**/test.env)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)",
+      "Bash(terraform destroy:*)",
+      "Bash(terragrunt destroy:*)"
+    ]
+  },
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  }
+}

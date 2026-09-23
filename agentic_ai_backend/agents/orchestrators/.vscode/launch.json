@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Debugger: Orchestrator Agent",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "program": "${workspaceFolder}/orchestrator_agent_server.py",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/dev.env",
+      "env": {
+        "VIRTUAL_ENV": "${workspaceFolder}/.venv",
+        "PATH": "${workspaceFolder}/.venv/Scripts;${env:PATH}"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "Python Debugger: Orchestrator CLI",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "program": "${workspaceFolder}/orchestratoragent.py",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/dev.env",
+      "env": {
+        "VIRTUAL_ENV": "${workspaceFolder}/.venv",
+        "PATH": "${workspaceFolder}/.venv/Scripts;${env:PATH}"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
+}

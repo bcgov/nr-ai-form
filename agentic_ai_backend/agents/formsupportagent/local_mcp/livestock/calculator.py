@@ -76,6 +76,13 @@ def calculate_water_consumption(
     total_period_days = PERIOD_MULTIPLIERS[period_type] * period_count
     total_water_consumption = round(daily_rate * livestock_count * total_period_days, 6)
 
+    print(
+        f"Calculating water consumption for {livestock_count} {livestock_type} "
+        f"over {period_count} {period_type} ({total_period_days} days). "
+        f"Daily rate: {daily_rate} m3/animal/day. Total water consumption: "
+        f"{total_water_consumption} m3. Application fee: {application_fee}."
+    )
+
     return {
         "livestock_type": livestock["name"],
         "livestock_description": livestock["description"],
@@ -124,6 +131,11 @@ def calculate_multiple_water_consumption(
         result["entry_index"] = index
         calculations.append(result)
         combined_total_m3 += result["total_water_consumption_m3"]
+
+    print(
+        f"Processed entry {index}: {livestock_count} {livestock_type} over "
+        f"{period_count} {period_type}. Total water consumption: "
+        f"{result['total_water_consumption_m3']} m3.")
 
     return {
         "entry_count": len(calculations),

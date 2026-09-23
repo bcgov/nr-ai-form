@@ -1,0 +1,474 @@
+[
+  {
+    "stepIdentifier": "step0-Bot",
+    "shortDescription": "Handles the anti-bot verification action and moves the applicant into the application.",
+    "intentTags": [
+      "human-verification",
+      "captcha",
+      "human-check",
+      "bot-prevention"
+    ]
+  },
+  {
+    "stepIdentifier": "step1-Introduction",
+    "shortDescription": "Lets the applicant choose whether to continue with a BCeID login or proceed without one.",
+    "intentTags": [
+      "application-start",
+      "bceid",
+      "login-choice",
+      "introduction"
+    ]
+  },
+  {
+    "stepIdentifier": "step2-Eligibility",
+    "shortDescription": "Determines whether the applicant can apply for a water licence and whether the project fits special eligibility categories - Ownership or possession of land OR representing BC Government or Federal Government.",
+    "intentTags": [
+      "eligibility",
+      "project-screening",
+      "clean-energy"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Project-Information",
+    "shortDescription": "Determines whether the application is related to BC Hydro, Film production, housing and major mines in BC.",
+    "intentTags": [
+      "bc hydro",
+      "film production",
+      "housing",
+      "major mines"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Project-Information-Questions",
+    "shortDescription": "Captures the details about the application related to BC Hydro, Film production, housing and major mines in BC.",
+    "intentTags": [
+      "bc hydro",
+      "film production",
+      "housing",
+      "major mines"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-AddPurpose-Consolidated",
+    "shortDescription": "Calculate with water usage / consumption for the requested water-use purpose(irrigation, industrial), sub-purpose(irrigation, livestock), seasonal use window, quantities, and purpose-specific details.",
+    "intentTags": [
+      "water-use-purpose",
+      "Purpose - Irrigation, Livestock",
+      "calcuate water usage",
+      "water consumption",
+      "sub-purpose",
+      "seasonality",
+      "water-quantity"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Add-Surface-Water-Source",
+    "shortDescription": "Captures details for an individual surface water source, including its name, characteristics, diversion point, and estimated dimensions.",
+    "intentTags": [
+      "surface-water-source",
+      "source-details",
+      "diversion-point",
+      "source-characteristics"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Add-Well",
+    "shortDescription": "Captures specific data for an individual well, including identification numbers, physical dimensions, geographic coordinates, and operational status (such as artesian flow or wellhead configuration)..",
+    "intentTags": [
+      "well-information",
+      "add-well",
+      "well-location",
+      "well"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Dam-Reservoir-Add-Individual",
+    "shortDescription": "Captures an individual contact associated with dam or reservoir information.",
+    "intentTags": [
+      "dam-reservoir",
+      "contact",
+      "individual",
+      "technical-information"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-address",
+    "shortDescription": "Captures the mailing address for an individual dam or reservoir contact.",
+    "intentTags": [
+      "dam-reservoir",
+      "contact-address",
+      "mailing-address",
+      "individual"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Dam-Reservoir-Add-Organization",
+    "shortDescription": "Captures an organization contact associated with dam or reservoir details.",
+    "intentTags": [
+      "dam-reservoir",
+      "contact",
+      "organization",
+      "technical-information"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-address",
+    "shortDescription": "Captures the mailing address for an organization contact tied to dam or reservoir information.",
+    "intentTags": [
+      "dam-reservoir",
+      "contact-address",
+      "mailing-address",
+      "organization"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Dam-Reservoir",
+    "shortDescription": "Captures dam, reservoir, dugout, spillway, and contact details for storage-related works.",
+    "intentTags": [
+      "dam-reservoir",
+      "storage-works",
+      "engineering-details",
+      "contacts"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Fee-Exemption-Request",
+    "shortDescription": "Collects fee exemption eligibility, category, and supporting details for government or First Nation applicants.",
+    "intentTags": [
+      "fee-exemption",
+      "government-applicant",
+      "first-nation fee exemption",
+      "client-number"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Joint-Works",
+    "shortDescription": "Captures whether the proposed works are shared, supplied through a Water Users' Community, or involve Crown land.",
+    "intentTags": [
+      "joint-works",
+      "water-users-community",
+      "crown-land",
+      "shared-infrastructure"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Land-Tenure-Option",
+    "shortDescription": "Captures whether the applicant wants to select permit over crown land that provides limited non exclusive rights or land act tenure that provides exclusive rights.",
+    "intentTags": [
+      "land-tenure",
+      "property-type",
+      "crown-land",
+      "private-land"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Other-Authorizations",
+    "shortDescription": "Screens for related authorizations, permits, and environmental or land-use impacts connected to the proposed works.",
+    "intentTags": [
+      "other-authorizations",
+      "crown-land",
+      "permits",
+      "environmental-review"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Source-of-Water-for-Application",
+    "shortDescription": "Maintains the list of surface water sources attached to the application.",
+    "intentTags": [
+      "water-source-list",
+      "surface-water-sources",
+      "source-management",
+      "technical-information"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Water-Diversion",
+    "shortDescription": "Captures existing licence information, diversion source type, and the set of water-use purposes being applied for.",
+    "intentTags": [
+      "water-diversion",
+      "existing-licence",
+      "source-type",
+      "purposes-of-use"
+    ]
+  },
+  {
+    "stepIdentifier": "step3-Technical-Information-Works",
+    "shortDescription": "Captures the major works components, their construction status, and supporting details about the water system.",
+    "intentTags": [
+      "works-selection",
+      "construction-status",
+      "water-system",
+      "infrastructure"
+    ]
+  },
+  {
+    "stepIdentifier": "step4-Location",
+    "shortDescription": "Main location step for land parcels, other affected lands, and map or drawing submission choices.",
+    "intentTags": [
+      "location",
+      "land-details",
+      "affected-lands",
+      "mapping"
+    ]
+  },
+  {
+    "stepIdentifier": "step4-Location_consolidated",
+    "shortDescription": "Provides a consolidated view of where water will be used, lands affected by the works, and drawing or mapping options.",
+    "intentTags": [
+      "location",
+      "consolidated-view",
+      "land-details",
+      "mapping"
+    ]
+  },
+  {
+    "stepIdentifier": "step4-Location-Land-Details-Other",
+    "shortDescription": "Captures land information for other ownership categories where the water will be used.",
+    "intentTags": [
+      "land-details",
+      "other-land-ownership",
+      "location",
+      "water-use-land"
+    ]
+  },
+  {
+    "stepIdentifier": "step4-Location-Land-Details-Private-Land",
+    "shortDescription": "Captures parcel, legal description, and title details for private land where the water will be used.",
+    "intentTags": [
+      "land-details",
+      "private-land",
+      "parcel-information",
+      "title-document"
+    ]
+  },
+  {
+    "stepIdentifier": "step4-Location-Land-Details-Provincial-Crown-Land",
+    "shortDescription": "Captures legal, tenure, and reference details for provincial Crown land where the water will be used.",
+    "intentTags": [
+      "land-details",
+      "provincial-crown-land",
+      "tenure",
+      "legal-description"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-multifile-upload",
+    "shortDescription": "Uploads one or more map image or PDF files to support the application location.",
+    "intentTags": [
+      "map-upload",
+      "multi-file-upload",
+      "location-map",
+      "drawings"
+    ]
+  },
+  {
+    "stepIdentifier": "step4-Location-Other-Affected-Lands-Other",
+    "shortDescription": "Captures details for other ownership lands that are physically affected by the proposed works.",
+    "intentTags": [
+      "affected-lands",
+      "other-land-ownership",
+      "works-impact",
+      "location"
+    ]
+  },
+  {
+    "stepIdentifier": "step4-Location-Other-Affected-Lands-Private-Land",
+    "shortDescription": "Captures owner and location details for private lands physically affected by the proposed works.",
+    "intentTags": [
+      "affected-lands",
+      "private-land",
+      "works-impact",
+      "landowner-permission"
+    ]
+  },
+  {
+    "stepIdentifier": "step4-Location-Other-Affected-Lands-Provincial-Crown-Land",
+    "shortDescription": "Captures legal and tenure details for provincial Crown lands physically affected by the proposed works.",
+    "intentTags": [
+      "affected-lands",
+      "provincial-crown-land",
+      "works-impact",
+      "tenure"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-multifile-upload",
+    "shortDescription": "Uploads GIS or spatial files that describe the application location.",
+    "intentTags": [
+      "spatial-upload",
+      "gis",
+      "multi-file-upload",
+      "location-map"
+    ]
+  },
+  {
+    "stepIdentifier": "step5-Document-Upload",
+    "shortDescription": "Captures document upload details for a supporting file, including document type, description, and upload guidance.",
+    "intentTags": [
+      "document-upload",
+      "supporting-document",
+      "file-description",
+      "document-type",
+      "attachments",
+      "private-lease",
+      "copy-of-private-lease",
+      "drawing-to-scale",
+      "joint-works-agreement",
+      "other-supporting-documents"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-multifile-upload",
+    "shortDescription": "Supports uploading multiple application files, including upload queue status, file descriptions, size limits, and accepted file guidance.",
+    "intentTags": [
+      "multi-file-upload",
+      "supporting-documents",
+      "upload-queue",
+      "file-size",
+      "attachments"
+    ]
+  },
+  {
+    "stepIdentifier": "step6-Privacy-Confirmation",
+    "shortDescription": "Records the applicant's confirmation that the privacy declaration has been read and accepted.",
+    "intentTags": [
+      "privacy-confirmation",
+      "consent",
+      "declaration",
+      "acknowledgement"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-address",
+    "shortDescription": "Captures the mailing address for an individual co-applicant.",
+    "intentTags": [
+      "co-applicant",
+      "individual",
+      "mailing-address",
+      "address-details"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Referral",
+    "shortDescription": "Captures a referral or consultation contact and the applicant's consent for referral and First Nation consultation.",
+    "intentTags": [
+      "referral",
+      "consultation-contact",
+      "consent",
+      "first-nation-consultation"
+    ]
+  },
+  {
+    "stepIdentifier": "step9-Declarations",
+    "shortDescription": "Records the applicant's declaration that the information on the form is complete and accurate.",
+    "intentTags": [
+      "declaration",
+      "attestation",
+      "accuracy-confirmation",
+      "final-confirmation"
+    ]
+  },
+  {
+    "stepIdentifier": "step10-Complete",
+    "shortDescription": "Captures final comments, payment method, related application details, and the FrontCounter BC office for submission.",
+    "intentTags": [
+      "completion",
+      "payment-method",
+      "related-authorizations",
+      "submission-office"
+    ]
+  },
+  {
+    "stepIdentifier": "step9-Co-Applicant-Signatures",
+    "shortDescription": "Captures approval from co-applicants before submission, including email approval requests, generated signature forms, uploads, and mail-in approval options.",
+    "intentTags": [
+      "co-applicant",
+      "signature",
+      "approval",
+      "consent",
+      "email-request",
+      "signed-form"
+    ]
+  },
+  {
+    "stepIdentifier": "step9-Co-Applicant-Compose-Email",
+    "shortDescription": "Supports composing, previewing, and sending a signature request email to a co-applicant for application approval.",
+    "intentTags": [
+      "co-applicant",
+      "compose-email",
+      "signature-request",
+      "email-approval",
+      "preview-email"
+    ]
+  },
+  {
+    "stepIdentifier": "shared-single-file-upload",
+    "shortDescription": "Supports a generic single-file upload popup with file selection, description, accepted file extensions, size limits, and upload action.",
+    "intentTags": [
+      "single-file-upload",
+      "file-upload",
+      "file-description",
+      "upload-popup",
+      "upload-action"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Applicant-Information",
+    "shortDescription": "Captures applicant contact information, submitter or agent details, co-applicant information, and Letter of Agency requirements.",
+    "intentTags": [
+      "applicant-information",
+      "contact-information",
+      "agent",
+      "submitter",
+      "co-applicant",
+      "letter-of-agency"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Co-Applicants",
+    "shortDescription": "Explains the co-applicants section, including the co-applicant grid and actions to add individual or organization co-applicants.",
+    "intentTags": [
+      "co-applicant",
+      "co-applicants",
+      "add-individual",
+      "add-organization",
+      "contact-information",
+      "co-applicant-grid"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Applicant-Information-My-Profile",
+    "shortDescription": "Lets the applicant review and update their profile details, including legal name, contact information, relationship to applicant, and mailing address.",
+    "intentTags": [
+      "my-profile",
+      "applicant-profile",
+      "legal-name",
+      "contact-information",
+      "mailing-address",
+      "relationship-to-applicant"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Co-Applicant-Add-A-Business-Applicant",
+    "shortDescription": "Captures legal identity, contact details, registration numbers, and mailing address information for a business co-applicant.",
+    "intentTags": [
+      "co-applicant",
+      "business-applicant",
+      "organization",
+      "registration-number",
+      "contact-information",
+      "mailing-address"
+    ]
+  },
+  {
+    "stepIdentifier": "step7-Co-Applicant-Add-An-Induvidual",
+    "shortDescription": "Captures the legal name and email address for an individual co-applicant.",
+    "intentTags": [
+      "co-applicant",
+      "individual",
+      "legal-name",
+      "email-address",
+      "personal-details"
+    ]
+  }
+]

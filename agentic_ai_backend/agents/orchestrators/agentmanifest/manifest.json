@@ -33,9 +33,9 @@
     "interaction": {
         "baseUrl": "http://localhost:8002",
         "endpoints": {
-            "invoke": {
-                "url": "/invoke",
-                "method": "POST"
+            "websocket": {
+                "url": "/ws",
+                "method": "WS"
             },
             "discovery": {
                 "url": "/.well-known/agent.json",

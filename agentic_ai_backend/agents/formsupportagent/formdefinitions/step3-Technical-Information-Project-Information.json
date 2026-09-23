@@ -1,0 +1,54 @@
+{
+    "formName": "Step 3 - Project Information for Water Licence Application",
+    "formDescription": "This step has a set of questions/fields to determine if the application is related to BC Hydro, Film production, housing, or major mines in BC.",
+    "formfields": {
+        "BC Hydro_RequiredQuestionResponse": {
+            "type": "radio",
+            "id": "BC Hydro_RequiredQuestionResponse",
+            "title": "Are you a BC Hydro employee or agent applying on behalf of BC Hydro?",
+            "description": "The purpose of this application must be related with BC Hydro Sustainment Project.",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
+        },
+        "Film_RequiredQuestionResponse": {
+            "type": "radio",
+            "id": "Film_RequiredQuestionResponse",
+            "title": "Is this application related to a film or television production?",
+            "description": "The purpose of this application must be related with film or television production.",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
+        },
+        "Housing_RequiredQuestionResponse": {
+            "type": "radio",
+            "id": "Housing_RequiredQuestionResponse",
+            "title": "Is this application in relation to increasing the supply of housing units within British Columbia?",
+            "description": "The purpose of this application must be specifically for development of houses or living units AND the development must increase the number of housing units on the land/property.",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
+        },
+        "Major Mine_RequiredQuestionResponse": {
+            "type": "radio",
+            "id": "Major Mine_RequiredQuestionResponse",
+            "title": "Is this application related to a major mine?",
+            "description": "The purpose of this application must be related with a major mine in British Columbia.",
+            "enum": [
+                "Yes",
+                "No"
+            ],
+            "default": "No",
+            "required": true
+        }
+    }
+}

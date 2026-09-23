@@ -54,6 +54,7 @@ module "frontdoor" {
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
+## Cosmos DB module enabled
 module "cosmos" {
   source = "./modules/cosmos"
 
@@ -63,6 +64,9 @@ module "cosmos" {
   resource_group_name        = azurerm_resource_group.main.name
   private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
   log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
+
+  cosmosdb_sql_database_name           = "AgentMemoryDB"
+  cosmosdb_sql_database_container_name = "ClientProfiles"
 
   depends_on = [azurerm_resource_group.main, module.network]
 }
@@ -80,7 +84,7 @@ module "container_apps" {
   orchestrator_agent_image = var.orchestrator_agent_image
   conversation_agent_image = var.conversation_agent_image
   formsupport_agent_image  = var.formsupport_agent_image
-  # api_backend_image        = var.api_backend_image
+  api_backend_image        = var.api_backend_image
   backend_image = var.conversation_agent_image # Fallback for compatibility
 
   resource_group_name = azurerm_resource_group.main.name
@@ -107,9 +111,14 @@ module "container_apps" {
   container_registry_url  = var.container_registry_url
 
   # CosmosDB
-  cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
-  cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
-  cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
+  # Original CosmosDB inputs
+    cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
+    cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
+    cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
+  # CosmosDB (disabled for now)
+  #cosmosdb_endpoint       = ""
+  #cosmosdb_db_name        = ""
+  #cosmosdb_container_name = ""
 
   # Monitoring
   log_analytics_workspace_id      = module.monitoring.log_analytics_workspace_id
@@ -162,6 +171,23 @@ module "container_apps" {
   azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
   azure_blobstorage_container        = var.azure_blobstorage_container
 
+  # Azure Cosmos DB Configuration
+  azure_cosmos_db_endpoint      = var.azure_cosmos_db_endpoint
+  azure_cosmos_db_key           = var.azure_cosmos_db_key
+  azure_cosmos_db_database_name = var.azure_cosmos_db_database_name
+
+  # Tenant Profile Configuration
+  tenant_profile_fresh_ttl_seconds         = var.tenant_profile_fresh_ttl_seconds
+  tenant_profile_stale_ttl_seconds         = var.tenant_profile_stale_ttl_seconds
+  tenant_profile_lookup_timeout_seconds    = var.tenant_profile_lookup_timeout_seconds
+
+  # Cache Configuration
+  orchestrator_prompt_cache_ttl_seconds    = var.orchestrator_prompt_cache_ttl_seconds
+  conversation_prompt_cache_ttl_seconds    = var.conversation_prompt_cache_ttl_seconds
+  form_support_agent_cache_ttl_seconds     = var.form_support_agent_cache_ttl_seconds
+  form_support_prompt_cache_ttl_seconds    = var.form_support_prompt_cache_ttl_seconds
+  form_support_asset_cache_ttl_seconds     = var.form_support_asset_cache_ttl_seconds
+
   # Redis
   redis_host     = var.redis_host
   redis_port     = var.redis_port
@@ -169,7 +195,11 @@ module "container_apps" {
   redis_ssl      = var.redis_ssl
   redis_ttl_days = var.redis_ttl_days
 
+  cors_allow_origins = var.cors_allow_origins
+  
+  # Original dependency included Cosmos module (commented out)
   depends_on = [module.network, module.cosmos, module.monitoring]
+  #  depends_on = [module.network, module.monitoring]
 }
 
 
