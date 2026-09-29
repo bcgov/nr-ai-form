@@ -28,3 +28,9 @@ REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_SSL=False
 REDIS_TTL_DAYS=14
+# Advisory form validation. The gateway proxies POST /validate to the form support agent.
+# VALIDATE_ALLOW_ORIGINS is a comma-separated origin allowlist for this route only, because
+# /validate is not tenant-scoped and so cannot use a client profile's corsOrigins.
+FORM_SUPPORT_AGENT_A2A_URL="http://localhost:8001"
+VALIDATE_ALLOW_ORIGINS="http://localhost:3000"
+VALIDATE_TIMEOUT_SECONDS="25"

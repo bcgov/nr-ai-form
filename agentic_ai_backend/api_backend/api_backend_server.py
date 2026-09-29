@@ -2,8 +2,10 @@ import asyncio
 import json
 import logging
 import os
+import time
 from contextlib import asynccontextmanager
 from typing import Dict, Optional
+import aiohttp
 import uvicorn
 from dotenv import load_dotenv
 import uuid
@@ -36,6 +38,18 @@ logger = logging.getLogger(__name__)
 # --- Configuration ---
 # Full WebSocket URL used by the API backend to connect to the orchestrator.
 ORCHESTRATOR_AGENT_WS_URL = os.getenv("ORCHESTRATOR_AGENT_WS_URL", "ws://localhost:8002/ws")
+
+# Form support agent, called over HTTP for advisory form validation.
+FORM_SUPPORT_AGENT_A2A_URL = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
+VALIDATE_TIMEOUT_SECONDS = float(os.getenv("VALIDATE_TIMEOUT_SECONDS", "25"))
+# /validate is not tenant-scoped, so it cannot use the per-tenant corsOrigins list that the
+# websocket and history routes rely on. This is its own allowlist instead.
+VALIDATE_ALLOW_ORIGINS = [
+    origin.strip() for origin in os.getenv("VALIDATE_ALLOW_ORIGINS", "").split(",") if origin.strip()
+]
+
+# Largest form_data payload accepted, both over the websocket and on /validate.
+MAX_FORM_DATA_BYTES = 64 * 1024
 
 
 # --- Global State ---
@@ -160,6 +174,25 @@ async def _send_to_orchestrator(payload: dict) -> str:
             await agent_ws.send(json.dumps(payload))
             return await agent_ws.recv()
 
+def _form_data_within_limits(raw) -> bool:
+    """Return True when form_data is a dict small enough to forward upstream.
+
+    Shared by the websocket chat path and /validate so the type and size rules stay in one
+    place. Logs the reason for each rejection.
+    """
+    if not isinstance(raw, dict):
+        logger.warning("Rejecting non-object form_data type=%s", type(raw).__name__)
+        return False
+
+    encoded = json.dumps(raw, separators=(",", ":"))
+    encoded_bytes = len(encoded.encode("utf-8"))
+    if encoded_bytes > MAX_FORM_DATA_BYTES:
+        logger.warning("Rejecting oversized form_data bytes=%d", encoded_bytes)
+        return False
+
+    return True
+
+
 def _sanitize_form_data(message: dict) -> dict:
     """Validate/normalize form_data in place, dropping it if unusable.
 
@@ -167,19 +200,11 @@ def _sanitize_form_data(message: dict) -> dict:
     logs rather than closing the socket.
     """
     raw = message.get("form_data")
-    MAX_FORM_DATA_BYTES = 64 * 1024
     if raw is None:
         message.pop("form_data", None)
         return message
 
-    if not isinstance(raw, dict):
-        logger.warning("Dropping non-object form_data type=%s", type(raw).__name__)
-        message.pop("form_data")
-        return message
-
-    encoded = json.dumps(raw, separators=(",", ":"))
-    if len(encoded.encode("utf-8")) > MAX_FORM_DATA_BYTES:
-        logger.warning("Dropping oversized form_data bytes=%d", len(encoded))
+    if not _form_data_within_limits(raw):
         message.pop("form_data")
 
     return message
@@ -452,6 +477,103 @@ async def get_tenant_history(client_id: str, session_id: str, request: Request, 
     public_session_id = _public_session_id(profile.clientId, session_id)
     return await _get_flattened_history(_tenant_session_id(profile.clientId, public_session_id))
 
+
+
+def _apply_validate_cors_headers(request: Request, response: Response) -> None:
+    """Apply CORS headers for /validate from its own origin allowlist.
+
+    The tenant-scoped routes derive allowed origins from the client profile. /validate takes
+    no client_id, so it uses VALIDATE_ALLOW_ORIGINS instead, via the same matching helper.
+    """
+    origin = request.headers.get("origin")
+    if not origin:
+        return
+    if not is_origin_allowed(origin, VALIDATE_ALLOW_ORIGINS):
+        logger.warning("Rejected /validate origin=%r", origin)
+        raise HTTPException(status_code=403, detail="Origin not allowed")
+    response.headers["Access-Control-Allow-Origin"] = origin
+    response.headers["Vary"] = "Origin"
+
+
+@app.options("/validate")
+async def validate_preflight(request: Request, response: Response):
+    """CORS preflight for the browser-initiated /validate call."""
+    _apply_validate_cors_headers(request, response)
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Max-Age"] = "600"
+    return Response(status_code=204, headers=dict(response.headers))
+
+
+@app.post("/validate")
+async def validate_form(request: Request, response: Response):
+    """Proxy an advisory form-validation request to the form support agent.
+
+    Every upstream failure - unreachable agent, non-2xx, malformed body, timeout - resolves to
+    a 200 with no issues. Validation is advisory, so an outage must be invisible to the
+    applicant and must never block the form.
+    """
+    _apply_validate_cors_headers(request, response)
+
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="Request body must be an object")
+
+    step_number = body.get("step_number")
+    if not step_number or not isinstance(step_number, str):
+        raise HTTPException(status_code=400, detail="step_number is required")
+
+    unavailable = {"stepId": step_number, "status": "unavailable", "issues": []}
+
+    form_data = body.get("form_data") or {}
+    if not _form_data_within_limits(form_data):
+        # Already logged with the specific reason; degrade rather than reject.
+        return unavailable
+
+    payload = {"step_number": step_number, "form_data": form_data}
+    if body.get("session_id"):
+        payload["session_id"] = body["session_id"]
+
+    url = f"{FORM_SUPPORT_AGENT_A2A_URL.rstrip('/')}/validate"
+    started = time.monotonic()
+    try:
+        timeout = aiohttp.ClientTimeout(total=VALIDATE_TIMEOUT_SECONDS)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(url, json=payload) as agent_response:
+                body_text = await agent_response.text()
+                if agent_response.status != 200:
+                    logger.warning(
+                        "Form validation upstream returned status=%d step=%s body=%.200s",
+                        agent_response.status,
+                        step_number,
+                        body_text,
+                    )
+                    return unavailable
+                result = json.loads(body_text)
+    except asyncio.TimeoutError:
+        logger.warning("Form validation upstream timed out step=%s", step_number)
+        return unavailable
+    except Exception as exc:
+        logger.warning("Form validation upstream call failed step=%s: %s", step_number, exc)
+        return unavailable
+
+    if not isinstance(result, dict) or "issues" not in result:
+        logger.warning("Form validation upstream returned an unexpected body step=%s", step_number)
+        return unavailable
+
+    logger.info(
+        "Form validation step=%s fields=%d status=%s issues=%d latency_ms=%d",
+        step_number,
+        len(form_data),
+        result.get("status"),
+        len(result.get("issues") or []),
+        int((time.monotonic() - started) * 1000),
+    )
+    return result
 
 
 @app.get("/health")

@@ -26,6 +26,15 @@ from agents.formsupportagent.models.formsupportmodel import (
     InvokeRequest,
     InvokeResponse,
 )
+from agents.formsupportagent.models.formvalidationmodel import (
+    ValidateRequest,
+    ValidateResponse,
+)
+from agents.formsupportagent.formvalidation.validator import validate_step
+from agents.formsupportagent.services.localformdefinitionservice import (
+    LocalFormDefinitionService,
+    is_safe_step_key,
+)
 from typing import Union
 from services.formdefinitionservice import FormDefinitionService
 from services.prompttemplateservice import PromptTemplateService
@@ -295,6 +304,37 @@ async def invoke_agent(request: InvokeRequest):
         logger.exception('Form Support Agent invoke exception')
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
 
+# Form definitions for /validate currently come from the committed local files rather than
+# blob storage. Swapping to FormDefinitionService later is a change to this one line.
+_local_form_definitions = LocalFormDefinitionService()
+
+
+@app.post("/validate", response_model=ValidateResponse)
+async def validate_form(request: ValidateRequest):
+    """Advisory, LLM-backed review of one form step's answers.
+
+    Returns observations about answer plausibility and free-text completeness. It never
+    reports the mechanical validations the form engine already performs, and any LLM failure
+    degrades to `status="unavailable"` with no issues rather than an error - validation must
+    never impede the form.
+    """
+    step_id = str(request.step_number).strip()
+    if not is_safe_step_key(step_id):
+        raise HTTPException(status_code=404, detail=f"Unknown form step: {request.step_number}")
+
+    form_definition = _local_form_definitions.fetch_form_definition(f"{step_id}.json")
+    if not form_definition:
+        raise HTTPException(status_code=404, detail=f"No form definition found for step: {step_id}")
+
+    issues, status = await validate_step(
+        step_id,
+        form_definition,
+        request.form_data or {},
+        client_settings=request.client_settings,
+    )
+    return ValidateResponse(stepId=step_id, status=status, issues=issues)
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -313,6 +353,7 @@ async def root():
         "endpoints": {
             "manifest": "/.well-known/agent.json",
             "invoke": "/invoke",
+            "validate": "/validate",
             "health": "/health",
             "docs": "/docs"
         }
@@ -327,6 +368,7 @@ if __name__ == "__main__":
     print(f"Starting Form Support Agent A2A Server on {host}:{port}")
     print(f"Agent manifest: http://{host}:{port}/.well-known/agent.json")
     print(f"Invoke endpoint: http://{host}:{port}/invoke")
+    print(f"Validate endpoint: http://{host}:{port}/validate")
     print(f"Health check: http://{host}:{port}/health")
     print(f"API docs: http://{host}:{port}/docs")
 
