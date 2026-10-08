@@ -57,6 +57,9 @@ class FormSupportAgentConfig(BaseModel):
     stepBasedPromptContainer: str | None = None
     azureOpenaiChatDeploymentName: str | None = None
     azureOpenaiApiVersion: str | None = None
+    # In-process MCP tool set names the FormSupportAgent registers for this tenant
+    # (see agents/formsupportagent/local_mcp/toolregistry.py). Empty means no tools.
+    mcpTools: List[str] = Field(default_factory=list)
 
 
 class OrchestratorRuntimeSettings(BaseModel):

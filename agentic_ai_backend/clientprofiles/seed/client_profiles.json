@@ -15,9 +15,9 @@
         "gracefulDecline": "tenants/water/agentprompts/gracefuldecline"
       },
       "config": {
-        "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
-        "azureOpenAIApiVersion": "<azure-openai-api-version>",
-        "azureOpenAIAggregatorChatDeploymentName": "<azure-openai-aggregator-chat-deployment-name>",
+        "azureOpenAIChatDeploymentName": "gpt-5.1",
+        "azureOpenAIApiVersion": "2024-10-21",
+        "azureOpenAIAggregatorChatDeploymentName": "gpt-5.1",
         "azureOpenAIAggregatorMaxCompletionTokens": 2500,
         "formStepNumber": 2,
         "a2aClientTimeoutSeconds": 120,
@@ -52,7 +52,7 @@
           "azureSearchQueryAnswerCount": 3,
           "azureSearchQueryLanguage": "en-US",
           "conversationAgentMode": "llm",
-          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiChatDeploymentName": "gpt-5.1",
           "azureOpenaiApiVersion": "2024-10-21"
         }
       },
@@ -63,30 +63,31 @@
         "config": {
           "formDefinitionContainer": "tenants/water/formdefinitions",
           "stepBasedPromptContainer": "tenants/water/prompttemplates",
-          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
-          "azureOpenaiApiVersion": "2024-10-21"
+          "azureOpenaiChatDeploymentName": "gpt-5.1",
+          "azureOpenaiApiVersion": "2024-10-21",
+          "mcpTools": ["LIVESTOCK_WATER_CONSUMPTION_TOOLS"]
         }
       }
     ]
   },
   {
     "clientId": "22222222-2222-4222-8222-222222222222",
-    "clientName": "Fishing Permit App",
+    "clientName": "AIFA Showcase App (Fishing Permit)",
     "corsOrigins": [
-      "https://showcase.apps.silver.devops.gov.bc.ca/*",
+      "https://aifas-dev-main.apps.silver.devops.gov.bc.ca/*",
       "http://localhost*"
     ],
     "tenantResources": {
       "prompts": {
-        "dispatcher": "orchestrator/dispatcher",
-        "aggregator": "orchestrator/aggregator"
+        "dispatcher": "tenants/fish/agentprompts/dispatcher",
+        "aggregator": "tenants/fish/agentprompts/aggregator"
       },
       "config": {
-        "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
+        "azureOpenAIChatDeploymentName": "gpt-5.1",
         "azureOpenAIApiVersion": "2024-10-21",
-        "azureOpenAIAggregatorChatDeploymentName": "<azure-openai-aggregator-chat-deployment-name>",
+        "azureOpenAIAggregatorChatDeploymentName": "gpt-5.1",
         "azureOpenAIAggregatorMaxCompletionTokens": 2500,
-        "formStepNumber": "step2-Eligibility",
+        "formStepNumber": "step0",
         "a2aClientTimeoutSeconds": 120
       }
     },
@@ -94,11 +95,11 @@
       {
         "agentType": "conversationAgent",
         "enabled": true,
-        "promptPath": "agents/conversation/instructions.md",
+        "promptPath": "tenants/fish/agentprompts/conversationagent/instructions.md",
         "config": {
-          "conversationAgentMode": "knowledgebase",
-          "azureSearchIndexName": "fishing-permit-index",
-          "azureSearchKnowledgeAgentName": "fishing-permit-knowledge-agent",
+          "conversationAgentMode": "llm",
+          "azureSearchIndexName": "rag-bc-fish",
+          "azureSearchKnowledgeAgentName": "knowledgebase-bc-fishpermit-dev",
           "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
           "azureSearchKnowledgeAgentRequestMode": "messages",
           "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
@@ -111,12 +112,12 @@
           "azureSearchEnableTrimming": true,
           "azureSearchIncludeTotalCount": true,
           "azureSearchQueryType": "semantic",
-          "azureSearchSemanticConfiguration": "semanticconfig",
+          "azureSearchSemanticConfiguration": "rag-bc-fish-semantic-configuration",
           "azureSearchQueryCaption": "extractive",
           "azureSearchQueryAnswer": "extractive",
           "azureSearchQueryAnswerCount": 3,
           "azureSearchQueryLanguage": "en-US",
-          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiChatDeploymentName": "gpt-5.1",
           "azureOpenaiApiVersion": "2024-10-21",
           "agentMaxTokens": 2500,
           "agentTemperature": 0.1
@@ -125,12 +126,13 @@
       {
         "agentType": "formSupportAgent",
         "enabled": true,
-        "promptPath": "agents/formsupport/instructions.md",
+        "promptPath": "tenants/fish/agentprompts/formsupportagent/instructions.md",
         "config": {
-          "formDefinitionContainer": "fishing-permit-form-definitions",
-          "stepBasedPromptContainer": "fishing-permit-form-prompts",
-          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
-          "azureOpenaiApiVersion": "2024-10-21"
+          "formDefinitionContainer": "tenants/fish/formdefinitions",
+          "stepBasedPromptContainer": "tenants/fish/prompttemplates",
+          "azureOpenaiChatDeploymentName": "gpt-5.1",
+          "azureOpenaiApiVersion": "2024-10-21",
+          "mcpTools": ["FISHING_LICENCE_FEE_CALCULATION_TOOLS"]
         }
       }
     ]
@@ -196,7 +198,8 @@
           "formDefinitionContainer": "dev-form-definitions",
           "stepBasedPromptContainer": "dev-form-prompts",
           "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
-          "azureOpenaiApiVersion": "2024-10-21"
+          "azureOpenaiApiVersion": "2024-10-21",
+          "mcpTools": []
         }
       }
     ]
