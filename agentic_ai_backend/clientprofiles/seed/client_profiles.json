@@ -15,7 +15,7 @@
         "gracefulDecline": "tenants/water/agentprompts/gracefuldecline"
       },
       "config": {
-          "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
+        "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
         "azureOpenAIApiVersion": "<azure-openai-api-version>",
         "azureOpenAIAggregatorChatDeploymentName": "<azure-openai-aggregator-chat-deployment-name>",
         "azureOpenAIAggregatorMaxCompletionTokens": 2500,
