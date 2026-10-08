@@ -1,2 +1,2 @@
-"""Livestock water-consumption MCP tools."""
+"""In-process MCP tools for the FormSupportAgent (livestock water consumption, fishing licence fees)."""
 
