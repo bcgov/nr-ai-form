@@ -1,9 +1,12 @@
 """Dispatcher prompt registry for tenant-aware orchestrator routing.
 
-The dispatcher prompt is loaded from tenant-specific Azure Blob Storage through
-request-scoped PromptSource. There is no local-file fallback in production; the
-legacy local_rel_path argument is ignored by PromptSource and kept only for API
-compatibility with older call sites.
+The dispatcher prompt and the form step intent mapper JSON are loaded from
+tenant-specific Azure Blob Storage through request-scoped PromptSource. There is
+no local-file fallback in production; the legacy local_rel_path argument is
+ignored by PromptSource and kept only for API compatibility with older call sites.
+
+The mapper (tenantResources.prompts.formMapper -> <dir>/stepmapper.json) is only
+loaded when the tenant's dispatcher prompt references $mapper_json.
 
 PromptSource caches orchestrator prompt blobs in memory using the tenant config
 fingerprint, container, prompt path, and filename as the cache key. The cache TTL
@@ -14,8 +17,6 @@ Static substitutions are still applied in one place before dispatcher LLM calls.
 
 import json
 from dataclasses import dataclass
-from functools import lru_cache
-from pathlib import Path
 from string import Template
 
 from workflowcomponents.promptsource import DEFAULT_PROMPT_SOURCE, PromptSource
@@ -23,7 +24,8 @@ from workflowcomponents.promptsource import DEFAULT_PROMPT_SOURCE, PromptSource
 FORM_SUPPORT_AGENT_ID = "FormSupportAgentA2A"
 CONVERSATION_AGENT_ID = "ConversationAgentA2A"
 
-_FORM_MAPPER_PATH = Path(__file__).with_name("formstepsintendmapper.json")
+FORM_MAPPER_PATH_KEY = "AGENT_FORM_MAPPER_PATH"
+FORM_MAPPER_FILENAME = "stepmapper.json"
 
 
 @dataclass(frozen=True)
@@ -41,10 +43,16 @@ class DispatcherSkill:
     content: str
 
 
-@lru_cache(maxsize=1)
-def _form_step_intent_mapper_json() -> str:
-    with _FORM_MAPPER_PATH.open("r", encoding="utf-8") as mapper_file:
-        return json.dumps(json.load(mapper_file), indent=2)
+def _form_step_intent_mapper_json(source: PromptSource) -> str:
+    raw = source.load_prompt(
+        blob_path_env=FORM_MAPPER_PATH_KEY,
+        blob_filename=FORM_MAPPER_FILENAME,
+        local_rel_path=f"stepmapper/{FORM_MAPPER_FILENAME}",
+    )
+    try:
+        return json.dumps(json.loads(raw), indent=2)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Form step intent mapper {FORM_MAPPER_FILENAME} is not valid JSON: {exc}") from exc
 
 
 def _dispatcher_content(prompt_source: PromptSource | None = None) -> str:
@@ -54,11 +62,14 @@ def _dispatcher_content(prompt_source: PromptSource | None = None) -> str:
         blob_filename="system.md",
         local_rel_path="dispatcher/system.md",
     )
-    return Template(raw).safe_substitute(
-        form_support_agent_id=FORM_SUPPORT_AGENT_ID,
-        conversation_agent_id=CONVERSATION_AGENT_ID,
-        mapper_json=_form_step_intent_mapper_json(),
-    )
+    substitutions = {
+        "form_support_agent_id": FORM_SUPPORT_AGENT_ID,
+        "conversation_agent_id": CONVERSATION_AGENT_ID,
+    }
+    # Only tenants whose dispatcher prompt embeds the mapper need it configured.
+    if "mapper_json" in raw:
+        substitutions["mapper_json"] = _form_step_intent_mapper_json(source)
+    return Template(raw).safe_substitute(**substitutions)
 
 
 def get_dispatcher_skill(prompt_source: PromptSource | None = None) -> DispatcherSkill:

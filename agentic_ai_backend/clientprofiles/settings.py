@@ -54,6 +54,7 @@ class OrchestratorPromptSettings(BaseModel):
     aggregatorPromptPath: str | None = None
     edgeCasesPromptPath: str | None = None
     gracefulDeclinePromptPath: str | None = None
+    formMapperPath: str | None = None
 
     @property
     def prompt_directories(self) -> dict[str, str]:
@@ -62,6 +63,7 @@ class OrchestratorPromptSettings(BaseModel):
             for key, value in {
                 "AGENT_DISPATCHER_PROMPTS_PATH": self.dispatcherPromptPath,
                 "AGENT_AGGREGATOR_PROMPTS_PATH": self.aggregatorPromptPath,
+                "AGENT_FORM_MAPPER_PATH": self.formMapperPath,
             }.items()
             if value
         }
@@ -199,6 +201,7 @@ def build_tenant_agent_settings(profile: ClientProfile) -> TenantAgentSettings:
             aggregatorPromptPath=prompts.get("aggregator"),
             edgeCasesPromptPath=prompts.get("edgeCases"),
             gracefulDeclinePromptPath=prompts.get("gracefulDecline"),
+            formMapperPath=prompts.get("formMapper"),
         ),
         orchestrator_runtime=OrchestratorRuntimeSettings.model_validate(runtime_config),
     )

@@ -102,6 +102,9 @@ class OrchestratorPrompts(BaseModel):
     # of edgeCasePolicy.
     edgeCases: str | None = None
     gracefulDecline: str | None = None
+    # Blob directory holding stepmapper.json (form step intent mapper). Required
+    # only when the tenant's dispatcher prompt references $mapper_json.
+    formMapper: str | None = None
 
 
 class TenantResources(BaseModel):

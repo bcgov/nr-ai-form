@@ -12,7 +12,8 @@
         "dispatcher": "tenants/water/agentprompts/dispatcher",
         "aggregator": "tenants/water/agentprompts/aggregrator",
         "edgeCases": "tenants/water/agentprompts/edgecases",
-        "gracefulDecline": "tenants/water/agentprompts/gracefuldecline"
+        "gracefulDecline": "tenants/water/agentprompts/gracefuldecline",
+        "formMapper": "tenants/water/stepmapper"
       },
       "config": {
         "azureOpenAIChatDeploymentName": "gpt-5.1",
@@ -80,7 +81,8 @@
     "tenantResources": {
       "prompts": {
         "dispatcher": "tenants/fish/agentprompts/dispatcher",
-        "aggregator": "tenants/fish/agentprompts/aggregator"
+        "aggregator": "tenants/fish/agentprompts/aggregator",
+        "formMapper": "tenants/fish/stepmapper"
       },
       "config": {
         "azureOpenAIChatDeploymentName": "gpt-5.1",
@@ -147,7 +149,8 @@
     "tenantResources": {
       "prompts": {
         "dispatcher": "orchestrator/dispatcher",
-        "aggregator": "orchestrator/aggregator"
+        "aggregator": "orchestrator/aggregator",
+        "formMapper": "tenants/<tenant>/stepmapper"
       },
       "config": {
         "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
