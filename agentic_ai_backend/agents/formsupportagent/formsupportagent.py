@@ -10,6 +10,7 @@ from utils.tenantsettings import (
     AZURE_BLOB_CONNECTION_STRING_ENV,
     AZURE_BLOB_CONTAINER_ENV,
     environment_setting,
+    setting_from_client_config,
     settings_cache_parts,
     top_level_setting_from_client,
 )
@@ -64,9 +65,7 @@ def extract_step_from_query(query):
 from services.formdefinitionservice import FormDefinitionService
 from services.prompttemplateservice import PromptTemplateService
 from utils.blobservice import BlobService
-from local_mcp.livestock.inprocess_client import (
-    LIVESTOCK_WATER_CONSUMPTION_TOOLS,
-)
+from local_mcp.toolregistry import resolve_tool_sets
 
 def resolve_agent_assets(step_identifier, form_definition_service=None, prompt_template_service=None):
     """
@@ -129,9 +128,11 @@ class FormSupportAgent():
             azure_endpoint=endpoint,
             api_version=api_version,
         )
+        # Tool sets are selected per tenant via client_settings.config.mcpTools.
+        tools = resolve_tool_sets(setting_from_client_config(client_settings, "mcpTools", default=[]))
         agent_kwargs = {
             "instructions": final_instructions,
-            "tools": LIVESTOCK_WATER_CONSUMPTION_TOOLS,
+            "tools": tools,
             "name": "FormSupportAgent",
         }
         self.agent = client.as_agent(

@@ -169,6 +169,7 @@ Required values fail fast during tenant config resolution, before the workflow o
 | `aggregator` | `system.md` + `user.md` (LLM prompts) | `skills-local/aggregator/` | Always |
 | `edgeCases` | `templates.json` (`{category_key: reply_markdown}`) | `skills-local/edgecases/templates.json` | Only when `tenantResources.config.edgeCasePolicy == "custom"` |
 | `gracefulDecline` | `messages.json` (`{"first_attempt": "...", "second_attempt": "..."}`) | `skills-local/gracefuldecline/messages.json` | Optional for every tenant, regardless of `edgeCasePolicy` |
+| `formMapper` | `stepmapper.json` (form step intent mapper: `[{stepIdentifier, shortDescription, intentTags}]`), substituted into the dispatcher prompt as `$mapper_json` | `skills-local/stepmapper/stepmapper.json` | Only when the tenant's `dispatcher/system.md` references `$mapper_json`; the dispatcher fails fast if it does and `formMapper` is unset |
 
 ### Runtime decision flow: edge case vs. graceful decline
 
