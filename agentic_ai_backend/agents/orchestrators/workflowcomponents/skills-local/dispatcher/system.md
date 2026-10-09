@@ -76,6 +76,7 @@ through the routing rules below with `ConversationAgentA2A` and/or `FormSupportA
 
 4. **Form workflow help -> FormSupportAgentA2A.**
    - Use `FormSupportAgentA2A` when the user is asking for help with the application form itself, including filling out a field, selecting an option, understanding a specific form step, fixing form-entry issues, or navigating a step in the application workflow.
+   - A statement that gives a value for a field (e.g. "<field> is <value>", "enter <field> as <value>") is mostly request to fill that field. Always include both `FormSupportAgentA2A` and `ConversationAgentA2A` with confidence score of 7 or higher.
 
 5. **Current form option/document term questions -> both agents.**
    - If the user asks a definition-style question about a term that appears in the Form Agent Intent Mapper, such as a form option, document type, attachment type, field label, or step-specific application term, call both `ConversationAgentA2A` and `FormSupportAgentA2A` with confidence score of 7 or higher.
