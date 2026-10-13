@@ -1,0 +1,119 @@
+{
+  "formName": "Step 7 - Applicant Information - My Profile - Water Licence Application",
+  "formDescription": "This profile page lets the applicant review and update their own legal name, contact information, default relationship to applicant, and mailing address. The mailing address is shown in a grid/table and can be opened with the Go to Address action. The user can also return to My Applications, cancel, or save changes.",
+  "formfields": {
+    "LastName": {
+      "type": "text",
+      "id": "LastName",
+      "title": "Last Name:",
+      "description": "The applicant's legal last name.",
+      "required": true
+    },
+    "FirstName": {
+      "type": "text",
+      "id": "FirstName",
+      "title": "First Name:",
+      "description": "The applicant's legal first name.",
+      "required": true
+    },
+    "MiddleName": {
+      "type": "text",
+      "id": "MiddleName",
+      "title": "Middle Name:",
+      "description": "The applicant's legal middle name, if applicable.",
+      "required": false
+    },
+    "PhoneNumber": {
+      "type": "phone",
+      "id": "PhoneNumber",
+      "title": "Phone:",
+      "description": "The applicant's primary phone number.",
+      "required": true
+    },
+    "DaytimePhoneNumber": {
+      "type": "phone",
+      "id": "DaytimePhoneNumber",
+      "title": "Day Time Phone:",
+      "description": "The applicant's daytime phone number, if different from the primary phone number.",
+      "required": false
+    },
+    "DaytimePhoneNumberExtension": {
+      "type": "text",
+      "id": "DaytimePhoneNumberExtension",
+      "title": "Ext.",
+      "description": "Optional extension for the applicant's daytime phone number.",
+      "required": false
+    },
+    "FaxNumber": {
+      "type": "phone",
+      "id": "FaxNumber",
+      "title": "Fax:",
+      "description": "Optional fax number for the applicant.",
+      "required": false
+    },
+    "Email": {
+      "type": "text",
+      "id": "Email",
+      "title": "Email:",
+      "description": "The applicant's email address.",
+      "required": true
+    },
+    "Link_1_198463491": {
+      "type": "link",
+      "id": "Link_1_198463491",
+      "title": "Go to Address",
+      "description": "Action link that opens the selected mailing address record for review or update.",
+      "required": false
+    },
+    "ReturnToMyApplications_Link": {
+      "type": "button",
+      "id": "ReturnToMyApplications_Link",
+      "title": "Return to My Applications",
+      "description": "Returns the user to the My Applications page.",
+      "required": false
+    },
+    "OnBehalfOfTypeId_100060813_198463485": {
+      "type": "select",
+      "id": "OnBehalfOfTypeId_100060813_198463485",
+      "title": "Default Relationship to Applicant:",
+      "description": "Dropdown/select input for the applicant's default relationship to the applicant. This control has no data-id in the HTML, so the element id is used.",
+      "required": false,
+      "enum": [
+        "(none)",
+        "Agent (Letter Required: Letter of Agency)",
+        "Board Member",
+        "Consultant (Letter Required: Appointment Letter)",
+        "Current Permit Owner",
+        "Employee",
+        "Employer",
+        "Executor, Administrator, Trust (Letter Required: Copy of Will, Letter of Appointment)",
+        "Family Member (Letter Required: Authorization Letter)",
+        "Film Liaison",
+        "Friend/Neighbour (Letter Required: Authorization Letter)",
+        "Lawyer / Notary",
+        "Other",
+        "Owner",
+        "Owner Assuming Permit Rights",
+        "Owner Relinquishing the Rights",
+        "Power of Attorney (Letter Required: Power of Attorney)",
+        "Representative (Letter Required: Representation Agreement)",
+        "Trustee in Bankruptcy",
+        "Volunteer Representative"
+      ]
+    },
+    "cphBottomFunctionBand_ctl04_hlkFunctionLink": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
+      "title": "Cancel",
+      "description": "Cancels the profile edit popup/window.",
+      "required": false
+    },
+    "cphBottomFunctionBand_ctl06_Submit": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl06_Submit",
+      "title": "Save",
+      "description": "Saves profile changes entered directly by the user.",
+      "required": false
+    }
+  }
+}

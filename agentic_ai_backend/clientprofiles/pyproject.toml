@@ -1,0 +1,18 @@
+[project]
+name = "clientprofiles"
+version = "0.1.0"
+description = "Shared Cosmos DB client profile resolution for multitenancy"
+requires-python = ">=3.13"
+dependencies = [
+    "azure-cosmos==4.15.0",
+    "azure-identity>=1.15.0",
+    "pydantic>=2.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["clientprofiles"]
+package-dir = {"clientprofiles" = "."}

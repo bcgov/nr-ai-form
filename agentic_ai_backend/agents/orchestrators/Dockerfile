@@ -6,6 +6,7 @@ RUN pip install --no-cache-dir uv
 WORKDIR /app
 
 COPY utils/ ./utils/
+COPY clientprofiles/ ./clientprofiles/
 COPY agents/orchestrators/ ./agents/orchestrators/
 
 WORKDIR /app/agents/orchestrators

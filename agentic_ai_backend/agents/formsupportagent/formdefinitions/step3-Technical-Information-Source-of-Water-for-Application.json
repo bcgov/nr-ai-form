@@ -1,60 +1,39 @@
-{
-    "formName": "Water Licence Application",
-    "formDescription": "Step 3 - Technical Information - Source of Water for Application",
-    "properties": {
-        "SurfaceWaterSourcesGrid": {
-            "type": "grid",
-            "id": "SurfaceWaterSourcesGrid_100826612",
-            "title": "Surface Water Sources",
-            "columns": [
-                {
-                    "name": "Actions",
-                    "type": "actions"
-                },
-                {
-                    "name": "Source",
-                    "type": "string",
-                    "description": "The name of the source of surface water"
-                },
-                {
-                    "name": "Flows into",
-                    "type": "string",
-                    "description": "The body of water the source flows into"
-                },
-                {
-                    "name": "Width",
-                    "type": "number",
-                    "description": "The estimated width of the source in metres at the diversion point"
-                },
-                {
-                    "name": "Depth",
-                    "type": "number",
-                    "description": "The estimated depth of the source in metres at the diversion point"
-                },
-                {
-                    "name": "Delete",
-                    "type": "action"
-                }
-            ],
-            "actions": [
-                {
-                    "type": "edit",
-                    "id": "Link_1_100826612_100827007",
-                    "title": "Edit Surface Water Source information",
-                    "action": "PossePopup"
-                },
-                {
-                    "type": "delete",
-                    "id": "Delete_1_100826612_100827007",
-                    "title": "Delete this line",
-                    "action": "PosseDelete"
-                }
-            ]
-        },
-        "AddSurfaceWaterSourceRT": {
-            "type": "button",
-            "id": "AddSurfaceWaterSourceRT_100845885_185632262",
-            "title": "Add Surface Water Source"
-        }
-    }
-}
+{ 
+     "formName": "Step 3 - Technical Information - Source of Water for Water Licence Application", 
+     "formDescription": "This section of the form identifies the source of water for the application, specifically focusing on whether the water is sourced from a well and evaluating its proximity and potential hydraulic connection to surface water bodies like lakes, streams, or springs.", 
+     "formfields": { 
+         "WaterDivertedUsingWell": { 
+             "type": "radio", 
+             "id": "WaterDivertedUsingWell", 
+             "title": "Is the water you are applying for coming from a well?", 
+             "description": "Identifies if the application involves diverting groundwater via a well system.", 
+             "enum": [ 
+                 "Yes", 
+                 "No" 
+             ], 
+             "default": "Yes", 
+             "required": true 
+         }, 
+         "GWNAWellHydraulicallyConnected": { 
+             "type": "radio", 
+             "id": "GWNAWellHydraulicallyConnected", 
+             "title": "Does any documentation, such as a well construction report, indicate that there is a hydraulic connection between the well and a surface water source?", 
+             "description": "Indicates if existing documentation confirms a physical or hydraulic link between the aquifer and nearby surface water.", 
+             "enum": [ 
+                 "Yes", 
+                 "No", 
+                 "Unknown" 
+             ], 
+             "default": "Yes", 
+             "required": true 
+         }, 
+         "GWNASourceOfSurfaceWater": { 
+             "type": "textarea", 
+             "id": "GWNASourceOfSurfaceWater", 
+             "title": "Please describe the source of the nearby surface water (e.g., lake, stream, spring).", 
+             "description": "A detailed description or name of the surface water body located in proximity to the well site.", 
+             "default": "", 
+             "required": true 
+         } 
+     } 
+ }

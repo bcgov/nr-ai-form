@@ -1,0 +1,104 @@
+{
+  "formName": "Step 7 - Co-applicant - Add a Business Applicant - Water Licence Application",
+  "formDescription": "This popup collects legal identity, contact details, registration numbers, and mailing address information for a business co-applicant. Field keys and ids use data-id values from the source HTML when present; Cancel and Save have no data-id, so their element ids are used.",
+  "formfields": {
+    "LegalName": {
+      "type": "text",
+      "id": "LegalName",
+      "title": "Legal Name:",
+      "description": "The legal name of the business co-applicant.",
+      "required": true
+    },
+    "DoingBusinessAs": {
+      "type": "text",
+      "id": "DoingBusinessAs",
+      "title": "Doing Business As:",
+      "description": "The operating or trade name used by the business co-applicant, if different from the legal name.",
+      "required": false
+    },
+    "PhoneNumber": {
+      "type": "phone",
+      "id": "PhoneNumber",
+      "title": "Phone Number:",
+      "description": "The primary phone number for the business co-applicant.",
+      "required": true
+    },
+    "PhoneExtension": {
+      "type": "text",
+      "id": "PhoneExtension",
+      "title": "Ext:",
+      "description": "Optional extension for the business co-applicant's primary phone number.",
+      "required": false
+    },
+    "FaxNumber": {
+      "type": "phone",
+      "id": "FaxNumber",
+      "title": "Fax Number:",
+      "description": "Optional fax number for the business co-applicant.",
+      "required": false
+    },
+    "Email": {
+      "type": "text",
+      "id": "Email",
+      "title": "Email:",
+      "description": "Optional email address for the business co-applicant.",
+      "required": false
+    },
+    "BCIncNo": {
+      "type": "text",
+      "id": "BCIncNo",
+      "title": "BC Incorporation Number:",
+      "description": "The BC incorporation number for the business co-applicant, if applicable.",
+      "required": false
+    },
+    "BusinessRegistrationNumber": {
+      "type": "text",
+      "id": "BusinessRegistrationNumber",
+      "title": "Extra Provincial Inc. No:",
+      "description": "The extra-provincial incorporation number for the business co-applicant, if applicable.",
+      "required": false
+    },
+    "SocietyNo": {
+      "type": "text",
+      "id": "SocietyNo",
+      "title": "Society Number:",
+      "description": "The society number for the business co-applicant, if applicable.",
+      "required": false
+    },
+    "GSTRegistrationNo": {
+      "type": "text",
+      "id": "GSTRegistrationNo",
+      "title": "GST Registration No:",
+      "description": "The GST registration number for the business co-applicant, if applicable.",
+      "required": false
+    },
+    "ContactName": {
+      "type": "text",
+      "id": "ContactName",
+      "title": "Contact Name:",
+      "description": "The name of the contact person for the business co-applicant.",
+      "required": false
+    },
+    "AddAddress_RT": {
+      "type": "button",
+      "id": "AddAddress_RT",
+      "title": "Add Address",
+      "description": "Opens a popup to enter or look up the mailing address for the business co-applicant.",
+      "required": true
+    },
+    "cphBottomFunctionBand_ctl04_hlkFunctionLink": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl04_hlkFunctionLink",
+      "title": "Cancel",
+      "description": "Cancels the business co-applicant popup/window.",
+      "required": false
+    },
+    "cphBottomFunctionBand_ctl06_Submit": {
+      "type": "button",
+      "id": "cphBottomFunctionBand_ctl06_Submit",
+      "title": "Save",
+      "description": "Saves the business co-applicant details entered directly by the user.",
+      "required": false
+    }
+  }
+}

@@ -2,9 +2,9 @@
 FastAPI A2A Wrapper for Conversation Agent
 This is a standalone wrapper that imports and exposes the ConversationAgent via HTTP
 """
-import asyncio
+import json
+import logging
 import os
-import sys
 from fastapi import FastAPI, HTTPException
 from agent_framework import AgentSession
 from dotenv import load_dotenv
@@ -14,6 +14,7 @@ from models.conversationmodel import InvokeRequest, InvokeResponse
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
 
 
 # Initialize FastAPI app
@@ -30,17 +31,11 @@ _session_threads: dict[str, AgentSession] = {}
 def get_agent():
     """Get or create the agent instance"""
     agent_instance = None
-    try:            
-        endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
-        api_key = os.environ["AZURE_OPENAI_API_KEY"]
-        deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"]
-        api_version = os.environ["AZURE_OPENAI_API_VERSION"]
-        max_tokens = int(os.getenv("AGENT_MAX_TOKENS", "800"))
-        temperature = float(os.getenv("AGENT_TEMPERATURE", "0.1"))
-        agent_instance = ConversationAgent(endpoint, api_key, deployment_name, api_version,max_tokens, temperature)
+    try:
+        agent_instance = ConversationAgent()
     except Exception as e:
         raise RuntimeError(f"Failed to initialize agent: {str(e)}")
-    
+
     return agent_instance
 
 @app.get("/.well-known/agent.json")
@@ -49,11 +44,10 @@ async def agent_manifest():
     Provides the agent's manifest, describing its identity and skills.
     This is the standard A2A discovery endpoint.
     """
-    import json
     manifest = os.path.join(os.path.dirname(__file__), "agentmanifest", "manifest.json")
     with open(manifest, "r") as f:
         return json.load(f)
-    
+
 
 @app.post("/invoke", response_model=InvokeResponse)
 async def invoke_agent(request: InvokeRequest):
@@ -72,12 +66,13 @@ async def invoke_agent(request: InvokeRequest):
                 _session_threads[request.session_id] = session
 
         # Run the agent
-        result = await agent.run(request.query, session=session)
+        result = await agent.run(request.query, session=session, client_settings=request.client_settings)
         return InvokeResponse(
             response=result,
             session_id=request.session_id
         )
     except Exception as e:
+        logger.exception("Conversation Agent A2A invoke exception")
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
 
 @app.get("/health")
@@ -105,16 +100,16 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
-    
+
     print(f"Starting Conversation Agent A2A API on {host}:{port}")
     print(f"Agent manifest: http://{host}:{port}/.well-known/agent.json")
     print(f"Invoke endpoint: http://{host}:{port}/invoke")
     print(f"Health check: http://{host}:{port}/health")
     print(f"API docs: http://{host}:{port}/docs")
-    
+
     uvicorn.run(
         app,
         host=host,

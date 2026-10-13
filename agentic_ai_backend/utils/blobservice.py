@@ -1,7 +1,6 @@
-
-import os
 from azure.storage.blob import BlobServiceClient
 from typing import List, Optional
+
 
 class BlobService:
 
@@ -14,24 +13,7 @@ class BlobService:
         except Exception as e:
             raise RuntimeError(f"Failed to initialize BlobServiceClient: {e}")
 
-    # TODO  ABIN: for read access testing for az cli testing only. Not for production use.
-    # def download_blob(self, container_name: str, blob_name: str, destination_path: str) -> str:
-
-    #     try:
-    #         blob_client = self.blob_service_client.get_blob_client(container=container_name, blob=blob_name)
-            
-    #         # Ensure directory exists
-    #         os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-            
-    #         with open(destination_path, "wb") as download_file:
-    #             download_file.write(blob_client.download_blob().readall())
-                
-    #         return os.path.abspath(destination_path)
-    #     except Exception as e:
-    #         raise RuntimeError(f"Failed to download blob {blob_name}: {e}")
-
-    def read_blob_text(self, container_name: str, blob_name: str, encoding: str = 'utf-8') -> str:
-
+    def read_blob_text(self, container_name: str, blob_name: str, encoding: str = "utf-8") -> str:
         try:
             blob_client = self.blob_service_client.get_blob_client(container=container_name, blob=blob_name)
             return blob_client.download_blob().readall().decode(encoding)
@@ -39,9 +21,39 @@ class BlobService:
             raise RuntimeError(f"Failed to read blob {blob_name}: {e}")
 
     def list_blobs(self, container_name: str, name_starts_with: Optional[str] = None) -> List[str]:
-   
         try:
             container_client = self.blob_service_client.get_container_client(container_name)
             return [blob.name for blob in container_client.list_blobs(name_starts_with=name_starts_with)]
         except Exception as e:
             raise RuntimeError(f"Failed to list blobs in container {container_name}: {e}")
+
+
+def load_blob_text_required(
+    connection_string: str | None,
+    container_name: str | None,
+    directory: str | None,
+    blob_filename: str,
+) -> str:
+    """Load a text asset from Azure Blob Storage; never fall back to local files."""
+    if not connection_string or not container_name or not directory:
+        raise RuntimeError(f"Blob asset config is required for {blob_filename}.")
+
+    blob_name = f"{directory.strip('/')}/{blob_filename}"
+    try:
+        service = BlobService(connection_string)
+        text = service.read_blob_text(container_name, blob_name)
+        print(f"Loaded asset from blob: container={container_name}, blob={blob_name}")
+        return text
+    except Exception as exc:
+        print(
+            "Failed to load required blob asset. "
+            f"connection_string={'***' if connection_string else '<none>'}, "
+            f"container={container_name}, "
+            f"directory={directory}, "
+            f"blob_filename={blob_filename}, "
+            f"resolved_blob={blob_name}, "
+            f"error={exc}"
+        )
+        raise RuntimeError(
+            f"Failed to load required blob asset {blob_name} from container {container_name}."
+        ) from exc

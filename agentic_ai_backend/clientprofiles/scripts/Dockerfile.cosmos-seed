@@ -1,0 +1,23 @@
+# Lightweight container that seeds the Cosmos DB emulator with client profiles.
+# Runs once at startup, then exits.
+
+FROM python:3.13-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl dos2unix \
+    && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir azure-cosmos pydantic
+
+WORKDIR /app
+
+# Copy the same profile models/validators used by the runtime, then seed data.
+COPY clientprofiles/ ./clientprofiles/
+COPY clientprofiles/scripts/seed_local_emulator.py ./seed_local_emulator.py
+COPY clientprofiles/seed/client_profiles.json ./client_profiles.json
+COPY clientprofiles/scripts/wait_for_emulator.sh ./wait_for_emulator.sh
+
+RUN chmod +x wait_for_emulator.sh && dos2unix wait_for_emulator.sh
+
+ENV SEED_FILE_PATH=/app/client_profiles.json
+
+CMD ["sh", "-c", "./wait_for_emulator.sh && python seed_local_emulator.py"]

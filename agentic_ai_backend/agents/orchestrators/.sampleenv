@@ -1,28 +1,35 @@
-# Azure OpenAI Configuration
-AZURE_OPENAI_API_KEY=
-AZURE_OPENAI_ENDPOINT=
-AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=
-AZURE_OPENAI_API_VERSION=
+HOST="0.0.0.0"
+PORT="8002"
 
-# Azure AI Search Configuration
-AZURE_SEARCH_API_KEY=
-AZURE_SEARCH_ENDPOINT=
-AZURE_SEARCH_INDEX_NAME=
+# Internal A2A endpoints used by the orchestrator to call the agent containers.
+# docker-compose overrides these to the compose service names.
 CONVERSATION_AGENT_A2A_URL="http://localhost:8000"
 FORM_SUPPORT_AGENT_A2A_URL="http://localhost:8001"
-FORM_STEP_NUMBER=2 
 
-AZURE_COSMOS_DB_ENDPOINT=https://localhost:8081
-AZURE_COSMOS_DB_KEY=
-AZURE_COSMOS_DB_DATABASE_NAME=AgentMemoryDB
-AZURE_COSMOS_DB_CONTAINER_NAME=Conversations
-AZURE_COSMOS_CONNECTION_STRING=""
+# Optional telemetry labels/configuration.
+APP_ENVIRONMENT=local
+APPLICATIONINSIGHTS_CONNECTION_STRING=""
 
-CSSAI_EXECUTION_ENV=localhost
-
+# Redis stores the active AgentSession state. In docker-compose this is overridden
+# to REDIS_HOST=redis. Use localhost when running the orchestrator directly.
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
 REDIS_SSL=False
+REDIS_TTL_DAYS=14
 
-CORS_ALLOW_ORIGINS="http://localhost,https://domainname.gov.bc.ca"
+# --- Cache TTL (Time To Live) Settings ---
+# All values are in seconds. The cache is time-based; it has no awareness of
+# blob prompt changes. Set any value to 0 to disable that cache layer.
+
+
+# How long dispatcher/aggregator prompts loaded from blob are cached. Default: 300
+ORCHESTRATOR_PROMPT_CACHE_TTL_SECONDS=300
+
+
+# Deployment-owned values resolved from environment, not Cosmos DB.
+# Keep tenant-specific deployment names, paths, and tuning in Cosmos.
+AZURE_OPENAI_ENDPOINT=<azure-openai-endpoint>
+AZURE_OPENAI_API_KEY=<azure-openai-api-key>
+AZURE_BLOBSTORAGE_CONNECTIONSTRING=<azure-blob-storage-connection-string>
+AZURE_BLOBSTORAGE_CONTAINER=assets

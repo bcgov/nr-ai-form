@@ -1,244 +1,42 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 4 - Location",
-    "properties": {
-        "ProgressBar": {
-            "type": "progressbar",
-            "id": "ProgressBar_100374587_185549741",
-            "title": "Application Progress",
-            "steps": [
-                {
-                    "step": 1,
-                    "status": "yet",
-                    "title": ""
-                },
-                {
-                    "step": 2,
-                    "status": "done",
-                    "title": "Eligibility"
-                },
-                {
-                    "step": 3,
-                    "status": "done",
-                    "title": "Technical Information"
-                },
-                {
-                    "step": 4,
-                    "status": "on",
-                    "title": "Step 4 - Location"
-                },
-                {
-                    "step": 5,
-                    "status": "done",
-                    "title": "Document Upload"
-                },
-                {
-                    "step": 6,
-                    "status": "done",
-                    "title": "Privacy Declaration"
-                },
-                {
-                    "step": 7,
-                    "status": "done",
-                    "title": "Contact Information"
-                },
-                {
-                    "step": 8,
-                    "status": "done",
-                    "title": "Review"
-                },
-                {
-                    "step": 9,
-                    "status": "yet",
-                    "title": ""
-                },
-                {
-                    "step": "Complete",
-                    "status": "yet",
-                    "title": "Complete"
-                }
-            ]
-        },
-        "LandAffectedGrid": {
-            "type": "grid",
-            "id": "LandAffected_100374394_185549741",
-            "columns": [
-                {
-                    "title": "Action",
-                    "id": "Link_1_100373723_100384196_185550092"
-                },
-                {
-                    "title": "Details",
-                    "id": "FormattedDisplaySQL_100373723_100384196_185550092"
-                }
-            ],
-            "items": [
-                {
-                    "id": "185550092",
-                    "details": "Private Land - Parcel ID: 343434 - Legal Description: wewewewe"
-                }
-            ]
-        },
-        "AddLandInformation_Used": {
-            "type": "button",
-            "id": "AddLandInfo_100374394_185549741",
-            "title": "Add Land Information"
-        },
+    "formName": "Step 4 - Land details where water will be used for Water Licence Application",
+    "formDescription": "This section identifies the land parcels where the water will be used and any other lands physically affected by the project. It also provides the mandatory mapping options for submitting required drawings or scale maps.",
+    "formfields": {
         "OtherLandownersAffected": {
             "type": "radio",
-            "id": "OtherLandownersAffected_100826470_185549741",
-            "title": "Do your works physically affect another private landowner's property, e.g. is a pipe running over your neighbour's land to divert the water to your land? If yes, you will need to obtain their permission. If the land is owned by a private landowner a prefilled form that can be signed by the other landowner will be provided at the Signature step later in the application process. If the affected property is Crown land, do not choose Yes on this step. Are there other lands that are physically affected by your works?",
+            "id": "OtherLandownersAffected",
+            "title": "Are there other lands that are physically affected by your works?",
+            "description": "Indicates if the works physically impact land owned by others, requiring easements or agreements.",
             "enum": [
                 "Yes",
                 "No"
             ],
             "default": "Yes",
-            "help": "Text_4_100826470_185549741"
-        },
-        "OtherLandsAffectedInstructions": {
-            "type": "string",
-            "id": "InstructLandAffected_text_100827044_185549741",
-            "title": "Information",
-            "description": "If your application for a licence is granted you are strongly encouraged to obtain access to the land in question by negotiating with the affected landowner to obtain an easement. As an interim measure prior to obtaining the easement you may also complete a written agreement with the affected landowner. If you have already negotiated an easement, or have a written agreement, you can upload a copy of the agreement in the `Document Upload' section of the application.\n\nIf you are unable to negotiate an easement agreement you may also investigate expropriation of the land.\n\nPlease click on \"Add Land Information\" button below to enter the required information about each affected land parcel. Repeat the process until details of all affected land parcels have been entered.",
-            "readOnly": true
-        },
-        "OtherLandsAffectedGrid": {
-            "type": "grid",
-            "id": "OtherLandsAffectedGrid_100826783",
-            "columns": [
-                {
-                    "title": "Action",
-                    "id": "Link_1_100826783_100376655_185550094"
-                },
-                {
-                    "title": "Details",
-                    "id": "FormattedDisplaySQL_100826783_100376655_185550094"
-                }
-            ],
-            "items": [
-                {
-                    "id": "185550094",
-                    "details": "Private Land - Name of owner of land that is affected by your works: sdsd - Civic Address or other location description of affected land: dsdsdsd"
-                }
-            ]
-        },
-        "AddLandInformation_Affected": {
-            "type": "button",
-            "id": "AddLandInfo_100827221_185549741",
-            "title": "Add Land Information"
-        },
-        "DrawingsSection": {
-            "type": "section",
-            "id": "InstrMappingTitleOverride_100459603_185549741",
-            "title": "Drawings",
-            "description": "A Drawing to Scale is required that meets the Licence Application Drawing Standards (https://www2.gov.bc.ca/assets/download/800D760A9B3340D7B3634EB5BFA4F675). Choose one of the options below to submit the required map/drawing.\n\nAdditionally, it is recommended that you provide a topographical map showing the general location of the property where the water is proposed to be used and the works constructed in relation to nearby communities, highways, railways and other water sources.\n\n(this additional map will not be necessary if your Drawing to Scale is provided using the Geomark Service or a spatial file such as .KML or .KMZ)",
-            "help": "Text_3_100459603_185549741"
-        },
-        "MappingOptionsTitle": {
-            "type": "string",
-            "id": "MappingOptions_Header_100459603",
-            "title": "Mapping Options",
-            "required": true,
-            "readOnly": true
+            "required": false
         },
         "IsUsingGeomarkURLs": {
-            "type": "boolean",
-            "id": "IsUsingGeomarkURLs_100459942_185549741",
+            "type": "checkbox",
+            "id": "IsUsingGeomarkURLs",
             "title": "I have already built my map(s) using the GeoMark service",
-            "default": true
-        },
-        "GeomarkSection": {
-            "type": "section",
-            "id": "Text_1_100459718_185549741",
-            "title": "Geomark Url's",
-            "description": "Do you already have the URL of a GeoMark? If you do please add it here. You can add one or more GeoMark URLs.",
-            "help": "Text_3_100459718_185549741"
-        },
-        "GeomarkURLsGrid": {
-            "type": "grid",
-            "id": "GeoMarkURLs_100459718_185549741",
-            "columns": [
-                {
-                    "title": "URL",
-                    "id": "URL_100459684_100385286_N0"
-                },
-                {
-                    "title": "Description",
-                    "id": "Description_100459684_100385286_N0"
-                }
-            ],
-            "items": []
-        },
-        "AddGeoMarkURL": {
-            "type": "button",
-            "id": "AddGeoMarkURL_100459718_185549741",
-            "title": "Add GeoMark URL"
+            "description": "Select this if you have URLs from the GeoMark service to provide for your mapping requirements.",
+            "default": "N",
+            "required": false
         },
         "IsUsingMapFiles": {
-            "type": "boolean",
-            "id": "IsUsingMapFiles_100460016_185549741",
+            "type": "checkbox",
+            "id": "IsUsingMapFiles",
             "title": "I have map(s) saved to my computer and wish to provide these with my application",
-            "default": true
-        },
-        "MapFilesSection": {
-            "type": "section",
-            "id": "Text_1_100459889_185549741",
-            "title": "Map Files",
-            "description": "Do you have a PDF or image file of a drawn map? You can upload it here.",
-            "help": "Text_3_100459889_185549741"
-        },
-        "MapFilesGrid": {
-            "type": "grid",
-            "id": "MapFiles_100459889_185549741",
-            "columns": [
-                {
-                    "title": "Description",
-                    "id": "Description_MapFile"
-                },
-                {
-                    "title": "File Name",
-                    "id": "FileName_MapFile"
-                }
-            ],
-            "items": []
-        },
-        "UploadMapFile": {
-            "type": "button",
-            "id": "UplMapFile_100459889_185549741",
-            "title": "Upload File"
+            "description": "Select this to upload PDF or image files of your maps.",
+            "default": "N",
+            "required": false
         },
         "IsUsingSpatialFiles": {
-            "type": "boolean",
-            "id": "IsUsingSpatialFiles_100459534_185549741",
+            "type": "checkbox",
+            "id": "IsUsingSpatialFiles",
             "title": "I have created my map(s) using my own Geographic Information System (GIS)",
-            "default": true
-        },
-        "SpatialFilesSection": {
-            "type": "section",
-            "id": "Text_1_100459312_185549741",
-            "title": "Spatial Files",
-            "description": "Do you have a spatial file from your GIS system? You can upload it here.\n\nNOTE: Shapefile is the preferred format and requires a closed polygon, projection in BC Albers/NAD 83 and the .dbf, .shp, .shx and .prj files. Other Commonly Used Spatial File Formats (https://portal.nrs.gov.bc.ca/documents/10184/0/SpatialFileFormats.pdf/39b29b91-d2a7-b8d1-af1b-7216f8db38b4) may also be submitted.",
-            "help": "Text_3_100459312_185549741"
-        },
-        "SpatialFilesGrid": {
-            "type": "grid",
-            "id": "SpatialFiles_100459312_185549741",
-            "columns": [
-                {
-                    "title": "Description",
-                    "id": "Description_SpatialFile"
-                },
-                {
-                    "title": "File Name",
-                    "id": "FileName_SpatialFile"
-                }
-            ],
-            "items": []
-        },
-        "UploadSpatialFile": {
-            "type": "button",
-            "id": "UplSpatialFile_100459312_185549741",
-            "title": "Upload File"
+            "description": "Select this to upload spatial files (e.g., .KML, .KMZ, or Shapefiles).",
+            "default": "N",
+            "required": false
         }
     }
 }

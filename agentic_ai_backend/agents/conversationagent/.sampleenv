@@ -1,29 +1,22 @@
-# Azure OpenAI Configuration
-AZURE_OPENAI_API_KEY=
-AZURE_OPENAI_ENDPOINT=
-AZURE_OPENAI_CHAT_DEPLOYMENT_NAME="gpt-4o-mini"
-AZURE_OPENAI_API_VERSION="2024-10-21"
+# ConversationAgent mode:
+#   knowledgebase (default) -> direct Azure AI Search Knowledge Base retrieval
+#   llm                    -> Azure OpenAI chat + azure_ai_search tool calling
 
-# Azure AI Search Configuration
-AZURE_SEARCH_API_KEY=
-AZURE_SEARCH_ENDPOINT=
-AZURE_SEARCH_INDEX_NAME=
 
 HOST="0.0.0.0"
 PORT="8000"
 
-AZURE_SEARCH_TOP=10
-AZURE_SEARCH_TRIM_LENGTH=1000
-AZURE_SEARCH_ENABLE_TRIMMING=false
 
-AZURE_SEARCH_INCLUDE_TOTAL_COUNT=true
-AZURE_SEARCH_QUERY_TYPE="semantic"
-AZURE_SEARCH_SEMANTIC_CONFIGURATION="semanticconfig"
-AZURE_SEARCH_QUERY_CAPTION="extractive"
-AZURE_SEARCH_QUERY_ANSWER="extractive"
-AZURE_SEARCH_QUERY_ANSWER_COUNT=3
-AZURE_SEARCH_QUERY_LANGUAGE="en-us"
+# --- Cache TTL (Time To Live) Settings ---
+# How long the conversation instructions blob text is cached in memory (LLM mode only).
+# Set to 0 to disable caching so prompt changes take effect immediately.
+# Default: 300 (5 minutes)
+CONVERSATION_PROMPT_CACHE_TTL_SECONDS=300
 
-
-AGENT_TEMPERATURE=0.1
-AGENT_MAX_TOKENS=800
+# Deployment-owned values resolved from environment, not client_settings/Cosmos.
+AZURE_OPENAI_ENDPOINT=<azure-openai-endpoint>
+AZURE_OPENAI_API_KEY=<azure-openai-api-key>
+AZURE_SEARCH_ENDPOINT=<azure-search-endpoint>
+AZURE_SEARCH_API_KEY=<azure-search-api-key>
+AZURE_BLOBSTORAGE_CONNECTIONSTRING=<azure-blob-storage-connection-string>
+AZURE_BLOBSTORAGE_CONTAINER=assets

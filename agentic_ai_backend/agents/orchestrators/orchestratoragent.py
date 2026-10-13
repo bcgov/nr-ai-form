@@ -1,11 +1,10 @@
-"""
+﻿"""
 Orchestrator Agent using A2A protocol
 This version uses A2A to communicate with remote agents instead of direct imports.
 """
-import os
-import sys
-import asyncio
 import ast
+import logging
+import os
 from agent_framework import WorkflowBuilder
 from agent_framework._workflows._message_utils import normalize_messages_input
 from typing import Any, Union, Optional
@@ -20,6 +19,70 @@ from workflowcomponents.conversationagentexecutor import ConversationAgentA2AExe
 from workflowcomponents.formsupportagentexecutor import FormSupportAgentA2AExecutor
 from workflowcomponents.dispatcher import Dispatcher
 from workflowcomponents.aggregator import Aggregator
+from workflowcomponents.edgecaseservice import fetch_edge_case_templates, fetch_graceful_decline_messages
+from workflowcomponents.promptsource import PromptSource
+from workflowcomponents.routing import get_primary_intent, select_subagents
+from clientprofiles import TenantAgentSettings
+from models.intentmodel import IntentListModel
+
+CONVERSATION_AGENT_COSMOS_NAME = "conversationAgent"
+FORM_SUPPORT_AGENT_COSMOS_NAME = "formSupportAgent"
+
+logger = logging.getLogger(__name__)
+
+def _has_edge_case_category(intent_list: Any) -> bool:
+    """True when the Dispatcher flagged a fixed out-of-scope/edge-case bucket.
+
+    The Aggregator answers these directly (see EdgeCaseCategory and this
+    tenant's edgeCases blob templates), so no sub-agent needs to run for this turn.
+    """
+    return isinstance(intent_list, IntentListModel) and intent_list.category is not None
+
+
+def _should_invoke_single_executor(intent_list: Any) -> bool:
+    """Edge condition for the single-enabled-agent tenant case.
+
+    A `FanOutEdgeGroup`/selection-func requires at least two configured
+    targets, so the multi-selection mechanism below can't be reused for a
+    tenant with only one sub-agent enabled - this plain edge condition keeps
+    the same "skip on edge-case category" behavior for that case.
+    """
+    return not _has_edge_case_category(intent_list)
+
+
+def _select_target_executors(intent_list: Any, target_ids: list[str]) -> list[str]:
+    """Pick which sub-agent executors should run for a given dispatcher classification.
+
+    - If the Dispatcher flagged a fixed edge-case category, no sub-agent runs -
+      the Aggregator answers directly from `IntentListModel.category`.
+    - If any intent is at or above the high-confidence threshold, route only to those
+      agents (one or both, depending on the IntentListModel).
+    - If nothing crosses the threshold, route to the highest-confidence agent, but
+      only if that agent is enabled for this tenant.
+    """
+    if not isinstance(intent_list, IntentListModel):
+        return list(target_ids)
+
+    if intent_list.category is not None:
+        return []
+
+    high_conf = select_subagents(intent_list)
+    if high_conf:
+        wanted = {intent.targetagent for intent in high_conf}
+    else:
+        wanted = {get_primary_intent(intent_list).targetagent}
+
+    selected = [tid for tid in target_ids if tid in wanted]
+    # Defense-in-depth: Dispatcher is tenant-aware, but this workflow edge group
+    # is the final boundary before executor fan-out. Keep this guard so a bad
+    # LLM classification, legacy dispatcher construction, or future routing bug
+    # cannot execute an agent disabled for the tenant.
+    if not selected:
+        raise RuntimeError(
+            f"Invalid routing state: selected agent(s) are not enabled for this tenant. "
+            f"Selected agent(s): {sorted(wanted)}. Enabled agent(s): {target_ids}."
+        )
+    return selected
 
 load_dotenv()
 
@@ -33,80 +96,237 @@ def get_redis_utils():
     return _redis_utils_instance
 
 
-async def orchestrate_a2a(query: str, 
+def _parse_workflow_result_text(result_text: str) -> list[dict]:
+    """Normalize workflow text output into a list of payload dicts."""
+    if not result_text:
+        return []
+
+    try:
+        parsed = ast.literal_eval(result_text)
+        if isinstance(parsed, list):
+            return parsed
+        if isinstance(parsed, dict):
+            return [parsed]
+        return [parsed]
+    except (SyntaxError, ValueError):
+        parsed_items = [
+            ast.literal_eval(literal_text)
+            for literal_text in _split_top_level_literals(result_text)
+        ]
+
+        normalized_items: list[dict] = []
+        for item in parsed_items:
+            if isinstance(item, list):
+                normalized_items.extend(item)
+            else:
+                normalized_items.append(item)
+
+        return normalized_items
+
+
+def _split_top_level_literals(result_text: str) -> list[str]:
+    literals: list[str] = []
+    start_index: int | None = None
+    depth = 0
+    in_string = False
+    quote_char = ""
+    escape_next = False
+
+    for index, char in enumerate(result_text):
+        if start_index is None:
+            if char.isspace():
+                continue
+            start_index = index
+
+        if in_string:
+            if escape_next:
+                escape_next = False
+            elif char == "\\":
+                escape_next = True
+            elif char == quote_char:
+                in_string = False
+            continue
+
+        if char in {"'", '"'}:
+            in_string = True
+            quote_char = char
+            continue
+
+        if char in "{[(":
+            depth += 1
+            continue
+
+        if char in "}])":
+            depth -= 1
+            if depth == 0 and start_index is not None:
+                literals.append(result_text[start_index : index + 1].strip())
+                start_index = None
+
+    return literals
+
+async def orchestrate_a2a(query: str,
                           conversation_agent_url: str = "http://localhost:8000",
                           form_support_agent_url: str = "http://localhost:8001",
-                          step_number: Union[int, str] = "step2-Eligibility",
-                          session_id: Optional[str] = None):
+                          step_number: Union[int, str, None] = None,
+                          session_id: Optional[str] = None,
+                          *,
+                          tenant_settings: TenantAgentSettings):
     """
     Orchestrate using A2A protocol to communicate with remote agents.
-    
+
     Args:
         query: User query to process
         conversation_agent_url: Base URL of the Conversation Agent A2A server
         form_support_agent_url: Base URL of the Form Support Agent A2A server
         step_number: Form step number for the Form Support Agent (default: 2)
         session_id: Optional session ID for thread persistence
+        tenant_settings: Validated tenant settings resolved at the gateway boundary
     """
-    
+
     effective_session_id = session_id or str(uuid.uuid4())
 
-    # Create A2A executors
-    conversation_executor = ConversationAgentA2AExecutor(
-        base_url=conversation_agent_url,
-        session_id=effective_session_id,
-    )
-    form_support_executor = FormSupportAgentA2AExecutor(
-        base_url=form_support_agent_url,
-        step_number=step_number,
-        session_id=effective_session_id,
-    )
-    
-    executors = [conversation_executor, form_support_executor]
 
-    #Dispatcher is NOT attached with an LLM will append memory and PII detection in futre  . 
+    runtime_settings = tenant_settings.orchestrator_runtime
+    effective_step_number = step_number or runtime_settings.formStepNumber
+    a2a_timeout_seconds = runtime_settings.a2aClientTimeoutSeconds
+
+    orchestrator_prompts = tenant_settings.orchestrator_prompts
+    blob_connection_string = os.getenv("AZURE_BLOBSTORAGE_CONNECTIONSTRING")
+    blob_container_name = os.getenv("AZURE_BLOBSTORAGE_CONTAINER")
+    prompt_source = PromptSource(
+        connection_string=blob_connection_string,
+        container_name=blob_container_name,
+        prompt_directories=orchestrator_prompts.prompt_directories,
+        cache_namespace=tenant_settings.config_fingerprint,
+    )
+
+    # Edge-case categories/templates are only resolved for "custom"-policy
+    # tenants (see edgeCasePolicy); a None result means Aggregator has no
+    # per-category text at all and falls back to its plain first-attempt
+    # fallback for every category. Graceful-decline copy is independent of
+    # that policy - any tenant may configure it via gracefulDeclinePromptPath.
+    edge_case_policy = runtime_settings.edgeCasePolicy
+    edge_case_templates = None
+    if edge_case_policy == "custom":
+        edge_case_templates = fetch_edge_case_templates(
+            connection_string=blob_connection_string,
+            container_name=blob_container_name,
+            directory=orchestrator_prompts.edgeCasesPromptPath,
+            client_id=tenant_settings.client_id,
+            config_fingerprint=tenant_settings.config_fingerprint,
+        )
+
+    graceful_decline_messages = fetch_graceful_decline_messages(
+        connection_string=blob_connection_string,
+        container_name=blob_container_name,
+        directory=orchestrator_prompts.gracefulDeclinePromptPath,
+        client_id=tenant_settings.client_id,
+        config_fingerprint=tenant_settings.config_fingerprint,
+    )
+    first_attempt_fallback, second_attempt_fallback = graceful_decline_messages or (None, None)
+
+    conversation_agent_enabled = tenant_settings.conversation.enabled if tenant_settings.conversation else None
+    form_support_agent_enabled = tenant_settings.form_support.enabled if tenant_settings.form_support else None
+
+    # Option 1: orchestrator owns durable session state in Redis and forwards a
+    # curated slice of the conversation to the stateless sub-agents.
+    db_utils = get_redis_utils()
+    prior_history = await db_utils.get_history_turns(effective_session_id)
+
+    executors = []
+    if conversation_agent_enabled:
+        conversation_settings = tenant_settings.conversation
+        # Create A2A executors
+        conversation_executor = ConversationAgentA2AExecutor(
+            base_url=conversation_agent_url,
+            session_id=effective_session_id,
+            client_settings=conversation_settings,
+            timeout=a2a_timeout_seconds
+        )
+        executors.append(conversation_executor)
+
+    if form_support_agent_enabled:
+        form_support_settings = tenant_settings.form_support
+        # Create A2A executors
+        form_support_executor = FormSupportAgentA2AExecutor(
+            base_url=form_support_agent_url,
+            step_number=effective_step_number,
+            session_id=effective_session_id,
+            history=prior_history,
+            client_settings=form_support_settings,
+            timeout=a2a_timeout_seconds
+        )
+        executors.append(form_support_executor)
+
+    if not executors:
+        raise RuntimeError("Tenant profile must enable at least one sub-agent.")
+
+    active_executor_ids = [executor.id for executor in executors]
+
+    #Dispatcher is NOT attached with an LLM will append memory and PII detection in futre  .
     dispatcher = Dispatcher(
-        id="Dispatcher", 
-        name="Dispatcher", 
-        instructions="You are a user query dispatcher that forwards the input to the appropriate executor(s). In this case the conversation agent and the form support agent."
+        id="Dispatcher",
+        name="Dispatcher",
+        instructions="You are a user query dispatcher that forwards the input to the appropriate executor(s). In this case the conversation agent and the form support agent.",
+        prompt_source=prompt_source,
+        runtime_settings=runtime_settings,
+        active_executor_ids=active_executor_ids,
+        edge_case_policy=edge_case_policy,
     )
-    
-    #Aggregator is attached with an LLM at the moment, for message curation, and upadte for Multi-turn conversatin . 
+
+    #Aggregator is attached with an LLM at the moment, for message curation, and upadte for Multi-turn conversatin .
     aggregator = Aggregator(
-        id="Aggregator", 
-        name="Aggregator", 
-        instructions="You are an aggregator that aggregates the results from the different executors. In this case the conversation agent and the form support agent."
+        id="Aggregator",
+        name="Aggregator",
+        instructions="You are an aggregator that aggregates the results from the different executors. In this case the conversation agent and the form support agent.",
+        prompt_source=prompt_source,
+        runtime_settings=runtime_settings,
+        active_executor_ids=active_executor_ids,
+        session_id=effective_session_id,
+        thread_manager=db_utils,
+        edge_case_templates=edge_case_templates,
+        first_attempt_fallback=first_attempt_fallback,
+        second_attempt_fallback=second_attempt_fallback,
     )
 
-    # Build the workflow
-    builder = WorkflowBuilder(start_executor=dispatcher, output_executors=[aggregator])
-    builder.add_fan_out_edges(dispatcher, executors)   
-    builder.add_fan_in_edges(executors, aggregator)
-    workflow = builder.build()
+    # Build workflow with dynamic sub-agent routing:
+    # 1. Executors list is built based on tenant settings (which agents are enabled)
+    # 2. Dispatcher classifies the user query using IntentListModel to decide which
+    #    active executor(s) should handle it (one or both)
+    # 3. Edges are conditionally added only for enabled executors
+    # 4. Each executor's output flows directly to Aggregator (no fan-in barrier)
+    # 5. Aggregator processes results and generates the final response
+    workflow_builder = WorkflowBuilder(start_executor=dispatcher).add_edge(dispatcher, aggregator)
+    if len(executors) == 1:
+        workflow_builder.add_edge(dispatcher, executors[0], condition=_should_invoke_single_executor)
+    else:
+        workflow_builder.add_multi_selection_edge_group(dispatcher, executors, _select_target_executors)
 
+    for executor in executors:
+        workflow_builder.add_edge(executor, aggregator)
+
+    workflow = workflow_builder.build()
     #ABIN : as part of SHOWCASE-4181 workflow is transformed as an agent to accomodate multi-turn conversation
     agent = workflow.as_agent(
         "Orchestrator Agent"
     )
 
-    
+
     thread_id = effective_session_id
-    
+
 
     final_data = None
-    
-    # Get singleton Redis Utils
-    db_utils = get_redis_utils()
 
     try:
         # Load session state
         session = await db_utils.get_thread_state(thread_id, agent)
-       
-        step_appened_query= f"{step_number}:{query}"  #TODO : This is a temp solution to pass the step number to Conversation, Once DISPATCHER Logic is implemented we will have a better solution later.
+
+        step_appened_query= f"{effective_step_number}:{query}"  #TODO : This is a temp solution to pass the step number to Conversation, Once DISPATCHER Logic is implemented we will have a better solution later.
         input_messages = normalize_messages_input(step_appened_query)
 
         result = await agent.run(input_messages, session=session)
-        final_data = ast.literal_eval(result.text) if result.text else None
+        print(f"Raw result from agent: {result}")
+        final_data = _parse_workflow_result_text(result.text) if result.text else None
 
         # Save updated session state to Redis
         if session:
@@ -116,42 +336,20 @@ async def orchestrate_a2a(query: str,
                 print("Thread state saved.")
             except Exception as e:
                 print(f"Error saving thread state: {e}")
+                logger.warning("Error saving thread state: %s", e)
         # Add thread_id to response
         if final_data and isinstance(final_data, list):
             final_data.append({"thread_id": thread_id})
-
     except Exception as e:
         print(f"Error in orchestrate_a2a: {e}")
-        # Consider handling appropriately
+        logger.exception("Error in orchestrate_a2a")
+        raise RuntimeError(f"Orchestration failed: {e}") from e
 
     return final_data
 
 
- 
-
-
-
 if __name__ == "__main__":
-    # Get query from command line or use default
-    query = sys.argv[-1] if len(sys.argv) > 1 else "What is the BC government permit application process for Water License Application?"
-    
-    # Get A2A URLs from environment or use defaults
-    conversation_url = os.getenv("CONVERSATION_AGENT_A2A_URL", "http://localhost:8000")
-    form_support_url = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
-    
-    # Get step number from environment or use default
-    step_number = os.getenv("FORM_STEP_NUMBER", "step2-Eligibility")
-    
-    print(f"Starting Orchestrator with A2A communication")
-    print(f"Conversation Agent: {conversation_url}")
-    print(f"Form Support Agent: {form_support_url}")
-    print(f"Form Step: {step_number}")
-    print(f"Query: {query}\n")    
-    
-    #try:
-    asyncio.run(orchestrate_a2a(query, conversation_url, form_support_url, step_number))
-    #finally:
-        # Cleanup singleton on exit (only for script run)
-        #_utils = get_redis_utils()
-        #if _utils:
-            #asyncio.run(_utils.close())
+    raise RuntimeError(
+        "Standalone orchestrator execution requires tenant settings from Cosmos. "
+        "Use orchestrator_agent_server.py so the tenant profile is resolved before orchestration."
+    )

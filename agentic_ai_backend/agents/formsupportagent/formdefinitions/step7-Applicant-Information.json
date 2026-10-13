@@ -1,0 +1,434 @@
+{
+    "formName": "Step 7 - Contact Information for Water Licence Application",
+    "formDescription": "This step collects contact information for the applicant (the individual or organization the water licence will be issued to), the agent or submitter acting on their behalf (if applicable), and any co-applicants. It also requires a Letter of Agency upload when the submitter is not the applicant.",
+    "formfields": {
+        "VFCNewApplicantType": {
+            "type": "radio",
+            "id": "VFCNewApplicantType",
+            "title": "If approved, will the authorization be issued to an Individual or Company/Organization/Government?",
+            "description": "Identifies whether the water licence authorization will be issued to a private individual or to a company, organization, or government body.",
+            "enum": [
+                "Individual",
+                "Company/Organization/Government"
+            ]
+        },
+        "AreAuthIndividual": {
+            "type": "radio",
+            "id": "AreAuthIndividual",
+            "title": "Are you the Individual this application will be issued to?",
+            "description": "Indicates whether the person currently filling out the form is the same individual who will receive the water licence authorization. Select No if you are submitting on behalf of someone else.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "VFCOnBehalfOf": {
+            "type": "select",
+            "id": "VFCOnBehalfOf",
+            "title": "What is your relationship to the Individual?",
+            "description": "Specifies the submitter's relationship to the applicant when the submitter is not the applicant. Required when AreAuthIndividual is No.",
+            "enum": [
+                "Agent",
+                "Consultant",
+                "Executor, Administrator, Trustee of Applicant's Estate",
+                "Family Member",
+                "Friend/Neighbour",
+                "Lawyer / Notary",
+                "Power of Attorney",
+                "Representative",
+                "Trustee in Bankruptcy"
+            ]
+        },
+        "APPL_LastName": {
+            "type": "text",
+            "id": "APPL_LastName",
+            "title": "Applicant Last Name",
+            "description": "The legal last (family) name of the individual applicant the water licence will be issued to."
+        },
+        "APPL_FirstName": {
+            "type": "text",
+            "id": "APPL_FirstName",
+            "title": "Applicant First Name",
+            "description": "The legal first (given) name of the individual applicant the water licence will be issued to."
+        },
+        "APPL_MiddleName": {
+            "type": "text",
+            "id": "APPL_MiddleName",
+            "title": "Applicant Middle Name",
+            "description": "The legal middle name of the individual applicant, if applicable."
+        },
+        "APPL_PhoneNumber_1": {
+            "type": "text",
+            "id": "APPL_PhoneNumber_1",
+            "title": "Applicant Phone Number (Area Code)",
+            "description": "The area code part of the applicant's primary phone number (3 digits)."
+        },
+        "APPL_PhoneNumber_2": {
+            "type": "text",
+            "id": "APPL_PhoneNumber_2",
+            "title": "Applicant Phone Number (Exchange)",
+            "description": "The exchange part of the applicant's primary phone number (3 digits)."
+        },
+        "APPL_PhoneNumber_3": {
+            "type": "text",
+            "id": "APPL_PhoneNumber_3",
+            "title": "Applicant Phone Number (Line Number)",
+            "description": "The line number part of the applicant's primary phone number (4 digits)."
+        },
+        "APPL_DaytimePhoneNumber_1": {
+            "type": "text",
+            "id": "APPL_DaytimePhoneNumber_1",
+            "title": "Applicant Daytime Phone Number (Area Code)",
+            "description": "The area code part of the applicant's daytime phone number (3 digits)."
+        },
+        "APPL_DaytimePhoneNumber_2": {
+            "type": "text",
+            "id": "APPL_DaytimePhoneNumber_2",
+            "title": "Applicant Daytime Phone Number (Exchange)",
+            "description": "The exchange part of the applicant's daytime phone number (3 digits)."
+        },
+        "APPL_DaytimePhoneNumber_3": {
+            "type": "text",
+            "id": "APPL_DaytimePhoneNumber_3",
+            "title": "Applicant Daytime Phone Number (Line Number)",
+            "description": "The line number part of the applicant's daytime phone number (4 digits)."
+        },
+        "APPL_DaytimeExtension": {
+            "type": "text",
+            "id": "APPL_DaytimeExtension",
+            "title": "Applicant Daytime Phone Extension",
+            "description": "Optional extension number for the applicant's daytime phone line."
+        },
+        "APPL_FaxNumber_1": {
+            "type": "text",
+            "id": "APPL_FaxNumber_1",
+            "title": "Applicant Fax Number (Area Code)",
+            "description": "The area code part of the applicant's fax number (3 digits)."
+        },
+        "APPL_FaxNumber_2": {
+            "type": "text",
+            "id": "APPL_FaxNumber_2",
+            "title": "Applicant Fax Number (Exchange)",
+            "description": "The exchange part of the applicant's fax number (3 digits)."
+        },
+        "APPL_FaxNumber_3": {
+            "type": "text",
+            "id": "APPL_FaxNumber_3",
+            "title": "Applicant Fax Number (Line Number)",
+            "description": "The line number part of the applicant's fax number (4 digits)."
+        },
+        "APPL_Email": {
+            "type": "text",
+            "id": "APPL_Email",
+            "title": "Applicant Email Address",
+            "description": "Optional email address for the applicant."
+        },
+        "AddAddress": {
+            "type": "button",
+            "id": "AddAddress",
+            "title": "Applicant Mailing Address",
+            "description": "Opens a popup to enter or look up the applicant's mailing address. This field is required. The address is entered via the Add Address dialog and cannot be typed directly into the form."
+        },
+        
+        "VFCOnBehalfOf_company": {
+            "type": "select",
+            "id": "VFCOnBehalfOf",
+            "title": "What is your relationship to the Company/Organization/Government?",
+            "description": "Specifies the submitter's relationship to the applicant when the submitter is not the applicant.",
+            "enum": [
+                "Agent",
+                "Board Member",
+                "Consultant",
+                "Employee",
+                "Executor, Administrator, Trustee of Applicant's Estate",
+                "Lawyer / Notary",
+                "Owner",
+                "Power of Attorney",
+                "Representative",
+                "Trustee in Bankruptcy"
+            ]
+        },
+        "Company_APPL_CompanyName": {
+            "type": "text",
+            "id": "APPL_CompanyName",
+            "title": "Legal Name",
+            "description": "The legal name of the company, organization, or government applicant."
+        },
+        "Company_APPL_DoingBusinessAs": {
+            "type": "text",
+            "id": "APPL_DoingBusinessAs",
+            "title": "Doing Business As",
+            "description": "The operating or trade name used by the company, organization, or government applicant, if different from the legal name."
+        },
+        "Company_Phone_Number_1": {
+            "type": "text",
+            "id": "Phone_Number_1",
+            "title": "Company Phone Number (Area Code)",
+            "description": "The area code part of the primary phone number for company, organization, or government applicant (3 digits)."
+        },
+        "Company_Phone_Number_2": {
+            "type": "text",
+            "id": "Phone_Number_2",
+            "title": "Company Phone Number (Exchange)",
+            "description": "The exchange part of the primary phone number for company, organization, or government applicant (3 digits)."
+        },
+        "Company_Phone_Number_3": {
+            "type": "text",
+            "id": "Phone_Number_3",
+            "title": "Company Phone Number (Line Number)",
+            "description": "The line number part of the primary phone number for company, organization, or government applicant (4 digits)."
+        },
+        "Company_APPL_PhoneExtension": {
+            "type": "text",
+            "id": "APPL_PhoneExtension",
+            "title": "Ext.",
+            "description": "Optional extension for the applicant company, organization, or government phone number."
+        },
+        "Company_Fax_Number_1": {
+            "type": "text",
+            "id": "Fax_Number_1",
+            "title": "Company Fax Number (Area Code)",
+            "description": "The area code part of the fax number for company, organization, or government applicant (3 digits)."
+        },
+        "Company_Fax_Number_2": {
+            "type": "text",
+            "id": "Fax_Number_2",
+            "title": "Company Fax Number (Exchange)",
+            "description": "The exchange part of the fax number for company, organization, or government applicant (3 digits)."
+        },
+        "Company_Fax_Number_3": {
+            "type": "text",
+            "id": "Fax_Number_3",
+            "title": "Company Fax Number (Line Number)",
+            "description": "The line number part of the fax number for company, organization, or government applicant (4 digits)."
+        },
+        "Company_APPL_Email": {
+            "type": "text",
+            "id": "APPL_Email",
+            "title": "Email",
+            "description": "Optional email address for the company, organization, or government applicant."
+        },
+        "Company_APPL_BCIncNo": {
+            "type": "text",
+            "id": "APPL_BCIncNo",
+            "title": "BC Incorporation Number",
+            "description": "The BC incorporation number for the applicant, if applicable."
+        },
+        "Company_APPL_BusinessRegNo": {
+            "type": "text",
+            "id": "APPL_BusinessRegNo",
+            "title": "Extra Provincial Inc. No.",
+            "description": "The extra-provincial incorporation number for the applicant, if applicable."
+        },
+        "Company_APPL_SocietyNo": {
+            "type": "text",
+            "id": "APPL_SocietyNo",
+            "title": "Society Number",
+            "description": "The society number for the applicant, if applicable."
+        },
+        "Company_APPL_GSTRegistrationNo": {
+            "type": "text",
+            "id": "APPL_GSTRegistrationNo",
+            "title": "GST Registration Number",
+            "description": "The GST registration number for the applicant, if applicable."
+        },
+        "Company_APPL_CompanyContactName": {
+            "type": "text",
+            "id": "APPL_CompanyContactName",
+            "title": "Contact Name",
+            "description": "The primary contact person for the company, organization, or government applicant."
+        },
+        "Company_AddAddress": {
+            "type": "button",
+            "id": "AddAddress",
+            "title": "Add Address",
+            "description": "Opens a popup to enter or look up the mailing address for the company, organization, or government applicant."
+        },
+        "VFCPublicSubmitter": {
+            "type": "radio",
+            "id": "VFCPublicSubmitter",
+            "title": "Are you (the agent/submitter) an Individual or Company/Organization/Government?",
+            "description": "Identifies whether the person or entity submitting this application on behalf of the applicant is a private individual or a company, organization, or government body. Shown in the Agent Information section.",
+            "enum": [
+                "Individual",
+                "Company/Organization/Government"
+            ]
+        },
+        "Pub_Sub_LastName": {
+            "type": "text",
+            "id": "Pub_Sub_LastName",
+            "title": "Agent/Submitter Last Name",
+            "description": "The legal last (family) name of the individual acting as agent or submitter on behalf of the applicant."
+        },
+        "Pub_Sub_FirstName": {
+            "type": "text",
+            "id": "Pub_Sub_FirstName",
+            "title": "Agent/Submitter First Name",
+            "description": "The legal first (given) name of the individual acting as agent or submitter on behalf of the applicant."
+        },
+        "Pub_Sub_MiddleName": {
+            "type": "text",
+            "id": "Pub_Sub_MiddleName",
+            "title": "Agent/Submitter Middle Name",
+            "description": "The legal middle name of the agent or submitter, if applicable."
+        },
+        "Pub_Sub_PhoneNumber": {
+            "type": "phone",
+            "id": "Pub_Sub_PhoneNumber",
+            "title": "Agent/Submitter Phone Number",
+            "description": "The primary phone number for the agent or submitter. Format: (###) ###-####."
+        },
+        "Pub_Sub_DaytimePhoneNumber": {
+            "type": "phone",
+            "id": "Pub_Sub_DaytimePhoneNumber",
+            "title": "Agent/Submitter Daytime Phone Number",
+            "description": "An optional daytime phone number for the agent or submitter, if different from the primary phone. Format: (###) ###-####."
+        },
+        "Pub_Sub_DaytimeExtension": {
+            "type": "text",
+            "id": "Pub_Sub_DaytimeExtension",
+            "title": "Agent/Submitter Daytime Phone Extension",
+            "description": "Optional extension number for the agent or submitter's daytime phone line."
+        },
+        "Pub_Sub_FaxNumber": {
+            "type": "phone",
+            "id": "Pub_Sub_FaxNumber",
+            "title": "Agent/Submitter Fax Number",
+            "description": "Optional fax number for the agent or submitter. Format: (###) ###-####."
+        },
+        "Pub_Sub_Email": {
+            "type": "text",
+            "id": "Pub_Sub_Email",
+            "title": "Agent/Submitter Email Address",
+            "description": "Optional email address for the agent or submitter."
+        },
+        "Pub_Sub_AddAddress": {
+            "type": "button",
+            "id": "Pub_Sub_AddAddress",
+            "title": "Agent/Submitter Mailing Address",
+            "description": "Opens a popup to enter or look up the agent or submitter's mailing address. This field is required. The address is entered via the Add Address dialog and cannot be typed directly into the form."
+        },
+        "Agent_Company_Pub_Sub_CompanyName": {
+            "type": "text",
+            "id": "Pub_Sub_CompanyName",
+            "title": "Legal Name:",
+            "description": "The legal name of the company, organization, or government acting as agent on behalf of the applicant."
+        },
+        "Agent_Company_Pub_Sub_DoingBusinessAs": {
+            "type": "text",
+            "id": "Pub_Sub_DoingBusinessAs",
+            "title": "Doing Business As:",
+            "description": "The doing business as name of the company, organization, or government agent, if applicable."
+        },
+        "Agent_Company_Pub_Sub_PhoneNumber_1": {
+            "type": "text",
+            "id": "Pub_Sub_PhoneNumber_1",
+            "title": "Phone:",
+            "description": "Area code part of the primary phone number for company, organization, or government agent."
+        },
+        "Agent_Company_Pub_Sub_PhoneNumber_2": {
+            "type": "text",
+            "id": "Pub_Sub_PhoneNumber_2",
+            "title": "Phone:",
+            "description": "Prefix part of the primary phone number for company, organization, or government agent."
+        },
+        "Agent_Company_Pub_Sub_PhoneNumber_3": {
+            "type": "text",
+            "id": "Pub_Sub_PhoneNumber_3",
+            "title": "Phone:",
+            "description": "Line number part of the primary phone number for company, organization, or government agent."
+        },
+        "Agent_Company_Pub_Sub_PhoneExtension": {
+            "type": "text",
+            "id": "Pub_Sub_PhoneExtension",
+            "title": "Ext.",
+            "description": "Optional extension for the agent's primary phone number."
+        },
+        "Agent_Company_Pub_Sub_FaxNumber_1": {
+            "type": "text",
+            "id": "Pub_Sub_FaxNumber_1",
+            "title": "Fax:",
+            "description": "Area code part of the fax number for company, organization, or government agent."
+        },
+        "Agent_Company_Pub_Sub_FaxNumber_2": {
+            "type": "text",
+            "id": "Pub_Sub_FaxNumber_2",
+            "title": "Fax:",
+            "description": "Prefix part of the fax number for company, organization, or government agent."
+        },
+        "Agent_Company_Pub_Sub_FaxNumber_3": {
+            "type": "text",
+            "id": "Pub_Sub_FaxNumber_3",
+            "title": "Fax:",
+            "description": "Line number part of the fax number for company, organization, or government agent."
+        },
+        "Agent_Company_Pub_Sub_Email": {
+            "type": "text",
+            "id": "Pub_Sub_Email",
+            "title": "Email:",
+            "description": "Optional email address for the company, organization, or government agent."
+        },
+        "Agent_Company_Pub_Sub_BCIncNo": {
+            "type": "text",
+            "id": "Pub_Sub_BCIncNo",
+            "title": "BC Incorporation Number:",
+            "description": "BC Incorporation Number for the company, organization, or government agent, if applicable."
+        },
+        "Agent_Company_Pub_Sub_BusinessRegNo": {
+            "type": "text",
+            "id": "Pub_Sub_BusinessRegNo",
+            "title": "Extra Provincial Inc. No:",
+            "description": "Extra Provincial Incorporation Number for the company, organization, or government agent, if applicable."
+        },
+        "Agent_Company_Pub_Sub_SocietyNo": {
+            "type": "text",
+            "id": "Pub_Sub_SocietyNo",
+            "title": "Society Number:",
+            "description": "Society Number for the company, organization, or government agent, if applicable."
+        },
+        "Agent_Company_Pub_Sub_GSTRegistrationNo": {
+            "type": "text",
+            "id": "Pub_Sub_GSTRegistrationNo",
+            "title": "GST Registration Number:",
+            "description": "GST Registration Number for the company, organization, or government agent, if applicable."
+        },
+        "Agent_Company_Pub_Sub_CompanyContactName": {
+            "type": "text",
+            "id": "Pub_Sub_CompanyContactName",
+            "title": "Contact Name:",
+            "description": "The name of the contact person for the company, organization, or government agent."
+        },
+        "Agent_Company_AddAddress": {
+            "type": "button",
+            "id": "AddAddress",
+            "title": "Add Address",
+            "description": "Opens a popup to enter or look up the mailing address for the company, organization, or government agent."
+        },
+        "Upload": {
+            "type": "upload",
+            "id": "Upload",
+            "title": "Document Upload",
+            "description": "Upload required authorization documents based on your role. Accepted formats: PDF, JPG, GIF, PNG. Documents include: Letter of Agency/Agreement, Letter of Appointment, Authorization Letter, Power of Attorney, Representation Agreement, Trustee Documentation, Proof of Ownership, or Last Will as appropriate to your relationship with the applicant."
+        },
+        "AreThereOtherApplicants": {
+            "type": "radio",
+            "id": "AreThereOtherApplicants",
+            "title": "Are there co-applicants for this application?",
+            "description": "A co-applicant is an individual or company/organization listed on the title of the land, mine, or undertaking who was not previously identified as the principal applicant.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "ObtainedCoAppAuthorization": {
+            "type": "radio",
+            "id": "ObtainedCoAppAuthorization",
+            "title": "Do you have permission from the co-applicants to enter their personal information?",
+            "description": "Co-applicants who are Organizations must consent to providing their name, address, and phone number. Individuals must consent to providing their name and email address. Confirmation of this consent is required before entering co-applicant details.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        }
+    }
+}

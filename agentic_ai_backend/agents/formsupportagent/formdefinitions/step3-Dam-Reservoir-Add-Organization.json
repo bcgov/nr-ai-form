@@ -1,131 +1,94 @@
 {
-    "formName": "Water Licence Application",
-    "formDescription": "Step 3 - Dam and Reservoir - Add an Organization",
-    "properties": {
+    "formName": "Step 3 - Dam Safety - Contact Organization - Water Licence Application",
+    "formDescription": "This section is used to identify an organization (such as a consulting firm or engineering company) involved in the design, supervision, construction, or maintenance of the dam or reservoir. It collects legal identity, registration numbers, and comprehensive contact details.",
+    "formfields": {
         "LegalName": {
-            "type": "string",
-            "id": "LegalName_100384851_N0",
+            "type": "text",
+            "id": "LegalName",
             "title": "Legal Name:",
-            "maxLength": 250,
+            "description": "The official registered name of the organization.",
+            "default": "",
             "required": true
         },
         "DoingBusinessAs": {
-            "type": "string",
-            "id": "DoingBusinessAs_100384851_N0",
+            "type": "text",
+            "id": "DoingBusinessAs",
             "title": "Doing Business As:",
-            "maxLength": 150,
+            "description": "The trade name or operating name used by the organization, if different from the legal name.",
+            "default": "",
             "required": false
         },
         "PhoneNumber": {
             "type": "phone",
-            "id": "PhoneNumber_100384851_N0",
+            "id": "PhoneNumber",
             "title": "Phone Number:",
-            "parts": [
-                {
-                    "id": "PhoneNumber_100384851_N0_1",
-                    "name": "area",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "PhoneNumber_100384851_N0_2",
-                    "name": "first",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "PhoneNumber_100384851_N0_3",
-                    "name": "last",
-                    "maxLength": 4,
-                    "size": 4
-                }
-            ],
-            "format": "(###) ###-####",
+            "description": "Primary business phone number for the organization.",
+            "default": "",
             "required": true
         },
         "PhoneExtension": {
-            "type": "number",
-            "id": "PhoneExtension_100384851_N0",
+            "type": "text",
+            "id": "PhoneExtension",
             "title": "Ext:",
-            "maxLength": 4,
-            "size": 6,
-            "min": 0,
-            "max": 9999,
+            "description": "Telephone extension for the organization's primary contact line.",
+            "default": "",
             "required": false
         },
         "FaxNumber": {
             "type": "phone",
-            "id": "FaxNumber_100384851_N0",
+            "id": "FaxNumber",
             "title": "Fax Number:",
-            "parts": [
-                {
-                    "id": "FaxNumber_100384851_N0_1",
-                    "name": "area",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "FaxNumber_100384851_N0_2",
-                    "name": "first",
-                    "maxLength": 3,
-                    "size": 3
-                },
-                {
-                    "id": "FaxNumber_100384851_N0_3",
-                    "name": "last",
-                    "maxLength": 4,
-                    "size": 4
-                }
-            ],
-            "format": "(###) ###-####",
+            "description": "The organization's facsimile number for document transmission.",
+            "default": "",
             "required": false
         },
         "Email": {
-            "type": "string",
-            "id": "Email_100384851_N0",
+            "type": "text",
+            "id": "Email",
             "title": "Email:",
-            "maxLength": 60,
+            "description": "General or contact email address for the organization.",
+            "default": "",
             "required": false
         },
         "BCIncNo": {
-            "type": "string",
-            "id": "BCIncNo_100384851_N0",
+            "type": "text",
+            "id": "BCIncNo",
             "title": "BC Incorporation Number:",
-            "maxLength": 30,
+            "description": "The incorporation number assigned to the company in British Columbia.",
+            "default": "",
             "required": false
         },
         "BusinessRegistrationNumber": {
-            "type": "string",
-            "id": "BusinessRegistrationNumber_100384851_N0",
+            "type": "text",
+            "id": "BusinessRegistrationNumber",
             "title": "Extra Provincial Inc. No:",
-            "maxLength": 30,
+            "description": "The registration number for a corporation formed outside of BC but registered to do business within the province.",
+            "default": "",
             "required": false
         },
         "SocietyNo": {
-            "type": "string",
-            "id": "SocietyNo_100384851_N0",
+            "type": "text",
+            "id": "SocietyNo",
             "title": "Society Number:",
-            "maxLength": 30,
+            "description": "The registration number assigned if the organization is a registered society.",
+            "default": "",
             "required": false
         },
         "GSTRegistrationNo": {
-            "type": "string",
-            "id": "GSTRegistrationNo_100384851_N0",
+            "type": "text",
+            "id": "GSTRegistrationNo",
             "title": "GST Registration No:",
-            "maxLength": 30,
+            "description": "The organization's Goods and Services Tax registration number.",
+            "default": "",
             "required": false
         },
         "ContactName": {
-            "type": "string",
-            "id": "ContactName_100384851_N0",
+            "type": "text",
+            "id": "ContactName",
             "title": "Contact Name:",
-            "maxLength": 4000,
+            "description": "The name of the specific individual within the organization who acts as the primary contact.",
+            "default": "",
             "required": false
-        },
-        "AddAddress_RT": {
-            "type": "button",
-            "id": "AddAddress_RT_100380657_N0",
-            "title": "Add Address"
         }
     }
 }

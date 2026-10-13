@@ -1,0 +1,27 @@
+{
+  "formName": "Single-File Upload",
+  "formDescription": "Single-file upload popup. The user chooses one file with the file input, enters a required description, and clicks the Upload button. This upload popup does not identify what the uploaded file is for; that context must come from the current parent form step. Accepted extensions: .bmp, .dbf, .doc, .docx, .gif, .jpeg, .jpg, .mp4, .log, .pdf, .png, .pps, .ppsx, .ppt, .pptm, .pptx, .prj, .rtf, .sbn, .sbx, .shp, .shx, .tif, .tiff, .txt, .xls, .xlsx, .xml, and .zip. Maximum file size is 100 MB.",
+  "formfields": {
+    "fullFileName": {
+      "type": "file",
+      "id": "fullFileName",
+      "title": "File Name:",
+      "description": "File input used to choose one file for upload. Accepted file extensions and maximum size are listed in the form description.",
+      "required": true
+    },
+    "Description": {
+      "type": "textarea",
+      "id": "Description",
+      "title": "Description:",
+      "description": "Required description for the selected file. Maximum length is 500 characters.",
+      "required": true
+    },
+    "Upload": {
+      "type": "button",
+      "id": "Upload",
+      "title": "Upload",
+      "description": "Uploads the selected file and description.",
+      "required": false
+    }
+  }
+}

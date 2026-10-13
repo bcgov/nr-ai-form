@@ -44,57 +44,39 @@ def test_extract_step_from_query(query, expected_step, expected_query):
     assert actual_query == expected_query
 
 # --- Test resolve_agent_assets ---
-# This test verifies that the agent correctly locates JSON and MD files based on a step ID
-def test_resolve_agent_assets_success(tmp_path):
-    # Setup a temporary directory structure using pytest's tmp_path fixture
-    # Create the 'formdefinitions' subdirectory
-    form_defs = tmp_path / "formdefinitions"
-    form_defs.mkdir()
-    # Create a dummy JSON schema file
-    (form_defs / "step3-Add-Well.json").touch()
-    
-    # Create the 'prompttemplates' subdirectory
-    prompts = tmp_path / "prompttemplates"
-    prompts.mkdir()
-    # Create a dummy Markdown prompt template file
-    (prompts / "step3-Add-Well.md").touch()
-    
-    # Mock the internal path resolution in formsupportagent so it uses our tmp_path
-    with patch("formsupportagent.os.path.abspath", return_value=str(tmp_path / "formsupportagent.py")), \
-         patch("formsupportagent.os.path.dirname", return_value=str(tmp_path)):
-        
-        # Call the function to resolve assets for a given step ID
-        json_path, prompt_path, step_key = resolve_agent_assets("step3-Add-Well")
-        
-        # Verify that both paths were found and returned
-        assert json_path is not None
-        assert prompt_path is not None
-        # Verify that the paths actually exist in the temp directory
-        assert os.path.exists(json_path)
-        assert os.path.exists(prompt_path)
-        # Verify the filename content to ensure correct mapping
-        assert "step3-Add-Well.json" in json_path
-        assert "step3-Add-Well.md" in prompt_path
-        # Verify the step key returned
-        assert step_key == "step3-Add-Well"
+def test_resolve_agent_assets_success():
+    form_definition_service = MagicMock()
+    prompt_template_service = MagicMock()
+    form_definition_service.fetch_form_definition.return_value = {"fields": []}
+    prompt_template_service.fetch_prompt_template.return_value = "Prompt template"
 
-# Test case for when requested assets do not exist
-def test_resolve_agent_assets_not_found(tmp_path):
-    # Create empty directories to simulate missing files
-    (tmp_path / "formdefinitions").mkdir()
-    (tmp_path / "prompttemplates").mkdir()
-    
-    # Mock the internal path resolution again
-    with patch("formsupportagent.os.path.abspath", return_value=str(tmp_path / "formsupportagent.py")), \
-         patch("formsupportagent.os.path.dirname", return_value=str(tmp_path)):
-        
-        # Call the function with a step identifier that shouldn't match anything
-        json_path, prompt_path, step_key = resolve_agent_assets("non-existent")
-        # Assert that no paths were returned
-        assert json_path is None
-        assert prompt_path is None
-        # Verify the step key is still returned as requested
-        assert step_key == "non-existent"
+    form_definition, prompt_template, step_key = resolve_agent_assets(
+        "step3-Add-Well",
+        form_definition_service=form_definition_service,
+        prompt_template_service=prompt_template_service,
+    )
+
+    assert form_definition == {"fields": []}
+    assert prompt_template == "Prompt template"
+    assert step_key == "step3-Add-Well"
+    form_definition_service.fetch_form_definition.assert_called_once_with("step3-Add-Well.json")
+    prompt_template_service.fetch_prompt_template.assert_called_once_with("step3-Add-Well.md")
+
+def test_resolve_agent_assets_not_found():
+    form_definition_service = MagicMock()
+    prompt_template_service = MagicMock()
+    form_definition_service.fetch_form_definition.return_value = None
+    prompt_template_service.fetch_prompt_template.return_value = None
+
+    form_definition, prompt_template, step_key = resolve_agent_assets(
+        "non-existent",
+        form_definition_service=form_definition_service,
+        prompt_template_service=prompt_template_service,
+    )
+
+    assert form_definition is None
+    assert prompt_template is None
+    assert step_key == "non-existent"
 
 # --- Test dryrun ---
 # Mock the FormSupportAgent class to avoid creating real OpenAI clients during testing
@@ -107,7 +89,10 @@ def test_resolve_agent_assets_not_found(tmp_path):
 @patch.dict(os.environ, {
     "AZURE_OPENAI_ENDPOINT": "http://mock-endpoint",
     "AZURE_OPENAI_API_KEY": "mock-key",
-    "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME": "mock-deployment"
+    "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME": "mock-deployment",
+    "AZURE_OPENAI_API_VERSION": "mock-version",
+    "AZURE_BLOBSTORAGE_CONNECTIONSTRING": "",
+    "AZURE_BLOBSTORAGE_CONTAINER": ""
 })
 # Mark the test as an asynchronous test for pytest-asyncio
 @pytest.mark.asyncio
@@ -132,7 +117,11 @@ async def test_dryrun_success(mock_resolve, mock_get_context, mock_agent_class):
             await dryrun("step3: hello")
         
     # Assert that the asset resolver was called with the correct step ID
-    mock_resolve.assert_called_once_with("step3")
+    mock_resolve.assert_called_once_with(
+        "step3",
+        form_definition_service=None,
+        prompt_template_service=None,
+    )
     # Assert that get_form_context was called with the path returned by the resolver
     mock_get_context.assert_called_once_with("/path/to/step3.json")
     # Assert that the FormSupportAgent was instantiated
@@ -145,7 +134,10 @@ async def test_dryrun_success(mock_resolve, mock_get_context, mock_agent_class):
 @patch.dict(os.environ, {
     "AZURE_OPENAI_ENDPOINT": "http://mock-endpoint",
     "AZURE_OPENAI_API_KEY": "mock-key",
-    "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME": "mock-deployment"
+    "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME": "mock-deployment",
+    "AZURE_OPENAI_API_VERSION": "mock-version",
+    "AZURE_BLOBSTORAGE_CONNECTIONSTRING": "",
+    "AZURE_BLOBSTORAGE_CONTAINER": ""
 })
 @pytest.mark.asyncio
 async def test_dryrun_no_step(mock_resolve, capsys):
@@ -161,7 +153,10 @@ async def test_dryrun_no_step(mock_resolve, capsys):
 @patch.dict(os.environ, {
     "AZURE_OPENAI_ENDPOINT": "http://mock-endpoint",
     "AZURE_OPENAI_API_KEY": "mock-key",
-    "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME": "mock-deployment"
+    "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME": "mock-deployment",
+    "AZURE_OPENAI_API_VERSION": "mock-version",
+    "AZURE_BLOBSTORAGE_CONNECTIONSTRING": "",
+    "AZURE_BLOBSTORAGE_CONTAINER": ""
 })
 @pytest.mark.asyncio
 async def test_dryrun_no_assets(mock_resolve, capsys):

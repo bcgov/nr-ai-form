@@ -100,6 +100,33 @@ No Match
 
 
 
+
+### Direct A2A Payload
+
+Direct calls to the Form Support Agent must include `client_settings`. Browser callers should use the API backend gateway so tenant settings are resolved from Cosmos DB and forwarded automatically.
+
+`configFingerprint` is normally generated from the Cosmos tenant profile during tenant config resolution. For direct local testing, use any stable non-secret value such as `"local-test"`. Reusing the same value lets caches work normally; changing it forces fresh prompt/client cache entries.
+
+
+```json
+{
+  "query": "I am a First Nation farmer, I would like to apply for a water licence",
+  "step_number": "step2-Eligibility",
+  "client_settings": {
+    "configFingerprint": "<tenant-config-fingerprint>",
+    "clientId": "11111111-1111-4111-8111-111111111111",
+    "agentType": "formSupportAgent",
+    "enabled": true,
+    "promptPath": "tenants/water/agentprompts/formsupportagent/instructions.md",
+    "config": {
+      "formDefinitionContainer": "tenants/water/formdefinitions",
+      "stepBasedPromptContainer": "tenants/water/prompttemplates",
+      "azureOpenaiChatDeploymentName": "gpt-5.1",
+      "azureOpenaiApiVersion": "2024-10-21"
+    }
+  }
+}
+```
 ## Project Structure
 
 ```
@@ -228,4 +255,3 @@ To add additional capabilities:
 - [ ] Field validation and error handling
 - [ ] Support for conditional field logic
 - [ ] Calculate costing based on form fields interacting with tools
-
