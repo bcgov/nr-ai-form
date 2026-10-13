@@ -13,13 +13,16 @@ All values come from evaluation/.env (see .env.example).
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from dotenv import load_dotenv
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # pydantic-settings populates Settings only; modules that read os.getenv
 # (e.g. the WebSocket target) need the values in the process environment too.
-load_dotenv(".env")
+ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(ENV_FILE)
 
 
 class Settings(BaseSettings):
@@ -46,9 +49,9 @@ class Settings(BaseSettings):
 
     # ---- Backend (objective target) -----------------------------------------
     backend_api_url: str = Field(
-        default="http://localhost:8002", validation_alias="BACKEND_API_URL"
+        default="ws://localhost:8000/ws", min_length=1, validation_alias="BACKEND_API_URL"
     )
-    backend_api_timeout: int = Field(default=60, validation_alias="BACKEND_API_TIMEOUT")
+    backend_api_timeout: int = Field(default=180, validation_alias="BACKEND_API_TIMEOUT")
 
     # ---- Red-team run configuration -----------------------------------------
     red_team_threat_models: str = Field(
@@ -65,7 +68,7 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
 
     model_config = SettingsConfigDict(
-        env_file=".env", case_sensitive=False, extra="ignore"
+        env_file=ENV_FILE, case_sensitive=False, extra="ignore"
     )
 
 

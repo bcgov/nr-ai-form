@@ -5,11 +5,12 @@ promptfoo calls `call_api(prompt, options, context)` for every test row. We
 ignore the rendered `prompt` and instead read the structured vars (`query`,
 `step_number`) so the backend receives exactly the payload it expects. The
 GPT-5.1-powered orchestrator is the target here; grading is done separately by
-the judge model configured in promptfooconfig.yaml (GPT-4.1).
+the judge deployment configured in promptfooconfig.js.
 
 Configure the target via env (see evaluation/.env.example):
-    BACKEND_API_URL   default http://localhost:8002
+    BACKEND_API_URL   default ws://localhost:8000/ws
     BACKEND_API_TIMEOUT
+    BACKEND_WS_CLIENT_ID / BACKEND_WS_ORIGIN   configured tenant and allowed Origin
 """
 
 from __future__ import annotations

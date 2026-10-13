@@ -1,132 +1,197 @@
-"""
-Thin client for the orchestrator backend `/invoke` endpoint.
-
-Contract (agents/orchestrators/orchestrator_agent_server.py):
-    POST /invoke  {query, step_number?, session_id?}  ->  {response, session_id}
-
-`response` is a serialized Agent-Framework WorkflowOutputEvent. It is commonly
-one of:
-    - a plain string
-    - a list of message dicts (each may carry {"response": "..."} or
-      {"text": "..."} / {"content": "..."})
-    - a dict with a "response"/"content"/"data" field
-`extract_text` flattens all of these to a single string for grading.
-
-Used by both the promptfoo python provider and DeepEval live-mode tests.
-"""
+"""Shared gateway WebSocket transport and optional legacy HTTP /invoke client."""
 
 from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import uuid
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
+from dotenv import load_dotenv
+from websockets.asyncio.client import ClientConnection, connect
+from websockets.exceptions import ConnectionClosed, WebSocketException
+from websockets.typing import Origin
 
-DEFAULT_BASE_URL = os.getenv("BACKEND_API_URL", "http://localhost:8002")
-DEFAULT_TIMEOUT = int(os.getenv("BACKEND_API_TIMEOUT", "60"))
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
+DEFAULT_BASE_URL = "ws://localhost:8000/ws"
+DEFAULT_TIMEOUT = 180
 INVOKE_PATH = "/invoke"
+logger = logging.getLogger(__name__)
 
 
-def _is_ws(url: str) -> bool:
-    return url.startswith(("ws://", "wss://"))
+class BackendError(RuntimeError):
+    """The backend did not return a valid assistant response."""
 
 
-def _base(url: Optional[str]) -> str:
-    raw = (url or DEFAULT_BASE_URL).rstrip("/")
-    return raw[: -len(INVOKE_PATH)] if raw.endswith(INVOKE_PATH) else raw
+def _base(url: str | None) -> str:
+    raw = (url or os.getenv("BACKEND_API_URL") or DEFAULT_BASE_URL).rstrip("/")
+    if raw.startswith(("http://", "https://")) and raw.endswith(INVOKE_PATH):
+        return raw[: -len(INVOKE_PATH)]
+    return raw
 
 
-def health_check(base_url: Optional[str] = None, timeout: int = 10) -> bool:
-    """Return True if the backend /health endpoint responds 200."""
-    base = _base(base_url)
-    if _is_ws(base):
-        # The gateway exposes no /health; a successful handshake is the probe.
-        try:
-            _invoke_ws("ping", None, None, base, timeout)
-            return True
-        except Exception:
-            return False
-    try:
-        r = httpx.get(f"{base}/health", timeout=timeout)
-        return r.status_code == 200
-    except Exception:
-        return False
+class BackendClient:
+    """Keep one backend conversation on a persistent WebSocket, as in Jatinder's client."""
 
+    def __init__(
+        self,
+        base_url: str | None = None,
+        timeout: float | None = None,
+        session_id: str | None = None,
+        *,
+        client_id: str | None = None,
+        origin: str | None = None,
+        application_id: int | None = None,
+    ) -> None:
+        self.base_url = _base(base_url)
+        parsed = urlsplit(self.base_url)
+        if parsed.scheme not in {"ws", "wss", "http", "https"} or not parsed.hostname:
+            raise ValueError("BACKEND_API_URL must be an http(s) or ws(s) URL")
+        self.is_websocket = parsed.scheme in {"ws", "wss"}
+        self.timeout = timeout if timeout is not None else float(
+            os.getenv("BACKEND_API_TIMEOUT", str(DEFAULT_TIMEOUT))
+        )
+        if self.timeout <= 0:
+            raise ValueError("BACKEND_API_TIMEOUT must be positive")
+        self.session_id = session_id or dict(parse_qsl(parsed.query)).get("session_id") or str(uuid.uuid4())
+        self.client_id = client_id if client_id is not None else os.getenv("BACKEND_WS_CLIENT_ID", "")
+        self.origin = origin if origin is not None else os.getenv("BACKEND_WS_ORIGIN", "")
+        self.application_id = application_id if application_id is not None else int(
+            os.getenv("BACKEND_WS_APPLICATION_ID", "234554")
+        )
+        if self.is_websocket and (not self.client_id or not self.origin):
+            raise ValueError(
+                "Gateway evaluations require BACKEND_WS_CLIENT_ID for a configured tenant "
+                "and BACKEND_WS_ORIGIN allowed by that tenant"
+            )
+        self._websocket: ClientConnection | None = None
 
-async def _invoke_ws_async(
-    query: str,
-    step_number: Optional[str],
-    session_id: Optional[str],
-    url: str,
-    timeout: int,
-) -> dict[str, Any]:
-    import websockets
+    async def invoke(
+        self,
+        query: str,
+        step_number: str | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        if session_id and session_id != self.session_id:
+            await self.close()
+            self.session_id = session_id
+        payload: dict[str, Any] = {
+            "query": query,
+            "step_number": step_number or os.getenv("BACKEND_WS_STEP", "step2-Eligibility"),
+            "session_id": self.session_id,
+        }
+        if self.is_websocket:
+            payload.update(client_id=self.client_id, application_id=self.application_id)
+            try:
+                return await asyncio.wait_for(self._invoke_websocket(payload), timeout=self.timeout)
+            except TimeoutError as exc:
+                await self.close()
+                raise BackendError(f"Backend timed out after {self.timeout:g}s") from exc
+            except ConnectionClosed as exc:
+                await self.close()
+                close = exc.rcvd or exc.sent
+                raise BackendError(
+                    f"WebSocket closed: code={close.code if close else 'unknown'} "
+                    f"reason={close.reason if close else 'no close frame'}"
+                ) from exc
+            except (OSError, WebSocketException) as exc:
+                await self.close()
+                raise BackendError(f"WebSocket connection failed: {exc}") from exc
+            except BackendError:
+                await self.close()
+                raise
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(f"{self.base_url}{INVOKE_PATH}", json=payload)
+            response.raise_for_status()
+            return self._validate_response(response.json())
 
-    payload = {
-        "client_id": os.getenv("BACKEND_WS_CLIENT_ID", str(uuid.uuid4())),
-        "query": query,
-        "step_number": step_number or os.getenv("BACKEND_WS_STEP", "step2-Eligibility"),
-        "session_id": session_id or str(uuid.uuid4()),
-        "application_id": int(os.getenv("BACKEND_WS_APPLICATION_ID", "234554")),
-    }
-    origin = os.getenv("BACKEND_WS_ORIGIN") or None
-
-    async with websockets.connect(url, origin=origin, open_timeout=30, max_size=None) as ws:
-        await ws.send(json.dumps(payload))
-        loop = asyncio.get_running_loop()
-        deadline = loop.time() + timeout
+    async def _invoke_websocket(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if self._websocket is None:
+            parsed = urlsplit(self.base_url)
+            # The gateway reads session_id from the connection query, not the JSON body.
+            params = [(key, value) for key, value in parse_qsl(parsed.query) if key != "session_id"]
+            params.append(("session_id", self.session_id))
+            url = urlunsplit(parsed._replace(query=urlencode(params)))
+            self._websocket = await connect(
+                url, origin=Origin(self.origin), open_timeout=min(30, self.timeout), max_size=None
+            )
+        await self._websocket.send(json.dumps(payload))
         while True:
-            remaining = deadline - loop.time()
-            if remaining <= 0:
-                raise TimeoutError("no answer frame before timeout")
-            frame = json.loads(await asyncio.wait_for(ws.recv(), timeout=remaining))
-            if frame.get("event") == "session_init":
+            raw = await self._websocket.recv()
+            try:
+                frame = json.loads(raw)
+            except (ValueError, TypeError) as exc:
+                raise BackendError("Backend returned invalid JSON") from exc
+            if isinstance(frame, dict) and frame.get("event") == "session_init":
+                if not frame.get("session_id"):
+                    raise BackendError("Backend session_init has no session_id")
+                self.session_id = str(frame["session_id"])
                 continue
-            if "response" in frame:
-                return frame
+            return self._validate_response(frame)
+
+    @staticmethod
+    def _validate_response(frame: Any) -> dict[str, Any]:
+        if not isinstance(frame, dict):
+            raise BackendError("Backend response must be a JSON object")
+        if "error" in frame:
+            raise BackendError(f"Backend error: {frame['error']}")
+        if "response" not in frame or not extract_text(frame["response"]).strip():
+            raise BackendError("Backend returned no assistant response")
+        return frame
+
+    async def close(self) -> None:
+        if self._websocket is not None:
+            websocket, self._websocket = self._websocket, None
+            await websocket.close()
 
 
-def _invoke_ws(
+async def invoke_async(
     query: str,
-    step_number: Optional[str],
-    session_id: Optional[str],
-    url: str,
-    timeout: int,
+    step_number: str | None = None,
+    session_id: str | None = None,
+    base_url: str | None = None,
+    timeout: float | None = None,
 ) -> dict[str, Any]:
-    return asyncio.run(_invoke_ws_async(query, step_number, session_id, url, timeout))
+    client = BackendClient(base_url, timeout, session_id)
+    try:
+        return await client.invoke(query, step_number)
+    finally:
+        await client.close()
 
 
 def invoke(
     query: str,
-    step_number: Optional[str] = None,
-    session_id: Optional[str] = None,
-    base_url: Optional[str] = None,
-    timeout: Optional[int] = None,
+    step_number: str | None = None,
+    session_id: str | None = None,
+    base_url: str | None = None,
+    timeout: float | None = None,
 ) -> dict[str, Any]:
-    """Call the backend and return the parsed JSON body.
+    return asyncio.run(invoke_async(query, step_number, session_id, base_url, timeout))
 
-    Transport is chosen from the URL scheme: ws/wss uses the WebSocket gateway,
-    anything else uses POST /invoke.
-    """
-    base = _base(base_url)
-    timeout = timeout or DEFAULT_TIMEOUT
-    if _is_ws(base):
-        return _invoke_ws(query, step_number, session_id, base, timeout)
-    payload: dict[str, Any] = {"query": query}
-    if step_number:
-        payload["step_number"] = step_number
-    if session_id:
-        payload["session_id"] = session_id
-    r = httpx.post(f"{base}{INVOKE_PATH}", json=payload, timeout=timeout)
-    r.raise_for_status()
-    return r.json()
+
+def health_check(base_url: str | None = None, timeout: int = 10) -> bool:
+    """Check the HTTP stand-in or validate a complete gateway request."""
+    try:
+        base = _base(base_url)
+        if base.startswith(("ws://", "wss://")):
+            invoke("What is a water licence?", base_url=base, timeout=timeout)
+            return True
+        response = httpx.get(f"{base}/health", timeout=timeout)
+        response.raise_for_status()
+        return True
+    except (BackendError, httpx.HTTPError, ValueError) as exc:
+        logger.error("Backend health check failed: %s", exc)
+        return False
 
 
 def extract_text(obj: Any) -> str:
-    """Flatten an /invoke `response` payload into a single plain-text string."""
+    """Flatten an assistant response for grading."""
     if obj is None:
         return ""
     if isinstance(obj, str):
@@ -137,18 +202,16 @@ def extract_text(obj: Any) -> str:
                 return extract_text(obj[key])
         return json.dumps(obj, ensure_ascii=False)
     if isinstance(obj, list):
-        parts = [extract_text(x) for x in obj]
-        return "\n".join(p for p in parts if p)
+        return "\n".join(part for item in obj if (part := extract_text(item)))
     return str(obj)
 
 
 def invoke_text(
     query: str,
-    step_number: Optional[str] = None,
-    session_id: Optional[str] = None,
-    base_url: Optional[str] = None,
-    timeout: Optional[int] = None,
+    step_number: str | None = None,
+    session_id: str | None = None,
+    base_url: str | None = None,
+    timeout: float | None = None,
 ) -> str:
-    """Convenience: invoke and return only the flattened response text."""
     body = invoke(query, step_number, session_id, base_url, timeout)
-    return extract_text(body.get("response", body))
+    return extract_text(body["response"])

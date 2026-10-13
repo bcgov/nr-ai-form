@@ -4,8 +4,9 @@ import asyncio
 import sys
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 from datetime import datetime, timezone
+from io import TextIOWrapper
 
 import click
 import structlog
@@ -16,12 +17,36 @@ from redteam.orchestrator import RedTeamOrchestrator
 
 logger = structlog.get_logger(__name__)
 
+
+def _failure_reason(result: dict[str, Any]) -> str | None:
+    if result.get("error"):
+        return f"Harness error: {result['error']}"
+    details = result.get("results", {})
+    if details.get("errors"):
+        return f"Harness error: {'; '.join(details['errors'])}"
+    turns = details.get("turns", [])
+    if any(turn.get("transport_error") for turn in turns):
+        return "Backend transport failure"
+    if any(turn.get("error") for turn in turns):
+        return "Attack turn failed"
+    if not turns or any(not str(turn.get("response", "")).strip() for turn in turns):
+        return "No valid backend response"
+    outcomes = details.get("outcomes") or [turn.get("outcome", "unknown") for turn in turns]
+    outcomes = [str(outcome).rsplit(".", 1)[-1].lower() for outcome in outcomes]
+    if any(outcome not in {"success", "failure"} for outcome in outcomes):
+        return "Attack outcome is unscored or undetermined"
+    if "success" in outcomes:
+        return "Policy violation detected"
+    return None
+
 # Windows consoles default to cp1252, which cannot encode the emoji used in
 # status output; force UTF-8 so the CLI runs cross-platform.
 for _stream in (sys.stdout, sys.stderr):
+    if not isinstance(_stream, TextIOWrapper):
+        continue
     try:
         _stream.reconfigure(encoding="utf-8")
-    except (AttributeError, ValueError):
+    except ValueError:
         pass
 
 
@@ -155,21 +180,13 @@ def scan(
         )
         
         # Print summary
-        def _has_transport_error(result):
-            return any(turn.get("transport_error") for turn in result.get("turns", []))
-
-        transport_failed = [r for r in results if _has_transport_error(r)]
-        errored = [r for r in results if "error" in r]
-        successful = len(results) - len(transport_failed) - len(errored)
-
-        click.echo(f"\n✅ Completed {successful}/{len(results)} attacks successfully")
-        if transport_failed:
-            click.echo(
-                f"⚠️  {len(transport_failed)} case(s) never reached the model "
-                f"(backend transport failure) — these are NOT valid results"
-            )
-        if errored:
-            click.echo(f"❌ {len(errored)} case(s) failed with harness errors")
+        failures = [reason for result in results if (reason := _failure_reason(result))]
+        if len(results) != len(test_cases):
+            failures.append("The harness did not return a result for every test case")
+        passed = sum(_failure_reason(result) is None for result in results)
+        click.echo(f"\nPassed {passed}/{len(test_cases)} cases")
+        for reason in failures:
+            click.echo(f"Failed: {reason}", err=True)
         
         # Save report
         report_path = _save_pyrit_report(runner, output)
@@ -192,6 +209,9 @@ def scan(
             )
             _write_steps(results, steps_path)
             click.echo(f"Intermediate steps saved: {steps_path}")
+
+        if failures:
+            raise click.ClickException("The scan contains failed, invalid, or unscored cases")
         
     except Exception as e:
         click.echo(f"❌ Error: {e}", err=True)
@@ -267,8 +287,9 @@ def test_query(query: str, attack_type: str):
         else:
             result = asyncio.run(runner.run_attack(query))
         
-        if "error" in result:
-            click.echo(f"❌ Error: {result['error']}", err=True)
+        failure = _failure_reason(result)
+        if failure:
+            click.echo(f"❌ Error: {failure}", err=True)
             sys.exit(1)
         
         # Display results
@@ -451,7 +472,7 @@ def seed_attack(
             sys.exit(1)
         
         # Display results
-        click.echo(f"✅ Attack completed successfully!")
+        click.echo("Attack execution completed")
         click.echo(f"\n📋 Attack Summary:")
         click.echo(f"  Attack Type: {result.get('attack_type')}")
         click.echo(f"  Seed Source: {result.get('seed_source')}")
@@ -494,6 +515,9 @@ def seed_attack(
                 json.dump(result, f, indent=2, default=str)
             click.echo(f"\n💾 Report saved: {report_path}")
         
+        failure = _failure_reason(result)
+        if failure:
+            raise click.ClickException(failure)
         return 0
         
     except Exception as e:

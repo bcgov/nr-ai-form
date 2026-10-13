@@ -23,7 +23,7 @@ dev = [
 ]
 # PyRIT red-team engine (heavier deps; install with: pip install -e ".[redteam]")
 redteam = [
-    "pyrit>=0.14.0",
+    "pyrit>=1.0.1,<2",
     "structlog>=25.4.0",
     "aiohttp>=3.9.0",
     "click>=8.1.0,<8.4.0",
