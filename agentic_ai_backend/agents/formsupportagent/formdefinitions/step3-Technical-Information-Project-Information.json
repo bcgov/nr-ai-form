@@ -6,7 +6,7 @@
             "type": "radio",
             "id": "BC Hydro_RequiredQuestionResponse",
             "title": "Are you a BC Hydro employee or agent applying on behalf of BC Hydro?",
-            "description": "The purpose of this application must be related with BC Hydro Sustainment Project.",
+            "description": "The applicant is a BC Hydro employee or agent.",
             "enum": [
                 "Yes",
                 "No"
@@ -31,18 +31,6 @@
             "id": "Housing_RequiredQuestionResponse",
             "title": "Is this application in relation to increasing the supply of housing units within British Columbia?",
             "description": "The purpose of this application must be specifically for development of houses or living units AND the development must increase the number of housing units on the land/property.",
-            "enum": [
-                "Yes",
-                "No"
-            ],
-            "default": "No",
-            "required": true
-        },
-        "Major Mine_RequiredQuestionResponse": {
-            "type": "radio",
-            "id": "Major Mine_RequiredQuestionResponse",
-            "title": "Is this application related to a major mine?",
-            "description": "The purpose of this application must be related with a major mine in British Columbia.",
             "enum": [
                 "Yes",
                 "No"
