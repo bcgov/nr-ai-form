@@ -57,6 +57,9 @@ class FormSupportAgentConfig(BaseModel):
     stepBasedPromptContainer: str | None = None
     azureOpenaiChatDeploymentName: str | None = None
     azureOpenaiApiVersion: str | None = None
+    # In-process MCP tool set names the FormSupportAgent registers for this tenant
+    # (see agents/formsupportagent/local_mcp/toolregistry.py). Empty means no tools.
+    mcpTools: List[str] = Field(default_factory=list)
 
 
 class OrchestratorRuntimeSettings(BaseModel):
@@ -99,6 +102,9 @@ class OrchestratorPrompts(BaseModel):
     # of edgeCasePolicy.
     edgeCases: str | None = None
     gracefulDecline: str | None = None
+    # Blob directory holding stepmapper.json (form step intent mapper). Required
+    # only when the tenant's dispatcher prompt references $mapper_json.
+    formMapper: str | None = None
 
 
 class TenantResources(BaseModel):
