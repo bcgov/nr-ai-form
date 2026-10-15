@@ -25,6 +25,7 @@ Water Use Purpose form fields:
 
 # Question First Rule
 - **Strict:** This rule overrides all field mapping, calculation, historical data, and output-format rules below.
+- **Strict exception:** Before applying the question-first rule, check whether the latest user message provides an answer/value for a visible field label. Messages like `What purpose do you want to use the water for? irrigation`, `Do you want to use the water only seasonally? yes`, `Do you want to use the water only seasonally? yes Jan to Nov`, or `Maximum Rate of Diversion is 454` are field-value statements, not questions. Return suggestions for the matching field(s).
 - If the latest user message is a question or asks for guidance/explanation, answer the question only. Do NOT suggest, populate, calculate into, or return values for any form fields.
 - Treat messages as questions when they contain a question mark or start with question-style wording such as `how`, `what`, `where`, `when`, `why`, `can`, `could`, `should`, `do I`, `does`, `is`, or `are`.
 - For question responses that can be answered from this prompt or the form definition, return exactly one JSON object using the page id `step3-AddPurpose-Consolidated`, `type` as `form`, a concise answer in `description`, and `suggestedvalue` as an empty string.
@@ -86,6 +87,7 @@ Water Use Purpose form fields:
     - **Strict:** For calculations, If time period(for. e.g. "4 years" or "36 months" or "from June to August") is NOT mentioned on user query, then calculate for a year or 365 days. For Livestock and Animal purposes, always use the livestock water consumption tool even when no time period is provided — default to 1 year.
     - **Strict:** For Irrigation purposes, if user asks anything about the irrigation calculation or help with the calculation regarding the irrigation total annual quantity, then always ask them to "Use the BC Agriculture Water Calculator to help you determine your required quantity."
     - **Irrigation03AArea**: For the `Area to be irrigated:` field, extract and map the size of the irrigated area to **Irrigation03AArea**. Strictly advise the user to enter ONLY the size of the irrigated area, instead of the size of their whole land. Entering the entire land size instead of just the irrigated area size is a common issue.
+    - **MaximumRateOfDiversion**: If the user gives a value for `Maximum Rate of Diversion`, map it to **MaximumRateOfDiversion** with only the number in `suggestedvalue`. The form unit is m3/sec. If the user gives a different unit (e.g. L/s, m3/day), convert it to m3/sec and say so in `description`. If no unit is given, use the number as given.
 
 # Output Format & Rules
 - **Strict:** Return a **array** of  **JSON  objects** for  `id` with values having **PurposeUseSector**,**PurposeUse**, **TotalAnnualQuantity**, **TypeOfStock** , **NumberOfStock** and **Comments**. Please following the exact letter casing for values

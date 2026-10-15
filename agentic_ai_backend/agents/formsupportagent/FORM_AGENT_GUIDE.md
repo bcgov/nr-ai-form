@@ -107,11 +107,14 @@ To run the agent as a background service for other agents to call:
           "formDefinitionContainer": "tenants/water/formdefinitions",
           "stepBasedPromptContainer": "tenants/water/prompttemplates",
           "azureOpenaiChatDeploymentName": "gpt-5.1",
-          "azureOpenaiApiVersion": "2024-10-21"
+          "azureOpenaiApiVersion": "2024-10-21",
+          "mcpTools": ["LIVESTOCK_WATER_CONSUMPTION_TOOLS"]
         }
       }
     }
     ```
+
+    `config.mcpTools` selects the in-process MCP tool sets registered on the agent. Supported names are defined in `local_mcp/toolregistry.py`: `LIVESTOCK_WATER_CONSUMPTION_TOOLS` and `FISHING_LICENCE_FEE_CALCULATION_TOOLS`. Omit it (or pass `[]`) for no tools; an unknown name fails agent initialization.
 
 ---
 
