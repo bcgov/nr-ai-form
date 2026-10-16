@@ -1,5 +1,26 @@
 ﻿services:
+  privoxy:
+    image: ghcr.io/bcgov/ai-hub-tracking/azure-proxy/privoxy:latest
+    environment:
+      - SOCKS_HOST=host.docker.internal
+      - SOCKS_PORT=8228
+    ports:
+      - "127.0.0.1:8118:8118"   # optional, only for testing from your host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+  
   conversation-agent:
+    environment:
+      - HTTPS_PROXY=http://privoxy:8118
+      - HTTP_PROXY=http://privoxy:8118
+      - https_proxy=http://privoxy:8118
+      - http_proxy=http://privoxy:8118
+      - NO_PROXY=localhost,127.0.0.1,redis,azure-cosmos-emulator,conversation-agent,formsupport-agent,orchestrator-agent,api-backend
+      - no_proxy=localhost,127.0.0.1,redis,azure-cosmos-emulator,conversation-agent,formsupport-agent,orchestrator-agent,api-backend
+    depends_on:
+      privoxy:
+        condition: service_started
     build:
       context: .
       dockerfile: agents/conversationagent/Dockerfile

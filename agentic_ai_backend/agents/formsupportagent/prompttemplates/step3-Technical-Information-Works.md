@@ -32,7 +32,7 @@ If the user asks a contextual or informational question about the page or sectio
 - STRICT: Only return fields that the user's message (or conversation history) explicitly addresses. Never assume or default a field just because the user didn't mention it.
 - If the user mentions a specific work (e.g., "I need a pump"), set the corresponding `Selected_` field to "Y".
 - If the user also mentions the status of that work, return the `Status_` field as well (mapping to "Not Constructed", "Partly Constructed", or "Fully Constructed").
-- If the user provides descriptive details or dimensions of their system, map those details directly to `AdditionalWorksDetails`.
+- If the user provides descriptive details or dimensions of their system, DO NOT fill those details in `AdditionalWorksDetails`. Instead, instruct the user to add those additional details. You must not autofill a comment box. Only when the user explicitly asks you to fill out the comment box, you map it to `AdditionalWorksDetails` with the relevant info the user provided.
 - If the user's message addresses only one field, return a single JSON object (no array brackets).
 - If the user's message addresses multiple fields, return a JSON array containing all of them.
 
@@ -42,7 +42,7 @@ User: "I will be installing a new pump." — only the pump selection is determin
 {"id": "Selected_Pump", "description": "A pump is a device that moves fluids by mechanical action.", "suggestedvalue": "Y", "type": "checkbox"}
 ```
 
-User: "I have a fully constructed dam and an access road that is partly constructed." — four fields determinable, return an array:
+User: "I have a fully constructed dam and an access road that is partly constructed." — three fields determinable, return an array:
 
 ```json
 [
@@ -53,13 +53,12 @@ User: "I have a fully constructed dam and an access road that is partly construc
 ]
 ```
 
-User: "I am planning a dugout that will be 15 metres long, 10 metres wide, and 3 metres deep. It is not constructed yet." — three fields determinable, return an array:
+User: "I am planning a dugout that will be 15 metres long, 10 metres wide, and 3 metres deep. It is not constructed yet." — two fields determinable, return an array:
 
 ```json
 [
   {"id": "Selected_Dugout", "description": "A dugout is an excavation in the ground that holds water. Provide length, width and depth in the comments.", "suggestedvalue": "Y", "type": "checkbox"},
-  {"id": "Status_Dugout", "description": "Construction status of the dugout.", "suggestedvalue": "Not Constructed", "type": "dropdown"},
-  {"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "The dugout to be constructed is 15 metres long, 10 metres wide, and 3 metres deep.", "type": "textarea"}
+  {"id": "Status_Dugout", "description": "Construction status of the dugout.", "suggestedvalue": "Not Constructed", "type": "dropdown"}
 ]
 ```
 
@@ -68,15 +67,16 @@ User: "I am planning to build 2 dams on my land to support water storage during 
 ```json
 [
   {"id": "Selected_Dam", "description": "A dam is any barrier that impounds water.", "suggestedvalue": "Y", "type": "checkbox"},
-  {"id": "Status_Dam", "description": "Construction status of the dam.", "suggestedvalue": "Not Constructed", "type": "dropdown"},
-  {"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "The applicant is planning to build 2 dams to support water storage during summer.", "type": "textarea"}
+  {"id": "Status_Dam", "description": "Construction status of the dam.", "suggestedvalue": "Not Constructed", "type": "dropdown"}
 ]
 ```
 
-
-User: "I don't have any works." / "None of these apply to me." — return a single object:
+User: "I am planning a dugout that will be 15 metres long, 10 metres wide, and 3 metres deep. It is partially built. Can you also fill out the comment section with these details?" — three fields determinable including `AdditionalWorksDetails` because the user explicity asked for help filling it, return an array:
 
 ```json
-{"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "The applicant does not have any works to be highlighted in their application.", "type": "textarea"}
+[
+  {"id": "Selected_Dugout", "description": "A dugout is an excavation in the ground that holds water. Provide length, width and depth in the comments.", "suggestedvalue": "Y", "type": "checkbox"},
+  {"id": "Status_Dugout", "description": "Construction status of the dugout.", "suggestedvalue": "Not Constructed", "type": "dropdown"},
+  {"id": "AdditionalWorksDetails", "description": "User-provided description of the system and specific details like dimensions for dugouts or reservoirs.", "suggestedvalue": "The dugout to be constructed is 15 metres long, 10 metres wide, and 3 metres deep.", "type": "textarea"}
+]
 ```
-
