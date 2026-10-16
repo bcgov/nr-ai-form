@@ -12,6 +12,10 @@ class FormSupportAgentConfig(TypedDict, total=False):
     stepBasedPromptContainer: str
     azureOpenaiChatDeploymentName: str
     azureOpenaiApiVersion: str
+    # Names of in-process MCP tool sets to give the agent (see local_mcp/toolregistry.py),
+    # e.g. ["LIVESTOCK_WATER_CONSUMPTION_TOOLS", "FISHING_LICENCE_FEE_CALCULATION_TOOLS"].
+    mcpTools: list[str]
+
 
 class FormSupportAgentClientSettings(TypedDict):
     """The full client_settings dict passed to FormSupportAgent invoke requests."""
