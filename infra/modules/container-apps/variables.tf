@@ -39,14 +39,16 @@ variable "appinsights_instrumentation_key" {
 }
 
 variable "azure_document_intelligence_endpoint" {
-  description = "Azure Document Intelligence endpoint"
+  description = "Azure Document Intelligence endpoint (optional; empty in prod)"
   type        = string
+  default     = ""
   nullable    = false
 }
 
 variable "azure_document_intelligence_key" {
-  description = "Azure Document Intelligence API key"
+  description = "Azure Document Intelligence API key (optional; empty in prod). The secret is only created when set."
   type        = string
+  default     = ""
   sensitive   = true
   nullable    = false
 }

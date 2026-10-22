@@ -71,6 +71,58 @@ module "cosmos" {
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
+# Azure AI Search - opt-in (enabled in prod). When disabled, the endpoint/key come from secrets.
+module "search" {
+  count  = var.enable_search ? 1 : 0
+  source = "./modules/search"
+
+  app_name                      = var.app_name
+  common_tags                   = var.common_tags
+  location                      = var.location
+  resource_group_name           = azurerm_resource_group.main.name
+  private_endpoint_subnet_id    = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
+  log_analytics_workspace_id    = module.monitoring.log_analytics_workspace_id
+  search_sku                    = var.search_sku
+  semantic_search_sku           = var.search_semantic_sku
+  replica_count                 = var.search_replica_count
+  partition_count               = var.search_partition_count
+  public_network_access_enabled = var.search_public_network_access_enabled
+
+  depends_on = [azurerm_resource_group.main, module.network]
+}
+
+# Storage Account (form definitions + prompt templates) - opt-in (enabled in prod).
+# When disabled, the connection string / container come from secrets.
+module "storage" {
+  count  = var.enable_storage ? 1 : 0
+  source = "./modules/storage"
+
+  app_name                        = var.app_name
+  common_tags                     = var.common_tags
+  location                        = var.location
+  resource_group_name             = azurerm_resource_group.main.name
+  private_endpoint_subnet_id      = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
+  log_analytics_workspace_id      = module.monitoring.log_analytics_workspace_id
+  container_name                  = var.azure_blobstorage_container != "" ? var.azure_blobstorage_container : var.storage_container_name
+  account_replication_type        = var.storage_replication_type
+  blob_soft_delete_retention_days = var.storage_blob_soft_delete_retention_days
+  public_network_access_enabled   = var.storage_public_network_access_enabled
+
+  depends_on = [azurerm_resource_group.main, module.network]
+}
+
+locals {
+  # Prefer Terraform-managed Search/Storage when enabled, otherwise fall back to the values passed in as secrets.
+  azure_search_endpoint = var.enable_search ? module.search[0].search_endpoint : var.azure_search_endpoint
+  azure_search_api_key  = var.enable_search ? module.search[0].search_primary_key : var.AZURE_SEARCH_API_KEY
+
+  azure_storage_account_name         = var.enable_storage ? module.storage[0].storage_account_name : var.azure_storage_account_name
+  azure_storage_account_key          = var.enable_storage ? module.storage[0].storage_account_primary_key : var.azure_storage_account_key
+  azure_storage_container_name       = var.enable_storage ? module.storage[0].storage_container_name : var.azure_storage_container_name
+  azure_blobstorage_connectionstring = var.enable_storage ? module.storage[0].storage_blob_connection_string : var.azure_blobstorage_connectionstring
+  azure_blobstorage_container        = var.enable_storage ? module.storage[0].storage_container_name : var.azure_blobstorage_container
+}
+
 # Container Apps Deployment (only deployment type supported)
 module "container_apps" {
   source = "./modules/container-apps"
@@ -138,8 +190,8 @@ module "container_apps" {
   AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = var.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
 
   # Azure Search
-  azure_search_endpoint        = var.azure_search_endpoint
-  AZURE_SEARCH_API_KEY         = var.AZURE_SEARCH_API_KEY
+  azure_search_endpoint        = local.azure_search_endpoint
+  AZURE_SEARCH_API_KEY         = local.azure_search_api_key
   azure_search_index_name      = var.azure_search_index_name
   azure_search_top             = var.azure_search_top
   azure_search_trim_length     = var.azure_search_trim_length
@@ -163,13 +215,13 @@ module "container_apps" {
   azure_document_intelligence_key      = var.azure_document_intelligence_key
 
   # Azure Storage
-  azure_storage_account_name   = var.azure_storage_account_name
-  azure_storage_account_key    = var.azure_storage_account_key
-  azure_storage_container_name = var.azure_storage_container_name
+  azure_storage_account_name   = local.azure_storage_account_name
+  azure_storage_account_key    = local.azure_storage_account_key
+  azure_storage_container_name = local.azure_storage_container_name
 
   # Azure Blob Storage
-  azure_blobstorage_connectionstring = var.azure_blobstorage_connectionstring
-  azure_blobstorage_container        = var.azure_blobstorage_container
+  azure_blobstorage_connectionstring = local.azure_blobstorage_connectionstring
+  azure_blobstorage_container        = local.azure_blobstorage_container
 
   # Azure Cosmos DB Configuration
   azure_cosmos_db_endpoint      = var.azure_cosmos_db_endpoint

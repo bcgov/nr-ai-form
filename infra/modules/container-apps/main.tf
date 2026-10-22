@@ -107,9 +107,14 @@ resource "azurerm_container_app" "backend" {
     value = var.AZURE_SEARCH_API_KEY
   }
 
-  secret {
-    name  = "azure-document-intelligence-key"
-    value = var.azure_document_intelligence_key
+  # Optional: Document Intelligence is used in dev/test only. ACA rejects empty
+  # secret values, so the secret is created only when a key is supplied.
+  dynamic "secret" {
+    for_each = nonsensitive(var.azure_document_intelligence_key != "") ? [1] : []
+    content {
+      name  = "azure-document-intelligence-key"
+      value = var.azure_document_intelligence_key
+    }
   }
 
   secret {

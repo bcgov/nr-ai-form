@@ -41,3 +41,24 @@ output "container_apps_frontdoor_api_endpoint" {
   value       = try(module.container_apps[0].frontdoor_api_endpoint, null)
 }
 
+# Azure AI Search outputs (only when enable_search = true)
+output "azure_search_endpoint" {
+  description = "The endpoint of the Terraform-managed Azure AI Search service"
+  value       = var.enable_search ? module.search[0].search_endpoint : null
+}
+
+output "azure_search_service_name" {
+  description = "The name of the Terraform-managed Azure AI Search service"
+  value       = var.enable_search ? module.search[0].search_service_name : null
+}
+
+# Storage Account outputs (only when enable_storage = true)
+output "storage_account_name" {
+  description = "The name of the Terraform-managed Storage Account"
+  value       = var.enable_storage ? module.storage[0].storage_account_name : null
+}
+
+output "storage_container_name" {
+  description = "The name of the Terraform-managed blob container"
+  value       = var.enable_storage ? module.storage[0].storage_container_name : null
+}

@@ -39,9 +39,9 @@ locals {
   AZURE_SEARCH_API_KEY        = get_env("AZURE_SEARCH_API_KEY")
   azure_search_index_name = get_env("AZURE_SEARCH_INDEX_NAME")
   
-  # Azure Document Intelligence Configuration
-  azure_document_intelligence_endpoint = get_env("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
-  azure_document_intelligence_key      = get_env("AZURE_DOCUMENT_INTELLIGENCE_KEY")
+  # Azure Document Intelligence Configuration (optional: set in dev/test, empty in prod)
+  azure_document_intelligence_endpoint = get_env("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT", "")
+  azure_document_intelligence_key      = get_env("AZURE_DOCUMENT_INTELLIGENCE_KEY", "")
   
   # Azure Storage Configuration
   azure_storage_account_name   = get_env("AZURE_STORAGE_ACCOUNT_NAME")
