@@ -102,6 +102,78 @@ variable "enable_front_door" {
   default     = true
 }
 
+# -------------
+# Azure AI Search (Terraform-managed, opt-in)
+# -------------
+variable "enable_search" {
+  description = "Provision Azure AI Search with Terraform. When false (dev/test), azure_search_endpoint / AZURE_SEARCH_API_KEY must be supplied."
+  type        = bool
+  default     = false
+}
+
+variable "search_sku" {
+  description = "Azure AI Search SKU (basic, standard, standard2, ...)."
+  type        = string
+  default     = "standard"
+}
+
+variable "search_semantic_sku" {
+  description = "Semantic ranker plan for Azure AI Search (free or standard)."
+  type        = string
+  default     = "standard"
+}
+
+variable "search_replica_count" {
+  description = "Number of Azure AI Search replicas."
+  type        = number
+  default     = 2
+}
+
+variable "search_partition_count" {
+  description = "Number of Azure AI Search partitions."
+  type        = number
+  default     = 1
+}
+
+variable "search_public_network_access_enabled" {
+  description = "Allow public network access to Azure AI Search."
+  type        = bool
+  default     = false
+}
+
+# -------------
+# Storage Account (Terraform-managed, opt-in)
+# -------------
+variable "enable_storage" {
+  description = "Provision the Storage Account with Terraform. When false (dev/test), azure_blobstorage_connectionstring / azure_storage_* must be supplied."
+  type        = bool
+  default     = false
+}
+
+variable "storage_container_name" {
+  description = "Blob container name used when enable_storage is true and azure_blobstorage_container is empty."
+  type        = string
+  default     = "agent-assets"
+}
+
+variable "storage_replication_type" {
+  description = "Storage Account replication type (LRS, ZRS, GRS, GZRS, ...)."
+  type        = string
+  default     = "ZRS"
+}
+
+variable "storage_blob_soft_delete_retention_days" {
+  description = "Days to retain deleted blobs and containers."
+  type        = number
+  default     = 7
+}
+
+variable "storage_public_network_access_enabled" {
+  description = "Allow public network access to the Storage Account."
+  type        = bool
+  default     = false
+}
+
 variable "frontdoor_sku_name" {
   description = "SKU name for the Front Door"
   type        = string
@@ -312,15 +384,18 @@ variable "agent_max_tokens" {
 }
 
 # Azure Document Intelligence Configuration
+# Optional: used in dev/test, not provisioned in prod. Leave empty to skip.
 variable "azure_document_intelligence_endpoint" {
-  description = "The endpoint URL for Azure Document Intelligence service."
+  description = "The endpoint URL for Azure Document Intelligence service. Empty disables it."
   type        = string
+  default     = ""
   nullable    = false
 }
 
 variable "azure_document_intelligence_key" {
-  description = "The API key for Azure Document Intelligence service."
+  description = "The API key for Azure Document Intelligence service. Empty disables it."
   type        = string
+  default     = ""
   sensitive   = true
   nullable    = false
 }
