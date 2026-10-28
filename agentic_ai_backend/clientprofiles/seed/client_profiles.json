@@ -12,8 +12,7 @@
         "dispatcher": "tenants/water/agentprompts/dispatcher",
         "aggregator": "tenants/water/agentprompts/aggregrator",
         "edgeCases": "tenants/water/agentprompts/edgecases",
-        "gracefulDecline": "tenants/water/agentprompts/gracefuldecline",
-        "formMapper": "tenants/water/stepmapper"
+        "gracefulDecline": "tenants/water/agentprompts/gracefuldecline"
       },
       "config": {
         "azureOpenAIChatDeploymentName": "gpt-5.1",
@@ -31,7 +30,7 @@
         "enabled": true,
         "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
         "config": {
-          "azureSearchKnowledgeAgentName": "<azure-search-knowledge-agent-name>",
+          "azureSearchKnowledgeAgentName": "knowledgebase-bc-waterpermit-dev",
           "agentMaxTokens": 2500,
           "agentTemperature": 0.1,
           "azureSearchIndexName": "rag-bc-waterpermit-dev",
@@ -47,7 +46,7 @@
           "azureSearchEnableTrimming": false,
           "azureSearchIncludeTotalCount": true,
           "azureSearchQueryType": "semantic",
-          "azureSearchSemanticConfiguration": "",
+          "azureSearchSemanticConfiguration": "rag-bc-waterpermit-dev-semantic-configuration",
           "azureSearchQueryCaption": "extractive",
           "azureSearchQueryAnswer": "extractive",
           "azureSearchQueryAnswerCount": 3,
@@ -65,31 +64,29 @@
           "formDefinitionContainer": "tenants/water/formdefinitions",
           "stepBasedPromptContainer": "tenants/water/prompttemplates",
           "azureOpenaiChatDeploymentName": "gpt-5.1",
-          "azureOpenaiApiVersion": "2024-10-21",
-          "mcpTools": ["LIVESTOCK_WATER_CONSUMPTION_TOOLS"]
+          "azureOpenaiApiVersion": "2024-10-21"
         }
       }
     ]
   },
   {
     "clientId": "22222222-2222-4222-8222-222222222222",
-    "clientName": "AIFA Showcase App (Fishing Permit)",
+    "clientName": "Fishing Permit App",
     "corsOrigins": [
-      "https://aifas-dev-main.apps.silver.devops.gov.bc.ca/*",
+      "https://showcase.apps.silver.devops.gov.bc.ca/*",
       "http://localhost*"
     ],
     "tenantResources": {
       "prompts": {
-        "dispatcher": "tenants/fish/agentprompts/dispatcher",
-        "aggregator": "tenants/fish/agentprompts/aggregator",
-        "formMapper": "tenants/fish/stepmapper"
+        "dispatcher": "orchestrator/dispatcher",
+        "aggregator": "orchestrator/aggregator"
       },
       "config": {
-        "azureOpenAIChatDeploymentName": "gpt-5.1",
+        "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
         "azureOpenAIApiVersion": "2024-10-21",
-        "azureOpenAIAggregatorChatDeploymentName": "gpt-5.1",
+        "azureOpenAIAggregatorChatDeploymentName": "<azure-openai-aggregator-chat-deployment-name>",
         "azureOpenAIAggregatorMaxCompletionTokens": 2500,
-        "formStepNumber": "step0",
+        "formStepNumber": "step2-Eligibility",
         "a2aClientTimeoutSeconds": 120
       }
     },
@@ -97,11 +94,11 @@
       {
         "agentType": "conversationAgent",
         "enabled": true,
-        "promptPath": "tenants/fish/agentprompts/conversationagent/instructions.md",
+        "promptPath": "agents/conversation/instructions.md",
         "config": {
-          "conversationAgentMode": "llm",
-          "azureSearchIndexName": "rag-bc-fish",
-          "azureSearchKnowledgeAgentName": "knowledgebase-bc-fishpermit-dev",
+          "conversationAgentMode": "knowledgebase",
+          "azureSearchIndexName": "fishing-permit-index",
+          "azureSearchKnowledgeAgentName": "fishing-permit-knowledge-agent",
           "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
           "azureSearchKnowledgeAgentRequestMode": "messages",
           "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
@@ -114,12 +111,12 @@
           "azureSearchEnableTrimming": true,
           "azureSearchIncludeTotalCount": true,
           "azureSearchQueryType": "semantic",
-          "azureSearchSemanticConfiguration": "rag-bc-fish-semantic-configuration",
+          "azureSearchSemanticConfiguration": "semanticconfig",
           "azureSearchQueryCaption": "extractive",
           "azureSearchQueryAnswer": "extractive",
           "azureSearchQueryAnswerCount": 3,
           "azureSearchQueryLanguage": "en-US",
-          "azureOpenaiChatDeploymentName": "gpt-5.1",
+          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
           "azureOpenaiApiVersion": "2024-10-21",
           "agentMaxTokens": 2500,
           "agentTemperature": 0.1
@@ -128,13 +125,12 @@
       {
         "agentType": "formSupportAgent",
         "enabled": true,
-        "promptPath": "tenants/fish/agentprompts/formsupportagent/instructions.md",
+        "promptPath": "agents/formsupport/instructions.md",
         "config": {
-          "formDefinitionContainer": "tenants/fish/formdefinitions",
-          "stepBasedPromptContainer": "tenants/fish/prompttemplates",
-          "azureOpenaiChatDeploymentName": "gpt-5.1",
-          "azureOpenaiApiVersion": "2024-10-21",
-          "mcpTools": ["FISHING_LICENCE_FEE_CALCULATION_TOOLS"]
+          "formDefinitionContainer": "fishing-permit-form-definitions",
+          "stepBasedPromptContainer": "fishing-permit-form-prompts",
+          "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
+          "azureOpenaiApiVersion": "2024-10-21"
         }
       }
     ]
@@ -149,8 +145,7 @@
     "tenantResources": {
       "prompts": {
         "dispatcher": "orchestrator/dispatcher",
-        "aggregator": "orchestrator/aggregator",
-        "formMapper": "tenants/<tenant>/stepmapper"
+        "aggregator": "orchestrator/aggregator"
       },
       "config": {
         "azureOpenAIChatDeploymentName": "<azure-openai-chat-deployment-name>",
@@ -201,8 +196,7 @@
           "formDefinitionContainer": "dev-form-definitions",
           "stepBasedPromptContainer": "dev-form-prompts",
           "azureOpenaiChatDeploymentName": "<azure-openai-chat-deployment-name>",
-          "azureOpenaiApiVersion": "2024-10-21",
-          "mcpTools": []
+          "azureOpenaiApiVersion": "2024-10-21"
         }
       }
     ]
