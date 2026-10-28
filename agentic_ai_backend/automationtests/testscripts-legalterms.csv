@@ -1,0 +1,8 @@
+queries,step
+What is land expropriation?,step0-Bot,
+"My neighbour has a piece of land. He owes me money, but since he's not paying, I'm taking control of some of his land for my water use.",step0-Bot
+"My neighbour has a piece of land. He owes me money, but since he's not paying, I'm taking control of some of his land for my water use.",step3-Technical-Information-Water-Diversion
+Can I sue the upstream licensee for taking too much water from my creek?,step0-Bot
+Can I block my neighbour's ditch that runs across my property?,step2-Eligibility
+"My neighbour's pipe crosses my land without permission, can I remove it?",step3-Technical-Information-Water-Diversion
+"I want to place a lien on my neighbor who is using water and hence going beyond my water consumption that I have in my licence. How to do this?",step3-Technical-Information-Water-Diversion
