@@ -10,6 +10,7 @@ import {
 } from './guided-questions/utils/guidedQuestionLifecycle.js';
 import { GUIDED_QUESTIONS_STYLES } from './guided-questions/styles/guidedQuestionsStyles.js';
 import { createGuidedQuestionsRenderer } from './guided-questions/ui/guidedQuestionsRenderer.js';
+import { captureFormValues } from './form-data-capture/form-data-capture.js';
 
 /**
  * Allow testing of alternative javascript
@@ -136,6 +137,7 @@ else {
                 step_number,
                 session_id,
                 application_id: sessionStorage.getItem(APPLICATION_ID_STORAGE_PREFIX),
+                form_data: captureFormValues() // Capture the form data at the time of the request
             };
 
             if (!socket || socket.readyState !== WebSocket.OPEN) {

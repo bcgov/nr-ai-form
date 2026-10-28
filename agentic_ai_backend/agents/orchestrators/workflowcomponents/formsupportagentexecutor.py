@@ -40,6 +40,7 @@ class FormSupportAgentA2AExecutor(Executor):
         instructions: str = "Handles form support queries using A2A protocol",
         session_id: str = None,
         history: Optional[list] = None,
+        form_data: Optional[dict] = None,
         *,
         client_settings: FormSupportAgentSettings,
         # Timeout in seconds for the HTTP A2A call to the Form Support Agent.
@@ -50,6 +51,7 @@ class FormSupportAgentA2AExecutor(Executor):
         self.step_number = step_number
         self.session_id = session_id
         self.history = history or []
+        self.form_data = form_data or {}
         # A2A requests are JSON payloads, so convert the typed settings at the boundary.
         self.client_settings = client_settings.model_dump(exclude_none=True)
 
@@ -88,6 +90,7 @@ class FormSupportAgentA2AExecutor(Executor):
                 step_number=self.step_number,
                 client_settings=self.client_settings,
                 history=self.history,
+                form_data=self.form_data,
             )
 
             # The form support agent emits raw JSON per its prompt template; parse it

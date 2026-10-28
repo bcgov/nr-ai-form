@@ -38,6 +38,10 @@
                 "url": "/invoke",
                 "method": "POST"
             },
+            "validate": {
+                "url": "/validate",
+                "method": "POST"
+            },
             "discovery": {
                 "url": "/.well-known/agent.json",
                 "method": "GET"
