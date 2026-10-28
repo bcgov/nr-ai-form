@@ -60,8 +60,9 @@ def _load_instructions() -> str:
 def _resolve_openai_settings(client_settings: Optional[dict]) -> tuple[Any, Any, Any, Any]:
     """Endpoint and key are deployment-owned; deployment name and API version prefer the tenant.
 
-    /validate is currently untenanted, so both tenant-owned values fall back to environment
-    variables. Passing client_settings keeps the tenant-aware path working unchanged.
+    The api_backend gateway resolves the tenant and forwards its form support settings, so
+    requests through it use the same model as /invoke. The environment fallback only applies
+    when /validate is called directly without client_settings.
     """
     endpoint = environment_setting(AZURE_OPENAI_ENDPOINT_ENV)
     api_key = environment_setting(AZURE_OPENAI_API_KEY_ENV)

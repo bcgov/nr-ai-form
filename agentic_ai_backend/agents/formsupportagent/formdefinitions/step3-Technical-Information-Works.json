@@ -7,7 +7,7 @@
             "id": "Selected_Access_Road",
             "title": "Access Road",
             "description": "The access road allows you to access your works, e.g. a dam or reservoir.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Access Road": {
@@ -21,14 +21,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Access_Road",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Balancing_Reservoir": {
             "type": "checkbox",
             "id": "Selected_Balancing_Reservoir",
             "title": "Balancing Reservoir",
             "description": "A reservoir used to balance water levels.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Balancing Reservoir": {
@@ -42,14 +51,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Balancing_Reservoir",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Back_flood_control_structure": {
             "type": "checkbox",
             "id": "Selected_Back_flood_control_structure",
             "title": "Back flood control structure",
             "description": "A structure to control water held back or forced back.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Back flood control structure": {
@@ -63,14 +81,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Back_flood_control_structure",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Culvert": {
             "type": "checkbox",
             "id": "Selected_Culvert",
             "title": "Culvert",
             "description": "A drain or pipe that allows water to flow under a road, railroad, trail, or similar obstruction.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Culvert": {
@@ -84,15 +111,25 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Culvert",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Dam": {
             "type": "checkbox",
             "id": "Selected_Dam",
             "title": "Dam",
             "description": "A dam is any barrier that impounds water.",
-            "default": "Y",
-            "required": false
+            "default": "",
+            "required": false,
+            "impacts":  ["step3-Technical-Information-Dam-Reservoir"]
         },
         "Status_Dam": {
             "type": "dropdown",
@@ -105,14 +142,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Dam",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Deep_intake": {
             "type": "checkbox",
             "id": "Selected_Deep_intake",
             "title": "Deep intake",
             "description": "An intake located deep in the water.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Deep intake": {
@@ -126,14 +172,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Deep_intake",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Distribution_system": {
             "type": "checkbox",
             "id": "Selected_Distribution_system",
             "title": "Distribution system",
             "description": "A system which allows you to distribute water to multiple locations.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Distribution system": {
@@ -147,14 +202,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Distribution_system",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Ditch": {
             "type": "checkbox",
             "id": "Selected_Ditch",
             "title": "Ditch",
             "description": "A small or moderate depression created to channel water.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Ditch": {
@@ -168,14 +232,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Ditch",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Diversion_channel": {
             "type": "checkbox",
             "id": "Selected_Diversion_channel",
             "title": "Diversion channel",
             "description": "A channel used to divert (redirect) water from one spot to another.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Diversion channel": {
@@ -189,14 +262,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Diversion_channel",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Dugout": {
             "type": "checkbox",
             "id": "Selected_Dugout",
             "title": "Dugout",
             "description": "A dugout is an excavation in the ground that holds water. Provide length, width and depth in the comments.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Dugout": {
@@ -210,14 +292,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Dugout",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Erosion_Protection": {
             "type": "checkbox",
             "id": "Selected_Erosion_Protection",
             "title": "Erosion Protection",
             "description": "A material (i.e. riprap) that is used to prevent erosion of the stream bank and bed.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Erosion Protection": {
@@ -231,14 +322,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Erosion_Protection",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Fire_Suppression_System": {
             "type": "checkbox",
             "id": "Selected_Fire_Suppression_System",
             "title": "Fire Suppression System",
             "description": "A system used to suppress fire.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Fire Suppression System": {
@@ -252,14 +352,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Fire_Suppression_System",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Flow_measuring_device": {
             "type": "checkbox",
             "id": "Selected_Flow_measuring_device",
             "title": "Flow measuring device",
             "description": "A device that measures the flow of the water.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Flow measuring device": {
@@ -273,14 +382,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Flow_measuring_device",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Hatchery": {
             "type": "checkbox",
             "id": "Selected_Hatchery",
             "title": "Hatchery",
             "description": "A hatchery is a facility where eggs are hatched under artificial conditions.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Hatchery": {
@@ -294,14 +412,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Hatchery",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Heat_exchanger": {
             "type": "checkbox",
             "id": "Selected_Heat_exchanger",
             "title": "Heat exchanger",
             "description": "A device used to transfer heat from a fluid on one side of a barrier to a fluid on the other side.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Heat exchanger": {
@@ -315,14 +442,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Heat_exchanger",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Hydrant": {
             "type": "checkbox",
             "id": "Selected_Hydrant",
             "title": "Hydrant",
             "description": "An outlet from a water main with a valve attached from which fluid can be tapped.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Hydrant": {
@@ -336,14 +472,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Hydrant",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Infiltration_chamber/gallery": {
             "type": "checkbox",
             "id": "Selected_Infiltration_chamber/gallery",
             "title": "Infiltration chamber/gallery",
             "description": "Low gradient closed conduit dug into an aquifer and collecting groundwater by gravity flow.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Infiltration chamber/gallery": {
@@ -357,14 +502,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Infiltration_chamber/gallery",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Irrigation_System": {
             "type": "checkbox",
             "id": "Selected_Irrigation_System",
             "title": "Irrigation System",
             "description": "A system to provide artificial application of water to lands for watering purposes.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Irrigation System": {
@@ -378,14 +532,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Irrigation_System",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Meter": {
             "type": "checkbox",
             "id": "Selected_Meter",
             "title": "Meter",
             "description": "A meter is used to measure how much water is used.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Meter": {
@@ -399,14 +562,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Meter",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Outlet": {
             "type": "checkbox",
             "id": "Selected_Outlet",
             "title": "Outlet",
             "description": "An opening through which water flows out or is extracted from a reservoir or stream.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Outlet": {
@@ -420,14 +592,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Outlet",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Pipe": {
             "type": "checkbox",
             "id": "Selected_Pipe",
             "title": "Pipe",
             "description": "A hollow cylinder used to convey water.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Pipe": {
@@ -441,14 +622,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Pipe",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Pond": {
             "type": "checkbox",
             "id": "Selected_Pond",
             "title": "Pond",
             "description": "A body of standing water. Provide length, width and depth in the comments.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Pond": {
@@ -462,14 +652,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Pond",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Pressure_tank": {
             "type": "checkbox",
             "id": "Selected_Pressure_tank",
             "title": "Pressure tank",
             "description": "A closed cylindrical container designed to store water under pressure.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Pressure tank": {
@@ -483,14 +682,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Pressure_tank",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Pump": {
             "type": "checkbox",
             "id": "Selected_Pump",
             "title": "Pump",
             "description": "A pump is a device that moves fluids by mechanical action.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Pump": {
@@ -504,14 +712,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Pump",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Pumphouse": {
             "type": "checkbox",
             "id": "Selected_Pumphouse",
             "title": "Pumphouse",
             "description": "A structure that houses a pump.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Pumphouse": {
@@ -525,14 +742,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Pumphouse",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Reservoir": {
             "type": "checkbox",
             "id": "Selected_Reservoir",
             "title": "Reservoir",
             "description": "An artificial lake or impoundment used to store water. Provide dimensions in the comments.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Reservoir": {
@@ -546,14 +772,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Reservoir",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Spillway": {
             "type": "checkbox",
             "id": "Selected_Spillway",
             "title": "Spillway",
             "description": "A structure used for the controlled release of flows from a dam or levee.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Spillway": {
@@ -567,14 +802,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Spillway",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Sprinklers": {
             "type": "checkbox",
             "id": "Selected_Sprinklers",
             "title": "Sprinklers",
             "description": "Irrigation from above by freely falling drops of water.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Sprinklers": {
@@ -588,14 +832,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Sprinklers",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Standpipe": {
             "type": "checkbox",
             "id": "Selected_Standpipe",
             "title": "Standpipe",
             "description": "A freestanding pipe fitted with a tap installed outdoors to dispense water.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Standpipe": {
@@ -609,14 +862,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Standpipe",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Sump": {
             "type": "checkbox",
             "id": "Selected_Sump",
             "title": "Sump",
             "description": "A low space that collects liquids or an infiltration basin used to manage surface runoff.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Sump": {
@@ -630,14 +892,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Sump",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Tank": {
             "type": "checkbox",
             "id": "Selected_Tank",
             "title": "Tank",
             "description": "A container holding liquid.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Tank": {
@@ -651,14 +922,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Tank",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Treatment_facility/system": {
             "type": "checkbox",
             "id": "Selected_Treatment_facility/system",
             "title": "Treatment facility/system",
             "description": "A facility/system used in the process of making water suitable for its application.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Treatment facility/system": {
@@ -672,14 +952,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Treatment_facility/system",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Trough": {
             "type": "checkbox",
             "id": "Selected_Trough",
             "title": "Trough",
             "description": "A watering trough intended to provide drinking water to animals.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Trough": {
@@ -693,14 +982,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Trough",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Tunnel": {
             "type": "checkbox",
             "id": "Selected_Tunnel",
             "title": "Tunnel",
             "description": "An underground passageway, completely enclosed except for openings for ingress and egress.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Tunnel": {
@@ -714,14 +1012,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Tunnel",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Weir": {
             "type": "checkbox",
             "id": "Selected_Weir",
             "title": "Weir",
             "description": "A barrier across a river designed to alter flow characteristics or measure discharge.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Weir": {
@@ -735,7 +1042,16 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Weir",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "AdditionalWorksDetails": {
             "type": "textarea",
@@ -750,7 +1066,7 @@
             "id": "Selected_Control_Gate",
             "title": "Control Gate",
             "description": "A gate which controls the flow of water.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Control Gate": {
@@ -764,14 +1080,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Control_Gate",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Diversion_structure": {
             "type": "checkbox",
             "id": "Selected_Diversion_structure",
             "title": "Diversion structure",
             "description": "A structure that allows you to divert (redirect) water from one spot to another.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Diversion structure": {
@@ -785,14 +1110,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Diversion_structure",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Dyke": {
             "type": "checkbox",
             "id": "Selected_Dyke",
             "title": "Dyke",
             "description": "A barrier regulating or holding back water.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Dyke": {
@@ -806,14 +1140,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Dyke",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Fish_ladder": {
             "type": "checkbox",
             "id": "Selected_Fish_ladder",
             "title": "Fish ladder",
             "description": "A structure on or around an artificial barrier (e.g. a dam) that allows fish to migrate.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Fish ladder": {
@@ -827,14 +1170,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Fish_ladder",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Head_Pond": {
             "type": "checkbox",
             "id": "Selected_Head_Pond",
             "title": "Head Pond",
             "description": "A reservoir designed to maintain required hydrostatic head. Please refer to the BC Dam Safety Regulation to ensure your proposed works do not constitute a dam.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Head Pond": {
@@ -848,14 +1200,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Head_Pond",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Intake": {
             "type": "checkbox",
             "id": "Selected_Intake",
             "title": "Intake",
             "description": "The intake is where you extract or divert the water from the source.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Intake": {
@@ -869,14 +1230,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Intake",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Penstock": {
             "type": "checkbox",
             "id": "Selected_Penstock",
             "title": "Penstock",
             "description": "A penstock is a sluice or gate or intake structure that controls water flow, or an enclosed pipe that delivers water to hydraulic turbines and sewerage systems.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Penstock": {
@@ -890,14 +1260,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Penstock",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Powerhouse": {
             "type": "checkbox",
             "id": "Selected_Powerhouse",
             "title": "Powerhouse",
             "description": "A structure that usually contains a generator to generate electrical power.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Powerhouse": {
@@ -911,14 +1290,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Powerhouse",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Screened_Intake": {
             "type": "checkbox",
             "id": "Selected_Screened_Intake",
             "title": "Screened Intake",
             "description": "A screened intake is an intake covered by a screen which prevents fish and other wildlife to be sucked into the intake.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Screened Intake": {
@@ -932,14 +1320,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Screened_Intake",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Settling_pond": {
             "type": "checkbox",
             "id": "Selected_Settling_pond",
             "title": "Settling pond",
             "description": "A settling basin, settling pond or decant pond are devices used to treat turbidity in industrial wastewater. Used to control water pollution in diverse industries.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Settling pond": {
@@ -953,14 +1350,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Settling_pond",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Switch_Yard": {
             "type": "checkbox",
             "id": "Selected_Switch_Yard",
             "title": "Switch Yard",
             "description": "A switching station with incoming and outgoing feeders but without the transformer. Connects and disconnects lines on the grid.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Switch Yard": {
@@ -974,14 +1380,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Switch_Yard",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Tailrace": {
             "type": "checkbox",
             "id": "Selected_Tailrace",
             "title": "Tailrace",
             "description": "A channel which conveys water away from a water-wheel or turbine.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Tailrace": {
@@ -995,14 +1410,23 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Tailrace",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         },
         "Selected_Transmission_Line": {
             "type": "checkbox",
             "id": "Selected_Transmission_Line",
             "title": "Transmission Line",
             "description": "A cable designed to carry electricity.",
-            "default": "Y",
+            "default": "",
             "required": false
         },
         "Status_Transmission Line": {
@@ -1016,7 +1440,16 @@
                 "Fully Constructed"
             ],
             "default": "Not Constructed",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "all": [
+                    {
+                        "field": "Selected_Transmission_Line",
+                        "operator": "equals",
+                        "value": "Y"
+                    }
+                ]
+            }
         }
     }
 }

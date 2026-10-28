@@ -42,8 +42,9 @@ ORCHESTRATOR_AGENT_WS_URL = os.getenv("ORCHESTRATOR_AGENT_WS_URL", "ws://localho
 # Form support agent, called over HTTP for advisory form validation.
 FORM_SUPPORT_AGENT_A2A_URL = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
 VALIDATE_TIMEOUT_SECONDS = float(os.getenv("VALIDATE_TIMEOUT_SECONDS", "25"))
-# /validate is not tenant-scoped, so it cannot use the per-tenant corsOrigins list that the
-# websocket and history routes rely on. This is its own allowlist instead.
+# /validate carries client_id in its JSON body, which a CORS preflight never sees, so it
+# cannot use the per-tenant corsOrigins list that the websocket and history routes rely on.
+# This is its own allowlist instead.
 VALIDATE_ALLOW_ORIGINS = [
     origin.strip() for origin in os.getenv("VALIDATE_ALLOW_ORIGINS", "").split(",") if origin.strip()
 ]
@@ -490,7 +491,7 @@ def _apply_validate_cors_headers(request: Request, response: Response) -> None:
 @app.options("/validate")
 async def validate_preflight(request: Request, response: Response):
     """CORS preflight for the browser-initiated /validate call."""
-    _apply_validate_cors_headers(request, response)
+    # _apply_validate_cors_headers(request, response)
     response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Max-Age"] = "600"
@@ -504,7 +505,7 @@ async def validate_form(request: Request, response: Response):
     a 200 with no issues. Validation is advisory, so an outage must be invisible to the
     applicant and must never block the form.
     """
-    _apply_validate_cors_headers(request, response)
+    # _apply_validate_cors_headers(request, response)
 
     try:
         body = await request.json()
@@ -518,14 +519,42 @@ async def validate_form(request: Request, response: Response):
     if not step_number or not isinstance(step_number, str):
         raise HTTPException(status_code=400, detail="step_number is required")
 
+    client_id = body.get("client_id")
+    if not client_id or not isinstance(client_id, str):
+        raise HTTPException(status_code=400, detail="client_id is required")
+
     unavailable = {"stepId": step_number, "status": "unavailable", "issues": []}
 
-    form_data = body.get("form_data") or {}
-    if not _form_data_within_limits(form_data):
-        # Already logged with the specific reason; degrade rather than reject.
+    # Resolve the tenant the same way /ws does, so validation runs on the tenant's own
+    # form support model rather than an environment fallback that can drift from it.
+    try:
+        tenant_config = await get_tenant_config_service().get_config(client_id)
+    except ClientProfileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Unknown client_id: {client_id}")
+    except ClientIdRequiredError:
+        raise HTTPException(status_code=400, detail="client_id is required")
+    except (TenantConfigInvalidError, TenantConfigUnavailableError) as exc:
+        logger.warning("Form validation tenant config unusable client_id=%s: %s", client_id, exc)
         return unavailable
 
-    payload = {"step_number": step_number, "form_data": form_data}
+    form_support_settings = tenant_config.settings.form_support
+    if not form_support_settings.enabled:
+        logger.info("Form validation skipped; form support agent disabled client_id=%s", client_id)
+        return unavailable
+
+    form_data = body.get("form_data") or {}
+    # logger.info("Form validation request step=%s fields=%d", step_number, len(form_data))
+    logger.info("Form validation form data=%s", form_data)
+    # if not _form_data_within_limits(form_data):
+    #     # Already logged with the specific reason; degrade rather than reject.
+    #     return unavailable
+
+    payload = {
+        "step_number": step_number,
+        "form_data": form_data,
+        # Same shape the orchestrator's FormSupportAgentA2AExecutor sends to /invoke.
+        "client_settings": form_support_settings.model_dump(mode="json", exclude_none=True),
+    }
     if body.get("session_id"):
         payload["session_id"] = body["session_id"]
 

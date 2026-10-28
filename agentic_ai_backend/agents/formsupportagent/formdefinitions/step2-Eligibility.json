@@ -31,7 +31,21 @@
             "id": "EligibilityExplanation",
             "title": "Explanation",
             "description": "Applicant must provide a brief explanation of their eligibility to apply for a water licence.",
-            "required": false
+            "required": false,
+            "visibleIf": {
+                "any": [
+                    {
+                        "formField": "AnswerOnJob_eligible",
+                        "operator": "equals",
+                        "value": "No"
+                    },
+                    {
+                        "formField": "AnswerOnJob_clean-energy",
+                        "operator": "equals",
+                        "value": "Yes"
+                    }
+                ]
+            }
         }
     }
 }
