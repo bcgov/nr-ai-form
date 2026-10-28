@@ -38,6 +38,8 @@ logger = logging.getLogger(__name__)
 # --- Configuration ---
 # Full WebSocket URL used by the API backend to connect to the orchestrator.
 ORCHESTRATOR_AGENT_WS_URL = os.getenv("ORCHESTRATOR_AGENT_WS_URL", "ws://localhost:8002/ws")
+# Longest the gateway waits for the orchestrator to answer one chat turn.
+ORCHESTRATOR_REPLY_TIMEOUT_SECONDS = float(os.getenv("ORCHESTRATOR_REPLY_TIMEOUT_SECONDS", "300"))
 
 # Form support agent, called over HTTP for advisory form validation.
 FORM_SUPPORT_AGENT_A2A_URL = os.getenv("FORM_SUPPORT_AGENT_A2A_URL", "http://localhost:8001")
@@ -56,9 +58,17 @@ MAX_FORM_DATA_BYTES = 64 * 1024
 # Store active WebSocket connections: tenant_session_id -> WebSocket (Frontend)
 frontend_websockets: Dict[str, WebSocket] = {}
 
-# Store the single active WebSocket connection to the orchestrator agent.
+# Store the single active WebSocket connection to the orchestrator agent. Every browser
+# session shares it, and replies are matched back to their caller by tenant session id.
 agent_websocket: websockets.WebSocketClientProtocol | None = None
-agent_websocket_lock = asyncio.Lock()
+# Guards (re)connecting so concurrent callers never open duplicate upstream sockets.
+agent_connect_lock = asyncio.Lock()
+# Guards writes only - held for one send, not for a whole chat turn.
+agent_send_lock = asyncio.Lock()
+# Background task that reads every orchestrator reply off the shared socket.
+agent_reader_task: asyncio.Task | None = None
+# Requests waiting for a reply: tenant_session_id -> (socket it was sent on, reply future).
+pending_replies: Dict[str, tuple[websockets.WebSocketClientProtocol | None, asyncio.Future]] = {}
 
 # Global Redis Utils instance
 _redis_utils_instance = None
@@ -117,62 +127,132 @@ def _attach_tenant_context(message: dict, session_id: str, client_id: str, tenan
 
 async def connect_to_agent() -> websockets.WebSocketClientProtocol:
     """Return the shared API-backend-to-orchestrator WebSocket connection."""
-    global agent_websocket
+    global agent_websocket, agent_reader_task
 
-    if agent_websocket and not getattr(agent_websocket, "closed", False):
-        logger.info(f"Using existing agent connection {agent_websocket}")
-        return agent_websocket
+    async with agent_connect_lock:
+        if agent_websocket and not getattr(agent_websocket, "closed", False):
+            logger.info(f"Using existing agent connection {agent_websocket}")
+            return agent_websocket
 
-    # Create new connection
-    try:
-        logger.info(f"Connecting to {ORCHESTRATOR_AGENT_WS_URL}...")
-        agent_websocket = await websockets.connect(ORCHESTRATOR_AGENT_WS_URL)
-        connection_message = "Orchestrator WebSocket connected"
-        logger.info(connection_message)
-        print(connection_message)
-        return agent_websocket
-    except Exception as exc:
-        logger.error(f"Failed to connect to orchestrator agent server: {exc}")
-        agent_websocket = None
-        raise HTTPException(status_code=503, detail=f"Failed to connect to agent server: {str(exc)}") from exc
+        # Create new connection
+        try:
+            logger.info(f"Connecting to {ORCHESTRATOR_AGENT_WS_URL}...")
+            agent_websocket = await websockets.connect(ORCHESTRATOR_AGENT_WS_URL)
+            agent_reader_task = asyncio.create_task(_read_orchestrator_replies(agent_websocket))
+            connection_message = "Orchestrator WebSocket connected"
+            logger.info(connection_message)
+            print(connection_message)
+            return agent_websocket
+        except Exception as exc:
+            logger.error(f"Failed to connect to orchestrator agent server: {exc}")
+            agent_websocket = None
+            raise HTTPException(status_code=503, detail=f"Failed to connect to agent server: {str(exc)}") from exc
 
 
-async def close_agent_websocket() -> None:
-    """Close and clear the shared orchestrator WebSocket connection."""
+async def close_agent_websocket(agent_ws: websockets.WebSocketClientProtocol | None = None) -> None:
+    """Close an orchestrator WebSocket (the shared one by default) and clear it if shared."""
     # Used when the shared upstream socket errors so the next request reconnects cleanly.
     global agent_websocket
-    if not agent_websocket:
+    agent_ws = agent_ws or agent_websocket
+    if not agent_ws:
         return
     try:
-        await agent_websocket.close()
+        await agent_ws.close()
         disconnect_message = "Orchestrator WebSocket disconnected"
         logger.info(disconnect_message)
         print(disconnect_message)
     except Exception as exc:
         logger.error("Error closing orchestrator agent websocket: %s", exc)
     finally:
-        agent_websocket = None
+        # A newer connection may already have replaced this one; leave that in place.
+        if agent_websocket is agent_ws:
+            agent_websocket = None
+
+
+def _reply_session_key(raw: str) -> str | None:
+    """Return the tenant session id an orchestrator reply answers, if it names one."""
+    try:
+        reply = json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(reply, dict):
+        return None
+    client_id, session_id = reply.get("client_id"), reply.get("session_id")
+    if not client_id or not session_id:
+        return None
+    # Normalize the same way the request side does, so a tenant-prefixed session id
+    # coming back from the browser still matches the reply.
+    return _tenant_session_id(client_id, _public_session_id(client_id, session_id))
+
+
+async def _read_orchestrator_replies(agent_ws: websockets.WebSocketClientProtocol) -> None:
+    """Hand each orchestrator reply to the request waiting on the same tenant session."""
+    try:
+        async for raw in agent_ws:
+            session_key = _reply_session_key(raw)
+            pending = pending_replies.get(session_key) if session_key else None
+            if pending and pending[0] is agent_ws and not pending[1].done():
+                pending[1].set_result(raw)
+            else:
+                # The caller timed out or its browser left before the turn finished.
+                logger.warning("Dropping orchestrator reply with no waiting request session=%s", session_key)
+    except Exception:
+        logger.exception("Orchestrator reply reader stopped")
+    finally:
+        # Requests sent on this socket can no longer be answered; fail them now instead
+        # of letting them run to the timeout.
+        for sent_on, reply in list(pending_replies.values()):
+            if sent_on is agent_ws and not reply.done():
+                reply.set_exception(ConnectionError("Orchestrator connection closed before replying"))
+        await close_agent_websocket(agent_ws)
+
+
+def _discard_reply(reply: asyncio.Future) -> None:
+    """Abandon a reply future without an unretrieved-exception warning."""
+    if not reply.done():
+        reply.cancel()
+    elif not reply.cancelled():
+        reply.exception()
 
 
 async def _send_to_orchestrator(payload: dict) -> str:
-    """Send one request over the shared upstream websocket and return one response."""
-    global agent_websocket
+    """Send one request over the shared upstream websocket and return its reply.
 
-    # One upstream WebSocket carries many browser sessions, so serialize each
-    # request/response pair to keep responses matched to the correct caller.
-    async with agent_websocket_lock:
-        agent_ws = await connect_to_agent()
-        try:
-            await agent_ws.send(json.dumps(payload))
-            return await agent_ws.recv()
-        except Exception:
-            # If the persistent orchestrator socket is stale, reconnect once and retry
-            # the same request before surfacing an error to the frontend.
-            logger.exception("Error communicating with orchestrator agent; reconnecting once")
-            await close_agent_websocket()
+    Requests from different sessions are in flight together on the one socket, and each
+    reply is matched back by tenant session id. A session only ever has one request in
+    flight, which keeps that match unambiguous and keeps a session's turns in order.
+    """
+    client_id = payload["client_id"]
+    session_key = _tenant_session_id(client_id, _public_session_id(client_id, payload["session_id"]))
+    message = json.dumps(payload)
+
+    # Two tabs on the same session can both send; let the earlier turn finish first.
+    # Nothing awaits between this check and claiming the slot below, so it can't race.
+    while session_key in pending_replies:
+        await asyncio.wait({pending_replies[session_key][1]})
+
+    loop = asyncio.get_running_loop()
+    try:
+        for attempt in range(2):
+            reply = loop.create_future()
+            pending_replies[session_key] = (None, reply)
             agent_ws = await connect_to_agent()
-            await agent_ws.send(json.dumps(payload))
-            return await agent_ws.recv()
+            pending_replies[session_key] = (agent_ws, reply)
+            try:
+                async with agent_send_lock:
+                    await agent_ws.send(message)
+            except Exception:
+                # The persistent socket was already closed, so the request never reached the
+                # orchestrator; reconnect once and resend before surfacing an error.
+                _discard_reply(reply)
+                if attempt:
+                    raise
+                logger.exception("Error sending to orchestrator agent; reconnecting once")
+                await close_agent_websocket(agent_ws)
+                continue
+            return await asyncio.wait_for(reply, timeout=ORCHESTRATOR_REPLY_TIMEOUT_SECONDS)
+    finally:
+        pending_replies.pop(session_key, None)
 
 def _form_data_within_limits(raw) -> bool:
     """Return True when form_data is a dict small enough to forward upstream.

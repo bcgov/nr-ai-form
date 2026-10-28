@@ -1,13 +1,14 @@
 """
 FastAPI A2A Wrapper for Orchestrator Agent
 """
+import asyncio
 import json
 import logging
 import os
 import time
 import uuid
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 import uvicorn
 from dotenv import load_dotenv
@@ -94,6 +95,38 @@ def _public_session_id(client_id: str, session_id: str | None) -> str:
 def _tenant_session_id(client_id: str, public_session_id: str) -> str:
     """Return the backend session key used for Redis/sub-agent memory."""
     return f"{client_id}:{public_session_id}"
+
+
+# Sends one JSON reply for the request it was built for.
+Reply = Callable[[dict], Awaitable[None]]
+
+# Chat turns currently running. asyncio keeps only weak references to tasks, so hold them here.
+_running_turns: set[asyncio.Task] = set()
+
+
+def _ws_replier(websocket: WebSocket, send_lock: asyncio.Lock, request: dict) -> Reply:
+    """Return a sender that tags every reply with the session it answers.
+
+    The API gateway carries many browser sessions over one socket and matches each reply to
+    its caller by client_id and session_id, so every reply needs both - errors included.
+    """
+    client_id = request.get("client_id")
+    session_id = request.get("session_id")
+    tags = {}
+    if client_id and session_id:
+        tags = {"client_id": client_id, "session_id": _public_session_id(client_id, session_id)}
+
+    async def reply(body: dict) -> None:
+        try:
+            # Turns finish concurrently, so serialize writes to the shared socket.
+            async with send_lock:
+                await websocket.send_json({**body, **tags})
+        except Exception:
+            # The gateway disconnected mid-turn. Telemetry and Redis state for the turn are
+            # already recorded; only delivery is lost.
+            logger.warning("Could not deliver orchestrator reply; gateway socket closed", extra={"client_id": client_id})
+
+    return reply
 
 
 # Application Insights caps a single customDimensions value at 8192 characters.
@@ -184,7 +217,7 @@ def _tenant_settings_from_request(request: dict) -> TenantAgentSettings | None:
 
 
 async def _process_ws_request(
-    websocket: WebSocket,
+    reply: Reply,
     client_id: str,
     tenant_settings: TenantAgentSettings,
     request: dict,
@@ -201,7 +234,7 @@ async def _process_ws_request(
         form_data = None
 
     if not request.get("query"):
-        await websocket.send_json({"error": "query is required", "session_id": session_id})
+        await reply({"error": "query is required", "session_id": session_id})
         return
 
     query = request["query"]
@@ -247,48 +280,61 @@ async def _process_ws_request(
         success=True,
         application_id=application_id
     )
-    await websocket.send_json(response.model_dump())
+    await reply(response.model_dump())
 
 
-async def _resolve_ws_config(websocket: WebSocket, client_id: str):
+async def _resolve_ws_config(reply: Reply, client_id: str):
     try:
         return await get_tenant_config_service().get_config(client_id)
     except ClientIdRequiredError:
-        await websocket.send_json({"error": "client_id is required"})
+        await reply({"error": "client_id is required"})
     except ClientProfileNotFoundError:
-        await websocket.send_json({"error": f"Unknown client_id: {client_id}"})
+        await reply({"error": f"Unknown client_id: {client_id}"})
     except TenantConfigInvalidError as exc:
-        await websocket.send_json({"error": f"Tenant configuration is invalid: {exc}"})
+        await reply({"error": f"Tenant configuration is invalid: {exc}"})
     except TenantConfigUnavailableError:
-        await websocket.send_json({"error": "Tenant configuration is temporarily unavailable"})
+        await reply({"error": "Tenant configuration is temporarily unavailable"})
     return None
 
 
-async def _resolve_ws_context(websocket: WebSocket, request: dict) -> tuple[str | None, TenantAgentSettings | None]:
+async def _resolve_ws_context(reply: Reply, request: dict) -> tuple[str | None, TenantAgentSettings | None]:
     try:
         client_id = _client_id_from_ws_request(request)
         tenant_settings = _tenant_settings_from_request(request)
     except (ValidationError, ValueError) as exc:
-        await websocket.send_json({"error": f"Tenant context is invalid: {exc}"})
+        await reply({"error": f"Tenant context is invalid: {exc}"})
         return None, None
 
     if not client_id:
-        await websocket.send_json({"error": "client_id is required"})
+        await reply({"error": "client_id is required"})
         return None, None
 
     if tenant_settings is not None:
         if tenant_settings.client_id != client_id:
-            await websocket.send_json({"error": "client_id does not match tenant_settings.client_id"})
+            await reply({"error": "client_id does not match tenant_settings.client_id"})
             return None, None
         return client_id, tenant_settings
 
     # Backward-compatible fallback for internal callers that have not moved to
     # API-provided tenant context yet. API gateway websocket traffic includes
     # tenant_settings and does not use this Cosmos-backed path.
-    tenant_config = await _resolve_ws_config(websocket, client_id)
+    tenant_config = await _resolve_ws_config(reply, client_id)
     if tenant_config is None:
         return None, None
     return tenant_config.profile.clientId, tenant_config.settings
+
+
+async def _handle_ws_message(reply: Reply, request: dict) -> None:
+    """Run one chat turn and send exactly one reply for it, success or error."""
+    client_id = request.get("client_id")
+    try:
+        client_id, tenant_settings = await _resolve_ws_context(reply, request)
+        if client_id is None or tenant_settings is None:
+            return
+        await _process_ws_request(reply, client_id, tenant_settings, request)
+    except Exception as exc:
+        logger.exception("WebSocket orchestration failed", extra={"client_id": client_id})
+        await reply({"error": str(exc)})
 
 
 @app.websocket("/ws")
@@ -298,6 +344,10 @@ async def invoke_agent_ws(websocket: WebSocket):
     API gateway callers use this plain /ws route and send client_id in the
     message body. Browser callers should connect to the API gateway, which
     validates tenant Origin before forwarding here.
+
+    The gateway keeps one long-lived connection and sends turns from many browser
+    sessions over it, so each turn runs as its own task and replies are sent as
+    turns finish, not in arrival order.
     """
     # Browser Origin headers are only accepted at the API backend, where tenant
     # CORS rules are available before proxying to this internal route.
@@ -306,18 +356,13 @@ async def invoke_agent_ws(websocket: WebSocket):
         return
 
     await websocket.accept()
+    send_lock = asyncio.Lock()
     try:
         while True:
             request = await websocket.receive_json()
-            client_id, tenant_settings = await _resolve_ws_context(websocket, request)
-            if client_id is None or tenant_settings is None:
-                continue
-
-            try:
-                await _process_ws_request(websocket, client_id, tenant_settings, request)
-            except Exception as exc:
-                logger.exception("WebSocket orchestration failed", extra={"client_id": client_id})
-                await websocket.send_json({"error": str(exc)})
+            turn = asyncio.create_task(_handle_ws_message(_ws_replier(websocket, send_lock, request), request))
+            _running_turns.add(turn)
+            turn.add_done_callback(_running_turns.discard)
     except WebSocketDisconnect:
         print("API Gateway disconnected from Orchestrator Websocket")
         logger.info("Internal websocket disconnected")
