@@ -43,7 +43,7 @@ Include V1IsExistingExemptClient only if the user explicitly mentioned whether t
 Only include V1FeeExemptionClientNumber if the applicant confirmed they are an existing exempt client and provided their client number.
 
 ### V1FeeExemptionSupportingInfo — ALWAYS REQUIRED when eligible for fee exemption
-- strict: You MUST generate V1FeeExemptionSupportingInfo field every time a V1FeeExemptionCategory is determined ONLY IF the user explicitly asks you to fill up the comment section. If they don't indicate so, you should not 
+- strict: You MUST generate V1FeeExemptionSupportingInfo field every time a V1FeeExemptionCategory is determined.
 - Write a concise factual summary using everything available in the conversation history.
 - Include: applicant identity, fee exemption category, water use purpose, land type, quantities, durations — whatever is mentioned.
 - If details are missing, write the summary with what you have. Do NOT skip this V1FeeExemptionSupportingInfo because details are sparse.
@@ -52,7 +52,8 @@ Only include V1FeeExemptionClientNumber if the applicant confirmed they are an e
 ## Example 1 — minimal query: "I am a First Nation, am I fee exempt?"
 [
   {"id":"V1IsEligibleForFeeExemption","description":"if applying on behalf of OR part of a provincial government ministry OR applying for the Government of Canada OR A First Nation for water use on reserve land OR A person applying to use water on Treaty Lands OR A Nisga'a citizen OR An entity applying to use water from the Nisga'a Water Reservation","suggestedvalue":"Yes","type":"radio"},
-  {"id":"V1FeeExemptionCategory","description":"appropriate category as per the applicant's situation First nation or BC Government ministry or Federal Government or Indian band","suggestedvalue":"First Nations/Indian Band for use on Reserve","type":"select"}
+  {"id":"V1FeeExemptionCategory","description":"appropriate category as per the applicant's situation First nation or BC Government ministry or Federal Government or Indian band","suggestedvalue":"First Nations/Indian Band for use on Reserve","type":"select"},
+  {"id":"V1FeeExemptionSupportingInfo","description":"Please enter any supporting information that will assist in determining your eligibility for a fee exemption.","suggestedvalue":"Applicant identifies as a First Nation. Eligible under the First Nations/Indian Band for use on Reserve category.","type":"string"}
 ]
 
 I have pre-filled the supporting information field with a summary: "Applicant identifies as a First Nation. Eligible under the First Nations/Indian Band for use on Reserve category."
@@ -62,7 +63,8 @@ Please review this and let me know if you would like to add, edit, or change any
 ## Example 2 — detailed query: "I am a First Nation applying for water use on reserve land for 688 beef cattle for 4 years"
 [
   {"id":"V1IsEligibleForFeeExemption","description":"if applying on behalf of OR part of a provincial government ministry OR applying for the Government of Canada OR A First Nation for water use on reserve land OR A person applying to use water on Treaty Lands OR A Nisga'a citizen OR An entity applying to use water from the Nisga'a Water Reservation","suggestedvalue":"Yes","type":"radio"},
-  {"id":"V1FeeExemptionCategory","description":"appropriate category as per the applicant's situation First nation or BC Government ministry or Federal Government or Indian band","suggestedvalue":"First Nations/Indian Band for use on Reserve","type":"select"}
+  {"id":"V1FeeExemptionCategory","description":"appropriate category as per the applicant's situation First nation or BC Government ministry or Federal Government or Indian band","suggestedvalue":"First Nations/Indian Band for use on Reserve","type":"select"},
+  {"id":"V1FeeExemptionSupportingInfo","description":"Please enter any supporting information that will assist in determining your eligibility for a fee exemption.","suggestedvalue":"Applicant is a First Nation applying for water use on reserve land for 688 beef cattle over a 4-year period. Eligible under the First Nations/Indian Band for use on Reserve category.","type":"string"}
 ]
 
 I have pre-filled the supporting information field with a summary: "Applicant is a First Nation applying for water use on reserve land for 688 beef cattle over a 4-year period. Eligible under the First Nations/Indian Band for use on Reserve category."
