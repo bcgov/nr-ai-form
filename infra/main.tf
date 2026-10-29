@@ -111,8 +111,27 @@ module "storage" {
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
+# Azure Managed Redis (thread/session state) - opt-in (enabled in prod).
+# When disabled, the host / password come from secrets.
+module "redis" {
+  count  = var.enable_redis ? 1 : 0
+  source = "./modules/redis"
+
+  app_name                      = var.app_name
+  common_tags                   = var.common_tags
+  location                      = var.location
+  resource_group_name           = azurerm_resource_group.main.name
+  private_endpoint_subnet_id    = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
+  log_analytics_workspace_id    = module.monitoring.log_analytics_workspace_id
+  sku_name                      = var.redis_sku_name
+  high_availability_enabled     = var.redis_high_availability_enabled
+  public_network_access_enabled = var.redis_public_network_access_enabled
+
+  depends_on = [azurerm_resource_group.main, module.network]
+}
+
 locals {
-  # Prefer Terraform-managed Search/Storage when enabled, otherwise fall back to the values passed in as secrets.
+  # Prefer Terraform-managed Search/Storage/Redis when enabled, otherwise fall back to the values passed in as secrets.
   azure_search_endpoint = var.enable_search ? module.search[0].search_endpoint : var.azure_search_endpoint
   azure_search_api_key  = var.enable_search ? module.search[0].search_primary_key : var.AZURE_SEARCH_API_KEY
 
@@ -121,6 +140,12 @@ locals {
   azure_storage_container_name       = var.enable_storage ? module.storage[0].storage_container_name : var.azure_storage_container_name
   azure_blobstorage_connectionstring = var.enable_storage ? module.storage[0].storage_blob_connection_string : var.azure_blobstorage_connectionstring
   azure_blobstorage_container        = var.enable_storage ? module.storage[0].storage_container_name : var.azure_blobstorage_container
+
+  # Managed Redis is TLS-only, so redis_ssl is forced to true when Terraform provisions it.
+  redis_host     = var.enable_redis ? module.redis[0].redis_hostname : var.redis_host
+  redis_port     = var.enable_redis ? module.redis[0].redis_port : var.redis_port
+  redis_password = var.enable_redis ? module.redis[0].redis_primary_access_key : var.redis_password
+  redis_ssl      = var.enable_redis ? true : var.redis_ssl
 }
 
 # Container Apps Deployment (only deployment type supported)
@@ -241,10 +266,10 @@ module "container_apps" {
   form_support_asset_cache_ttl_seconds     = var.form_support_asset_cache_ttl_seconds
 
   # Redis
-  redis_host     = var.redis_host
-  redis_port     = var.redis_port
-  redis_password = var.redis_password
-  redis_ssl      = var.redis_ssl
+  redis_host     = local.redis_host
+  redis_port     = local.redis_port
+  redis_password = local.redis_password
+  redis_ssl      = local.redis_ssl
   redis_ttl_days = var.redis_ttl_days
 
   cors_allow_origins = var.cors_allow_origins

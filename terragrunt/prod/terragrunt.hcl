@@ -17,6 +17,12 @@ inputs = {
   enable_search  = true
   enable_storage = true
 
+  # Provision Azure Managed Redis with Terraform in prod. Host, port and access key are
+  # wired into the Container App from module outputs, so REDIS_HOST, REDIS_PORT,
+  # REDIS_PASSWORD and REDIS_SSL do not need to be set in the GitHub "prod" environment.
+  # REDIS_TTL_DAYS is optional (defaults to 14).
+  enable_redis = true
+
   # Azure Document Intelligence is not provisioned in prod. Leave
   # AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT / AZURE_DOCUMENT_INTELLIGENCE_KEY unset in the
   # GitHub "prod" environment; the Container App secret is skipped when the key is empty.

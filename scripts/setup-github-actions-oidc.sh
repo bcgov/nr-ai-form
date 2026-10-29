@@ -6,6 +6,11 @@
 
 set -euo pipefail
 
+# On Windows (Git Bash), az.cmd emits CRLF output, so values captured with $(az ... -o tsv)
+# end in a hidden '\r' (e.g. location "canadacentral\r" -> LocationNotValid). Strip it.
+# pipefail keeps az's own exit status for the `if ! az ...` checks.
+az() { command az "$@" | tr -d '\r'; }
+
 # Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

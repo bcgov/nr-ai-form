@@ -174,6 +174,33 @@ variable "storage_public_network_access_enabled" {
   default     = false
 }
 
+# -------------
+# Azure Managed Redis (Terraform-managed, opt-in)
+# -------------
+variable "enable_redis" {
+  description = "Provision Azure Managed Redis with Terraform. When false (dev/test), redis_host / redis_password must be supplied."
+  type        = bool
+  default     = false
+}
+
+variable "redis_sku_name" {
+  description = "Azure Managed Redis SKU (Balanced_B0, Balanced_B1, MemoryOptimized_M10, ...)."
+  type        = string
+  default     = "Balanced_B1"
+}
+
+variable "redis_high_availability_enabled" {
+  description = "Enable high availability (replication) for Azure Managed Redis."
+  type        = bool
+  default     = true
+}
+
+variable "redis_public_network_access_enabled" {
+  description = "Allow public network access to Azure Managed Redis."
+  type        = bool
+  default     = false
+}
+
 variable "frontdoor_sku_name" {
   description = "SKU name for the Front Door"
   type        = string
