@@ -13,6 +13,7 @@ class EdgeCaseCategory(str, Enum):
 
     PREDICTING_OUTCOME = "predicting_outcome"
     LEGAL_ADVICE = "legal_advice"
+    PERSONAL_LEGAL_MATTER = "personal_legal_matter"
     EXTERNAL_LOOKUP = "external_lookup"
     INTERNAL_POLICY = "internal_policy"
     OUT_OF_SCOPE_SUBJECT = "out_of_scope_subject"
@@ -43,8 +44,9 @@ class IntentListModel(BaseModel):
         default=None,
         description=(
             "Set only when the query falls into a fixed out-of-scope/edge-case bucket "
-            "(predicting an outcome, legal advice, external record lookup, internal "
-            "policy, an out-of-scope subject, or an unrelated topic). When set, "
+            "(predicting an outcome, legal advice, a personal legal matter, external "
+            "record lookup, internal policy, an out-of-scope subject, or an unrelated "
+            "topic). When set, "
             "`intents` is ignored and no sub-agent is invoked."
         ),
     )
