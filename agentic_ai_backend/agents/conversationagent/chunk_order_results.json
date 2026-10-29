@@ -1,0 +1,191 @@
+{
+  "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+  "config": {
+    "azureSearchKnowledgeAgentName": "knowledgebase-bc-waterpermit-dev",
+    "agentMaxTokens": 2500,
+    "agentTemperature": 0.1,
+    "azureSearchIndexName": "rag-bc-waterpermit-dev",
+    "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
+    "azureSearchKnowledgeAgentRequestMode": "messages",
+    "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
+    "azureSearchKnowledgeAgentReasoningEffort": "low",
+    "azureSearchKnowledgeAgentMaxOutputSize": 5000,
+    "azureSearchKnowledgeAgentMaxRuntimeSeconds": 30,
+    "azureSearchKnowledgeAgentMaxHistoryMessages": 10,
+    "azureSearchTop": 5,
+    "azureSearchTrimLength": 0,
+    "azureSearchEnableTrimming": false,
+    "azureSearchIncludeTotalCount": true,
+    "azureSearchQueryType": "semantic",
+    "azureSearchSemanticConfiguration": "rag-bc-waterpermit-dev-semantic-configuration",
+    "azureSearchQueryCaption": "extractive",
+    "azureSearchQueryAnswer": "extractive",
+    "azureSearchQueryAnswerCount": 3,
+    "azureSearchQueryLanguage": "en-US",
+    "conversationAgentMode": "llm",
+    "azureOpenaiChatDeploymentName": "gpt-5.1",
+    "azureOpenaiApiVersion": "2024-10-21"
+  },
+  "runs": [
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    },
+    {
+      "query": "My crown land tenure is for intensive agriculture - I am growing vegetables for commercial sale",
+      "status": 403,
+      "count": 0,
+      "total_count": null,
+      "chunks": [],
+      "error": "() Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed.\nCode: \nMessage: Request is denied as the source is not allowed by applicable rules. The service is set 'publicNetworkAccess: Disabled'. Please review all service's network security settings to ensure the client is allowed."
+    }
+  ]
+}

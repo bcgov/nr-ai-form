@@ -5,7 +5,8 @@
     "corsOrigins": [
       "http://localhost",
       "https://train.j200.gov.bc.ca",
-      "https://test.j200.gov.bc.ca"
+      "https://test.j200.gov.bc.ca",
+      "https://delivery.j200.gov.bc.ca"
     ],
     "tenantResources": {
       "prompts": {
@@ -138,10 +139,7 @@
   {
     "clientId": "33333333-3333-4333-8333-333333333333",
     "clientName": "Example App",
-    "corsOrigins": [
-      "http://localhost:8002",
-      "http://localhost:8080"
-    ],
+    "corsOrigins": ["http://localhost:8002", "http://localhost:8080"],
     "tenantResources": {
       "prompts": {
         "dispatcher": "orchestrator/dispatcher",

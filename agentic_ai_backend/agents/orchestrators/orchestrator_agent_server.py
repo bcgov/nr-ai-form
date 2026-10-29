@@ -112,6 +112,16 @@ def _truncate(value: str) -> str:
     return value[: _MAX_CONTENT_CHARS - len(_TRUNCATION_MARKER)] + _TRUNCATION_MARKER
 
 
+def _response_text(response: Any) -> str:
+    """Return the Aggregator's text from the [aggregator_item, {"thread_id": ...}] output list."""
+    if isinstance(response, list):
+        for item in response:
+            if isinstance(item, dict) and item.get("source") == "Aggregator":
+                return str(item.get("response") or "")
+        return ""
+    return "" if response is None else str(response)
+
+
 async def _track_chat_turn(
     *,
     client_id: str,
@@ -137,7 +147,7 @@ async def _track_chat_turn(
             "chat.step_number": step_number,
             "chat.success": success,
             "chat.query.chars": len(query),
-            "chat.response.chars": len(response) if response is not None else 0,
+            "chat.response.chars": len(_response_text(response)),
             "chat.content_logged": _LOG_CHAT_CONTENT,
             "chat.application_id": application_id,
         }

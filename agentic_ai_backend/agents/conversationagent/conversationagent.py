@@ -1,6 +1,7 @@
 import sys
 import os
 import asyncio
+import hashlib
 import logging
 import time
 from dataclasses import dataclass
@@ -22,7 +23,7 @@ from agent_framework.openai import OpenAIChatCompletionClient
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from tools.azure_ai_search import azure_ai_search
+from tools.azure_ai_search import run_search, search_config_version
 from utils.blobservice import BlobService
 from models.client_settings_type import ConversationAgentClientSettings
 from conversationconstants import (
@@ -63,7 +64,11 @@ _INSTRUCTIONS_CACHE: dict[tuple[str, str, str], _CachedInstructions] = {}
 _INSTRUCTIONS_CACHE_TTL_SECONDS = float(os.getenv("CONVERSATION_PROMPT_CACHE_TTL_SECONDS", "300"))
 
 
-def make_azure_ai_search_tool(client_settings: ConversationAgentClientSettings):
+def make_azure_ai_search_tool(
+    client_settings: ConversationAgentClientSettings,
+    session_id: str | None = None,
+    retrieval_log: list | None = None,
+):
     """
     Factory function that creates an Azure AI Search tool for a specific client configuration.
 
@@ -74,6 +79,8 @@ def make_azure_ai_search_tool(client_settings: ConversationAgentClientSettings):
     Args:
         client_settings: Tenant-specific configuration containing Azure Search credentials
                         and settings (endpoint, API key, index name, etc.)
+        session_id: Conversation id, sent as the search sessionId when azureSearchUseSessionId is on.
+        retrieval_log: When given, one retrieval record is appended per search call.
 
     Returns:
         A tool function that can be used by the agent framework to perform Azure AI Search
@@ -84,7 +91,10 @@ def make_azure_ai_search_tool(client_settings: ConversationAgentClientSettings):
         description="Retrieves information related with Permit Applications using Azure AI Search",
     )
     def azure_ai_search_for_client(query: str) -> str:
-        return azure_ai_search(query, client_settings=client_settings)
+        text, retrieval = run_search(query, client_settings, session_id=session_id)
+        if retrieval_log is not None:
+            retrieval_log.append(retrieval)
+        return text
 
     return azure_ai_search_for_client
 
@@ -145,10 +155,12 @@ class ConversationAgent:
 
         if mode == CONVERSATION_AGENT_MODE_LLM:
             llm_query = userquery.strip().replace(" ", " + ")
-            return await self._run_llmlogic(llm_query, cfg, client_settings)
+            session_state = self._get_session_state(session, thread)
+            session_id = session_state.get("session_id") if session_state else None
+            return await self._run_llmlogic(llm_query, cfg, client_settings, session_id=session_id)
         return await self._run_knowledgebase(userquery, session, thread, cfg, client_settings)
 
-    async def _run_llmlogic(self, userquery, cfg, client_settings: ConversationAgentClientSettings):
+    async def _run_llmlogic(self, userquery, cfg, client_settings: ConversationAgentClientSettings, session_id: str | None = None):
         endpoint = environment_setting(AZURE_OPENAI_ENDPOINT_ENV, required=True)
         api_key = environment_setting(AZURE_OPENAI_API_KEY_ENV, required=True)
         deployment_name = setting_from_client_config(client_settings, "azureOpenaiChatDeploymentName", required=True)
@@ -164,9 +176,15 @@ class ConversationAgent:
         )
 
         instructions = self._load_instructions(client_settings)
+        retrieval_log: list[dict] = []
+        print(
+            f"ConversationAgent run: session_id={session_id} "
+            f"prompt_sha={hashlib.sha256(instructions.encode('utf-8')).hexdigest()[:12]} "
+            f"model={deployment_name} search_config={search_config_version(client_settings)}"
+        )
         agent = client.as_agent(
             instructions=instructions,
-            tools=[make_azure_ai_search_tool(client_settings)],
+            tools=[make_azure_ai_search_tool(client_settings, session_id=session_id, retrieval_log=retrieval_log)],
             name="ConversationAgent",
             default_options={
                 "temperature": temperature,
@@ -176,6 +194,15 @@ class ConversationAgent:
         )
 
         result = await agent.run(userquery)
+
+        # Never let the LLM answer from general knowledge: if no search call returned
+        # documents, return "Not found" so the Aggregator gives the graceful decline.
+        if not any(r["count"] > 0 and not r["error"] for r in retrieval_log):
+            logger.error(
+                "ConversationAgent retrieval failed (%d search call(s), none returned results); returning Not found.",
+                len(retrieval_log),
+            )
+            return "Not found"
         return result.text
 
     async def _run_knowledgebase(self, userquery, session, thread, cfg, client_settings: ConversationAgentClientSettings):

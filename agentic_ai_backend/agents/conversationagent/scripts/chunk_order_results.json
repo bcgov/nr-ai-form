@@ -1,0 +1,811 @@
+{
+  "question": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+  "config": {
+    "azureSearchKnowledgeAgentName": "knowledgebase-bc-waterpermit-dev",
+    "agentMaxTokens": 2500,
+    "agentTemperature": 0.1,
+    "azureSearchIndexName": "rag-bc-waterpermit-dev",
+    "azureSearchKnowledgeAgentApiVersion": "2025-11-01-preview",
+    "azureSearchKnowledgeAgentRequestMode": "messages",
+    "azureSearchKnowledgeAgentOutputMode": "answerSynthesis",
+    "azureSearchKnowledgeAgentReasoningEffort": "low",
+    "azureSearchKnowledgeAgentMaxOutputSize": 5000,
+    "azureSearchKnowledgeAgentMaxRuntimeSeconds": 30,
+    "azureSearchKnowledgeAgentMaxHistoryMessages": 10,
+    "azureSearchTop": 5,
+    "azureSearchTrimLength": 0,
+    "azureSearchEnableTrimming": false,
+    "azureSearchIncludeTotalCount": true,
+    "azureSearchQueryType": "semantic",
+    "azureSearchSemanticConfiguration": "rag-bc-waterpermit-dev-semantic-configuration",
+    "azureSearchQueryCaption": "extractive",
+    "azureSearchQueryAnswer": "extractive",
+    "azureSearchQueryAnswerCount": 3,
+    "azureSearchQueryLanguage": "en-US",
+    "conversationAgentMode": "llm",
+    "azureOpenaiChatDeploymentName": "gpt-5.1",
+    "azureOpenaiApiVersion": "2024-10-21"
+  },
+  "runs": [
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure, even if you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility to apply for a water licence includes:**\n- Being **entitled to possession of land** in B.C. (which can include holding a valid Crown land tenure), or  \n- Having a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- Representing a **commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered by B.C. or Canada.\n\nIf your Crown land tenure gives you possession or a substantial interest in the area where the water will be used, you are typically eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure, even if you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility in your situation:**\n- You do *not* need to own the land; you can be eligible if you are **entitled to possession of the land** or have a **substantial interest in the land or an undertaking** where the water will be used.\n- You may also be eligible if you are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the provincial or federal government.\n\nIf your Crown land tenure gives you legal rights to occupy or use that land (for example, for grazing, infrastructure, or another authorized use), that usually satisfies the \u201centitled to possession\u201d or \u201csubstantial interest\u201d requirement for a water licence application.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally be eligible to get a water licence even if you do not own the land.  \n\nYou are eligible to apply if at least one of these applies:  \n- You are **entitled to possession of the land** (for example, through a valid Crown land tenure), or  \n- You have a **substantial interest in the land or an undertaking** on that land, or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the governments of British Columbia or Canada.  \n\nIn your application, you would indicate your land status (Crown land tenure) and how you are entitled to use or possess the land where the water will be used.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally get a water licence as long as you meet the eligibility criteria.\n\nFor a water licence, you are eligible if at least one of these applies:\n- You are **entitled to possession of the land** in B.C. where the water will be used (this can include holding a Crown land tenure, even if you do not own the land), or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the governments of British Columbia or Canada.\n\nSo, not owning the land does not prevent you from getting a water licence, as long as your Crown land tenure or role gives you possession or a substantial interest in the area where the water use will occur.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure even though you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility is met if at least one of these applies:**\n- You are **entitled to possession of the land** in B.C. where the water will be used (this can include holding a valid Crown land tenure that gives you possession/occupation rights), or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- You are **representing a commission, board or person having charge of the administration of Crown land**, or another eligible public body.\n\nIf your Crown land tenure gives you the right to occupy or use that land for your project, that usually satisfies the \u201centitled to possession\u201d or \u201csubstantial interest\u201d requirement for a water licence application.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure even though you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility to apply for a water licence includes:**\n- Being **entitled to possession of land** in B.C. (which can include holding a Crown land tenure), or  \n- Having a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- Representing a **commission, board or person having charge of the administration of Crown land** or an undertaking on Crown land.\n\nSo if your Crown land tenure gives you possession or a substantial interest in the area where the water will be used, you are typically eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally apply for a water licence even if you do not own the land, as long as you meet the eligibility criteria.\n\nFor a BC water licence application, you are eligible if at least one of these applies:\n- You are **entitled to possession of the land** in BC where the water will be used (for example, through a valid Crown land tenure); or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used; or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the governments of BC or Canada.\n\nSo, not owning the land does not prevent you from getting a water licence, provided your Crown land tenure or role gives you possession or a substantial interest in the area where the water use and works will occur.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally get a water licence as long as you meet the eligibility criteria.\n\nFor a water licence, you are eligible if at least one of these applies:\n- You are **entitled to possession of the land** in BC where the water will be used (this can include holding a valid Crown land tenure), or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- You are **representing the government** (BC or Canada) or a **commission, board or authority responsible for Crown land**, or acting as an **authorized agent** for any of these.\n\nYou do not have to own the land in fee simple; having the right to occupy or use the Crown land (through tenure) or a substantial interest in the undertaking there is generally enough to be eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally apply for a water licence even if you do not own the land, as long as you meet the eligibility criteria.\n\nYou are eligible to apply if at least one of these applies:\n- You are **entitled to possession of the land** (for example, through a valid Crown land tenure); or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used; or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the governments of British Columbia or Canada.\n\nOwning the land is one way to qualify, but holding a Crown land tenure or similar rights to use/possess the land can also make you eligible to get a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally apply for a water licence even if you do not own the land, as long as you meet the eligibility criteria.\n\nYou are eligible to apply if at least one of these applies:\n- You are **entitled to possession of the land** (for example, through a valid Crown land tenure), or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land**.\n\nOwning the land is one way to qualify, but not the only way\u2014having legal rights or a substantial interest through your tenure can be enough.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure even though you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility to apply for a water licence includes:**\n- Being **entitled to possession of land** in B.C. (which can include holding a valid Crown land tenure), or  \n- Having a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- Representing a **commission, board or person having charge of the administration of Crown land**, or other government-related roles.\n\nIf your Crown land tenure gives you lawful possession or a substantial interest in the area where the water will be used, you are typically eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure, even if you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility to apply for a water licence includes:**\n- Being **entitled to possession of land** in B.C. (which can include holding a valid Crown land tenure), or  \n- Having a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- Representing a **commission, board or person having charge of the administration of Crown land** or an undertaking on Crown land.\n\nIf your tenure gives you lawful possession or a substantial interest in the Crown land where the water will be used, you are typically eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally apply for a water licence even if you do not own the land, as long as you meet the eligibility criteria.\n\nFor a BC water licence, you are eligible if at least one of these applies:\n- You are **entitled to possession of the land** in BC where the water will be used (for example, through a Crown land tenure); or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used; or  \n- You are **representing the government** (BC or Canada) or a **commission, board, or authority responsible for Crown land**, or acting as an authorized agent for one of these eligible parties.\n\nSo, not owning the land does not prevent you from getting a water licence, provided your Crown land tenure or role gives you possession or a substantial interest in the area where the water use and works will occur.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure even though you do not own the land, as long as you meet the eligibility criteria.  \n\n**Eligibility is met if at least one of these applies:**\n- You are **entitled to possession of the land** (for example, through a valid Crown land tenure that gives you the right to occupy/use the area where the water will be used), or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- You are **representing a commission, board or person having charge of the administration of Crown land**, or an undertaking on Crown land, administered or controlled by the governments of British Columbia or Canada.  \n\nOwning the land is only one way to qualify; having legal rights to possess or a substantial interest through your Crown tenure can also make you eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally get a water licence as long as you meet the eligibility criteria.\n\nFor a water licence, you are eligible if at least one of these applies:\n- You are **entitled to possession of the land** in B.C. where the water will be used (this can include holding a Crown land tenure), or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the governments of British Columbia or Canada.\n\nYou do not have to own the land, but you must have legal rights or a substantial interest in it that match one of the eligibility criteria above.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure even though you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility to apply for a water licence includes:**\n- Being **entitled to possession of land** in B.C. (which can include holding a valid Crown land tenure), or  \n- Having a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- Representing a **commission, board or person having charge of the administration of Crown land**, or another eligible organization or government body.\n\nSo if your Crown land tenure gives you possession or a substantial interest in the area where the water will be used, you are typically eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure even though you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility to apply for a water licence includes:**\n- Being **entitled to possession of land** in B.C. (which can include holding a valid Crown land tenure), or  \n- Having a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- Representing a **commission, board or person having charge of the administration of Crown land or an undertaking on Crown land**.\n\nIf your Crown land tenure gives you lawful possession or a substantial interest in the area where the water will be used, you are typically eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure even though you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility in your situation**\n\nYou are eligible to apply for a water licence if at least one of these applies to you:\n\n- You are **entitled to possession of the land** in BC where the water will be used (for example, through a valid Crown land tenure); or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used; or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the governments of BC or Canada.\n\nIf your Crown land tenure gives you possession or a substantial interest in the area where the water use and works will be located, you would typically meet the eligibility requirement to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes. If you have a Crown land tenure, you can generally be eligible to get a water licence even if you do not own the land, as long as you meet the eligibility criteria.\n\nFor a BC water licence application, you are eligible if at least one of these applies:\n- You are **entitled to possession of the land** in BC where the water will be used (this can include holding a Crown land tenure that gives you that right), or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the governments of BC or Canada.\n\nSo, not owning the land does not prevent you from getting a water licence, as long as your Crown land tenure or role gives you possession or a substantial interest in the area where the water use and works will occur.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "response": "Yes, you can generally get a water licence if you have a Crown land tenure, even if you do not own the land, as long as you meet the eligibility criteria.\n\n**Eligibility in your situation**\n\nYou are eligible to apply for a water licence if at least one of these applies to you:\n\n- You are **entitled to possession of the land** in B.C. where the water will be used (this can include holding a valid Crown land tenure that gives you rights to use that land), or  \n- You have a **substantial interest in the land, mine, or undertaking** where the water will be used, or  \n- You are **representing a commission, board or person having charge of the administration of Crown land or an undertaking on Crown land** administered or controlled by the governments of British Columbia or Canada.\n\nIf your Crown land tenure gives you lawful possession or a substantial interest in the area where the water use and works will be located, you are typically eligible to apply for a water licence.",
+      "searches": [
+        {
+          "query": "If I have a crown land tenure, but do not own the land, can I get a water licence?",
+          "status": 200,
+          "count": 5,
+          "total_count": 165,
+          "chunks": [
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_6",
+              "score": 8.199139,
+              "reranker_score": 2.61181378364563
+            },
+            {
+              "id": "6a3533028b24_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9XYXRlciUyMExpY2VuY2UlMjBBcHBsaWNhdGlvbl8lMjBTVEVQJTIwMSUyMC0yJTIwRkFRLnBkZg2_pages_5",
+              "score": 15.005097,
+              "reranker_score": 2.49997878074646
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9QQ0wlMjB2cyUyMExhbmQlMjBUZW51cmUucGRm0_pages_0",
+              "score": 18.070705,
+              "reranker_score": 2.39310622215271
+            },
+            {
+              "id": "dd697ef5cc36_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9FbGlnaWJpbGl0eSUyMGNyaXRlcmlhJTIwLSUyMFdhdGVyJTIwUGVybWl0JTIwQXBwbGljYXRpb24ucGRm0_pages_0",
+              "score": 9.004162,
+              "reranker_score": 2.3175158500671387
+            },
+            {
+              "id": "c100d2b88de7_aHR0cHM6Ly9jc3NhaWRldmh1YjI3MDc3MjEzNzg3LmJsb2IuY29yZS53aW5kb3dzLm5ldC9iYy13YXRlcnBlcm1pdC1kb2NzLWRldi9PdGhlciUyMGF1dGhvcml6YXRpb25zLnBkZg2_pages_1",
+              "score": 9.865236,
+              "reranker_score": 2.3001468181610107
+            }
+          ],
+          "error": null
+        }
+      ]
+    }
+  ]
+}
