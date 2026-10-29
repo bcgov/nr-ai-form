@@ -2,7 +2,7 @@
     "formName": "Water Licence Application",
     "formDescription": "Step 3 - Technical Information - Government and First Nation Fee Exemption Request",
     "formfields": {
-        "V1IsEligibleForFeeExemption": {
+        "IsEligibleForFeeExemption": {
             "type": "radio",
             "enum": [
                 "Yes",
@@ -13,7 +13,7 @@
             "description": "if applying on behalf of  OR part of a provincial government ministry OR applying for the Government of Canada OR A First Nation for water use on reserve land OR A person applying to use water on Treaty Lands OR A Nisga'a citizen OR An entity applying to use water from the Nisga'a Water Reservation ",
             "required": true
         },
-        "V1IsExistingExemptClient": {
+        "IsExistingExemptClient": {
             "type": "radio",
             "enum": [
                 "Yes",
@@ -24,7 +24,7 @@
             "description":"Check whether if this is an existing client",
             "required": true
         },
-        "V1FeeExemptionClientNumber": {
+        "FeeExemptionClientNumber": {
             "type": "string",
             "id": "V1FeeExemptionClientNumber",
             "title": "Please enter your client number:",
@@ -32,7 +32,7 @@
             "maxLength": 4000,
             "required": true
         },
-        "V1FeeExemptionCategory": {
+        "FeeExemptionCategory": {
             "type": "select",
             "enum": [
                 "(None)",
@@ -47,7 +47,7 @@
             "description":"Fee exempt category as per the applicant's situation -  First nation or BC Government ministry or Federal Government or Indian band",
             "required": true
         },
-        "V1FeeExemptionSupportingInfo": {
+        "FeeExemptionSupportingInfo": {
             "type": "string",
             "id": "V1FeeExemptionSupportingInfo",
             "title": "Supporting Information",

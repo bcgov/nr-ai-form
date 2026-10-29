@@ -30,8 +30,6 @@ import websockets
 
 
 SEPARATOR = "=" * 80
-# DEFAULT_URL = "wss://nraif-671b-dev-commonservi-api.livelymushroom-b9ecaae0.canadacentral.azurecontainerapps.io/ws"
-# DEFAULT_URL = "wss://nraif-671b-test-api.redground-c9aa9e63.canadacentral.azurecontainerapps.io/ws"
 DEFAULT_URL = "ws://localhost:8003/ws"
 DEFAULT_CLIENT_ID = "11111111-1111-4111-8111-111111111111"  # "Water Permit App" seed profile
 HERE = Path(__file__).parent
