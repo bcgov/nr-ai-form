@@ -105,6 +105,11 @@ terraform {
     tenant_id            = "${local.azure_tenant_id}"
     client_id            = "${local.azure_client_id}"
     use_oidc             = true
+    # Prod's state account is created with shared-key access disabled
+    # (scripts/setup-github-actions-oidc.sh), so read/write blobs with Entra ID instead of
+    # the account key. Needs Storage Blob Data Contributor on the account, which that script assigns.
+    # Dev/test state accounts still use key auth.
+    use_azuread_auth     = ${local.app_env == "prod"}
   }
 }
 EOF
