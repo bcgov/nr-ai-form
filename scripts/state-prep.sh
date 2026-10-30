@@ -349,9 +349,11 @@ echo "==> Verifying critical resources are in state..."
 # Refresh state to get latest
 STATE=$(terragrunt state list 2>/dev/null || echo "")
 
-# Check resource group
+# Check resource group (only when it already exists in Azure; on a first deployment apply creates it)
 if echo "$STATE" | grep -q "azurerm_resource_group\.main"; then
   echo "✓ Resource Group is in state"
+elif [ "$RG_EXISTS" != "true" ]; then
+  echo "✓ Resource Group not in Azure yet (first deployment) - apply will create it"
 else
   echo "✗ ERROR: Resource Group NOT in state after import attempt"
   echo "  This means Terraform will try to CREATE the resource group, but it already exists in Azure"
