@@ -127,9 +127,15 @@ resource "azurerm_container_app" "backend" {
     value = var.azure_blobstorage_connectionstring
   }
 
-  secret {
-    name  = "azure-cosmos-db-key"
-    value = var.azure_cosmos_db_key
+  # Optional: without a key (prod) the api-backend authenticates to Cosmos with this
+  # Container App's managed identity (DefaultAzureCredential in clientprofiles/factory.py).
+  # ACA rejects empty secret values, so the secret is created only when a key is supplied.
+  dynamic "secret" {
+    for_each = nonsensitive(var.azure_cosmos_db_key != "") ? [1] : []
+    content {
+      name  = "azure-cosmos-db-key"
+      value = var.azure_cosmos_db_key
+    }
   }
 
   secret {
@@ -494,9 +500,12 @@ resource "azurerm_container_app" "backend" {
           value = var.azure_cosmos_db_endpoint
         }
 
-        env {
-          name        = "AZURE_COSMOS_DB_KEY"
-          secret_name = "azure-cosmos-db-key"
+        dynamic "env" {
+          for_each = nonsensitive(var.azure_cosmos_db_key != "") ? [1] : []
+          content {
+            name        = "AZURE_COSMOS_DB_KEY"
+            secret_name = "azure-cosmos-db-key"
+          }
         }
 
         env {

@@ -146,6 +146,14 @@ locals {
   redis_port     = var.enable_redis ? module.redis[0].redis_port : var.redis_port
   redis_password = var.enable_redis ? module.redis[0].redis_primary_access_key : var.redis_password
   redis_ssl      = var.enable_redis ? true : var.redis_ssl
+
+  # With no Cosmos endpoint/key supplied (prod), point the api-backend at the Cosmos account
+  # created above; it authenticates with its managed identity (role assignment at the bottom).
+  azure_cosmos_db_endpoint = (
+    var.azure_cosmos_db_endpoint == "" && nonsensitive(var.azure_cosmos_db_key == "")
+    ? module.cosmos.cosmosdb_endpoint
+    : var.azure_cosmos_db_endpoint
+  )
 }
 
 # Container Apps Deployment (only deployment type supported)
@@ -249,7 +257,7 @@ module "container_apps" {
   azure_blobstorage_container        = local.azure_blobstorage_container
 
   # Azure Cosmos DB Configuration
-  azure_cosmos_db_endpoint      = var.azure_cosmos_db_endpoint
+  azure_cosmos_db_endpoint      = local.azure_cosmos_db_endpoint
   azure_cosmos_db_key           = var.azure_cosmos_db_key
   azure_cosmos_db_database_name = var.azure_cosmos_db_database_name
 
