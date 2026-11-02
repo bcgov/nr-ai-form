@@ -17,6 +17,11 @@ inputs = {
   enable_search  = true
   enable_storage = true
 
+  # Canada Central had insufficient Search capacity for standard x2 replicas (first prod
+  # deploy failed with "insufficient capacity in region"). Start with 1 replica; raise to 2
+  # (read SLA) in place once capacity allows - no recreate needed.
+  search_replica_count = 1
+
   # Provision Azure Managed Redis with Terraform in prod. Host, port and access key are
   # wired into the Container App from module outputs, so REDIS_HOST, REDIS_PORT,
   # REDIS_PASSWORD and REDIS_SSL do not need to be set in the GitHub "prod" environment.
