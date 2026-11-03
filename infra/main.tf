@@ -91,6 +91,29 @@ module "search" {
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
+# Azure OpenAI with text-embedding-3-large for the AI Search index/knowledge base - opt-in (enabled in prod).
+# Needs the Terraform-managed Search service: Search reaches it over a shared private link and
+# authenticates with its managed identity.
+module "openai" {
+  count  = var.enable_openai && var.enable_search ? 1 : 0
+  source = "./modules/openai"
+
+  app_name                      = var.app_name
+  common_tags                   = var.common_tags
+  location                      = coalesce(var.openai_location, var.location)
+  private_endpoint_location     = var.location
+  resource_group_name           = azurerm_resource_group.main.name
+  private_endpoint_subnet_id    = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
+  log_analytics_workspace_id    = module.monitoring.log_analytics_workspace_id
+  search_service_id             = module.search[0].search_service_id
+  search_principal_id           = module.search[0].search_principal_id
+  embedding_sku_name            = var.openai_embedding_sku_name
+  embedding_capacity            = var.openai_embedding_capacity
+  public_network_access_enabled = var.openai_public_network_access_enabled
+
+  depends_on = [azurerm_resource_group.main, module.network]
+}
+
 # Storage Account (form definitions + prompt templates) - opt-in (enabled in prod).
 # When disabled, the connection string / container come from secrets.
 module "storage" {

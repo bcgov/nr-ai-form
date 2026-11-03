@@ -201,6 +201,39 @@ variable "redis_public_network_access_enabled" {
   default     = false
 }
 
+# -------------
+# Azure OpenAI for embeddings (Terraform-managed, opt-in, requires enable_search)
+# -------------
+variable "enable_openai" {
+  description = "Provision an Azure OpenAI account with a text-embedding-3-large deployment, reachable from the Terraform-managed Azure AI Search."
+  type        = bool
+  default     = false
+}
+
+variable "openai_location" {
+  description = "Azure region for the Azure OpenAI account. Defaults to location."
+  type        = string
+  default     = null
+}
+
+variable "openai_embedding_sku_name" {
+  description = "text-embedding-3-large deployment SKU (GlobalStandard is the only option in Canada Central)."
+  type        = string
+  default     = "GlobalStandard"
+}
+
+variable "openai_embedding_capacity" {
+  description = "text-embedding-3-large deployment capacity in thousands of tokens per minute."
+  type        = number
+  default     = 150
+}
+
+variable "openai_public_network_access_enabled" {
+  description = "Allow public network access to the Azure OpenAI account."
+  type        = bool
+  default     = false
+}
+
 variable "frontdoor_sku_name" {
   description = "SKU name for the Front Door"
   type        = string

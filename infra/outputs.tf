@@ -52,6 +52,17 @@ output "azure_search_service_name" {
   value       = var.enable_search ? module.search[0].search_service_name : null
 }
 
+# Azure OpenAI outputs (only when enable_openai = true and enable_search = true)
+output "azure_openai_embedding_endpoint" {
+  description = "The endpoint of the Terraform-managed Azure OpenAI account used for embeddings"
+  value       = length(module.openai) > 0 ? module.openai[0].openai_endpoint : null
+}
+
+output "azure_openai_embedding_deployment_name" {
+  description = "The text-embedding-3-large deployment name"
+  value       = length(module.openai) > 0 ? module.openai[0].embedding_deployment_name : null
+}
+
 # Storage Account outputs (only when enable_storage = true)
 output "storage_account_name" {
   description = "The name of the Terraform-managed Storage Account"
