@@ -45,8 +45,8 @@ class IntentListModel(BaseModel):
         description=(
             "Set only when the query falls into a fixed out-of-scope/edge-case bucket "
             "(predicting an outcome, legal advice, a personal legal matter, external "
-            "record lookup, internal "
-            "policy, an out-of-scope subject, or an unrelated topic). When set, "
+            "record lookup, internal policy, an out-of-scope subject, or an unrelated "
+            "topic). When set, "
             "`intents` is ignored and no sub-agent is invoked."
         ),
     )

@@ -30,7 +30,7 @@ import websockets
 
 
 SEPARATOR = "=" * 80
-DEFAULT_URL = "ws://localhost:8002/ws"
+DEFAULT_URL = "ws://localhost:8003/ws"
 DEFAULT_CLIENT_ID = "11111111-1111-4111-8111-111111111111"  # "Water Permit App" seed profile
 HERE = Path(__file__).parent
 
@@ -50,7 +50,11 @@ async def send_invoke(
         "session_id": session_id,
     }
     await websocket.send(json.dumps(payload))
-    return await asyncio.wait_for(websocket.recv(), timeout=timeout)
+    while True:
+        raw = await asyncio.wait_for(websocket.recv(), timeout=timeout)
+        if json.loads(raw).get("event") != "session_init":
+            return raw
+
 
 
 def format_block(
@@ -109,7 +113,7 @@ async def run(args) -> int:
 
     with out_path.open("w", encoding="utf-8") as out:
         out.write(f"SESSION_ID: {session_id}\n\n")
-        async with websockets.connect(args.url, open_timeout=args.timeout) as websocket:
+        async with websockets.connect(args.url, additional_headers={"Origin": "https://train.j200.gov.bc.ca" }, open_timeout=args.timeout) as websocket:
             for index, row in enumerate(rows, start=1):
                 query = row["query"]
                 step = row["step"]

@@ -200,7 +200,7 @@ A query can hit graceful decline for reasons that have nothing to do with edge c
 
 ### `edgeCasePolicy` ("default" | "custom")
 
-Controls whether the Dispatcher's LLM classification is allowed to flag one of the six fixed `EdgeCaseCategory` buckets (`predicting_outcome`, `legal_advice`, `external_lookup`, `internal_policy`, `out_of_scope_subject`, `unrelated_topic`) for a turn, bypassing the sub-agents with a fixed reply instead.
+Controls whether the Dispatcher's LLM classification is allowed to flag one of the seven fixed `EdgeCaseCategory` buckets (`predicting_outcome`, `legal_advice`, `personal_legal_matter`, `external_lookup`, `internal_policy`, `out_of_scope_subject`, `unrelated_topic`) for a turn, bypassing the sub-agents with a fixed reply instead.
 
 - **`"default"`** (the implicit default if the field is omitted) - no category classification happens for this tenant at all; `Dispatcher._apply_edge_case_policy` clears `category` even if a stray LLM response sets one. This is the pre-edge-case behavior - safe for a new tenant with no onboarding work needed.
 - **`"custom"`** - this tenant's own `edgeCases` blob content is loaded per request (cached by `configFingerprint`, see the cache table below). Requires `edgeCasesPromptPath` to be set - tenant profile validation fails fast otherwise. The tenant's own `dispatcher/system.md` should also describe which buckets apply and when (see `skills-local/dispatcher/system.md` for the Water tenant's "Edge-Case Category Check" section as a template).
