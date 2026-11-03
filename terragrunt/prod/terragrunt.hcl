@@ -22,6 +22,12 @@ inputs = {
   # (read SLA) in place once capacity allows - no recreate needed.
   search_replica_count = 1
 
+  # Provision Azure OpenAI with a text-embedding-3-large deployment for the Search index /
+  # knowledge base. Search reaches it over a shared private link (approved during apply) and
+  # authenticates with its managed identity (Cognitive Services OpenAI User), so no key is needed.
+  # Canada Central only offers GlobalStandard for this model (inference may run outside Canada).
+  enable_openai = true
+
   # Provision Azure Managed Redis with Terraform in prod. Host, port and access key are
   # wired into the Container App from module outputs, so REDIS_HOST, REDIS_PORT,
   # REDIS_PASSWORD and REDIS_SSL do not need to be set in the GitHub "prod" environment.

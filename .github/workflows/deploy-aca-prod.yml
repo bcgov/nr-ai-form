@@ -7,6 +7,10 @@ name: Deploy ACA to Prod
 #                   required reviewers must approve before this job starts
 #   3. tag-prod   - after a successful deploy, moves the "prod" tag to the deployed images
 # Only the images come from test; Terraform/Terragrunt code comes from the branch this runs on.
+#
+# command = plan: checks the test images exist and runs "terragrunt plan" only - nothing is
+# tagged or applied. The plan uses the test tag for the images (same digest that apply would
+# promote). Run plan, review the log, then run again with command = apply.
 on:
   workflow_dispatch:
     inputs:
@@ -14,8 +18,16 @@ on:
         description: 'Test image tag to promote, from the approved "Deploy ACA to Test" run (e.g. test-aca-42)'
         required: true
         type: string
+      command:
+        description: 'plan = preview changes only; apply = promote images and deploy'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+        default: plan
 
-run-name: Deploy ACA to Prod (${{ inputs.test_tag }})
+run-name: Deploy ACA to Prod - ${{ inputs.command }} (${{ inputs.test_tag }})
 
 permissions:
   id-token: write
@@ -28,7 +40,7 @@ env:
 
 jobs:
   promote:
-    name: Promote ${{ inputs.test_tag }} to prod-aca-${{ github.run_number }}
+    name: ${{ inputs.command == 'apply' && format('Promote {0} to prod-aca-{1}', inputs.test_tag, github.run_number) || format('Check {0} images exist', inputs.test_tag) }}
     runs-on: ubuntu-24.04
     steps:
       - name: Validate tag
@@ -62,6 +74,7 @@ jobs:
           exit $missing
 
       - name: Tag images prod-aca-${{ github.run_number }}
+        if: inputs.command == 'apply'
         env:
           TEST_TAG: ${{ inputs.test_tag }}
           PROD_TAG: prod-aca-${{ github.run_number }}
@@ -109,7 +122,7 @@ jobs:
   # The reviewer gate is the "prod" GitHub environment (used by the infra job in
   # .deployer_aca.yml): configure Required reviewers on it in Settings → Environments → prod.
   deploy-aca-prod:
-    name: Deploy Azure Container Apps to Prod
+    name: ${{ inputs.command == 'apply' && 'Deploy Azure Container Apps to Prod' || 'Plan Azure Container Apps for Prod' }}
     needs: promote
     if: github.event_name == 'workflow_dispatch'
     concurrency:
@@ -117,8 +130,9 @@ jobs:
       cancel-in-progress: false
     uses: ./.github/workflows/.deploy_aca_stack.yml
     with:
-      command: apply
-      tag: prod-aca-${{ github.run_number }}
+      command: ${{ inputs.command }}
+      # Plan has no prod-aca-<run#> tag (nothing is promoted), so it plans with the test tag.
+      tag: ${{ inputs.command == 'apply' && format('prod-aca-{0}', github.run_number) || inputs.test_tag }}
       app_env: prod
       environment_name: prod
       deployment_type: container_apps
@@ -130,6 +144,7 @@ jobs:
   tag-prod:
     name: Tag images prod
     needs: deploy-aca-prod
+    if: inputs.command == 'apply'
     runs-on: ubuntu-24.04
     steps:
       - name: Log in to GHCR
