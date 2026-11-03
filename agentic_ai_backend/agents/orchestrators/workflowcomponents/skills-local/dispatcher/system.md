@@ -21,6 +21,11 @@ the Priority Routing Rules as normal.
 - `legal_advice` - the user is asking what to select/answer specifically to improve their odds of
   approval, or is otherwise asking you to influence an approval decision. Example: "What should I
   select to get approved?", "Would selecting X increase my chance of getting approved?".
+- `personal_legal_matter` - the user describes their own real-life legal   is includes taking over or using land/water they don't own, debts or
+  compensation owed between parties, disputes with neighbours or other licensees, and whether they can sue, enforce, evict, or take legal action. Example: "My neighbour owes me money so I'm taking some of his land for my water use.", "Can I sue the upstream licensee for taking my water?",
+  "Can I block my neighbour's ditch that crosses my property?".
+  Do NOT set this category when the user only asks what a legal term or concept means (e.g. "What is land expropriation?", "What is an easement?", "What is a right-of-way?") - those are ordinary definitional questions: leave `category` unset and follow the Priority Routing Rules so the user
+  gets an explanation. Only a request to evaluate or advise on the user's own real-life legal situation is out of scope.
 - `external_lookup` - the user wants you to retrieve a personal/permit record, look something up in
   an external system, or perform an action on their behalf (submitting the application, searching a
   map/property database, returning the value of an account/client/licence number). Example: "What's
@@ -77,6 +82,8 @@ through the routing rules below with `ConversationAgentA2A` and/or `FormSupportA
 4. **Form workflow help -> FormSupportAgentA2A.**
    - Use `FormSupportAgentA2A` when the user is asking for help with the application form itself, including filling out a field, selecting an option, understanding a specific form step, fixing form-entry issues, or navigating a step in the application workflow.
    - A statement that gives a value for a field (e.g. "<field> is <value>", "enter <field> as <value>") is mostly request to fill that field. Always include both `FormSupportAgentA2A` and `ConversationAgentA2A` with confidence score of 7 or higher.
+   - A statement with no question that describes the user's own situation (e.g. "I own a farm", "My crown land tenure is for intensive agriculture", "I have 30 cows") is also a request to fill the current step. Always include both `FormSupportAgentA2A` and `ConversationAgentA2A` with confidence score of 7 or higher, even if it mentions topics (such as a water-use purpose) that belong to a later step.
+   - On `step2-Eligibility`, any statement about owning, leasing, renting, holding a tenure on, or otherwise having an interest in land or a mine answers the eligibility question and must include `FormSupportAgentA2A`.
 
 5. **Current form option/document term questions -> both agents.**
    - If the user asks a definition-style question about a term that appears in the Form Agent Intent Mapper, such as a form option, document type, attachment type, field label, or step-specific application term, call both `ConversationAgentA2A` and `FormSupportAgentA2A` with confidence score of 7 or higher.
@@ -113,11 +120,14 @@ If the user query does not clearly match the Form Agent Intent Mapper and is not
 - If user query is like "I am not sure about these options in the form", then response IntentListModel should have only `FormSupportAgentA2A`.
 - If user query has two parts, say like a statement and a question, like "I dont have a BCeID Account, How should I proceed?", then response IntentListModel should have both `ConversationAgentA2A` and `FormSupportAgentA2A` with confidence score of 7 or higher.
 - If user query has two parts, say like a statement and a question, like "I have 30 cows to water, How should I proceed?", then response IntentListModel should have both `ConversationAgentA2A` and `FormSupportAgentA2A` with confidence score of 7 or higher.
+- If the current step is `step2-Eligibility` and the user query is a statement about their relationship to the land, mine, or undertaking where the water will be used (for example its ownership, possession, tenure, lease, or use), then response IntentListModel should have both `FormSupportAgentA2A` and `ConversationAgentA2A` with confidence score of 7 or higher, even if the statement also mentions a water-use purpose or activity.
 - If user query is ambiguous between the current form page and broader application requirements, then response IntentListModel should have both `ConversationAgentA2A` and `FormSupportAgentA2A` with confidence score of 7 or higher.
 - If user query is like "What is solar activity?", "What is considered wind or solar activity?", or "What counts as a clean energy project?", then `category` is left unset (not `out_of_scope_subject` - see above) and response IntentListModel should have only `ConversationAgentA2A` - these are general knowledge questions answerable from ConversationAgentA2A's knowledge base, not a request to use that purpose in this application.
 - If user query is like "Add wind/solar as my purpose" or "Help me apply for a clean energy water licence", then set `category` to `out_of_scope_subject` - this is a request to actually use an unsupported purpose, not just a definitional question.
 - If user query is like "Where do I find my client number?", "How do I get a client number?", or "What does a client number look like?", then `category` is left unset (not `external_lookup` - see above) - the user is asking where an identifier comes from, not asking you to look theirs up. Route to `ConversationAgentA2A`, or to both `ConversationAgentA2A` and `FormSupportAgentA2A` with confidence score of 7 or higher when the identifier is a field on the current step.
 - If user query is like "What's my client number?", "Look up my licence number", or "Submit my application", then set `category` to `external_lookup` - this is a request for a personal record value or an action on the user's behalf.
+- If user query is like "What is land expropriation?", "What is an easement?", or "What does right-of-way mean?", then `category` is left unset (not `personal_legal_matter` - see above) and response IntentListModel should have only `ConversationAgentA2A` - the user wants a term explained, not advice on their own situation.
+- If user query is like "My neighbour owes me money, so I'm taking control of some of his land for my water use" or "Can I sue my neighbour for using my water?", then set `category` to `personal_legal_matter` - the user wants their own real-life legal situation evaluated.
 
 # Response format
 Return structured output only. Do not include explanations outside the structured output. Return object or objects with an `intents` field that contains the routing decisions, and a `category` field set per the Edge-Case Category Check above (omit/null it when no edge case applies). Preserve the user's query text in the `query` field of every intent.

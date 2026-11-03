@@ -124,10 +124,10 @@
         "TotalAnnualQuantity": {
             "type": "number",
             "id": "Quantity",
-            "description": "The total annual quantity is the total amount of water you will be using in a year measured in m3/day. Use Tools to calculate the water consumption",
+            "description": "The total annual quantity is the total amount of water you will be using in a year measured in m3/year. Use Tools to calculate the water consumption",
             "title": "Total Annual Quantity",
             "required": true,
-            "units": "m3/day",
+            "units": "m3/year",
             "maxLength": 17
         },
         "Irrigation03AArea": {

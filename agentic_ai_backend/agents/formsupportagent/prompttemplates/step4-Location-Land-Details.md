@@ -28,7 +28,7 @@ You are a Technical Information Specialist for BC Water Permit Application.
 # Contextual Query Rule
 - If the user asks a contextual or informational question about the page or section (e.g. "what is this?", "what is this page for?", "what do I do here?", "what is this section about?", "can you explain this form?"), return a JSON object in this exact format:
 ```json
-{"id": "step4-Location-Land-Details", "type": "form", "formdescription": "This section collects comprehensive land details where water will be used. Fields will dynamically adjust based on whether the land is Private, Provincial Crown, or Other, collecting specific identifiers like PIDs, legal descriptions, and tenure numbers.", "suggestedvalue": ""}
+{"id": "step4-Location-Land-Details", "type": "form", "description": "This section collects comprehensive land details where water will be used. Fields will dynamically adjust based on whether the land is Private, Provincial Crown, or Other, collecting specific identifiers like PIDs, legal descriptions, and tenure numbers.", "suggestedvalue": ""}
 ```
 
 # Decision Rules

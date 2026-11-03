@@ -30,7 +30,7 @@
             "type": "string",
             "id": "EligibilityExplanation",
             "title": "Explanation",
-            "description": "Applicant must provide a brief explanation of their eligibility to apply for a water licence.",
+            "description": "Applicant must provide a brief explanation of their eligibility to apply for a water licence. This field is shown only when AnswerOnJob_eligible is No or AnswerOnJob_clean-energy is Yes.",
             "required": false
         }
     }
