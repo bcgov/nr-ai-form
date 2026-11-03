@@ -1,42 +1,100 @@
 name: Deploy ACA to Prod
 
+# Prod does not build. It promotes the exact images that were deployed to test/UAT:
+#   1. promote    - checks that the test tag exists for every image and adds prod-aca-<run#>
+#                   to the same digest (manifest copy only, no rebuild)
+#   2. deploy     - Terragrunt apply against the "prod" GitHub environment; that environment's
+#                   required reviewers must approve before this job starts
+#   3. tag-prod   - after a successful deploy, moves the "prod" tag to the deployed images
+# Only the images come from test; Terraform/Terragrunt code comes from the branch this runs on.
 on:
   workflow_dispatch:
+    inputs:
+      test_tag:
+        description: 'Test image tag to promote, from the approved "Deploy ACA to Test" run (e.g. test-aca-42)'
+        required: true
+        type: string
+
+run-name: Deploy ACA to Prod (${{ inputs.test_tag }})
 
 permissions:
   id-token: write
   contents: write
   packages: write
 
+env:
+  IMAGE_PREFIX: ghcr.io/${{ github.repository }}
+  IMAGES: orchestrator_agent conversation_agent formsupport_agent api_backend
+
 jobs:
-  builds:
-    concurrency:
-      group: builds-aca-prod-${{ github.run_id }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/.builds.yml
-    with:
-      tags: |
-        latest
-        prod-aca-${{ github.run_number }}
-  
+  promote:
+    name: Promote ${{ inputs.test_tag }} to prod-aca-${{ github.run_number }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate tag
+        env:
+          TEST_TAG: ${{ inputs.test_tag }}
+        run: |
+          if [[ ! "$TEST_TAG" =~ ^test-aca-[0-9]+$ ]]; then
+            echo "::error::test_tag must look like test-aca-<run number>, got '$TEST_TAG'"
+            exit 1
+          fi
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Check all images first so a missing one fails before anything is tagged.
+      - name: Check test images exist
+        env:
+          TEST_TAG: ${{ inputs.test_tag }}
+        run: |
+          missing=0
+          for img in $IMAGES; do
+            if ! docker buildx imagetools inspect "$IMAGE_PREFIX/$img:$TEST_TAG" > /dev/null 2>&1; then
+              echo "::error::$IMAGE_PREFIX/$img:$TEST_TAG not found"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Tag images prod-aca-${{ github.run_number }}
+        env:
+          TEST_TAG: ${{ inputs.test_tag }}
+          PROD_TAG: prod-aca-${{ github.run_number }}
+        run: |
+          {
+            echo "### Promoted \`$TEST_TAG\` → \`$PROD_TAG\`"
+            echo "| Image | Digest |"
+            echo "|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for img in $IMAGES; do
+            docker buildx imagetools create --tag "$IMAGE_PREFIX/$img:$PROD_TAG" "$IMAGE_PREFIX/$img:$TEST_TAG"
+            digest=$(docker buildx imagetools inspect "$IMAGE_PREFIX/$img:$PROD_TAG" --format '{{json .Manifest}}' | jq -r .digest)
+            echo "| $img | \`$digest\` |" >> "$GITHUB_STEP_SUMMARY"
+          done
+
   lint:
     name: Lint
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - uses: actions/cache@v4
         name: Cache plugin dir
         with:
           path: ~/.tflint.d/plugins
           key: ubuntu-tflint-${{ hashFiles('.tflint.hcl') }}
-      
+
       - uses: terraform-linters/setup-tflint@v4
         name: Setup TFLint
         with:
           tflint_version: v0.52.0
-      
+
       - name: Show version
         run: tflint --version
 
@@ -48,10 +106,12 @@ jobs:
       - name: Run TFLint
         run: tflint -f compact
 
-  deploy-aca-prod: 
+  # The reviewer gate is the "prod" GitHub environment (used by the infra job in
+  # .deployer_aca.yml): configure Required reviewers on it in Settings → Environments → prod.
+  deploy-aca-prod:
     name: Deploy Azure Container Apps to Prod
-    needs: builds
-    if: github.event_name == 'workflow_dispatch'    
+    needs: promote
+    if: github.event_name == 'workflow_dispatch'
     concurrency:
       group: deploy-aca-prod-${{ github.run_id }}
       cancel-in-progress: false
@@ -63,3 +123,24 @@ jobs:
       environment_name: prod
       deployment_type: container_apps
     secrets: inherit
+
+  # "prod" always points at what is running in prod, so it moves only after a successful apply.
+  tag-prod:
+    name: Tag images prod
+    needs: deploy-aca-prod
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Move prod tag
+        env:
+          PROD_TAG: prod-aca-${{ github.run_number }}
+        run: |
+          for img in $IMAGES; do
+            docker buildx imagetools create --tag "$IMAGE_PREFIX/$img:prod" "$IMAGE_PREFIX/$img:$PROD_TAG"
+          done
