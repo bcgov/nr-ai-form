@@ -134,6 +134,63 @@ module "storage" {
   depends_on = [azurerm_resource_group.main, module.network]
 }
 
+# -------------
+# Azure AI Search indexer access to the Storage Account (when both are Terraform-managed)
+# -------------
+# Search runs indexers from its own multi-tenant infrastructure, not from the VNet, and the
+# Storage Account has public access disabled, so Search needs a shared private link to blob
+# plus a data-plane role. The indexer data source then uses
+# "ResourceId=<storage account id>;" (managed identity, no account key).
+resource "azurerm_search_shared_private_link_service" "search_blob" {
+  count              = var.enable_search && var.enable_storage ? 1 : 0
+  name               = "${var.app_name}-blob-spl"
+  search_service_id  = module.search[0].search_service_id
+  subresource_name   = "blob"
+  target_resource_id = module.storage[0].storage_account_id
+  request_message    = "Azure AI Search ${var.app_name} access to blob storage"
+}
+
+# A shared private link always arrives as Pending on the target resource and azurerm cannot
+# approve it, so approve it with the az CLI (logged in by azure/login in .deployer_aca.yml).
+# Runs once per shared private link; only approves the connection carrying our request message.
+resource "terraform_data" "approve_search_blob_link" {
+  count            = var.enable_search && var.enable_storage ? 1 : 0
+  triggers_replace = [azurerm_search_shared_private_link_service.search_blob[0].id]
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    environment = {
+      STORAGE_ACCOUNT_ID = module.storage[0].storage_account_id
+      REQUEST_MESSAGE    = azurerm_search_shared_private_link_service.search_blob[0].request_message
+      MSYS_NO_PATHCONV   = "1" # Git Bash on Windows would otherwise rewrite /subscriptions/... into a file path
+    }
+    command = <<-EOT
+      set -euo pipefail
+      ids=$(az network private-endpoint-connection list --id "$STORAGE_ACCOUNT_ID" \
+        --query "[?properties.privateLinkServiceConnectionState.status=='Pending' && properties.privateLinkServiceConnectionState.description=='$REQUEST_MESSAGE'].id" \
+        -o tsv | tr -d '\r')
+      if [ -z "$ids" ]; then
+        echo "No pending shared private link connection to approve."
+        exit 0
+      fi
+      for id in $ids; do
+        echo "Approving $id"
+        az network private-endpoint-connection approve --id "$id" \
+          --description "Approved by Terraform for Azure AI Search" > /dev/null
+      done
+    EOT
+  }
+}
+
+# Search reads blobs with its system-assigned managed identity.
+resource "azurerm_role_assignment" "search_blob_reader" {
+  count                = var.enable_search && var.enable_storage ? 1 : 0
+  scope                = module.storage[0].storage_account_id
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = module.search[0].search_principal_id
+  principal_type       = "ServicePrincipal"
+}
+
 # Azure Managed Redis (thread/session state) - opt-in (enabled in prod).
 # When disabled, the host / password come from secrets.
 module "redis" {

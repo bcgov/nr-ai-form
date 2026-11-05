@@ -98,6 +98,7 @@ resource "terraform_data" "approve_shared_private_link" {
     environment = {
       OPENAI_ACCOUNT_ID = azurerm_cognitive_account.main.id
       REQUEST_MESSAGE   = local.shared_private_link_request_message
+      MSYS_NO_PATHCONV  = "1" # Git Bash on Windows would otherwise rewrite /subscriptions/... into a file path
     }
     command = <<-EOT
       set -euo pipefail

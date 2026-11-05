@@ -16,6 +16,9 @@ inputs = {
   # AZURE_SEARCH_INDEX_NAME is still required (the index is created by the indexing process).
   enable_search  = true
   enable_storage = true
+  # With both enabled, Search also gets a shared private link to the Storage Account's blob
+  # endpoint (approved during apply) and Storage Blob Data Reader for its managed identity, so
+  # indexers can read containers with "ResourceId=<storage account id>;" and no account key.
 
   # Canada Central had insufficient Search capacity for standard x2 replicas (first prod
   # deploy failed with "insufficient capacity in region"). Start with 1 replica; raise to 2
