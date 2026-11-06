@@ -217,10 +217,12 @@ locals {
   azure_search_endpoint = var.enable_search ? module.search[0].search_endpoint : var.azure_search_endpoint
   azure_search_api_key  = var.enable_search ? module.search[0].search_primary_key : var.AZURE_SEARCH_API_KEY
 
-  azure_storage_account_name         = var.enable_storage ? module.storage[0].storage_account_name : var.azure_storage_account_name
-  azure_storage_account_key          = var.enable_storage ? module.storage[0].storage_account_primary_key : var.azure_storage_account_key
-  azure_storage_container_name       = var.enable_storage ? module.storage[0].storage_container_name : var.azure_storage_container_name
-  azure_blobstorage_connectionstring = var.enable_storage ? module.storage[0].storage_blob_connection_string : var.azure_blobstorage_connectionstring
+  azure_storage_account_name   = var.enable_storage ? module.storage[0].storage_account_name : var.azure_storage_account_name
+  azure_storage_account_key    = var.enable_storage ? module.storage[0].storage_account_primary_key : var.azure_storage_account_key
+  azure_storage_container_name = var.enable_storage ? module.storage[0].storage_container_name : var.azure_storage_container_name
+  # An explicit connection string (GitHub secret AZURE_BLOBSTORAGE_CONNECTIONSTRING) wins over the
+  # Terraform-managed Storage Account's, so prod can point the agents at a chosen account/key.
+  azure_blobstorage_connectionstring = nonsensitive(var.azure_blobstorage_connectionstring != "") ? var.azure_blobstorage_connectionstring : (var.enable_storage ? module.storage[0].storage_blob_connection_string : "")
   # An explicit azure_blobstorage_container wins (e.g. prod "assets", created outside Terraform).
   azure_blobstorage_container = var.azure_blobstorage_container != "" ? var.azure_blobstorage_container : (var.enable_storage ? module.storage[0].storage_container_name : "")
 

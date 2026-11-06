@@ -10,17 +10,17 @@ inputs = {
   min_replicas = 1
 
   # Provision Azure AI Search and the Storage Account with Terraform in prod.
-  # Their endpoint/keys/connection string are wired into the Container App from module
-  # outputs, so AZURE_SEARCH_ENDPOINT, AZURE_SEARCH_API_KEY, AZURE_STORAGE_* and
-  # AZURE_BLOBSTORAGE_CONNECTIONSTRING do not need to be set in the GitHub "prod" environment.
+  # Their endpoint/keys are wired into the Container App from module outputs, so
+  # AZURE_SEARCH_ENDPOINT, AZURE_SEARCH_API_KEY and AZURE_STORAGE_* do not need to be set in
+  # the GitHub "prod" environment. The agents' AZURE_BLOBSTORAGE_CONNECTIONSTRING comes from the
+  # "prod" environment SECRET of that name; if it is unset, the managed account's is used.
   # AZURE_SEARCH_INDEX_NAME is still required (the index is created by the indexing process).
   enable_search  = true
   enable_storage = true
-
-  # Agents (orchestrator, conversation, form support) read form definitions / prompt templates
-  # from the "assets" container. It is created manually in the Terraform-managed Storage Account;
-  # the Terraform container ("agent-assets", storage_container_name) is left as is.
-  azure_blobstorage_container = "assets"
+  # The agents' blob container (AZURE_BLOBSTORAGE_CONTAINER, "assets" in prod) is set as a
+  # variable in the GitHub "prod" environment, NOT here: the root terragrunt.hcl writes it into
+  # terragrunt.auto.tfvars, which overrides anything in this inputs block. It is created manually
+  # in the Terraform-managed Storage Account; the Terraform container ("agent-assets") is left as is.
   # With both enabled, Search also gets a shared private link to the Storage Account's blob
   # endpoint (approved during apply) and Storage Blob Data Reader for its managed identity, so
   # indexers can read containers with "ResourceId=<storage account id>;" and no account key.
