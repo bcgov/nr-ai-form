@@ -16,6 +16,11 @@ inputs = {
   # AZURE_SEARCH_INDEX_NAME is still required (the index is created by the indexing process).
   enable_search  = true
   enable_storage = true
+
+  # Agents (orchestrator, conversation, form support) read form definitions / prompt templates
+  # from the "assets" container. It is created manually in the Terraform-managed Storage Account;
+  # the Terraform container ("agent-assets", storage_container_name) is left as is.
+  azure_blobstorage_container = "assets"
   # With both enabled, Search also gets a shared private link to the Storage Account's blob
   # endpoint (approved during apply) and Storage Blob Data Reader for its managed identity, so
   # indexers can read containers with "ResourceId=<storage account id>;" and no account key.

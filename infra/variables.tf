@@ -151,7 +151,7 @@ variable "enable_storage" {
 }
 
 variable "storage_container_name" {
-  description = "Blob container name used when enable_storage is true and azure_blobstorage_container is empty."
+  description = "Name of the Terraform-managed blob container (enable_storage = true). The agents use it unless azure_blobstorage_container is set."
   type        = string
   default     = "agent-assets"
 }

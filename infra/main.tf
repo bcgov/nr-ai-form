@@ -120,13 +120,15 @@ module "storage" {
   count  = var.enable_storage ? 1 : 0
   source = "./modules/storage"
 
-  app_name                        = var.app_name
-  common_tags                     = var.common_tags
-  location                        = var.location
-  resource_group_name             = azurerm_resource_group.main.name
-  private_endpoint_subnet_id      = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
-  log_analytics_workspace_id      = module.monitoring.log_analytics_workspace_id
-  container_name                  = var.azure_blobstorage_container != "" ? var.azure_blobstorage_container : var.storage_container_name
+  app_name                   = var.app_name
+  common_tags                = var.common_tags
+  location                   = var.location
+  resource_group_name        = azurerm_resource_group.main.name
+  private_endpoint_subnet_id = var.app_env == "dev" ? var.dev_private_endpoint_subnet_id : module.network.private_endpoint_subnet_id
+  log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
+  # Decoupled from azure_blobstorage_container: changing the container the agents read must not
+  # rename (and so destroy/recreate) this prevent_destroy container.
+  container_name                  = var.storage_container_name
   account_replication_type        = var.storage_replication_type
   blob_soft_delete_retention_days = var.storage_blob_soft_delete_retention_days
   public_network_access_enabled   = var.storage_public_network_access_enabled
@@ -219,7 +221,8 @@ locals {
   azure_storage_account_key          = var.enable_storage ? module.storage[0].storage_account_primary_key : var.azure_storage_account_key
   azure_storage_container_name       = var.enable_storage ? module.storage[0].storage_container_name : var.azure_storage_container_name
   azure_blobstorage_connectionstring = var.enable_storage ? module.storage[0].storage_blob_connection_string : var.azure_blobstorage_connectionstring
-  azure_blobstorage_container        = var.enable_storage ? module.storage[0].storage_container_name : var.azure_blobstorage_container
+  # An explicit azure_blobstorage_container wins (e.g. prod "assets", created outside Terraform).
+  azure_blobstorage_container = var.azure_blobstorage_container != "" ? var.azure_blobstorage_container : (var.enable_storage ? module.storage[0].storage_container_name : "")
 
   # Managed Redis is TLS-only, so redis_ssl is forced to true when Terraform provisions it.
   redis_host     = var.enable_redis ? module.redis[0].redis_hostname : var.redis_host
@@ -250,7 +253,7 @@ module "container_apps" {
   conversation_agent_image = var.conversation_agent_image
   formsupport_agent_image  = var.formsupport_agent_image
   api_backend_image        = var.api_backend_image
-  backend_image = var.conversation_agent_image # Fallback for compatibility
+  backend_image            = var.conversation_agent_image # Fallback for compatibility
 
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
@@ -277,9 +280,9 @@ module "container_apps" {
 
   # CosmosDB
   # Original CosmosDB inputs
-    cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
-    cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
-    cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
+  cosmosdb_endpoint       = module.cosmos.cosmosdb_endpoint
+  cosmosdb_db_name        = module.cosmos.cosmosdb_sql_database_name
+  cosmosdb_container_name = module.cosmos.cosmosdb_sql_database_container_name
   # CosmosDB (disabled for now)
   #cosmosdb_endpoint       = ""
   #cosmosdb_db_name        = ""
@@ -342,16 +345,16 @@ module "container_apps" {
   azure_cosmos_db_database_name = var.azure_cosmos_db_database_name
 
   # Tenant Profile Configuration
-  tenant_profile_fresh_ttl_seconds         = var.tenant_profile_fresh_ttl_seconds
-  tenant_profile_stale_ttl_seconds         = var.tenant_profile_stale_ttl_seconds
-  tenant_profile_lookup_timeout_seconds    = var.tenant_profile_lookup_timeout_seconds
+  tenant_profile_fresh_ttl_seconds      = var.tenant_profile_fresh_ttl_seconds
+  tenant_profile_stale_ttl_seconds      = var.tenant_profile_stale_ttl_seconds
+  tenant_profile_lookup_timeout_seconds = var.tenant_profile_lookup_timeout_seconds
 
   # Cache Configuration
-  orchestrator_prompt_cache_ttl_seconds    = var.orchestrator_prompt_cache_ttl_seconds
-  conversation_prompt_cache_ttl_seconds    = var.conversation_prompt_cache_ttl_seconds
-  form_support_agent_cache_ttl_seconds     = var.form_support_agent_cache_ttl_seconds
-  form_support_prompt_cache_ttl_seconds    = var.form_support_prompt_cache_ttl_seconds
-  form_support_asset_cache_ttl_seconds     = var.form_support_asset_cache_ttl_seconds
+  orchestrator_prompt_cache_ttl_seconds = var.orchestrator_prompt_cache_ttl_seconds
+  conversation_prompt_cache_ttl_seconds = var.conversation_prompt_cache_ttl_seconds
+  form_support_agent_cache_ttl_seconds  = var.form_support_agent_cache_ttl_seconds
+  form_support_prompt_cache_ttl_seconds = var.form_support_prompt_cache_ttl_seconds
+  form_support_asset_cache_ttl_seconds  = var.form_support_asset_cache_ttl_seconds
 
   # Redis
   redis_host     = local.redis_host
@@ -361,7 +364,7 @@ module "container_apps" {
   redis_ttl_days = var.redis_ttl_days
 
   cors_allow_origins = var.cors_allow_origins
-  
+
   # Original dependency included Cosmos module (commented out)
   depends_on = [module.network, module.cosmos, module.monitoring]
   #  depends_on = [module.network, module.monitoring]
