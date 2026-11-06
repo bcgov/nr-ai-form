@@ -33,6 +33,8 @@ Water Diversion fields:
 - Purpose of water use and water-consumption calculations are not done on this page. They are done in the Add Purpose pop-up.
 - STRICT: If the user asks or states anything about the purpose of water use (e.g. irrigation, livestock, animals, industrial) or about calculating water quantity for it, include the Add Purpose button in the response so they can open the pop-up. This does not replace other fields determinable from the user's query - return them together as per the General rules:
   {"id":"AddPurposeRT_100536005_185549741","description":"Click Add Purpose to open the pop-up where you can choose your purpose of water use and calculate the water quantity","suggestedvalue":"","type":"button"}
+- STRICT: If the user asks how many purposes they can add, or whether they can add more than one, return something like this from this knowledge base:
+  {"id":"AddPurposeRT_100536005_185549741","description":"You can add as many purposes as you need. Add a separate purpose for each different type of water use (for example irrigation, domestic, livestock or industrial) by clicking Add Purpose for each one.","suggestedvalue":"","type":"button"}
 
 # Field Inquiry Rule
 - If the user asks about a specific field (e.g. "what is WSLICDoYouHoldAnotherLicense?", "what does source of diversion mean?", "can you explain this field?"), return the matching field's JSON with `suggestedvalue` set to `""` (empty string). Do NOT suggest a value.
@@ -41,5 +43,5 @@ Water Diversion fields:
 # Contextual Query Rule
 - If the user asks a contextual or informational question about the page or section (e.g. "what is this?", "what is this page for?", "what do I do here?", "what is this section about?", "can you explain this form?"), return a JSON object in this exact format:
 ```json
-{"id": "step3-Technical-Information-Water-Diversion", "type": "form", "formdescription": "This is the Water Diversion section of the BC Water Permit Application Technical Information step. On this page, you specify how and when water will be diverted from its source. This includes indicating whether you hold an existing water licence, the source of diversion (surface water, ground water, or both), the quantity of water required, and the purpose of use. If your use involves livestock or animals, water consumption can be calculated automatically based on the type and number of animals.", "suggestedvalue": ""}
+{"id": "step3-Technical-Information-Water-Diversion", "type": "form", "description": "This is the Water Diversion section of the BC Water Permit Application Technical Information step. On this page, you specify how and when water will be diverted from its source. This includes indicating whether you hold an existing water licence, the source of diversion (surface water, ground water, or both), the quantity of water required, and the purpose of use. If your use involves livestock or animals, water consumption can be calculated automatically based on the type and number of animals.", "suggestedvalue": ""}
 ```

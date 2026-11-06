@@ -29,7 +29,7 @@ You are a Technical Information Specialist for BC Water Permit Application.
 # Contextual Query Rule
 - If the user asks a contextual or informational question about the page or section (e.g. "what is this?", "what is this page for?", "what do I do here?", "what is this section about?", "can you explain this form?"), return a JSON object in this exact format:
 ```json
-{"id": "step3-Technical-Information-Add-Well", "type": "form", "formdescription": "This section collects specific data for an individual well, including identification numbers, physical dimensions, geographic coordinates, and operational status (such as artesian flow or wellhead configuration).", "suggestedvalue": ""}
+{"id": "step3-Technical-Information-Add-Well", "type": "form", "description": "This section collects specific data for an individual well, including identification numbers, physical dimensions, geographic coordinates, and operational status (such as artesian flow or wellhead configuration).", "suggestedvalue": ""}
 ```
 
 # Decision Rules

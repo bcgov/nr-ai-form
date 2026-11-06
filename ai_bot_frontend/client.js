@@ -1310,16 +1310,16 @@ else {
 
             const container = document.createElement('div');
             container.innerHTML = `
-        <button class="wp-chat-button" id="wp-chat-button">Assistant</button>
+        <button class="wp-chat-button" id="wp-chat-button">Application Assistant</button>
         <div class="wp-chat-modal" id="wp-chat-modal">
             <div class="wp-chat-header">
                 <div class="wp-chat-title">
                     <img
                         class="wp-chat-title-image"
                         src="https://test.j200.gov.bc.ca/pub/delivery/vfcbc/Images/banners/vfcbc_banner.png?v=5797"
-                        alt="AI Assistant"
+                        alt="Application Assistant"
                     />
-                    <span>AI Assistant</span>
+                    <span>Application Assistant</span>
                 </div>
                 <button class="wp-chat-close" id="wp-chat-close" type="button">
                     &times;
@@ -1330,7 +1330,7 @@ else {
                 <div class="wp-chat-welcome">
                     <div class="wp-chat-welcome">
                         <p><strong>How I can help</strong></p>
-                        <p>I'm an AI assistant here to support you with your water licence application. 
+                        <p>I'm the Application Assistant, an AI tool here to support you with your water licence application. 
                         I can explain terms, clarify what information is needed, and suggest relevant resources based on what you share.
                         </p>
                         <p><strong>Disclaimer</strong></p>
@@ -1338,7 +1338,7 @@ else {
                         BC staff or qualified professionals. You're responsible for ensuring your submission 
                         is accurate and complete. Please don't share personal information. 
                         Your questions may be stored to help improve this service.
-                        By using this assistant, you acknowledge and accept these terms.
+                        By using the Application Assistant, you acknowledge and accept these terms.
                         </p>
                     </div>
                 </div>

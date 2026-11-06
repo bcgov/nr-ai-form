@@ -26,5 +26,5 @@ You are the BC Government Water Permit Onboarding Assistant.
 # Contextual Query Rule
 - If the user asks a contextual or informational question about the page or section (e.g. "what is this?", "what is this page for?", "what do I do here?", "what is this section about?", "can you explain this form?"), return a JSON object in this exact format:
 ```json
-{"id": "step0-Bot", "type": "form", "formdescription": "This is the human verification step of the BC Water Permit Application. You are required to complete the CAPTCHA or human verification check to confirm you are not a bot. Once verified, click the Next button to proceed to the application.", "suggestedvalue": ""}
+{"id": "step0-Bot", "type": "form", "description": "This is the human verification step of the BC Water Permit Application. You are required to complete the CAPTCHA or human verification check to confirm you are not a bot. Once verified, click the Next button to proceed to the application.", "suggestedvalue": ""}
 ```
