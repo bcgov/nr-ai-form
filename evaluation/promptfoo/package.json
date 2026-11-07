@@ -1,0 +1,21 @@
+{
+  "name": "nr-ai-form-evaluation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Promptfoo evaluation + red-team harness for the nr-ai-form water permit assistant",
+  "scripts": {
+    "build:golden": "python ../datasets/build_golden.py",
+    "eval": "promptfoo eval -c promptfooconfig.js --env-file ../.env",
+    "eval:ci": "node eval-ci.mjs -c promptfooconfig.js --env-file ../.env --no-cache",
+    "test": "node --test tests/threshold.test.mjs",
+    "view": "promptfoo view",
+    "redteam": "promptfoo redteam run -c redteam.js --env-file ../.env",
+    "redteam:report": "promptfoo redteam report"
+  },
+  "devDependencies": {
+    "promptfoo": "^0.100.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
