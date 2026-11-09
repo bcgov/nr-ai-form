@@ -669,11 +669,12 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
   weight                         = 1000
   certificate_name_check_enabled = true
 
-  # Public origin. When Front Door uses Private Link (prod) it is kept but disabled instead of
-  # deleted: adding private_link to an origin forces a replace, and Azure refuses to delete the
-  # last origin of a group that a route uses. It is disabled only after the Private Link origin
-  # below exists (depends_on), since Azure also refuses to disable the last enabled origin.
-  enabled = !local.frontdoor_private_link_enabled
+  # Public origin. With Private Link (prod) it is left in place, unchanged, in its own group that
+  # the route no longer uses: adding private_link to it would force a replace, Azure refuses to
+  # delete/disable the last origin of a group a route uses, and a group cannot mix public and
+  # Private Link origins. Keeping it also makes a rollback (frontdoor_private_link_enabled = false
+  # and public access re-enabled) a route switch only.
+  enabled = true
 
   # Ignore changes to host_name and origin_host_header due to Azure provider
   # inconsistency when Container App has internal ingress enabled.
@@ -682,7 +683,29 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
     ignore_changes = [host_name, origin_host_header]
   }
 
-  depends_on = [azurerm_container_app.backend, azurerm_cdn_frontdoor_origin.api_container_app_origin_private_link]
+  depends_on = [azurerm_container_app.backend]
+}
+
+# Separate origin group for the Private Link origin: Azure does not allow an origin group to mix
+# origins with and without Private Link.
+resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group_private_link" {
+  count                    = local.frontdoor_private_link_enabled ? 1 : 0
+  name                     = "${var.repo_name}-${var.app_env}-api-origin-group-pl"
+  cdn_frontdoor_profile_id = var.api_frontdoor_id
+  session_affinity_enabled = true
+
+  load_balancing {
+    sample_size                 = 4
+    successful_samples_required = 3
+  }
+
+  # HTTPS: the ingress does not allow insecure connections (HTTP gets a redirect).
+  health_probe {
+    interval_in_seconds = 100
+    path                = "/health"
+    protocol            = "Https"
+    request_type        = "GET"
+  }
 }
 
 # Front Door Premium reaches the Container Apps environment over Private Link (prod). Azure only
@@ -692,7 +715,7 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
 resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin_private_link" {
   count                         = local.frontdoor_private_link_enabled ? 1 : 0
   name                          = "${var.repo_name}-${var.app_env}-api-origin-pl"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group[0].id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group_private_link[0].id
 
   enabled                        = true
   host_name                      = local.backend_fqdn
@@ -721,11 +744,13 @@ resource "azurerm_cdn_frontdoor_route" "api_route" {
   count                         = var.enable_front_door ? 1 : 0
   name                          = "${var.repo_name}-${var.app_env}-api-fd"
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0].id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group[0].id
-  cdn_frontdoor_origin_ids = concat(
-    [azurerm_cdn_frontdoor_origin.api_container_app_origin[0].id],
-    azurerm_cdn_frontdoor_origin.api_container_app_origin_private_link[*].id,
-  )
+  # With Private Link (prod) the route serves the Private Link origin group; otherwise the public one.
+  cdn_frontdoor_origin_group_id = (local.frontdoor_private_link_enabled
+    ? azurerm_cdn_frontdoor_origin_group.api_origin_group_private_link[0].id
+  : azurerm_cdn_frontdoor_origin_group.api_origin_group[0].id)
+  cdn_frontdoor_origin_ids = (local.frontdoor_private_link_enabled
+    ? azurerm_cdn_frontdoor_origin.api_container_app_origin_private_link[*].id
+  : [azurerm_cdn_frontdoor_origin.api_container_app_origin[0].id])
 
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
@@ -781,6 +806,9 @@ resource "terraform_data" "approve_frontdoor_private_link" {
         sleep 15
       done
       echo "No Front Door private endpoint connection request appeared on $ENV_ID within 10 minutes." >&2
+      echo "Connections on the environment (status / description) - approve the Front Door one in the portal if its description differs:" >&2
+      az rest --method get --url "$url" \
+        --query "value[].[properties.privateLinkServiceConnectionState.status, properties.privateLinkServiceConnectionState.description]" -o tsv >&2 || true
       exit 1
     EOT
   }
