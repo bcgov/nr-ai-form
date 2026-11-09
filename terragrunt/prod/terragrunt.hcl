@@ -42,6 +42,14 @@ inputs = {
   # REDIS_TTL_DAYS is optional (defaults to 14).
   enable_redis = true
 
+  # Client profiles in Cosmos (AgentMemoryDB/ClientProfiles) are managed from Git: change
+  # agentic_ai_backend/clientprofiles/prod/clientprofiles.json through a pull request, and the
+  # next prod apply upserts it via the "<app_name>-cp-sync" Container Apps Job (infra/client_profiles.tf).
+  # "id" and "clientId" are kept exactly as written and must be equal.
+  # (These are not in the root terragrunt.auto.tfvars, so setting them here takes effect.)
+  client_profiles_json        = file("${get_repo_root()}/agentic_ai_backend/clientprofiles/prod/clientprofiles.json")
+  client_profiles_sync_script = file("${get_repo_root()}/agentic_ai_backend/clientprofiles/scripts/sync_client_profiles.py")
+
   # Azure Document Intelligence is not provisioned in prod. Leave
   # AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT / AZURE_DOCUMENT_INTELLIGENCE_KEY unset in the
   # GitHub "prod" environment; the Container App secret is skipped when the key is empty.

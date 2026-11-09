@@ -302,3 +302,13 @@ jobs:
       run: |
           # Run terraform with lock=false to avoid state lock issues
           terragrunt run-all ${{inputs.command}} --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }}
+
+    # Upserts agentic_ai_backend/clientprofiles/<env> profiles into Cosmos through the in-VNet
+    # sync job (infra/client_profiles.tf). Only prod defines the job; elsewhere this skips.
+    - name: Sync client profiles to Cosmos
+      if: inputs.command == 'apply'
+      env:
+          stack_prefix: ${{ inputs.stack_prefix }}
+          app_env: ${{ inputs.app_env }}
+          repo_name: ${{ github.event.repository.name }}
+      run: bash ${{ github.workspace }}/scripts/run-client-profiles-sync.sh

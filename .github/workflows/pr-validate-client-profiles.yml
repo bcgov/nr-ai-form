@@ -1,0 +1,27 @@
+name: Validate client profiles
+
+# Prod client profiles are applied to Cosmos by the prod deploy (infra/client_profiles.tf).
+# This check makes a bad profile fail the pull request instead of the prod deploy.
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'agentic_ai_backend/clientprofiles/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate prod client profiles
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Validate schema and id == clientId
+        working-directory: agentic_ai_backend/api_backend
+        run: |
+          uv sync --frozen
+          uv run python ../clientprofiles/scripts/sync_client_profiles.py --validate-only ../clientprofiles/prod/clientprofiles.json
