@@ -33,7 +33,7 @@
             "enabled": true,
             "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
             "config": {
-                "azureSearchKnowledgeAgentName": "knowledgebase-bc-waterpermit-test",
+                "azureSearchKnowledgeAgentName": "knowledgebase-bc-waterpermit",
                 "agentMaxTokens": 2500,
                 "agentTemperature": 0.1,
                 "azureSearchIndexName": "rag-bc-waterpermit-indexer",
