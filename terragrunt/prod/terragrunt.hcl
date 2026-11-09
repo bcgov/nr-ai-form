@@ -50,6 +50,12 @@ inputs = {
   client_profiles_json        = file("${get_repo_root()}/agentic_ai_backend/clientprofiles/prod/clientprofiles.json")
   client_profiles_sync_script = file("${get_repo_root()}/agentic_ai_backend/clientprofiles/scripts/sync_client_profiles.py")
 
+  # Front Door Premium reaches the Container App over Private Link (origin private_link + an
+  # auto-approved private endpoint connection on the Container Apps environment). Azure requires
+  # the environment's public network access to be Disabled for this, so it is disabled too: the
+  # *.azurecontainerapps.io URL is no longer reachable from the internet - use Front Door.
+  frontdoor_private_link_enabled = true
+
   # Azure Document Intelligence is not provisioned in prod. Leave
   # AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT / AZURE_DOCUMENT_INTELLIGENCE_KEY unset in the
   # GitHub "prod" environment; the Container App secret is skipped when the key is empty.

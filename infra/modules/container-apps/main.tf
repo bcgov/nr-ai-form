@@ -25,6 +25,11 @@ resource "azurerm_container_app_environment" "main" {
   infrastructure_resource_group_name = var.container_apps_subnet_id != "" ? "ME-${var.resource_group_name}" : null
   internal_load_balancer_enabled     = var.container_apps_subnet_id != "" ? var.internal_load_balancer_enabled : null
 
+  # Azure only accepts Front Door's Private Link connection when public network access is
+  # Disabled, so both change together. From this point the *.azurecontainerapps.io URL is
+  # blocked from the internet and traffic must come through Front Door.
+  public_network_access = var.enable_front_door && var.api_frontdoor_private_link_enabled ? "Disabled" : "Enabled"
+
   workload_profile {
     name                  = "Consumption"
     workload_profile_type = "Consumption"
@@ -667,8 +672,8 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
 
   # Front Door Premium reaches the Container Apps environment over Private Link (prod). The
   # resulting private endpoint connection on the environment is approved by
-  # terraform_data.approve_frontdoor_private_link below. Public network access on the
-  # environment stays Enabled until this path is verified (a separate change disables it).
+  # terraform_data.approve_frontdoor_private_link below. Requires public network access on the
+  # environment to be Disabled (set on azurerm_container_app_environment.main).
   dynamic "private_link" {
     for_each = var.enable_front_door && var.api_frontdoor_private_link_enabled ? [1] : []
     content {
