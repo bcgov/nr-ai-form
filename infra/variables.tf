@@ -102,6 +102,12 @@ variable "enable_front_door" {
   default     = true
 }
 
+variable "frontdoor_private_link_enabled" {
+  description = "Front Door reaches the Container Apps environment over Private Link (requires Premium). Enabled in prod."
+  type        = bool
+  default     = false
+}
+
 # -------------
 # Azure AI Search (Terraform-managed, opt-in)
 # -------------

@@ -665,6 +665,20 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
   weight                         = 1000
   certificate_name_check_enabled = true
 
+  # Front Door Premium reaches the Container Apps environment over Private Link (prod). The
+  # resulting private endpoint connection on the environment is approved by
+  # terraform_data.approve_frontdoor_private_link below. Public network access on the
+  # environment stays Enabled until this path is verified (a separate change disables it).
+  dynamic "private_link" {
+    for_each = var.enable_front_door && var.api_frontdoor_private_link_enabled ? [1] : []
+    content {
+      request_message        = local.frontdoor_private_link_request_message
+      target_type            = "managedEnvironments"
+      location               = var.location
+      private_link_target_id = azurerm_container_app_environment.main.id
+    }
+  }
+
   # Ignore changes to host_name and origin_host_header due to Azure provider
   # inconsistency when Container App has internal ingress enabled.
   # The provider reports different FQDN values during plan vs apply.
@@ -687,6 +701,57 @@ resource "azurerm_cdn_frontdoor_route" "api_route" {
   forwarding_protocol    = "HttpsOnly"
   link_to_default_domain = true
   https_redirect_enabled = true
+}
+
+locals {
+  frontdoor_private_link_request_message = "Azure Front Door ${var.app_name} access to Container Apps"
+}
+
+# Front Door's Private Link request arrives as Pending on the Container Apps environment and
+# azurerm cannot approve it, so approve it with the az CLI (logged in by azure/login in
+# .deployer_aca.yml), as is done for the Search -> Storage shared private link in infra/main.tf.
+# Front Door creates the request asynchronously after the origin update, so this waits for it.
+# Only approves connections carrying our request message.
+resource "terraform_data" "approve_frontdoor_private_link" {
+  count            = var.enable_front_door && var.api_frontdoor_private_link_enabled ? 1 : 0
+  triggers_replace = [azurerm_cdn_frontdoor_origin.api_container_app_origin[0].id, local.frontdoor_private_link_request_message]
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    environment = {
+      ENV_ID           = azurerm_container_app_environment.main.id
+      REQUEST_MESSAGE  = local.frontdoor_private_link_request_message
+      APPROVED_MESSAGE = "Approved by Terraform for Azure Front Door"
+      API_VERSION      = "2024-10-02-preview"
+      MSYS_NO_PATHCONV = "1" # Git Bash on Windows would otherwise rewrite /subscriptions/... into a file path
+    }
+    command = <<-EOT
+      set -euo pipefail
+      url="https://management.azure.com$ENV_ID/privateEndpointConnections?api-version=$API_VERSION"
+      for attempt in $(seq 1 40); do
+        conns=$(az rest --method get --url "$url" \
+          --query "value[?properties.privateLinkServiceConnectionState.description=='$REQUEST_MESSAGE' || properties.privateLinkServiceConnectionState.description=='$APPROVED_MESSAGE'].{id:id,status:properties.privateLinkServiceConnectionState.status}" \
+          -o tsv | tr -d '\r')
+        if echo "$conns" | grep -q $'\tApproved$' && ! echo "$conns" | grep -q $'\tPending$'; then
+          echo "Front Door private endpoint connection already approved."
+          exit 0
+        fi
+        pending=$(echo "$conns" | awk -F'\t' '$2=="Pending"{print $1}')
+        if [ -n "$pending" ]; then
+          for id in $pending; do
+            echo "Approving $id"
+            az rest --method put --url "https://management.azure.com$id?api-version=$API_VERSION" \
+              --body '{"properties":{"privateLinkServiceConnectionState":{"status":"Approved","description":"'"$APPROVED_MESSAGE"'"}}}' > /dev/null
+          done
+          exit 0
+        fi
+        echo "Waiting for Front Door private endpoint connection request ($attempt/40)..."
+        sleep 15
+      done
+      echo "No Front Door private endpoint connection request appeared on $ENV_ID within 10 minutes." >&2
+      exit 1
+    EOT
+  }
 }
 
 resource "azurerm_cdn_frontdoor_security_policy" "frontend_fd_security_policy" {

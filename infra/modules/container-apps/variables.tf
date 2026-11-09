@@ -266,8 +266,8 @@ variable "redis_ttl_days" {
 variable "cors_allow_origins" {
   description = "Comma-separated list of allowed origins for CORS (e.g., 'http://localhost:3000,https://example.gov.bc.ca')."
   type        = string
-  default     = ""  
-  
+  default     = ""
+
 }
 
 variable "backend_image" {
@@ -426,6 +426,12 @@ variable "api_frontdoor_id" {
   type        = string
   default     = ""
   nullable    = false
+}
+
+variable "api_frontdoor_private_link_enabled" {
+  description = "Connect the Front Door origin to the Container Apps environment over Private Link (Front Door Premium only)."
+  type        = bool
+  default     = false
 }
 
 variable "api_frontdoor_resource_guid" {

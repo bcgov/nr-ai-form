@@ -296,10 +296,11 @@ module "container_apps" {
   appinsights_connection_string   = module.monitoring.appinsights_connection_string
 
   # Front Door
-  enable_front_door                = var.enable_front_door
-  api_frontdoor_id                 = var.enable_front_door ? module.frontdoor[0].frontdoor_id : ""
-  api_frontdoor_resource_guid      = var.enable_front_door ? module.frontdoor[0].frontdoor_resource_guid : ""
-  api_frontdoor_firewall_policy_id = var.enable_front_door ? module.frontdoor[0].firewall_policy_id : ""
+  enable_front_door                  = var.enable_front_door
+  api_frontdoor_id                   = var.enable_front_door ? module.frontdoor[0].frontdoor_id : ""
+  api_frontdoor_resource_guid        = var.enable_front_door ? module.frontdoor[0].frontdoor_resource_guid : ""
+  api_frontdoor_firewall_policy_id   = var.enable_front_door ? module.frontdoor[0].firewall_policy_id : ""
+  api_frontdoor_private_link_enabled = var.frontdoor_private_link_enabled
 
   # Azure OpenAI
   azure_openai_api_key              = var.azure_openai_api_key
