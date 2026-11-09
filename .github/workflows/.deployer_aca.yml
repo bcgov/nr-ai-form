@@ -229,9 +229,14 @@ jobs:
           REDIS_TTL_DAYS: ${{ vars.REDIS_TTL_DAYS }}
       run: |
           echo "Running plan to check for resource destructions..."
-          terragrunt run-all plan --terragrunt-non-interactive -lock=false ${{ inputs.target_modules }} 2>&1 | tee /tmp/tfplan_output.txt
+          set -o pipefail
+          terragrunt run-all plan --terragrunt-non-interactive -lock=false -no-color ${{ inputs.target_modules }} 2>&1 | tee /tmp/tfplan_output.txt
 
-          if grep -E "(will be destroyed|must be replaced)" /tmp/tfplan_output.txt; then
+          # -no-color plus stripping any remaining ANSI codes: with colour, Terraform prints
+          # "must be [bold]replaced[reset]" and the summary with escape codes, which this check
+          # previously never matched. The "Plan: ... N to destroy" summary also counts replacements.
+          sed -i 's/\x1b\[[0-9;]*m//g' /tmp/tfplan_output.txt
+          if grep -E "(will be destroyed|must be replaced|Plan: .* [1-9][0-9]* to destroy)" /tmp/tfplan_output.txt; then
             echo "::error::Plan contains resource destructions or replacements. Aborting to protect the ${{ inputs.environment_name }} environment."
             echo "Review the plan output above. If the destruction is intentional, use a destroy workflow instead."
             exit 1

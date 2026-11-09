@@ -28,7 +28,7 @@ resource "azurerm_container_app_environment" "main" {
   # Azure only accepts Front Door's Private Link connection when public network access is
   # Disabled, so both change together. From this point the *.azurecontainerapps.io URL is
   # blocked from the internet and traffic must come through Front Door.
-  public_network_access = var.enable_front_door && var.api_frontdoor_private_link_enabled ? "Disabled" : "Enabled"
+  public_network_access = local.frontdoor_private_link_enabled ? "Disabled" : "Enabled"
 
   workload_profile {
     name                  = "Consumption"
@@ -661,7 +661,6 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
   name                          = "${var.repo_name}-${var.app_env}-api-origin"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group[0].id
 
-  enabled                        = true
   host_name                      = local.backend_fqdn
   http_port                      = 8002
   https_port                     = 443
@@ -670,23 +669,47 @@ resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin" {
   weight                         = 1000
   certificate_name_check_enabled = true
 
-  # Front Door Premium reaches the Container Apps environment over Private Link (prod). The
-  # resulting private endpoint connection on the environment is approved by
-  # terraform_data.approve_frontdoor_private_link below. Requires public network access on the
-  # environment to be Disabled (set on azurerm_container_app_environment.main).
-  dynamic "private_link" {
-    for_each = var.enable_front_door && var.api_frontdoor_private_link_enabled ? [1] : []
-    content {
-      request_message        = local.frontdoor_private_link_request_message
-      target_type            = "managedEnvironments"
-      location               = var.location
-      private_link_target_id = azurerm_container_app_environment.main.id
-    }
-  }
+  # Public origin. When Front Door uses Private Link (prod) it is kept but disabled instead of
+  # deleted: adding private_link to an origin forces a replace, and Azure refuses to delete the
+  # last origin of a group that a route uses. It is disabled only after the Private Link origin
+  # below exists (depends_on), since Azure also refuses to disable the last enabled origin.
+  enabled = !local.frontdoor_private_link_enabled
 
   # Ignore changes to host_name and origin_host_header due to Azure provider
   # inconsistency when Container App has internal ingress enabled.
   # The provider reports different FQDN values during plan vs apply.
+  lifecycle {
+    ignore_changes = [host_name, origin_host_header]
+  }
+
+  depends_on = [azurerm_container_app.backend, azurerm_cdn_frontdoor_origin.api_container_app_origin_private_link]
+}
+
+# Front Door Premium reaches the Container Apps environment over Private Link (prod). Azure only
+# accepts this when the environment's public network access is Disabled; referencing the
+# environment makes Terraform apply that change first. The resulting private endpoint connection
+# is approved by terraform_data.approve_frontdoor_private_link below.
+resource "azurerm_cdn_frontdoor_origin" "api_container_app_origin_private_link" {
+  count                         = local.frontdoor_private_link_enabled ? 1 : 0
+  name                          = "${var.repo_name}-${var.app_env}-api-origin-pl"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group[0].id
+
+  enabled                        = true
+  host_name                      = local.backend_fqdn
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = local.backend_fqdn
+  priority                       = 1
+  weight                         = 1000
+  certificate_name_check_enabled = true
+
+  private_link {
+    request_message        = local.frontdoor_private_link_request_message
+    target_type            = "managedEnvironments"
+    location               = var.location
+    private_link_target_id = azurerm_container_app_environment.main.id
+  }
+
   lifecycle {
     ignore_changes = [host_name, origin_host_header]
   }
@@ -699,7 +722,10 @@ resource "azurerm_cdn_frontdoor_route" "api_route" {
   name                          = "${var.repo_name}-${var.app_env}-api-fd"
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0].id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group[0].id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.api_container_app_origin[0].id]
+  cdn_frontdoor_origin_ids = concat(
+    [azurerm_cdn_frontdoor_origin.api_container_app_origin[0].id],
+    azurerm_cdn_frontdoor_origin.api_container_app_origin_private_link[*].id,
+  )
 
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
@@ -709,6 +735,7 @@ resource "azurerm_cdn_frontdoor_route" "api_route" {
 }
 
 locals {
+  frontdoor_private_link_enabled         = var.enable_front_door && var.api_frontdoor_private_link_enabled
   frontdoor_private_link_request_message = "Azure Front Door ${var.app_name} access to Container Apps"
 }
 
@@ -718,8 +745,8 @@ locals {
 # Front Door creates the request asynchronously after the origin update, so this waits for it.
 # Only approves connections carrying our request message.
 resource "terraform_data" "approve_frontdoor_private_link" {
-  count            = var.enable_front_door && var.api_frontdoor_private_link_enabled ? 1 : 0
-  triggers_replace = [azurerm_cdn_frontdoor_origin.api_container_app_origin[0].id, local.frontdoor_private_link_request_message]
+  count            = local.frontdoor_private_link_enabled ? 1 : 0
+  triggers_replace = [azurerm_cdn_frontdoor_origin.api_container_app_origin_private_link[0].id, local.frontdoor_private_link_request_message]
 
   provisioner "local-exec" {
     interpreter = ["bash", "-c"]
