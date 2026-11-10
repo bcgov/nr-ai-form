@@ -1,0 +1,31 @@
+queries,step
+What do you mean by substantial interest in the land?,step2-Eligibility
+I want to use water from the well to water my crops on 1 acre of land,step3-Technical-Information-Source-of-Water-for-Application
+I have crops on 2 acres of land do I need a water licence?,step2-Eligibility
+Do I need to have my wife on this application also?,step7-Applicant-Information
+"I don't want my neighbour to know I'm applying, will he find out?",step7-Applicant-Information
+"If I host weekly slip n slide competitions with my neighbours in my backyard, and we use significant water during our gatherings, do we need a water licence for that use?",step2-Eligibility
+"My neighbour and I share a pond, can we both use water from it?",step2-Eligibility
+I keep a few goats on my property. Do I need a licence to water them?,step2-Eligibility
+Do I need a licence if I sell my surplus vegetables at the farmers market?,step2-Eligibility
+What is this application for?,step1-Introduction
+How do I find out if I have an existing water licence?,step1-Introduction
+What is domestic use?,step2-Eligibility
+Do I need a licence to water my garden from my well?,step2-Eligibility
+What is the difference between surface water and groundwater?,step3-Technical-Information-Source-of-Water-for-Application
+What should I enter for the well tag number?,step3-Technical-Information-Add-Well
+How much water do 50 cattle need per day?,step3-AddPurpose-Consolidated
+What is a joint works?,step3-Technical-Information-Joint-Works
+Who qualifies for a fee exemption?,step3-Technical-Information-Fee-Exemption-Request
+What are works in this application?,step3-Technical-Information-Works
+Do I need a separate licence for my dam?,step3-Technical-Information-Dam-Reservoir
+How do I find my parcel identifier (PID)?,step4-Location-Land-Details
+What counts as other affected lands?,step4-Location-Other-Affected-Lands
+What documents do I need to upload?,step5-Document-Upload
+What happens to my personal information?,step6-Privacy-Confirmation
+Who is a co-applicant?,step7-Co-Applicants
+Can I add a company as a co-applicant?,step7-Co-Applicant-Add-A-Business-Applicant
+Can I change my answers before I submit?,step8-Review
+What am I agreeing to in the declarations?,step9-Declarations
+How long does it take to get a decision on my application?,step10-Complete
+Should I also talk to FrontCounter BC?,step0-Bot

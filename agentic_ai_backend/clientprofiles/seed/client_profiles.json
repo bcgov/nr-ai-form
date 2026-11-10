@@ -5,7 +5,8 @@
     "corsOrigins": [
       "http://localhost",
       "https://train.j200.gov.bc.ca",
-      "https://test.j200.gov.bc.ca"
+      "https://test.j200.gov.bc.ca",
+      "https://delivery.j200.gov.bc.ca"
     ],
     "tenantResources": {
       "prompts": {
@@ -31,7 +32,7 @@
         "enabled": true,
         "promptPath": "tenants/water/agentprompts/conversationagent/instructions.md",
         "config": {
-          "azureSearchKnowledgeAgentName": "<azure-search-knowledge-agent-name>",
+          "azureSearchKnowledgeAgentName": "knowledgebase-bc-waterpermit-dev",
           "agentMaxTokens": 2500,
           "agentTemperature": 0.1,
           "azureSearchIndexName": "rag-bc-waterpermit-dev",
@@ -47,7 +48,7 @@
           "azureSearchEnableTrimming": false,
           "azureSearchIncludeTotalCount": true,
           "azureSearchQueryType": "semantic",
-          "azureSearchSemanticConfiguration": "",
+          "azureSearchSemanticConfiguration": "rag-bc-waterpermit-dev-semantic-configuration",
           "azureSearchQueryCaption": "extractive",
           "azureSearchQueryAnswer": "extractive",
           "azureSearchQueryAnswerCount": 3,
