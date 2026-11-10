@@ -45,7 +45,10 @@ inputs = {
   # Client profiles in Cosmos (AgentMemoryDB/ClientProfiles) are managed from Git: change
   # agentic_ai_backend/clientprofiles/prod/clientprofiles.json through a pull request, and the
   # next prod apply upserts it via the "<app_name>-cp-sync" Container Apps Job (infra/client_profiles.tf).
-  # "id" and "clientId" are kept exactly as written and must be equal.
+  # Leave "id" and "clientId" out of the JSON: Terraform generates one GUID per clientName (kept in
+  # state, stable across deploys) and writes it into both. See the "client_profile_ids" output.
+  # If the JSON does set them, they are kept exactly as written and must be equal.
+  # Process and rename/remove steps: agentic_ai_backend/clientprofiles/docs/azure-setup.md ("Prod Client Profiles")
   # (These are not in the root terragrunt.auto.tfvars, so setting them here takes effect.)
   client_profiles_json        = file("${get_repo_root()}/agentic_ai_backend/clientprofiles/prod/clientprofiles.json")
   client_profiles_sync_script = file("${get_repo_root()}/agentic_ai_backend/clientprofiles/scripts/sync_client_profiles.py")

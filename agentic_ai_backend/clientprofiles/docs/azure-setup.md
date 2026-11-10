@@ -262,6 +262,32 @@ Paths are ignored because browser `Origin` headers never include paths. Local de
 
 Seed data lives in `clientprofiles/seed/client_profiles.json`.
 
+> **Prod is different.** Prod profiles are not seeded with these scripts. See [Prod Client Profiles](#prod-client-profiles).
+
+---
+
+## Prod Client Profiles
+
+Prod tenants live in `clientprofiles/prod/clientprofiles.json` in Git. **Do not put `id` or `clientId` in it.** On every prod deploy:
+
+1. **Terraform** (`infra/client_profiles.tf`) gives each tenant a GUID with `random_uuid`, keyed by `clientName`. The GUID is created once and kept in Terraform state, and Terraform writes it into both `id` and `clientId`. The `client_profile_ids` output lists `clientName => clientId`; give that GUID to the tenant's frontend.
+2. **The sync job** (Container Apps Job `<app_name>-cp-sync`, started by `scripts/run-client-profiles-sync.sh` after apply) runs inside the VNet and upserts every tenant into Cosmos. It requires `id` == `clientId`, and it never deletes anything.
+
+A PR that touches `clientprofiles/**` runs `sync_client_profiles.py --validate-only`, which allows missing ids and requires a unique `clientName`.
+
+| To... | Do this |
+|---|---|
+| Add a tenant | Add it to the JSON without ids, then open a PR, merge and deploy. Read its GUID from `client_profile_ids` |
+| Change a setting | Edit the JSON, keeping `clientName` the same. The same Cosmos record is updated, and the app sees the change within about 5 minutes (`TENANT_PROFILE_FRESH_TTL_SECONDS`) |
+| Rename a tenant | Change `clientName`, and in the same PR add `moved { from = random_uuid.client_profile["Old"]  to = random_uuid.client_profile["New"] }` to `infra/client_profiles.tf`. The GUID is kept |
+| Remove a tenant | Delete it from the JSON, and add `removed { from = random_uuid.client_profile["Name"]  lifecycle { destroy = false } }`. Then delete its Cosmos record by hand |
+
+**When something goes wrong.** Prod's Safety Plan Check (`prevent_destroy`) stops the deploy before apply if a GUID would be destroyed:
+
+- Renamed without `moved`, or removed without `removed` → the deploy is stopped and nothing changes. Add the block, or undo the JSON change.
+- `removed` block added while the tenant is still in the JSON → Terraform plan errors.
+- Cosmos record deleted by hand while the tenant is still in the JSON → the next sync puts it back with the same GUID. To restore it sooner, run `az containerapp job start -n <app_name>-cp-sync -g <resource-group>`.
+
 The `id` field is not required in the JSON - the seed scripts automatically set `id = clientId` for each document. If `clientId` is also missing, a random UUID is generated.
 
 Seed profiles are validated before upsert using the current strict runtime schema. Each seeded tenant must include the supported `conversationAgent` and `formSupportAgent` entries, their required config values, and the required `tenantResources.config` orchestrator runtime values. Missing required values stop the seed script before any Cosmos upsert.
