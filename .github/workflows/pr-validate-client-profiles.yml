@@ -23,5 +23,6 @@ jobs:
       - name: Validate schema and id == clientId
         working-directory: agentic_ai_backend/api_backend
         run: |
-          uv sync --frozen
+          # No --frozen: uv.lock files are gitignored, so there is no lockfile on the runner.
+          uv sync
           uv run python ../clientprofiles/scripts/sync_client_profiles.py --validate-only ../clientprofiles/prod/clientprofiles.json
