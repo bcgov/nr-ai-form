@@ -30,22 +30,38 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "frontend_firewall_policy" {
   }
   # the 'managed_rule' code block is only supported with the "Premium_AzureFrontDoor" sku
   dynamic "managed_rule" {
-    for_each = var.frontdoor_sku_name == "Premium_AzureFrontDoor" ? [
-      {
-        type    = "DefaultRuleSet"
-        version = "1.0"
-        action  = "Log"
-      },
-      {
-        type    = "Microsoft_BotManagerRuleSet"
-        version = "1.1"
-        action  = "Block"
-      }
-    ] : []
+    for_each = var.frontdoor_sku_name == "Premium_AzureFrontDoor" ? [1] : []
     content {
-      type    = managed_rule.value.type
-      version = managed_rule.value.version
-      action  = managed_rule.value.action
+      type    = "DefaultRuleSet"
+      version = "1.0"
+      action  = "Log"
+
+      # The browser WebSocket handshake is wss://<fd>/ws?session_id=<id>. DRS 1.0 session-fixation
+      # rules block any request with a "session_id" query arg name and no/off-domain Referer
+      # (browsers send no Referer on the handshake), returning 403 before the API is reached.
+      # The API uses no cookie sessions, so log these instead of blocking. The rule-set level
+      # action = "Log" above is not applied by DRS 1.0, so the override has to be per rule.
+      override {
+        rule_group_name = "FIX"
+        rule {
+          rule_id = "943110" # SessionID Parameter Name with Off-Domain Referer
+          enabled = true
+          action  = "Log"
+        }
+        rule {
+          rule_id = "943120" # SessionID Parameter Name with No Referer
+          enabled = true
+          action  = "Log"
+        }
+      }
+    }
+  }
+  dynamic "managed_rule" {
+    for_each = var.frontdoor_sku_name == "Premium_AzureFrontDoor" ? [1] : []
+    content {
+      type    = "Microsoft_BotManagerRuleSet"
+      version = "1.1"
+      action  = "Block"
     }
   }
   custom_rule {
