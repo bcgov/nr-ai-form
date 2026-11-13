@@ -102,8 +102,8 @@
                 "promptPath": "tenants/fish/agentprompts/conversationagent/instructions.md",
                 "config": {
                     "conversationAgentMode": "llm",
-                    "azureSearchIndexName": "rag-bc-fish-prod",
-                    "azureSearchSemanticConfiguration": "rag-bc-fish-prod-semantic-configuration",
+                    "azureSearchIndexName": "rag-bc-fish",
+                    "azureSearchSemanticConfiguration": "rag-bc-fish-semantic-configuration",
                     "azureSearchTop": 5,
                     "azureOpenaiChatDeploymentName": "gpt-5.1",
                     "azureOpenaiApiVersion": "2024-10-21",
