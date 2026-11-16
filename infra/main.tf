@@ -270,6 +270,14 @@ module "container_apps" {
   # Container Configuration
   container_cpu                  = var.container_cpu
   container_memory               = var.container_memory
+  orchestrator_agent_cpu         = var.orchestrator_agent_cpu
+  orchestrator_agent_memory      = var.orchestrator_agent_memory
+  conversation_agent_cpu         = var.conversation_agent_cpu
+  conversation_agent_memory      = var.conversation_agent_memory
+  formsupport_agent_cpu          = var.formsupport_agent_cpu
+  formsupport_agent_memory       = var.formsupport_agent_memory
+  api_backend_cpu                = var.api_backend_cpu
+  api_backend_memory             = var.api_backend_memory
   min_replicas                   = var.min_replicas
   max_replicas                   = var.max_replicas
   internal_load_balancer_enabled = false # Must be false for Front Door to reach the Container App via public HTTPS

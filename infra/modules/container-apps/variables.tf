@@ -369,6 +369,57 @@ variable "container_memory" {
   nullable    = false
 }
 
+# Per-container overrides. null falls back to container_cpu / container_memory.
+# The sum across all containers in the app must be a valid ACA Consumption combination
+# (memory = 2 x CPU, e.g. 2.5 CPU / 5Gi; max 4 CPU / 8Gi).
+variable "orchestrator_agent_cpu" {
+  description = "CPU (cores) for the orchestrator-agent container. null = container_cpu."
+  type        = number
+  default     = null
+}
+
+variable "orchestrator_agent_memory" {
+  description = "Memory for the orchestrator-agent container (e.g. \"2Gi\"). null = container_memory."
+  type        = string
+  default     = null
+}
+
+variable "conversation_agent_cpu" {
+  description = "CPU (cores) for the conversation-agent container. null = container_cpu."
+  type        = number
+  default     = null
+}
+
+variable "conversation_agent_memory" {
+  description = "Memory for the conversation-agent container (e.g. \"1Gi\"). null = container_memory."
+  type        = string
+  default     = null
+}
+
+variable "formsupport_agent_cpu" {
+  description = "CPU (cores) for the formsupport-agent container. null = container_cpu."
+  type        = number
+  default     = null
+}
+
+variable "formsupport_agent_memory" {
+  description = "Memory for the formsupport-agent container (e.g. \"1Gi\"). null = container_memory."
+  type        = string
+  default     = null
+}
+
+variable "api_backend_cpu" {
+  description = "CPU (cores) for the api-backend container. null = container_cpu."
+  type        = number
+  default     = null
+}
+
+variable "api_backend_memory" {
+  description = "Memory for the api-backend container (e.g. \"1Gi\"). null = container_memory."
+  type        = string
+  default     = null
+}
+
 variable "cosmosdb_container_name" {
   description = "Cosmos DB container name"
   type        = string

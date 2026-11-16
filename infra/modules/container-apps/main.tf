@@ -157,8 +157,8 @@ resource "azurerm_container_app" "backend" {
     container {
       name   = "orchestrator-agent"
       image  = var.orchestrator_agent_image != "" ? var.orchestrator_agent_image : var.backend_image
-      cpu    = var.container_cpu
-      memory = var.container_memory
+      cpu    = coalesce(var.orchestrator_agent_cpu, var.container_cpu)
+      memory = coalesce(var.orchestrator_agent_memory, var.container_memory)
 
       # Health probes for Orchestrator Agent
       startup_probe {
@@ -276,8 +276,8 @@ resource "azurerm_container_app" "backend" {
     container {
       name   = "conversation-agent"
       image  = var.conversation_agent_image != "" ? var.conversation_agent_image : ""
-      cpu    = var.container_cpu
-      memory = var.container_memory
+      cpu    = coalesce(var.conversation_agent_cpu, var.container_cpu)
+      memory = coalesce(var.conversation_agent_memory, var.container_memory)
 
       # Health probes for Conversation Agent
       startup_probe {
@@ -369,8 +369,8 @@ resource "azurerm_container_app" "backend" {
     container {
       name   = "formsupport-agent"
       image  = var.formsupport_agent_image != "" ? var.formsupport_agent_image : ""
-      cpu    = var.container_cpu
-      memory = var.container_memory
+      cpu    = coalesce(var.formsupport_agent_cpu, var.container_cpu)
+      memory = coalesce(var.formsupport_agent_memory, var.container_memory)
 
       # Health probes for Form Support Agent
       startup_probe {
@@ -464,8 +464,8 @@ resource "azurerm_container_app" "backend" {
       content {
         name   = "api-backend"
         image  = var.api_backend_image
-        cpu    = var.container_cpu
-        memory = var.container_memory
+        cpu    = coalesce(var.api_backend_cpu, var.container_cpu)
+        memory = coalesce(var.api_backend_memory, var.container_memory)
 
         startup_probe {
           transport = "HTTP"

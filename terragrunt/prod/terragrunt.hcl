@@ -9,6 +9,19 @@ inputs = {
   # Keep at least one replica warm in prod to avoid cold starts (default is 0 / scale-to-zero)
   min_replicas = 1
 
+  # Per-container resources for the Container App. Dev/test leave these unset and use
+  # container_cpu / container_memory (0.5 CPU / 1Gi each). The total across the four
+  # containers must be a valid ACA Consumption combination (memory = 2 x CPU, max 4 CPU / 8Gi):
+  # here 2.5 CPU / 5Gi per replica.
+  orchestrator_agent_cpu    = 1
+  orchestrator_agent_memory = "2Gi"
+  conversation_agent_cpu    = 0.5
+  conversation_agent_memory = "1Gi"
+  formsupport_agent_cpu     = 0.5
+  formsupport_agent_memory  = "1Gi"
+  api_backend_cpu           = 0.5
+  api_backend_memory        = "1Gi"
+
   # Provision Azure AI Search and the Storage Account with Terraform in prod.
   # Their endpoint/keys are wired into the Container App from module outputs, so
   # AZURE_SEARCH_ENDPOINT, AZURE_SEARCH_API_KEY and AZURE_STORAGE_* do not need to be set in
