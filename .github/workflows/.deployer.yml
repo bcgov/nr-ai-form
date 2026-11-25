@@ -40,7 +40,7 @@ env:
     AZURE_REGION: Canada Central
 permissions:
   id-token: write # This is required for requesting the JWT
-  contents: write # This is required for actions/checkout
+  contents: read
 jobs:
  infra:
   environment: ${{ inputs.environment_name }}

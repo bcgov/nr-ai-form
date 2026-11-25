@@ -13,14 +13,13 @@ on:
           - apply
 
 permissions:
-  id-token: write
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
   # Compute a URL-safe slug from the deploying branch name (max 15 chars)
   branch-slug:
     name: Branch Slug
+    permissions: {}
     runs-on: ubuntu-24.04
     outputs:
       branch_slug: ${{ steps.slug.outputs.branch_slug }}
@@ -41,6 +40,10 @@ jobs:
 
   # Builds only run on apply — plan does not need new images
   builds:
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
     if: inputs.command == 'apply'
     concurrency:
       group: builds-aca-dev-${{ github.run_id }}
@@ -54,6 +57,8 @@ jobs:
 
   lint:
     name: Lint
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -83,6 +88,9 @@ jobs:
 
   deploy-aca-dev:
     name: ${{ inputs.command == 'plan' && 'Plan' || 'Deploy' }} Azure Container Apps to Dev (${{ needs.branch-slug.outputs.branch_slug }})
+    permissions:
+      id-token: write
+      contents: read
     needs: [builds, branch-slug]
     # Run even when builds was skipped (plan path) but not when builds failed
     if: always() && (needs.builds.result == 'success' || needs.builds.result == 'skipped')

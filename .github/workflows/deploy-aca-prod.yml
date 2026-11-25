@@ -30,9 +30,7 @@ on:
 run-name: Deploy ACA to Prod - ${{ inputs.command }} (${{ inputs.test_tag }})
 
 permissions:
-  id-token: write
-  contents: write
-  packages: write
+  contents: read
 
 env:
   IMAGE_PREFIX: ghcr.io/${{ github.repository }}
@@ -41,6 +39,8 @@ env:
 jobs:
   promote:
     name: ${{ inputs.command == 'apply' && format('Promote {0} to prod-aca-{1}', inputs.test_tag, github.run_number) || format('Check {0} images exist', inputs.test_tag) }}
+    permissions:
+      packages: write
     runs-on: ubuntu-24.04
     steps:
       - name: Validate tag
@@ -92,6 +92,8 @@ jobs:
 
   lint:
     name: Lint
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -123,6 +125,9 @@ jobs:
   # .deployer_aca.yml): configure Required reviewers on it in Settings → Environments → prod.
   deploy-aca-prod:
     name: ${{ inputs.command == 'apply' && 'Deploy Azure Container Apps to Prod' || 'Plan Azure Container Apps for Prod' }}
+    permissions:
+      id-token: write
+      contents: read
     needs: promote
     if: github.event_name == 'workflow_dispatch'
     concurrency:
@@ -143,6 +148,8 @@ jobs:
   # "prod" always points at what is running in prod, so it moves only after a successful apply.
   tag-prod:
     name: Tag images prod
+    permissions:
+      packages: write
     needs: deploy-aca-prod
     if: inputs.command == 'apply'
     runs-on: ubuntu-24.04

@@ -6,7 +6,7 @@ on:
         description: 'The Stack Prefix'
         value: ${{ jobs.prefix.outputs.STACK_PREFIX }}
 permissions:
-  contents: write # This is required for actions/checkout
+  contents: read
 jobs:
   prefix:
     name: Stack Prefix

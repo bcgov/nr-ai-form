@@ -9,16 +9,18 @@ on:
         type: string
 
 permissions:
-  id-token: write
-  contents: write
+  contents: read
 
 jobs:
   compute-prefix:
     name: Compute Stack Prefix
     uses: ./.github/workflows/.stack-prefix.yml
+    permissions:
+      contents: read
 
   compute-slug:
     name: Compute Branch Slug
+    permissions: {}
     needs: compute-prefix
     runs-on: ubuntu-24.04
     outputs:
@@ -38,6 +40,7 @@ jobs:
 
   safety:
     name: Safety check before destroy
+    permissions: {}
     needs: [compute-prefix, compute-slug]
     runs-on: ubuntu-24.04
     outputs:
@@ -72,6 +75,9 @@ jobs:
 
   destroy:
     name: Destroy ACA
+    permissions:
+      id-token: write
+      contents: read
     needs: [safety, compute-prefix, compute-slug]
     if: needs.safety.outputs.safe_to_destroy == 'true'
     uses: ./.github/workflows/.deployer_aca.yml

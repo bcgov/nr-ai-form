@@ -9,7 +9,7 @@ on:
         type: string
 permissions:
   id-token: write # This is required for requesting the JWT
-  contents: write # This is required for actions/checkout
+  contents: read
   packages: write
 jobs:
   # https://github.com/bcgov/action-builder-ghcr
