@@ -41,13 +41,13 @@ env:
   AZURE_REGION: ${{ vars.AZURE_REGION || 'Canada Central' }}
 
 permissions:
-  id-token: write
   contents: read
-  pull-requests: write
 
 jobs:
   validate:
     name: Validate Chisel Terraform
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -143,6 +143,10 @@ jobs:
 
   plan:
     name: Terraform Plan
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-24.04
     needs: validate
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
@@ -294,6 +298,9 @@ jobs:
 
   apply:
     name: Terraform Apply
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-24.04
     needs: validate
     if: |
@@ -442,6 +449,9 @@ jobs:
 
   destroy:
     name: Terraform Destroy
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-24.04
     needs: validate
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.terraform_action == 'destroy'

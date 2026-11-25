@@ -32,16 +32,20 @@ on:
 env:
     AZURE_REGION: Canada Central
 permissions:
-  id-token: write # This is required for requesting the JWT
-  contents: write # This is required for actions/checkout
+  contents: read
 jobs:
   stack-prefix:
     name: Stack Prefix
     uses: ./.github/workflows/.stack-prefix.yml
+    permissions:
+      contents: read
   deploy:
     name: Deploy
     needs: [stack-prefix]
     uses: ./.github/workflows/.deployer.yml
+    permissions:
+      id-token: write
+      contents: read
     with:
       environment_name: ${{ inputs.environment_name }}
       command: ${{ inputs.command }}
