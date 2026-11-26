@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "@azure/cosmos": "^4.4.1"
-  }
-}
